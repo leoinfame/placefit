@@ -1135,6 +1135,120 @@ export default function Products() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Cards Mobile */}
+            <div className="md:hidden space-y-3 overflow-hidden">
+              {filteredProducts.map((product) => (
+                <Card key={product.id} className="bg-white shadow overflow-hidden">
+                  <CardContent className="p-3 overflow-hidden">
+                    <div className="space-y-2 overflow-hidden">
+                      <div className="flex items-start gap-2 overflow-hidden">
+                        <div className="w-12 h-12 bg-gray-100 rounded overflow-hidden flex-shrink-0">
+                          {product.foto ? (
+                            <img 
+                              src={product.foto} 
+                              alt={product.nome}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                e.target.nextSibling.style.display = 'flex';
+                              }}
+                            />
+                          ) : null}
+                          <div 
+                            className="flex items-center justify-center w-full h-full text-gray-400" 
+                            style={product.foto ? {display: 'none'} : {}}
+                          >
+                            <ImageIcon className="w-4 h-4" />
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0 overflow-hidden">
+                          <h3 className="font-semibold text-xs text-gray-900 line-clamp-2 break-words">{product.nome}</h3>
+                          <p className="text-xs text-gray-500 font-mono truncate mt-0.5">{product.cod}</p>
+                          <div className="flex flex-wrap gap-1 mt-1.5">
+                            <Badge variant="secondary" className="text-xs px-1.5 py-0">
+                              {product.categoria}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="flex flex-col">
+                          <span className="text-gray-600">Status:</span>
+                          <div className="mt-0.5">
+                            {product.fabricante_id ? (
+                              product.aprovado_produto ? (
+                                <Badge className="bg-green-100 text-green-700 text-xs px-1.5 py-0">
+                                  <CheckCircle className="w-2.5 h-2.5 mr-0.5" />
+                                  Aprovado
+                                </Badge>
+                              ) : (
+                                <Badge className="bg-amber-100 text-amber-700 text-xs px-1.5 py-0">
+                                  <Clock className="w-2.5 h-2.5 mr-0.5" />
+                                  Pendente
+                                </Badge>
+                              )
+                            ) : (
+                              <Badge className="bg-green-100 text-green-700 text-xs px-1.5 py-0">Admin</Badge>
+                            )}
+                          </div>
+                        </div>
+                        {product.fabricante_id && (
+                          <div className="flex flex-col">
+                            <span className="text-gray-600">Fabricante:</span>
+                            <span className="text-purple-700 font-medium truncate mt-0.5">
+                              {getFabricanteName(product.fabricante_id)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {product.fabricante_id && (
+                        <div className="flex items-center gap-2 pt-1.5 border-t">
+                          <span className="text-xs text-gray-600">Aprovar:</span>
+                          <Switch
+                            checked={product.aprovado_produto}
+                            onCheckedChange={() => handleApprovalToggle(product)}
+                            className="scale-75"
+                          />
+                        </div>
+                      )}
+
+                      <div className="flex gap-1.5 pt-1.5 border-t">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEdit(product)}
+                          className="flex-1 h-8 hover:bg-blue-50 hover:text-blue-700 px-2"
+                          disabled={product.fabricante_id && !product.aprovado_produto}
+                        >
+                          <Edit3 className="w-3 h-3 mr-1" />
+                          <span className="text-xs">Editar</span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDelete(product)}
+                          className="flex-1 h-8 hover:bg-red-50 hover:text-red-700 px-2"
+                        >
+                          <Trash2 className="w-3 h-3 mr-1" />
+                          <span className="text-xs">Excluir</span>
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+              
+              {filteredProducts.length === 0 && (
+                <div className="text-center py-12 overflow-hidden">
+                  <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-base font-semibold text-gray-900 mb-2 px-4">Nenhum produto encontrado</h3>
+                  <p className="text-sm text-gray-600 px-4">Tente ajustar os filtros ou adicione novos produtos.</p>
+                </div>
+              )}
+            </div>
           </TabsContent>
 
           <TabsContent value="export" className="space-y-6">
