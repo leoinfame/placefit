@@ -1125,77 +1125,107 @@ export default function Products() {
             </Card>
 
             {/* Cards Mobile */}
-            <div className="md:hidden space-y-1">
+            <div className="md:hidden space-y-2 w-full">
               {filteredProducts.map((product) => (
-                <Card key={product.id} className="bg-white shadow-sm">
-                  <CardContent className="p-1">
-                    <div className="flex items-center gap-0.5">
-                      <input
-                        type="checkbox"
-                        checked={selectedProducts.includes(product.id)}
-                        onChange={() => handleSelectProduct(product.id)}
-                        className="w-3 h-3 flex-shrink-0"
-                      />
-                      <div className="w-5 h-5 bg-gray-100 rounded flex-shrink-0">
-                        {product.foto ? (
-                          <img 
-                            src={product.foto} 
-                            alt={product.nome}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.target.style.display = 'none';
-                              e.target.nextSibling.style.display = 'flex';
-                            }}
-                          />
-                        ) : null}
-                        <div 
-                          className="flex items-center justify-center w-full h-full text-gray-400" 
-                          style={product.foto ? {display: 'none'} : {}}
-                        >
-                          <ImageIcon className="w-1.5 h-1.5" />
-                        </div>
-                      </div>
-                      <div className="flex-1 min-w-0 overflow-hidden">
-                        <h3 className="font-medium text-xs truncate leading-tight">{product.nome}</h3>
-                        <div className="flex gap-0.5 mt-0.5">
-                          <Badge variant="secondary" className="text-xs px-0.5 py-0 h-3 leading-none">
-                            {product.categoria.substring(0, 3)}
-                          </Badge>
-                          {product.fabricante_id ? (
-                            product.aprovado_produto ? (
-                              <Badge className="bg-green-100 text-green-700 text-xs px-0.5 py-0 h-3 leading-none">✓</Badge>
-                            ) : (
-                              <Badge className="bg-amber-100 text-amber-700 text-xs px-0.5 py-0 h-3 leading-none">⏱</Badge>
-                            )
-                          ) : (
-                            <Badge className="bg-green-100 text-green-700 text-xs px-0.5 py-0 h-3 leading-none">A</Badge>
-                          )}
-                        </div>
-                      </div>
-                      {product.fabricante_id && (
-                        <Switch
-                          checked={product.aprovado_produto}
-                          onCheckedChange={() => handleApprovalToggle(product)}
-                          className="scale-75 flex-shrink-0"
+                <Card key={product.id} className="bg-white shadow-sm w-full">
+                  <CardContent className="p-2 w-full">
+                    <div className="space-y-2 w-full">
+                      {/* Linha 1: Checkbox, Foto e Nome */}
+                      <div className="flex items-start gap-2 w-full">
+                        <input
+                          type="checkbox"
+                          checked={selectedProducts.includes(product.id)}
+                          onChange={() => handleSelectProduct(product.id)}
+                          className="w-3.5 h-3.5 mt-1 flex-shrink-0"
                         />
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEdit(product)}
-                        className="h-5 w-5 p-0 flex-shrink-0"
-                        disabled={product.fabricante_id && !product.aprovado_produto}
-                      >
-                        <Edit3 className="w-2 h-2" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(product)}
-                        className="h-5 w-5 p-0 flex-shrink-0"
-                      >
-                        <Trash2 className="w-2 h-2" />
-                      </Button>
+                        <div className="w-10 h-10 bg-gray-100 rounded flex-shrink-0">
+                          {product.foto ? (
+                            <img 
+                              src={product.foto} 
+                              alt={product.nome}
+                              className="w-full h-full object-cover rounded"
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                e.target.nextSibling.style.display = 'flex';
+                              }}
+                            />
+                          ) : null}
+                          <div 
+                            className="flex items-center justify-center w-full h-full text-gray-400" 
+                            style={product.foto ? {display: 'none'} : {}}
+                          >
+                            <ImageIcon className="w-4 h-4" />
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0 overflow-hidden">
+                          <h3 className="font-medium text-xs break-words line-clamp-2">{product.nome}</h3>
+                        </div>
+                      </div>
+                      
+                      {/* Linha 2: Badges de Categoria, Origem e Status */}
+                      <div className="flex flex-wrap gap-1 w-full">
+                        <Badge variant="secondary" className="text-xs px-1.5 py-0.5">
+                          {product.categoria.substring(0, 3)}
+                        </Badge>
+                        {product.fabricante_id ? (
+                          <>
+                            <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200 px-1.5 py-0.5">
+                              Fab
+                            </Badge>
+                            {product.aprovado_produto ? (
+                              <Badge className="bg-green-100 text-green-700 text-xs px-1.5 py-0.5">
+                                <CheckCircle className="w-2.5 h-2.5 mr-0.5" />
+                                Aprovado
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-amber-100 text-amber-700 text-xs px-1.5 py-0.5">
+                                <Clock className="w-2.5 h-2.5 mr-0.5" />
+                                Pendente
+                              </Badge>
+                            )}
+                          </>
+                        ) : (
+                          <Badge className="bg-green-100 text-green-700 text-xs px-1.5 py-0.5">
+                            <CheckCircle className="w-2.5 h-2.5 mr-0.5" />
+                            Admin
+                          </Badge>
+                        )}
+                      </div>
+                      
+                      {/* Linha 3: Ações */}
+                      <div className="flex items-center justify-between gap-2 w-full border-t pt-2">
+                        {product.fabricante_id && (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs text-gray-600">Aprovar:</span>
+                            <Switch
+                              checked={product.aprovado_produto}
+                              onCheckedChange={() => handleApprovalToggle(product)}
+                              className="scale-90"
+                            />
+                          </div>
+                        )}
+                        <div className="flex items-center gap-1 ml-auto">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEdit(product)}
+                            className="h-7 px-2 text-xs"
+                            disabled={product.fabricante_id && !product.aprovado_produto}
+                          >
+                            <Edit3 className="w-3 h-3 mr-1" />
+                            Editar
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDelete(product)}
+                            className="h-7 px-2 text-xs text-red-600 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-3 h-3 mr-1" />
+                            Excluir
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
