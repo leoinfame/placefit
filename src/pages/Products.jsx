@@ -966,44 +966,44 @@ export default function Products() {
             {/* Lista de Produtos em Formato Tabela - Desktop */}
             <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hidden md:block">
               <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <Table> {/* Changed to shadcn Table */}
+                <div className="w-full">
+                  <Table className="w-full">
                     <TableHeader>
                       <TableRow className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-500 hover:to-green-500">
-                        <TableHead className="text-white font-semibold w-12">
+                        <TableHead className="text-white font-semibold w-8 px-2">
                           <input
                             type="checkbox"
                             checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0}
                             onChange={handleSelectAllProducts}
-                            className="w-4 h-4 cursor-pointer"
+                            className="w-3 h-3 cursor-pointer"
                           />
                         </TableHead>
-                        <TableHead className="text-white font-semibold">Foto</TableHead>
-                        <TableHead className="text-white font-semibold">Código</TableHead>
-                        <TableHead className="text-white font-semibold">Nome</TableHead>
-                        <TableHead className="text-white font-semibold">Categoria</TableHead>
-                        <TableHead className="text-white font-semibold">Origem</TableHead> {/* New column */}
-                        <TableHead className="text-white font-semibold">Status</TableHead> {/* New column */}
-                        <TableHead className="text-white font-semibold text-center">Aprovar</TableHead> {/* New column */}
-                        <TableHead className="text-white font-semibold text-center">Ações</TableHead>
+                        <TableHead className="text-white font-semibold w-12 px-2 text-xs">Foto</TableHead>
+                        <TableHead className="text-white font-semibold px-2 text-xs">Código</TableHead>
+                        <TableHead className="text-white font-semibold px-2 text-xs">Nome</TableHead>
+                        <TableHead className="text-white font-semibold px-2 text-xs">Cat.</TableHead>
+                        <TableHead className="text-white font-semibold px-2 text-xs">Origem</TableHead>
+                        <TableHead className="text-white font-semibold px-2 text-xs">Status</TableHead>
+                        <TableHead className="text-white font-semibold text-center px-2 text-xs">Aprovar</TableHead>
+                        <TableHead className="text-white font-semibold text-center px-2 text-xs">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
-                    <TableBody className="divide-y divide-gray-200"> {/* Added divide-y for separation */}
+                    <TableBody className="divide-y divide-gray-200">
                       {filteredProducts.map((product, index) => (
                         <TableRow 
                           key={product.id} 
                           className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} ${selectedProducts.includes(product.id) ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''} hover:bg-blue-50 transition-colors`}
                         >
-                          <TableCell className="px-4 py-3">
+                          <TableCell className="px-2 py-2">
                             <input
                               type="checkbox"
                               checked={selectedProducts.includes(product.id)}
                               onChange={() => handleSelectProduct(product.id)}
-                              className="w-4 h-4 cursor-pointer"
+                              className="w-3 h-3 cursor-pointer"
                             />
                           </TableCell>
-                          <TableCell className="px-4 py-3"> {/* Changed from td to TableCell */}
-                            <div className="w-12 h-12 bg-gray-100 rounded overflow-hidden">
+                          <TableCell className="px-2 py-2">
+                            <div className="w-10 h-10 bg-gray-100 rounded overflow-hidden">
                               {product.foto ? (
                                 <img 
                                   src={product.foto} 
@@ -1019,22 +1019,22 @@ export default function Products() {
                                 className="flex items-center justify-center w-full h-full text-gray-400" 
                                 style={product.foto ? {display: 'none'} : {}}
                               >
-                                <ImageIcon className="w-5 h-5" />
+                                <ImageIcon className="w-4 h-4" />
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell className="px-4 py-3"> {/* Changed from td to TableCell */}
-                            <Badge variant="outline" className="text-xs font-mono">
+                          <TableCell className="px-2 py-2">
+                            <Badge variant="outline" className="text-xs font-mono px-1">
                               {product.cod}
                             </Badge>
                           </TableCell>
-                          <TableCell className="px-4 py-3 font-medium"> {/* Changed from td to TableCell */}
+                          <TableCell className="px-2 py-2 font-medium text-xs max-w-[200px] truncate">
                             {product.nome}
                           </TableCell>
-                          <TableCell className="px-4 py-3"> {/* Changed from td to TableCell */}
+                          <TableCell className="px-2 py-2">
                             <Badge 
                               variant="secondary"
-                              className={`text-xs ${
+                              className={`text-xs px-1 ${
                                 product.categoria === 'Cardiovascular' ? 'bg-red-100 text-red-700' :
                                 product.categoria === 'Musculação' ? 'bg-blue-100 text-blue-700' :
                                 product.categoria === 'Funcional' ? 'bg-green-100 text-green-700' :
@@ -1043,80 +1043,74 @@ export default function Products() {
                                 'bg-orange-100 text-orange-700'
                               }`}
                             >
-                              {product.categoria}
+                              {product.categoria.substring(0, 3)}
                             </Badge>
                           </TableCell>
-                          {/* New: Origem (Source) column */}
-                          <TableCell className="px-4 py-3">
+                          <TableCell className="px-2 py-2">
                             {product.fabricante_id ? (
-                              <div className="flex flex-col">
-                                <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
-                                  <User className="w-3 h-3 mr-1" />
-                                  Fabricante
+                              <div className="flex flex-col gap-0.5">
+                                <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200 px-1">
+                                  Fab
                                 </Badge>
-                                <span className="text-xs text-gray-500 mt-1">
+                                <span className="text-xs text-gray-500 truncate max-w-[80px]">
                                   {getFabricanteName(product.fabricante_id)}
                                 </span>
                               </div>
                             ) : (
-                              <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                              <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200 px-1">
                                 Admin
                               </Badge>
                             )}
                           </TableCell>
-                          {/* New: Status column */}
-                          <TableCell className="px-4 py-3">
+                          <TableCell className="px-2 py-2">
                             {product.fabricante_id ? (
                               product.aprovado_produto ? (
-                                <Badge className="bg-green-100 text-green-700">
-                                  <CheckCircle className="w-3 h-3 mr-1" />
-                                  Aprovado
+                                <Badge className="bg-green-100 text-green-700 text-xs px-1">
+                                  <CheckCircle className="w-2.5 h-2.5 mr-0.5" />
+                                  OK
                                 </Badge>
                               ) : (
-                                <Badge className="bg-amber-100 text-amber-700">
-                                  <Clock className="w-3 h-3 mr-1" />
-                                  Pendente
+                                <Badge className="bg-amber-100 text-amber-700 text-xs px-1">
+                                  <Clock className="w-2.5 h-2.5 mr-0.5" />
+                                  Pend
                                 </Badge>
                               )
                             ) : (
-                              <Badge className="bg-green-100 text-green-700">
-                                <CheckCircle className="w-3 h-3 mr-1" />
-                                Aprovado
+                              <Badge className="bg-green-100 text-green-700 text-xs px-1">
+                                <CheckCircle className="w-2.5 h-2.5 mr-0.5" />
+                                OK
                               </Badge>
                             )}
                           </TableCell>
-                          {/* New: Aprovar (Approve) column with Switch */}
-                          <TableCell className="px-4 py-3 text-center">
+                          <TableCell className="px-2 py-2 text-center">
                             {product.fabricante_id ? (
-                              <div className="flex items-center justify-center space-x-2">
-                                <Switch
-                                  checked={product.aprovado_produto}
-                                  onCheckedChange={() => handleApprovalToggle(product)}
-                                />
-                                <Label className="text-xs">Aprovar</Label>
-                              </div>
+                              <Switch
+                                checked={product.aprovado_produto}
+                                onCheckedChange={() => handleApprovalToggle(product)}
+                                className="scale-75"
+                              />
                             ) : (
                               <span className="text-xs text-gray-400">-</span>
                             )}
                           </TableCell>
-                          <TableCell className="px-4 py-3"> {/* Changed from td to TableCell */}
-                            <div className="flex items-center justify-center gap-2">
+                          <TableCell className="px-2 py-2">
+                            <div className="flex items-center justify-center gap-1">
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleEdit(product)}
-                                className="hover:bg-blue-50 hover:text-blue-700"
-                                disabled={product.fabricante_id && !product.aprovado_produto} // Disable edit for unapproved manufacturer products
+                                className="hover:bg-blue-50 hover:text-blue-700 h-7 w-7 p-0"
+                                disabled={product.fabricante_id && !product.aprovado_produto}
                               >
-                                <Edit3 className="w-4 h-4" />
+                                <Edit3 className="w-3 h-3" />
                               </Button>
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleDelete(product)}
-                                className="hover:bg-red-50 hover:text-red-700"
+                                className="hover:bg-red-50 hover:text-red-700 h-7 w-7 p-0"
                               >
-                                <Trash2 className="w-4 h-4" />
+                                <Trash2 className="w-3 h-3" />
                               </Button>
                             </div>
                           </TableCell>
@@ -1137,13 +1131,13 @@ export default function Products() {
             </Card>
 
             {/* Cards Mobile */}
-            <div className="md:hidden space-y-3 overflow-hidden">
+            <div className="md:hidden space-y-2 w-full">
               {filteredProducts.map((product) => (
-                <Card key={product.id} className="bg-white shadow overflow-hidden">
-                  <CardContent className="p-3 overflow-hidden">
-                    <div className="space-y-2 overflow-hidden">
-                      <div className="flex items-start gap-2 overflow-hidden">
-                        <div className="w-12 h-12 bg-gray-100 rounded overflow-hidden flex-shrink-0">
+                <Card key={product.id} className="bg-white shadow w-full">
+                  <CardContent className="p-2 w-full">
+                    <div className="space-y-1.5 w-full">
+                      <div className="flex items-start gap-2 w-full">
+                        <div className="w-10 h-10 bg-gray-100 rounded overflow-hidden flex-shrink-0">
                           {product.foto ? (
                             <img 
                               src={product.foto} 
@@ -1159,81 +1153,62 @@ export default function Products() {
                             className="flex items-center justify-center w-full h-full text-gray-400" 
                             style={product.foto ? {display: 'none'} : {}}
                           >
-                            <ImageIcon className="w-4 h-4" />
+                            <ImageIcon className="w-3 h-3" />
                           </div>
                         </div>
-                        <div className="flex-1 min-w-0 overflow-hidden">
-                          <h3 className="font-semibold text-xs text-gray-900 line-clamp-2 break-words">{product.nome}</h3>
-                          <p className="text-xs text-gray-500 font-mono truncate mt-0.5">{product.cod}</p>
-                          <div className="flex flex-wrap gap-1 mt-1.5">
-                            <Badge variant="secondary" className="text-xs px-1.5 py-0">
-                              {product.categoria}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-xs text-gray-900 line-clamp-1">{product.nome}</h3>
+                          <p className="text-xs text-gray-500 font-mono truncate">{product.cod}</p>
+                          <div className="flex flex-wrap gap-0.5 mt-1">
+                            <Badge variant="secondary" className="text-xs px-1 py-0 h-4">
+                              {product.categoria.substring(0, 3)}
                             </Badge>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div className="flex flex-col">
-                          <span className="text-gray-600">Status:</span>
-                          <div className="mt-0.5">
                             {product.fabricante_id ? (
                               product.aprovado_produto ? (
-                                <Badge className="bg-green-100 text-green-700 text-xs px-1.5 py-0">
-                                  <CheckCircle className="w-2.5 h-2.5 mr-0.5" />
-                                  Aprovado
-                                </Badge>
+                                <Badge className="bg-green-100 text-green-700 text-xs px-1 py-0 h-4">OK</Badge>
                               ) : (
-                                <Badge className="bg-amber-100 text-amber-700 text-xs px-1.5 py-0">
-                                  <Clock className="w-2.5 h-2.5 mr-0.5" />
-                                  Pendente
-                                </Badge>
+                                <Badge className="bg-amber-100 text-amber-700 text-xs px-1 py-0 h-4">Pend</Badge>
                               )
                             ) : (
-                              <Badge className="bg-green-100 text-green-700 text-xs px-1.5 py-0">Admin</Badge>
+                              <Badge className="bg-green-100 text-green-700 text-xs px-1 py-0 h-4">Admin</Badge>
                             )}
                           </div>
                         </div>
-                        {product.fabricante_id && (
-                          <div className="flex flex-col">
-                            <span className="text-gray-600">Fabricante:</span>
-                            <span className="text-purple-700 font-medium truncate mt-0.5">
-                              {getFabricanteName(product.fabricante_id)}
-                            </span>
-                          </div>
-                        )}
                       </div>
 
                       {product.fabricante_id && (
-                        <div className="flex items-center gap-2 pt-1.5 border-t">
-                          <span className="text-xs text-gray-600">Aprovar:</span>
+                        <div className="flex items-center gap-1.5 py-1 border-t text-xs">
+                          <span className="text-gray-600">Aprovar:</span>
                           <Switch
                             checked={product.aprovado_produto}
                             onCheckedChange={() => handleApprovalToggle(product)}
                             className="scale-75"
                           />
+                          <span className="text-gray-500 truncate flex-1 text-xs">
+                            {getFabricanteName(product.fabricante_id)}
+                          </span>
                         </div>
                       )}
 
-                      <div className="flex gap-1.5 pt-1.5 border-t">
+                      <div className="flex gap-1 pt-1 border-t">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleEdit(product)}
-                          className="flex-1 h-8 hover:bg-blue-50 hover:text-blue-700 px-2"
+                          className="flex-1 h-7 hover:bg-blue-50 hover:text-blue-700 px-1 text-xs"
                           disabled={product.fabricante_id && !product.aprovado_produto}
                         >
-                          <Edit3 className="w-3 h-3 mr-1" />
-                          <span className="text-xs">Editar</span>
+                          <Edit3 className="w-3 h-3 mr-0.5" />
+                          Editar
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleDelete(product)}
-                          className="flex-1 h-8 hover:bg-red-50 hover:text-red-700 px-2"
+                          className="flex-1 h-7 hover:bg-red-50 hover:text-red-700 px-1 text-xs"
                         >
-                          <Trash2 className="w-3 h-3 mr-1" />
-                          <span className="text-xs">Excluir</span>
+                          <Trash2 className="w-3 h-3 mr-0.5" />
+                          Excluir
                         </Button>
                       </div>
                     </div>
