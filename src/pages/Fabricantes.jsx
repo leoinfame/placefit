@@ -1129,8 +1129,17 @@ export default function Fabricantes() {
             <Card key={fabricante.id} className="bg-white shadow-sm w-full">
               <CardContent className="p-3 w-full">
                 <div className="space-y-2 w-full">
-                  {/* Linha 1: Empresa e Status */}
-                  <div className="flex items-start justify-between gap-2 w-full">
+                  {/* Linha 1: Logo, Nome e Status */}
+                  <div className="flex items-start gap-2 w-full">
+                    {fabricante.logomarca && (
+                      <div className="w-10 h-10 rounded bg-gray-100 flex-shrink-0 overflow-hidden">
+                        <img 
+                          src={fabricante.logomarca} 
+                          alt="Logo"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-sm break-words">
                         {fabricante.empresa || fabricante.full_name}
