@@ -258,8 +258,8 @@ export default function Suppliers() {
           </div>
         </div>
 
-        {/* Lista de Fornecedores */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Lista de Fornecedores - Desktop */}
+        <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredSuppliers.map((supplier) => (
             <Card key={supplier.id} className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300">
               <CardHeader className="pb-4">
@@ -358,6 +358,96 @@ export default function Suppliers() {
                       onCheckedChange={() => handleApprovalToggle(supplier)}
                     />
                     <Label className="text-xs">Aprovar</Label>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Cards Mobile */}
+        <div className="md:hidden space-y-2 w-full">
+          {filteredSuppliers.map((supplier) => (
+            <Card key={supplier.id} className="bg-white shadow-sm w-full">
+              <CardContent className="p-3 w-full">
+                <div className="space-y-2 w-full">
+                  {/* Linha 1: Logo, Nome e Status */}
+                  <div className="flex items-start gap-2 w-full">
+                    {supplier.logomarca && (
+                      <div className="w-10 h-10 rounded bg-gray-100 flex-shrink-0 overflow-hidden">
+                        <img 
+                          src={supplier.logomarca} 
+                          alt="Logo"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-sm break-words">
+                        {supplier.empresa || supplier.full_name}
+                      </h3>
+                      <p className="text-xs text-gray-500 truncate">{supplier.full_name}</p>
+                    </div>
+                    <Badge 
+                      className={supplier.aprovado 
+                        ? "bg-green-100 text-green-700 text-xs flex-shrink-0" 
+                        : "bg-orange-100 text-orange-700 text-xs flex-shrink-0"
+                      }
+                    >
+                      {supplier.aprovado ? "✓" : "⏱"}
+                    </Badge>
+                  </div>
+
+                  {/* Linha 2: Informações */}
+                  <div className="space-y-0.5 text-xs text-gray-600">
+                    <div className="flex items-center gap-1 truncate">
+                      <Phone className="w-3 h-3 flex-shrink-0" />
+                      <span className="truncate">{supplier.email}</span>
+                    </div>
+                    {supplier.whatsapp && (
+                      <div className="flex items-center gap-1">
+                        <Phone className="w-3 h-3 flex-shrink-0" />
+                        <span>{supplier.whatsapp}</span>
+                      </div>
+                    )}
+                    {supplier.cnpj && (
+                      <div className="flex items-center gap-1 truncate">
+                        <Building className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">{supplier.cnpj}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Linha 3: Aprovação */}
+                  <div className="flex items-center gap-2 pt-2 border-t">
+                    <span className="text-xs text-gray-600">Aprovar:</span>
+                    <Switch
+                      checked={supplier.aprovado}
+                      onCheckedChange={() => handleApprovalToggle(supplier)}
+                      className="scale-90"
+                    />
+                  </div>
+
+                  {/* Linha 4: Ações */}
+                  <div className="flex gap-2 w-full pt-2 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => viewSupplierDetails(supplier)}
+                      className="flex-1 h-7 text-xs"
+                    >
+                      <Eye className="w-3 h-3 mr-1" />
+                      Detalhes
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteSupplier(supplier)}
+                      className="flex-1 h-7 text-xs text-red-600 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-3 h-3 mr-1" />
+                      Excluir
+                    </Button>
                   </div>
                 </div>
               </CardContent>

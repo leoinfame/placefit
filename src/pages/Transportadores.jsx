@@ -323,45 +323,74 @@ export default function Transportadores() {
         </Card>
 
         {/* Cards - Mobile */}
-        <div className="md:hidden space-y-3">
+        <div className="md:hidden space-y-2 w-full">
           {filteredTransportadores.map((transportador) => (
-            <Card key={transportador.id} className="bg-white shadow">
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 truncate">{transportador.empresa || transportador.full_name}</h3>
-                    <p className="text-xs text-gray-500">{transportador.email}</p>
+            <Card key={transportador.id} className="bg-white shadow-sm w-full">
+              <CardContent className="p-3 w-full">
+                <div className="space-y-2 w-full">
+                  {/* Linha 1: Nome e Status */}
+                  <div className="flex items-start justify-between gap-2 w-full">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-sm break-words">
+                        {transportador.empresa || transportador.full_name}
+                      </h3>
+                      <p className="text-xs text-gray-500 truncate">{transportador.full_name}</p>
+                    </div>
+                    <Badge 
+                      className={transportador.aprovado 
+                        ? "bg-green-100 text-green-700 text-xs flex-shrink-0" 
+                        : "bg-orange-100 text-orange-700 text-xs flex-shrink-0"
+                      }
+                    >
+                      {transportador.aprovado ? "Aprovado" : "Pendente"}
+                    </Badge>
+                  </div>
+
+                  {/* Linha 2: Contato */}
+                  <div className="space-y-0.5 text-xs text-gray-600">
+                    <div className="flex items-center gap-1 truncate">
+                      <Phone className="w-3 h-3 flex-shrink-0" />
+                      <span className="truncate">{transportador.email}</span>
+                    </div>
                     {transportador.whatsapp && (
-                      <p className="text-xs text-gray-500">{transportador.whatsapp}</p>
+                      <div className="flex items-center gap-1">
+                        <Phone className="w-3 h-3 flex-shrink-0" />
+                        <span>{transportador.whatsapp}</span>
+                      </div>
                     )}
                   </div>
-                  <Badge 
-                    className={transportador.aprovado 
-                      ? "bg-green-100 text-green-700" 
-                      : "bg-orange-100 text-orange-700"
-                    }
-                  >
-                    {transportador.aprovado ? "Aprovado" : "Pendente"}
-                  </Badge>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => viewTransportadorDetails(transportador)}
-                    className="flex-1"
-                  >
-                    <Eye className="w-4 h-4 mr-2" />
-                    Ver Detalhes
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleApprovalToggle(transportador)}
-                    className={transportador.aprovado ? "text-orange-600" : "text-green-600"}
-                  >
-                    {transportador.aprovado ? "Desaprovar" : "Aprovar"}
-                  </Button>
+
+                  {/* Linha 3: Aprovação */}
+                  <div className="flex items-center gap-2 pt-2 border-t">
+                    <span className="text-xs text-gray-600">Aprovar:</span>
+                    <Switch
+                      checked={transportador.aprovado}
+                      onCheckedChange={() => handleApprovalToggle(transportador)}
+                      className="scale-90"
+                    />
+                  </div>
+
+                  {/* Linha 4: Ações */}
+                  <div className="flex gap-2 w-full pt-2 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => viewTransportadorDetails(transportador)}
+                      className="flex-1 h-7 text-xs"
+                    >
+                      <Eye className="w-3 h-3 mr-1" />
+                      Detalhes
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteTransportador(transportador)}
+                      className="flex-1 h-7 text-xs text-red-600 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-3 h-3 mr-1" />
+                      Excluir
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -369,8 +398,8 @@ export default function Transportadores() {
           {filteredTransportadores.length === 0 && (
             <div className="text-center py-12">
               <Truck className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhuma transportadora encontrada</h3>
-              <p className="text-gray-600 text-sm">As transportadoras aparecerão aqui após se cadastrarem.</p>
+              <h3 className="text-base font-semibold text-gray-900 mb-2">Nenhuma transportadora encontrada</h3>
+              <p className="text-sm text-gray-600">As transportadoras aparecerão aqui após se cadastrarem.</p>
             </div>
           )}
         </div>
