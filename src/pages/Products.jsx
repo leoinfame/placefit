@@ -963,8 +963,8 @@ export default function Products() {
               </Select>
             </div>
 
-            {/* Lista de Produtos em Formato Tabela */}
-            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+            {/* Lista de Produtos em Formato Tabela - Desktop */}
+            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hidden md:block">
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <Table> {/* Changed to shadcn Table */}
