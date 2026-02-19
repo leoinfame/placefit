@@ -292,21 +292,6 @@ export default function Layout({ children, currentPageName }) {
           title: "Convites",
           url: createPageUrl("Convite"),
           icon: Users,
-        },
-        {
-          title: "Orçamentos",
-          url: createPageUrl("Orcamentos"),
-          icon: Dumbbell,
-        },
-        {
-          title: "Vendas",
-          url: createPageUrl("Vendas"),
-          icon: ShoppingCart,
-        },
-        {
-          title: "  • Clientes",
-          url: createPageUrl("ClientesVendas"),
-          icon: Users,
         }
       );
     } else if (effectiveUser.tipo_usuario === 'fabricante') {
