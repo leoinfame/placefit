@@ -157,8 +157,8 @@ export default function Transportadores() {
   const stats = getStats();
 
   return (
-    <div className="p-4 md:p-8 min-h-screen w-full max-w-full overflow-x-hidden">
-      <div className="max-w-7xl mx-auto space-y-6 w-full max-w-full">
+    <div className="p-4 md:p-8 min-h-screen w-full overflow-x-hidden">
+      <div className="max-w-7xl mx-auto space-y-6 w-full">
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Transportadoras</h1>
@@ -166,26 +166,26 @@ export default function Transportadores() {
         </div>
 
         {/* Link de Cadastro */}
-        <Card className="bg-gradient-to-r from-orange-50 to-red-50 border-orange-200 border">
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-white rounded-xl shadow-sm">
+        <Card className="bg-gradient-to-r from-orange-50 to-red-50 border-orange-200 border w-full max-w-full">
+          <CardContent className="p-4 md:p-6 w-full max-w-full">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 w-full max-w-full">
+              <div className="flex flex-col md:flex-row items-start md:items-center gap-3 w-full max-w-full min-w-0">
+                <div className="p-3 bg-white rounded-xl shadow-sm flex-shrink-0">
                   <Share2 className="w-6 h-6 text-orange-600" />
                 </div>
-                <div>
-                  <h3 className="font-bold text-gray-900 mb-1">Link de Cadastro de Transportadoras</h3>
-                  <p className="text-sm text-gray-600">
+                <div className="flex-1 min-w-0 w-full max-w-full">
+                  <h3 className="font-bold text-gray-900 mb-1 text-sm md:text-base">Link de Cadastro de Transportadoras</h3>
+                  <p className="text-xs md:text-sm text-gray-600 break-words">
                     Compartilhe este link para que novas transportadoras se cadastrem
                   </p>
-                  <code className="text-xs bg-white px-2 py-1 rounded mt-2 inline-block border">
+                  <code className="text-xs bg-white px-2 py-1 rounded mt-2 inline-block border break-all max-w-full">
                     {window.location.origin}/PublicRegisterTransportador
                   </code>
                 </div>
               </div>
               <Button
                 onClick={copyRegistrationLink}
-                className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 whitespace-nowrap"
+                className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 whitespace-nowrap w-full md:w-auto flex-shrink-0"
               >
                 <Copy className="w-4 h-4 mr-2" />
                 Copiar Link
@@ -323,15 +323,15 @@ export default function Transportadores() {
         </Card>
 
         {/* Cards - Mobile */}
-        <div className="md:hidden space-y-2 w-full">
+        <div className="md:hidden space-y-2 w-full max-w-full">
           {filteredTransportadores.map((transportador) => (
-            <Card key={transportador.id} className="bg-white shadow-sm w-full">
-              <CardContent className="p-3 w-full">
-                <div className="space-y-2 w-full">
+            <Card key={transportador.id} className="bg-white shadow-sm w-full max-w-full">
+              <CardContent className="p-3 w-full max-w-full">
+                <div className="space-y-2 w-full max-w-full">
                   {/* Linha 1: Nome e Status */}
-                  <div className="flex items-start justify-between gap-2 w-full">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-sm break-words">
+                  <div className="flex items-start justify-between gap-2 w-full max-w-full">
+                    <div className="flex-1 min-w-0 max-w-[70%]">
+                      <h3 className="font-semibold text-sm break-words line-clamp-2">
                         {transportador.empresa || transportador.full_name}
                       </h3>
                       <p className="text-xs text-gray-500 truncate">{transportador.full_name}</p>
@@ -371,24 +371,24 @@ export default function Transportadores() {
                   </div>
 
                   {/* Linha 4: Ações */}
-                  <div className="flex gap-2 w-full pt-2 border-t">
+                  <div className="flex gap-2 w-full max-w-full pt-2 border-t">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => viewTransportadorDetails(transportador)}
-                      className="flex-1 h-7 text-xs"
+                      className="flex-1 min-w-0 h-7 text-xs px-2"
                     >
-                      <Eye className="w-3 h-3 mr-1" />
-                      Detalhes
+                      <Eye className="w-3 h-3 mr-1 flex-shrink-0" />
+                      <span className="truncate">Detalhes</span>
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleDeleteTransportador(transportador)}
-                      className="flex-1 h-7 text-xs text-red-600 hover:bg-red-50"
+                      className="flex-1 min-w-0 h-7 text-xs text-red-600 hover:bg-red-50 px-2"
                     >
-                      <Trash2 className="w-3 h-3 mr-1" />
-                      Excluir
+                      <Trash2 className="w-3 h-3 mr-1 flex-shrink-0" />
+                      <span className="truncate">Excluir</span>
                     </Button>
                   </div>
                 </div>
