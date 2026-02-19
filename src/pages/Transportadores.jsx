@@ -157,8 +157,8 @@ export default function Transportadores() {
   const stats = getStats();
 
   return (
-    <div className="p-4 md:p-8 min-h-screen">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="p-4 md:p-8 min-h-screen w-full max-w-full overflow-x-hidden">
+      <div className="max-w-7xl mx-auto space-y-6 w-full max-w-full">
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Transportadoras</h1>

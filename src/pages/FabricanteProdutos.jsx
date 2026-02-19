@@ -525,8 +525,8 @@ export default function FabricanteProdutos() {
   const stats = getStats();
 
   return (
-    <div className="p-4 md:p-8 min-h-screen w-full overflow-x-hidden">
-      <div className="max-w-7xl mx-auto space-y-6 w-full">
+    <div className="p-4 md:p-8 min-h-screen w-full max-w-full overflow-x-hidden">
+      <div className="max-w-7xl mx-auto space-y-6 w-full max-w-full">
         {/* Header */}
         <div className="flex flex-col gap-4 w-full">
           <div>
