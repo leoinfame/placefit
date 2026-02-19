@@ -83,7 +83,9 @@ export default function Suppliers() {
   const loadSuppliers = async () => {
     try {
       const data = await User.filter({ role: 'user' });
-      setSuppliers(data);
+      // Filtrar apenas fornecedores (excluir fabricantes e transportadores)
+      const fornecedores = data.filter(u => !u.tipo_usuario || u.tipo_usuario === null);
+      setSuppliers(fornecedores);
     } catch (error) {
       console.error("Erro ao carregar fornecedores:", error);
     }
