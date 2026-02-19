@@ -1125,12 +1125,18 @@ export default function Products() {
             </Card>
 
             {/* Cards Mobile */}
-            <div className="md:hidden space-y-1.5">
+            <div className="md:hidden space-y-1">
               {filteredProducts.map((product) => (
                 <Card key={product.id} className="bg-white shadow-sm">
                   <CardContent className="p-1">
                     <div className="flex items-center gap-0.5">
-                      <div className="w-6 h-6 bg-gray-100 rounded flex-shrink-0">
+                      <input
+                        type="checkbox"
+                        checked={selectedProducts.includes(product.id)}
+                        onChange={() => handleSelectProduct(product.id)}
+                        className="w-3 h-3 flex-shrink-0"
+                      />
+                      <div className="w-5 h-5 bg-gray-100 rounded flex-shrink-0">
                         {product.foto ? (
                           <img 
                             src={product.foto} 
@@ -1146,23 +1152,23 @@ export default function Products() {
                           className="flex items-center justify-center w-full h-full text-gray-400" 
                           style={product.foto ? {display: 'none'} : {}}
                         >
-                          <ImageIcon className="w-2 h-2" />
+                          <ImageIcon className="w-1.5 h-1.5" />
                         </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-xs truncate">{product.nome}</h3>
-                        <div className="flex gap-0.5">
-                          <Badge variant="secondary" className="text-xs px-0.5 py-0 h-3">
+                      <div className="flex-1 min-w-0 overflow-hidden">
+                        <h3 className="font-medium text-xs truncate leading-tight">{product.nome}</h3>
+                        <div className="flex gap-0.5 mt-0.5">
+                          <Badge variant="secondary" className="text-xs px-0.5 py-0 h-3 leading-none">
                             {product.categoria.substring(0, 3)}
                           </Badge>
                           {product.fabricante_id ? (
                             product.aprovado_produto ? (
-                              <Badge className="bg-green-100 text-green-700 text-xs px-0.5 py-0 h-3">✓</Badge>
+                              <Badge className="bg-green-100 text-green-700 text-xs px-0.5 py-0 h-3 leading-none">✓</Badge>
                             ) : (
-                              <Badge className="bg-amber-100 text-amber-700 text-xs px-0.5 py-0 h-3">⏱</Badge>
+                              <Badge className="bg-amber-100 text-amber-700 text-xs px-0.5 py-0 h-3 leading-none">⏱</Badge>
                             )
                           ) : (
-                            <Badge className="bg-green-100 text-green-700 text-xs px-0.5 py-0 h-3">A</Badge>
+                            <Badge className="bg-green-100 text-green-700 text-xs px-0.5 py-0 h-3 leading-none">A</Badge>
                           )}
                         </div>
                       </div>
@@ -1170,25 +1176,25 @@ export default function Products() {
                         <Switch
                           checked={product.aprovado_produto}
                           onCheckedChange={() => handleApprovalToggle(product)}
-                          className="scale-75"
+                          className="scale-75 flex-shrink-0"
                         />
                       )}
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleEdit(product)}
-                        className="h-5 w-5 p-0"
+                        className="h-5 w-5 p-0 flex-shrink-0"
                         disabled={product.fabricante_id && !product.aprovado_produto}
                       >
-                        <Edit3 className="w-2.5 h-2.5" />
+                        <Edit3 className="w-2 h-2" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDelete(product)}
-                        className="h-5 w-5 p-0"
+                        className="h-5 w-5 p-0 flex-shrink-0"
                       >
-                        <Trash2 className="w-2.5 h-2.5" />
+                        <Trash2 className="w-2 h-2" />
                       </Button>
                     </div>
                   </CardContent>
