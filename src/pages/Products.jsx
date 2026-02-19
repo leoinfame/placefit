@@ -979,7 +979,6 @@ export default function Products() {
                           />
                         </TableHead>
                         <TableHead className="text-white font-semibold w-12 px-2 text-xs">Foto</TableHead>
-                        <TableHead className="text-white font-semibold px-2 text-xs">Código</TableHead>
                         <TableHead className="text-white font-semibold px-2 text-xs">Nome</TableHead>
                         <TableHead className="text-white font-semibold px-2 text-xs">Cat.</TableHead>
                         <TableHead className="text-white font-semibold px-2 text-xs">Origem</TableHead>
@@ -1022,11 +1021,6 @@ export default function Products() {
                                 <ImageIcon className="w-4 h-4" />
                               </div>
                             </div>
-                          </TableCell>
-                          <TableCell className="px-2 py-2">
-                            <Badge variant="outline" className="text-xs font-mono px-1">
-                              {product.cod}
-                            </Badge>
                           </TableCell>
                           <TableCell className="px-2 py-2 font-medium text-xs max-w-[200px] truncate">
                             {product.nome}
@@ -1131,86 +1125,71 @@ export default function Products() {
             </Card>
 
             {/* Cards Mobile */}
-            <div className="md:hidden space-y-2 w-full">
+            <div className="md:hidden space-y-1.5 w-full">
               {filteredProducts.map((product) => (
-                <Card key={product.id} className="bg-white shadow w-full">
-                  <CardContent className="p-2 w-full">
-                    <div className="space-y-1.5 w-full">
-                      <div className="flex items-start gap-2 w-full">
-                        <div className="w-10 h-10 bg-gray-100 rounded overflow-hidden flex-shrink-0">
-                          {product.foto ? (
-                            <img 
-                              src={product.foto} 
-                              alt={product.nome}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                e.target.style.display = 'none';
-                                e.target.nextSibling.style.display = 'flex';
-                              }}
-                            />
-                          ) : null}
-                          <div 
-                            className="flex items-center justify-center w-full h-full text-gray-400" 
-                            style={product.foto ? {display: 'none'} : {}}
-                          >
-                            <ImageIcon className="w-3 h-3" />
-                          </div>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-xs text-gray-900 line-clamp-1">{product.nome}</h3>
-                          <p className="text-xs text-gray-500 font-mono truncate">{product.cod}</p>
-                          <div className="flex flex-wrap gap-0.5 mt-1">
-                            <Badge variant="secondary" className="text-xs px-1 py-0 h-4">
-                              {product.categoria.substring(0, 3)}
-                            </Badge>
-                            {product.fabricante_id ? (
-                              product.aprovado_produto ? (
-                                <Badge className="bg-green-100 text-green-700 text-xs px-1 py-0 h-4">OK</Badge>
-                              ) : (
-                                <Badge className="bg-amber-100 text-amber-700 text-xs px-1 py-0 h-4">Pend</Badge>
-                              )
-                            ) : (
-                              <Badge className="bg-green-100 text-green-700 text-xs px-1 py-0 h-4">Admin</Badge>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {product.fabricante_id && (
-                        <div className="flex items-center gap-1.5 py-1 border-t text-xs">
-                          <span className="text-gray-600">Aprovar:</span>
-                          <Switch
-                            checked={product.aprovado_produto}
-                            onCheckedChange={() => handleApprovalToggle(product)}
-                            className="scale-75"
+                <Card key={product.id} className="bg-white shadow-sm w-full">
+                  <CardContent className="p-1.5 w-full">
+                    <div className="flex items-center gap-1.5 w-full">
+                      <div className="w-8 h-8 bg-gray-100 rounded overflow-hidden flex-shrink-0">
+                        {product.foto ? (
+                          <img 
+                            src={product.foto} 
+                            alt={product.nome}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.nextSibling.style.display = 'flex';
+                            }}
                           />
-                          <span className="text-gray-500 truncate flex-1 text-xs">
-                            {getFabricanteName(product.fabricante_id)}
-                          </span>
+                        ) : null}
+                        <div 
+                          className="flex items-center justify-center w-full h-full text-gray-400" 
+                          style={product.foto ? {display: 'none'} : {}}
+                        >
+                          <ImageIcon className="w-3 h-3" />
                         </div>
-                      )}
-
-                      <div className="flex gap-1 pt-1 border-t">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEdit(product)}
-                          className="flex-1 h-7 hover:bg-blue-50 hover:text-blue-700 px-1 text-xs"
-                          disabled={product.fabricante_id && !product.aprovado_produto}
-                        >
-                          <Edit3 className="w-3 h-3 mr-0.5" />
-                          Editar
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDelete(product)}
-                          className="flex-1 h-7 hover:bg-red-50 hover:text-red-700 px-1 text-xs"
-                        >
-                          <Trash2 className="w-3 h-3 mr-0.5" />
-                          Excluir
-                        </Button>
                       </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-xs text-gray-900 truncate">{product.nome}</h3>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <Badge variant="secondary" className="text-xs px-1 py-0 h-3.5">
+                            {product.categoria.substring(0, 3)}
+                          </Badge>
+                          {product.fabricante_id ? (
+                            product.aprovado_produto ? (
+                              <Badge className="bg-green-100 text-green-700 text-xs px-1 py-0 h-3.5">OK</Badge>
+                            ) : (
+                              <Badge className="bg-amber-100 text-amber-700 text-xs px-1 py-0 h-3.5">Pend</Badge>
+                            )
+                          ) : (
+                            <Badge className="bg-green-100 text-green-700 text-xs px-1 py-0 h-3.5">Adm</Badge>
+                          )}
+                        </div>
+                      </div>
+                      {product.fabricante_id && (
+                        <Switch
+                          checked={product.aprovado_produto}
+                          onCheckedChange={() => handleApprovalToggle(product)}
+                          className="scale-75 flex-shrink-0"
+                        />
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEdit(product)}
+                        className="h-6 w-6 p-0 hover:bg-blue-50 flex-shrink-0"
+                        disabled={product.fabricante_id && !product.aprovado_produto}
+                      >
+                        <Edit3 className="w-3 h-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(product)}
+                        className="h-6 w-6 p-0 hover:bg-red-50 flex-shrink-0"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
