@@ -1008,8 +1008,8 @@ export default function Fabricantes() {
           </div>
         </div>
 
-        {/* Tabela de Fabricantes */}
-        <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+        {/* Tabela de Fabricantes - Desktop */}
+        <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hidden md:block">
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <Table>
@@ -1122,6 +1122,117 @@ export default function Fabricantes() {
             )}
           </CardContent>
         </Card>
+
+        {/* Cards Mobile */}
+        <div className="md:hidden space-y-2 w-full">
+          {filteredFabricantes.map((fabricante) => (
+            <Card key={fabricante.id} className="bg-white shadow-sm w-full">
+              <CardContent className="p-3 w-full">
+                <div className="space-y-2 w-full">
+                  {/* Linha 1: Empresa e Status */}
+                  <div className="flex items-start justify-between gap-2 w-full">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-sm break-words">
+                        {fabricante.empresa || fabricante.full_name}
+                      </h3>
+                      <p className="text-xs text-gray-500 truncate">{fabricante.full_name}</p>
+                    </div>
+                    <Badge 
+                      variant={fabricante.aprovado ? "success" : "secondary"}
+                      className={fabricante.aprovado 
+                        ? "bg-green-100 text-green-700 text-xs flex-shrink-0" 
+                        : "bg-orange-100 text-orange-700 text-xs flex-shrink-0"
+                      }
+                    >
+                      {fabricante.aprovado ? "Aprovado" : "Aguardando"}
+                    </Badge>
+                  </div>
+
+                  {/* Linha 2: Contato */}
+                  <div className="space-y-0.5 text-xs text-gray-600">
+                    <div className="flex items-center gap-1 truncate">
+                      <Mail className="w-3 h-3 flex-shrink-0" />
+                      <span className="truncate">{fabricante.email}</span>
+                    </div>
+                    {fabricante.whatsapp && (
+                      <div className="flex items-center gap-1">
+                        <Phone className="w-3 h-3 flex-shrink-0" />
+                        <span>{fabricante.whatsapp}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Linha 3: Aprovação */}
+                  <div className="flex items-center gap-2 pt-2 border-t">
+                    <span className="text-xs text-gray-600">Aprovar:</span>
+                    <Switch
+                      checked={fabricante.aprovado}
+                      onCheckedChange={() => handleApprovalToggle(fabricante)}
+                      className="scale-90"
+                    />
+                  </div>
+
+                  {/* Linha 4: Ações */}
+                  <div className="flex flex-wrap gap-1 w-full pt-2 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => viewFabricanteDetails(fabricante)}
+                      className="flex-1 h-7 text-xs"
+                    >
+                      <Eye className="w-3 h-3 mr-1" />
+                      Detalhes
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => viewFabricanteTable(fabricante)}
+                      className="flex-1 h-7 text-xs"
+                    >
+                      <FileSpreadsheet className="w-3 h-3 mr-1" />
+                      Tabela
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEditFabricante(fabricante)}
+                      className="flex-1 h-7 text-xs"
+                    >
+                      <Edit3 className="w-3 h-3 mr-1" />
+                      Editar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openProductDialog(fabricante)}
+                      className="flex-1 h-7 text-xs text-green-600 hover:bg-green-50"
+                    >
+                      <Plus className="w-3 h-3 mr-1" />
+                      Produto
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteFabricante(fabricante)}
+                      className="flex-1 h-7 text-xs text-red-600 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-3 h-3 mr-1" />
+                      Excluir
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+
+          {filteredFabricantes.length === 0 && (
+            <div className="text-center py-12">
+              <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-base font-semibold text-gray-900 mb-2">Nenhum fabricante encontrado</h3>
+              <p className="text-sm text-gray-600">Os fabricantes aparecerão aqui após se cadastrarem.</p>
+            </div>
+          )}
+        </div>
 
         {/* Dialog de Detalhes do Fabricante */}
         <Dialog open={showDialog} onOpenChange={setShowDialog}>
