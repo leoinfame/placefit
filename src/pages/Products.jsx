@@ -1125,12 +1125,12 @@ export default function Products() {
             </Card>
 
             {/* Cards Mobile */}
-            <div className="md:hidden space-y-1.5 w-full">
+            <div className="md:hidden space-y-1.5 w-full max-w-full">
               {filteredProducts.map((product) => (
-                <Card key={product.id} className="bg-white shadow-sm w-full">
-                  <CardContent className="p-1.5 w-full">
-                    <div className="flex items-center gap-1.5 w-full">
-                      <div className="w-8 h-8 bg-gray-100 rounded overflow-hidden flex-shrink-0">
+                <Card key={product.id} className="bg-white shadow-sm w-full max-w-full overflow-hidden">
+                  <CardContent className="p-1.5 w-full max-w-full overflow-hidden">
+                    <div className="flex items-center gap-1 w-full max-w-full overflow-hidden">
+                      <div className="w-7 h-7 bg-gray-100 rounded overflow-hidden flex-shrink-0">
                         {product.foto ? (
                           <img 
                             src={product.foto} 
@@ -1146,23 +1146,23 @@ export default function Products() {
                           className="flex items-center justify-center w-full h-full text-gray-400" 
                           style={product.foto ? {display: 'none'} : {}}
                         >
-                          <ImageIcon className="w-3 h-3" />
+                          <ImageIcon className="w-2.5 h-2.5" />
                         </div>
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 overflow-hidden">
                         <h3 className="font-medium text-xs text-gray-900 truncate">{product.nome}</h3>
-                        <div className="flex items-center gap-1 mt-0.5">
-                          <Badge variant="secondary" className="text-xs px-1 py-0 h-3.5">
+                        <div className="flex items-center gap-0.5 mt-0.5">
+                          <Badge variant="secondary" className="text-xs px-0.5 py-0 h-3.5 text-xs">
                             {product.categoria.substring(0, 3)}
                           </Badge>
                           {product.fabricante_id ? (
                             product.aprovado_produto ? (
-                              <Badge className="bg-green-100 text-green-700 text-xs px-1 py-0 h-3.5">OK</Badge>
+                              <Badge className="bg-green-100 text-green-700 text-xs px-0.5 py-0 h-3.5">✓</Badge>
                             ) : (
-                              <Badge className="bg-amber-100 text-amber-700 text-xs px-1 py-0 h-3.5">Pend</Badge>
+                              <Badge className="bg-amber-100 text-amber-700 text-xs px-0.5 py-0 h-3.5">⏱</Badge>
                             )
                           ) : (
-                            <Badge className="bg-green-100 text-green-700 text-xs px-1 py-0 h-3.5">Adm</Badge>
+                            <Badge className="bg-green-100 text-green-700 text-xs px-0.5 py-0 h-3.5">A</Badge>
                           )}
                         </div>
                       </div>
@@ -1180,7 +1180,7 @@ export default function Products() {
                         className="h-6 w-6 p-0 hover:bg-blue-50 flex-shrink-0"
                         disabled={product.fabricante_id && !product.aprovado_produto}
                       >
-                        <Edit3 className="w-3 h-3" />
+                        <Edit3 className="w-2.5 h-2.5" />
                       </Button>
                       <Button
                         variant="ghost"
@@ -1188,7 +1188,7 @@ export default function Products() {
                         onClick={() => handleDelete(product)}
                         className="h-6 w-6 p-0 hover:bg-red-50 flex-shrink-0"
                       >
-                        <Trash2 className="w-3 h-3" />
+                        <Trash2 className="w-2.5 h-2.5" />
                       </Button>
                     </div>
                   </CardContent>
