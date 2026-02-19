@@ -221,7 +221,7 @@ export default function Layout({ children, currentPageName }) {
       return baseItems;
     }
 
-    if (effectiveUser.role === 'admin') {
+    if (effectiveUser.role === 'admin' && user.role === 'admin' && adminViewMode === 'admin') {
       baseItems.push(
         {
           title: "Usuários",

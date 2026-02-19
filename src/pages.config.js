@@ -47,68 +47,68 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
-import Dashboard from './pages/Dashboard';
-import Products from './pages/Products';
-import MyProducts from './pages/MyProducts';
-import Profile from './pages/Profile';
-import Suppliers from './pages/Suppliers';
-import Export from './pages/Export';
-import PublicRegister from './pages/PublicRegister';
-import PublicTable from './pages/PublicTable';
-import Marketplace from './pages/Marketplace';
-import Frete from './pages/Frete';
-import Complementos from './pages/Complementos';
 import AdminFrete from './pages/AdminFrete';
-import Clientes from './pages/Clientes';
+import AdminNotifications from './pages/AdminNotifications';
 import AtendenteIA from './pages/AtendenteIA';
+import Categories from './pages/Categories';
+import Clientes from './pages/Clientes';
+import ClientesVendas from './pages/ClientesVendas';
+import Complementos from './pages/Complementos';
+import Convite from './pages/Convite';
+import Dashboard from './pages/Dashboard';
+import Export from './pages/Export';
 import FabricanteProdutos from './pages/FabricanteProdutos';
 import Fabricantes from './pages/Fabricantes';
+import Frete from './pages/Frete';
+import Marketplace from './pages/Marketplace';
+import MyProducts from './pages/MyProducts';
+import Notifications from './pages/Notifications';
+import Orcamentos from './pages/Orcamentos';
+import Products from './pages/Products';
+import Profile from './pages/Profile';
+import PublicRegister from './pages/PublicRegister';
 import PublicRegisterFabricante from './pages/PublicRegisterFabricante';
-import Usuarios from './pages/Usuarios';
-import Categories from './pages/Categories';
-import Units from './pages/Units';
-import Convite from './pages/Convite';
 import PublicRegisterTransportador from './pages/PublicRegisterTransportador';
+import PublicTable from './pages/PublicTable';
+import Suppliers from './pages/Suppliers';
 import TransportadorRotas from './pages/TransportadorRotas';
 import Transportadores from './pages/Transportadores';
-import ClientesVendas from './pages/ClientesVendas';
+import Units from './pages/Units';
+import Usuarios from './pages/Usuarios';
 import Vendas from './pages/Vendas';
-import Orcamentos from './pages/Orcamentos';
-import Notifications from './pages/Notifications';
-import AdminNotifications from './pages/AdminNotifications';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Dashboard": Dashboard,
-    "Products": Products,
-    "MyProducts": MyProducts,
-    "Profile": Profile,
-    "Suppliers": Suppliers,
-    "Export": Export,
-    "PublicRegister": PublicRegister,
-    "PublicTable": PublicTable,
-    "Marketplace": Marketplace,
-    "Frete": Frete,
-    "Complementos": Complementos,
     "AdminFrete": AdminFrete,
-    "Clientes": Clientes,
+    "AdminNotifications": AdminNotifications,
     "AtendenteIA": AtendenteIA,
+    "Categories": Categories,
+    "Clientes": Clientes,
+    "ClientesVendas": ClientesVendas,
+    "Complementos": Complementos,
+    "Convite": Convite,
+    "Dashboard": Dashboard,
+    "Export": Export,
     "FabricanteProdutos": FabricanteProdutos,
     "Fabricantes": Fabricantes,
+    "Frete": Frete,
+    "Marketplace": Marketplace,
+    "MyProducts": MyProducts,
+    "Notifications": Notifications,
+    "Orcamentos": Orcamentos,
+    "Products": Products,
+    "Profile": Profile,
+    "PublicRegister": PublicRegister,
     "PublicRegisterFabricante": PublicRegisterFabricante,
-    "Usuarios": Usuarios,
-    "Categories": Categories,
-    "Units": Units,
-    "Convite": Convite,
     "PublicRegisterTransportador": PublicRegisterTransportador,
+    "PublicTable": PublicTable,
+    "Suppliers": Suppliers,
     "TransportadorRotas": TransportadorRotas,
     "Transportadores": Transportadores,
-    "ClientesVendas": ClientesVendas,
+    "Units": Units,
+    "Usuarios": Usuarios,
     "Vendas": Vendas,
-    "Orcamentos": Orcamentos,
-    "Notifications": Notifications,
-    "AdminNotifications": AdminNotifications,
 }
 
 export const pagesConfig = {
