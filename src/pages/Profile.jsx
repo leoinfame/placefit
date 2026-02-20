@@ -189,7 +189,7 @@ export default function Profile() {
                 <div>
                   <p className="font-semibold text-gray-900">Status da Conta</p>
                   <p className="text-sm text-gray-600">
-                    {user?.role === 'admin' ? 'Administrador' : 'Fornecedor'}
+                    {user?.role === 'admin' ? 'Administrador' : 'Revendedor'}
                   </p>
                 </div>
               </div>

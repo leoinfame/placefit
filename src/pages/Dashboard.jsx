@@ -174,7 +174,7 @@ export default function Dashboard() {
     }
     return {
       title: `Olá, ${user?.empresa || user?.full_name}!`,
-      subtitle: "Configure seus produtos e gere tabelas personalizadas"
+      subtitle: "Configure seus produtos e gere tabelas personalizadas como revendedor"
     };
   };
 
@@ -190,8 +190,8 @@ export default function Dashboard() {
           count: stats.totalProducts
         },
         {
-          title: "Fornecedores",
-          description: "Visualize e gerencie todos os fornecedores cadastrados",
+          title: "Revendedores",
+          description: "Visualize e gerencie todos os revendedores cadastrados",
           icon: Users,
           href: createPageUrl("Suppliers"),
           color: "from-green-500 to-green-600",
@@ -290,7 +290,7 @@ export default function Dashboard() {
           </Alert>
         )}
 
-        {/* Banner Especial de Frete - Apenas para Fornecedores */}
+        {/* Banner Especial de Frete - Apenas para Revendedores */}
         {user?.role === 'user' && user?.aprovado && (
           <Link to={createPageUrl("Frete")}>
             <Card className="group hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 border-0 overflow-hidden relative">
@@ -388,7 +388,7 @@ export default function Dashboard() {
               <CardContent className="p-4 text-center">
                 <Users className="w-8 h-8 text-green-600 mx-auto mb-2" />
                 <div className="text-2xl font-bold text-green-900">{stats.totalSuppliers}</div>
-                <p className="text-sm text-green-700">Fornecedores</p>
+                <p className="text-sm text-green-700">Revendedores</p>
               </CardContent>
             </Card>
           </div>

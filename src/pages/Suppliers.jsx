@@ -125,19 +125,19 @@ export default function Suppliers() {
   };
 
   const handleDeleteSupplier = async (supplier) => {
-    if (confirm(`Tem certeza que deseja excluir o fornecedor "${supplier.empresa || supplier.full_name}"? Esta ação não pode ser desfeita.`)) {
+    if (confirm(`Tem certeza que deseja excluir o revendedor "${supplier.empresa || supplier.full_name}"? Esta ação não pode ser desfeita.`)) {
       try {
         await User.delete(supplier.id);
         loadSuppliers();
         toast({
-          title: "Fornecedor excluído",
-          description: "Fornecedor removido com sucesso.",
+          title: "Revendedor excluído",
+          description: "Revendedor removido com sucesso.",
         });
       } catch (error) {
-        console.error("Erro ao excluir fornecedor:", error);
+        console.error("Erro ao excluir revendedor:", error);
         toast({
           title: "Erro",
-          description: "Erro ao excluir fornecedor. Tente novamente.",
+          description: "Erro ao excluir revendedor. Tente novamente.",
           variant: "destructive"
         });
       }
@@ -184,12 +184,12 @@ export default function Suppliers() {
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Fornecedores</h1>
-            <p className="text-gray-600">Gerencie todos os fornecedores cadastrados</p>
+            <h1 className="text-3xl font-bold text-gray-900">Revendedores</h1>
+            <p className="text-gray-600">Gerencie todos os revendedores cadastrados</p>
           </div>
         </div>
 
-        {/* Link de Cadastro de Fornecedores */}
+        {/* Link de Cadastro de Revendedores */}
         <Card className="bg-gradient-to-r from-blue-50 to-green-50 border-blue-200 border">
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -198,9 +198,9 @@ export default function Suppliers() {
                   <Share2 className="w-6 h-6 text-blue-600" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-900 mb-1">Link de Cadastro de Fornecedores</h3>
+                  <h3 className="font-bold text-gray-900 mb-1">Link de Cadastro de Revendedores</h3>
                   <p className="text-sm text-gray-600">
-                    Compartilhe este link para que novos fornecedores se cadastrem
+                    Compartilhe este link para que novos revendedores se cadastrem
                   </p>
                   <code className="text-xs bg-white px-2 py-1 rounded mt-2 inline-block border">
                     {window.location.origin}/PublicRegister
@@ -224,7 +224,7 @@ export default function Suppliers() {
             <CardContent className="p-4 text-center">
               <Users className="w-8 h-8 text-blue-600 mx-auto mb-2" />
               <div className="text-2xl font-bold text-blue-900">{stats.total}</div>
-              <p className="text-sm text-blue-700">Total de Fornecedores</p>
+              <p className="text-sm text-blue-700">Total de Revendedores</p>
             </CardContent>
           </Card>
           
@@ -251,7 +251,7 @@ export default function Suppliers() {
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Buscar fornecedores..."
+                placeholder="Buscar revendedores..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 bg-white/80 border-gray-200"
@@ -260,7 +260,7 @@ export default function Suppliers() {
           </div>
         </div>
 
-        {/* Lista de Fornecedores - Desktop */}
+        {/* Lista de Revendedores - Desktop */}
         <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredSuppliers.map((supplier) => (
             <Card key={supplier.id} className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300">
@@ -460,18 +460,18 @@ export default function Suppliers() {
         {filteredSuppliers.length === 0 && (
           <div className="text-center py-12">
             <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum fornecedor encontrado</h3>
-            <p className="text-gray-600">Os fornecedores aparecerão aqui após se cadastrarem.</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum revendedor encontrado</h3>
+            <p className="text-gray-600">Os revendedores aparecerão aqui após se cadastrarem.</p>
           </div>
         )}
 
-        {/* Dialog de Detalhes do Fornecedor */}
+        {/* Dialog de Detalhes do Revendedor */}
         <Dialog open={showDialog} onOpenChange={setShowDialog}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Building className="w-5 h-5" />
-                Detalhes do Fornecedor: {selectedSupplier?.empresa || selectedSupplier?.full_name}
+                Detalhes do Revendedor: {selectedSupplier?.empresa || selectedSupplier?.full_name}
               </DialogTitle>
             </DialogHeader>
             
@@ -554,7 +554,7 @@ export default function Suppliers() {
                   </Card>
                 )}
 
-                {/* Produtos do Fornecedor */}
+                {/* Produtos do Revendedor */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
