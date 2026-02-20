@@ -249,7 +249,7 @@ export default function Layout({ children, currentPageName }) {
           icon: Package,
         },
         {
-          title: "Fornecedores",
+          title: "Revendedores",
           url: createPageUrl("Suppliers"),
           icon: UserCircle,
         },
@@ -408,7 +408,7 @@ export default function Layout({ children, currentPageName }) {
             className="w-16 h-16 mx-auto mb-6 object-contain"
           />
           <h1 className="text-2xl font-bold text-gray-900 mb-2">PlaceFit</h1>
-          <p className="text-gray-600 mb-8">Plataforma de Fornecedores</p>
+          <p className="text-gray-600 mb-8">Plataforma de Revendedores</p>
           <Button 
             onClick={() => base44.auth.redirectToLogin()} 
             className="w-full bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white font-semibold py-3 rounded-xl transition-all duration-300"
@@ -457,7 +457,7 @@ export default function Layout({ children, currentPageName }) {
               <div>
                 <h2 className="font-bold text-gray-900 text-lg">PlaceFit</h2>
                 <p className="text-xs text-gray-500">
-                  {getEffectiveUser().role === 'admin' ? 'Administração' : getEffectiveUser().tipo_usuario === 'fabricante' ? 'Fabricantes' : getEffectiveUser().tipo_usuario === 'transportador' ? 'Transportadora' : 'Fornecedores'}
+                  {getEffectiveUser().role === 'admin' ? 'Administração' : getEffectiveUser().tipo_usuario === 'fabricante' ? 'Fabricantes' : getEffectiveUser().tipo_usuario === 'transportador' ? 'Transportadora' : 'Revendedores'}
                 </p>
               </div>
             </div>
@@ -466,7 +466,7 @@ export default function Layout({ children, currentPageName }) {
           <SidebarContent className="p-4">
             <SidebarGroup>
               <SidebarGroupLabel className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 py-2">
-                {getEffectiveUser().role === 'admin' ? 'Administração' : getEffectiveUser().tipo_usuario === 'fabricante' ? 'Fabricante' : getEffectiveUser().tipo_usuario === 'transportador' ? 'Transportadora' : 'Fornecedor'}
+                {getEffectiveUser().role === 'admin' ? 'Administração' : getEffectiveUser().tipo_usuario === 'fabricante' ? 'Fabricante' : getEffectiveUser().tipo_usuario === 'transportador' ? 'Transportadora' : 'Revendedor'}
               </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
@@ -512,7 +512,7 @@ export default function Layout({ children, currentPageName }) {
                         {user.empresa || user.full_name}
                       </p>
                       <p className="text-xs text-gray-500 truncate">
-                        {getEffectiveUser().role === 'admin' ? 'Administrador' : getEffectiveUser().tipo_usuario === 'fabricante' ? 'Fabricante' : getEffectiveUser().tipo_usuario === 'transportador' ? 'Transportadora' : 'Fornecedor'}
+                        {getEffectiveUser().role === 'admin' ? 'Administrador' : getEffectiveUser().tipo_usuario === 'fabricante' ? 'Fabricante' : getEffectiveUser().tipo_usuario === 'transportador' ? 'Transportadora' : 'Revendedor'}
                       </p>
                     </div>
                   </div>
@@ -568,7 +568,7 @@ export default function Layout({ children, currentPageName }) {
                         onClick={() => handleAdminViewModeChange('fornecedor')}
                         className={adminViewMode === 'fornecedor' ? 'bg-blue-600 hover:bg-blue-700' : ''}
                       >
-                        Fornecedor
+                        Revendedor
                       </Button>
                       <Button
                         size="sm"
