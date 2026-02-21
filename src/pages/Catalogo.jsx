@@ -49,11 +49,18 @@ export default function Catalogo() {
         const allProducts = await base44.entities.Product.list();
         productsData = allProducts.filter(p => p.fabricante_id === currentUser.id);
       } else {
-        // Revendedor vê seus produtos selecionados
+        // Revendedor vê apenas produtos selecionados COM preço definido
         const supplierProducts = await base44.entities.SupplierProduct.filter({ 
-          supplier_id: currentUser.id 
+          supplier_id: currentUser.id,
+          disponivel: true
         });
-        const productIds = supplierProducts.map(sp => sp.product_id);
+        
+        // Filtrar apenas produtos com preço maior que 0
+        const validSupplierProducts = supplierProducts.filter(sp => 
+          sp.preco && parseFloat(sp.preco) > 0
+        );
+        
+        const productIds = validSupplierProducts.map(sp => sp.product_id);
         if (productIds.length > 0) {
           const allProducts = await base44.entities.Product.list();
           productsData = allProducts.filter(p => productIds.includes(p.id));

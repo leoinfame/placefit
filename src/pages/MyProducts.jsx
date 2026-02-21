@@ -257,27 +257,37 @@ export default function MyProducts() {
     setApplyingBulk(true);
     const percentage = parseFloat(bulkPercentage);
     let successCount = 0;
+    let skippedCount = 0;
 
     try {
       for (const productId of selectedProducts) {
         const product = products.find(p => p.id === productId);
         const supplierProduct = supplierProducts.find(sp => sp.product_id === productId);
         
-        if (product && supplierProduct && product.preco_fabricante) {
-          const precoCusto = parseFloat(product.preco_fabricante);
-          const novoPreco = precoCusto * (1 + percentage / 100);
-          
-          await base44.entities.SupplierProduct.update(supplierProduct.id, {
-            preco: novoPreco,
-            disponivel: true
-          });
-          successCount++;
+        if (!product || !supplierProduct) {
+          skippedCount++;
+          continue;
         }
+
+        // Verificar se tem preço de fabricante
+        if (!product.preco_fabricante || parseFloat(product.preco_fabricante) <= 0) {
+          skippedCount++;
+          continue;
+        }
+        
+        const precoCusto = parseFloat(product.preco_fabricante);
+        const novoPreco = precoCusto * (1 + percentage / 100);
+        
+        await base44.entities.SupplierProduct.update(supplierProduct.id, {
+          preco: novoPreco,
+          disponivel: true
+        });
+        successCount++;
       }
 
       toast({
-        title: "Sucesso!",
-        description: `${successCount} produtos atualizados com ${percentage}% de margem.`,
+        title: "Aplicação concluída!",
+        description: `${successCount} produtos atualizados com ${percentage}% de margem.${skippedCount > 0 ? ` ${skippedCount} produtos sem preço de custo foram ignorados.` : ''}`,
       });
 
       setSelectedProducts([]);
