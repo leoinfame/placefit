@@ -225,7 +225,7 @@ export default function Frete() {
         </div>
 
         {/* Estatísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 border">
             <CardContent className="p-4 text-center">
               <Truck className="w-8 h-8 text-blue-600 mx-auto mb-2" />
@@ -244,15 +244,17 @@ export default function Frete() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 border">
+          <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200 border">
             <CardContent className="p-4 text-center">
-              <Package className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-purple-900">
-                {[...new Set(freightOffers.map(o => o.estado))].length}
+              <Package className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-yellow-900">
+                {freightOffers.filter(o => !o.ativo).length}
               </div>
-              <p className="text-sm text-purple-700">Estados Atendidos</p>
+              <p className="text-sm text-yellow-700">Pendente Aprovação</p>
             </CardContent>
           </Card>
+
+
         </div>
 
         {/* Transportadores e Rotas Disponíveis */}
@@ -400,8 +402,8 @@ export default function Frete() {
                               Ativa
                             </Badge>
                           ) : (
-                            <Badge variant="secondary" className="bg-gray-100 text-gray-600">
-                              Despachada
+                            <Badge variant="secondary" className="bg-yellow-100 text-yellow-700 border-yellow-300">
+                              Pendente Aprovação
                             </Badge>
                           )}
                         </TableCell>
@@ -420,15 +422,41 @@ export default function Frete() {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center justify-center gap-1">
+                            {!offer.ativo && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={async () => {
+                                  try {
+                                    await base44.entities.FreightOffer.update(offer.id, { ativo: true });
+                                    loadData();
+                                    toast({
+                                      title: "Oferta aprovada!",
+                                      description: "A oferta foi ativada e aparecerá no portal de complementos.",
+                                    });
+                                  } catch (error) {
+                                    toast({
+                                      title: "Erro",
+                                      description: "Erro ao aprovar oferta.",
+                                      variant: "destructive"
+                                    });
+                                  }
+                                }}
+                                className="h-8 px-2 hover:bg-green-50 hover:text-green-700"
+                                title="Aprovar e ativar"
+                              >
+                                <CheckCircle className="w-4 h-4" />
+                              </Button>
+                            )}
                             {offer.ativo && (
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleMarkAsDispatched(offer)}
-                                className="h-8 px-2 hover:bg-green-50 hover:text-green-700"
+                                className="h-8 px-2 hover:bg-yellow-50 hover:text-yellow-700"
                                 title="Marcar como despachado"
                               >
-                                <CheckCircle className="w-4 h-4" />
+                                <X className="w-4 h-4" />
                               </Button>
                             )}
                             <Button
