@@ -28,6 +28,7 @@ export default function FabricantesRevendedor() {
   const [catalogoProducts, setCatalogoProducts] = useState([]);
   const [loadingCatalogo, setLoadingCatalogo] = useState(false);
   const [downloadingTable, setDownloadingTable] = useState(null);
+  const [showPerfilDialog, setShowPerfilDialog] = useState(false);
 
   const { toast } = useToast();
 
@@ -214,6 +215,11 @@ Responda de forma profissional e útil, usando apenas as informações da base d
     setLoadingCatalogo(false);
   };
 
+  const openPerfil = (fabricante) => {
+    setSelectedFabricante(fabricante);
+    setShowPerfilDialog(true);
+  };
+
   if (loading) {
     return (
       <div className="p-8">
@@ -303,18 +309,22 @@ Responda de forma profissional e útil, usando apenas as informações da base d
                     <p className="text-sm text-gray-600 line-clamp-2">{fabricante.endereco}</p>
                   )}
                   
-                  <div className="flex flex-wrap gap-2">
-                    {fabricante.whatsapp && (
-                      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs">
-                        WhatsApp
+                  {fabricante.whatsapp && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                        📱 {fabricante.whatsapp}
                       </Badge>
-                    )}
-                    {fabricante.site && (
-                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
-                        Site
-                      </Badge>
-                    )}
-                  </div>
+                    </div>
+                  )}
+
+                  <Button
+                    onClick={() => openPerfil(fabricante)}
+                    variant="link"
+                    size="sm"
+                    className="p-0 h-auto text-blue-600 hover:text-blue-700 text-xs"
+                  >
+                    Ver perfil completo da empresa →
+                  </Button>
 
                   <div className="grid grid-cols-1 gap-2 pt-3">
                     <Button
@@ -481,6 +491,122 @@ Responda de forma profissional e útil, usando apenas as informações da base d
             <div className="p-12 text-center">
               <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-600">Este fabricante não possui produtos no catálogo.</p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Perfil */}
+      <Dialog open={showPerfilDialog} onOpenChange={setShowPerfilDialog}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              {selectedFabricante?.logomarca && (
+                <img 
+                  src={selectedFabricante.logomarca} 
+                  alt="Logo" 
+                  className="w-12 h-12 object-contain rounded-lg border p-1"
+                />
+              )}
+              Perfil - {selectedFabricante?.empresa || selectedFabricante?.full_name}
+            </DialogTitle>
+          </DialogHeader>
+
+          {selectedFabricante && (
+            <div className="space-y-6">
+              {/* Informações Gerais */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Informações da Empresa</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {selectedFabricante.empresa && (
+                    <div>
+                      <p className="text-sm font-semibold text-gray-600">Razão Social</p>
+                      <p className="text-gray-900">{selectedFabricante.empresa}</p>
+                    </div>
+                  )}
+                  {selectedFabricante.cnpj && (
+                    <div>
+                      <p className="text-sm font-semibold text-gray-600">CNPJ</p>
+                      <p className="text-gray-900">{selectedFabricante.cnpj}</p>
+                    </div>
+                  )}
+                  {selectedFabricante.endereco && (
+                    <div>
+                      <p className="text-sm font-semibold text-gray-600">Endereço</p>
+                      <p className="text-gray-900">{selectedFabricante.endereco}</p>
+                    </div>
+                  )}
+                  {selectedFabricante.historia_empresa && (
+                    <div>
+                      <p className="text-sm font-semibold text-gray-600">Sobre a Empresa</p>
+                      <p className="text-gray-900 whitespace-pre-wrap">{selectedFabricante.historia_empresa}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Contatos */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Contatos</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {selectedFabricante.email && (
+                    <div>
+                      <p className="text-sm font-semibold text-gray-600">E-mail</p>
+                      <p className="text-gray-900">{selectedFabricante.email}</p>
+                    </div>
+                  )}
+                  {selectedFabricante.whatsapp && (
+                    <div>
+                      <p className="text-sm font-semibold text-gray-600">WhatsApp</p>
+                      <p className="text-gray-900">{selectedFabricante.whatsapp}</p>
+                    </div>
+                  )}
+                  {selectedFabricante.site && (
+                    <div>
+                      <p className="text-sm font-semibold text-gray-600">Website</p>
+                      <a 
+                        href={selectedFabricante.site} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline"
+                      >
+                        {selectedFabricante.site}
+                      </a>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Políticas e Condições */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Políticas e Condições Comerciais</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {selectedFabricante.formas_pagamento && (
+                    <div>
+                      <p className="text-sm font-semibold text-gray-600">Formas de Pagamento</p>
+                      <p className="text-gray-900 whitespace-pre-wrap">{selectedFabricante.formas_pagamento}</p>
+                    </div>
+                  )}
+                  {selectedFabricante.prazo_entrega && (
+                    <div>
+                      <p className="text-sm font-semibold text-gray-600">Prazo de Entrega</p>
+                      <p className="text-gray-900 whitespace-pre-wrap">{selectedFabricante.prazo_entrega}</p>
+                    </div>
+                  )}
+                  {selectedFabricante.politica_troca && (
+                    <div>
+                      <p className="text-sm font-semibold text-gray-600">Política de Troca</p>
+                      <p className="text-gray-900 whitespace-pre-wrap">{selectedFabricante.politica_troca}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           )}
         </DialogContent>
