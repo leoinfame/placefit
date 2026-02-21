@@ -76,7 +76,30 @@ export default function PedidosCompraFabricante() {
 
   const confirmarPedidoMutation = useMutation({
     mutationFn: async ({ pedidoId, revendedorId, numeroPedido }) => {
+      const pedido = pedidosCompra.find(p => p.id === pedidoId);
+      
+      // Atualizar status do pedido de compra
       await base44.entities.PedidoCompra.update(pedidoId, { status: 'confirmado' });
+      
+      // Criar uma venda (Pedido tipo 'venda') para o fabricante
+      if (pedido) {
+        const numeroPedidoVenda = `VENDA-${Date.now()}`;
+        await base44.entities.Pedido.create({
+          fornecedor_id: user.id,
+          cliente_id: pedido.revendedor_id,
+          cliente_nome: pedido.revendedor_nome,
+          numero_pedido: numeroPedidoVenda,
+          data_pedido: new Date().toISOString().split('T')[0],
+          tipo: 'venda',
+          itens: pedido.itens,
+          subtotal: pedido.total,
+          frete: 0,
+          desconto: 0,
+          total: pedido.total,
+          status: 'confirmado',
+          observacoes: `Pedido de compra ${pedido.numero_pedido} confirmado`
+        });
+      }
       
       // Criar notificação para o revendedor
       await base44.entities.Notification.create({
@@ -90,7 +113,7 @@ export default function PedidosCompraFabricante() {
       queryClient.invalidateQueries({ queryKey: ['pedidos-compra-fabricante'] });
       toast({ 
         title: "Pedido confirmado!", 
-        description: "O revendedor foi notificado da confirmação." 
+        description: "O pedido foi confirmado e registrado em suas vendas." 
       });
       setShowViewDialog(false);
     },
