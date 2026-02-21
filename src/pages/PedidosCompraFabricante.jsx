@@ -7,8 +7,12 @@ import {
   FileText,
   Package,
   Search,
-  CheckCircle2
+  CheckCircle2,
+  Download,
+  Printer,
+  Share2
 } from "lucide-react";
+import jsPDF from "jspdf";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -105,6 +109,224 @@ export default function PedidosCompraFabricante() {
   const handleViewPedido = (pedido) => {
     setSelectedPedido(pedido);
     setShowViewDialog(true);
+  };
+
+  const atualizarStatusMutation = useMutation({
+    mutationFn: async ({ pedidoId, novoStatus, revendedorId, numeroPedido }) => {
+      await base44.entities.PedidoCompra.update(pedidoId, { status: novoStatus });
+      
+      // Criar notificação para o revendedor
+      await base44.entities.Notification.create({
+        supplier_id: revendedorId,
+        tipo: 'mensagem_placefit',
+        mensagem: `Status do pedido ${numeroPedido} atualizado para: ${statusLabels[novoStatus]}`,
+        lida: false
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pedidos-compra-fabricante'] });
+      toast({ 
+        title: "Status atualizado!", 
+        description: "O revendedor foi notificado da alteração." 
+      });
+    },
+  });
+
+  const handleAtualizarStatus = (novoStatus) => {
+    atualizarStatusMutation.mutate({
+      pedidoId: selectedPedido.id,
+      novoStatus,
+      revendedorId: selectedPedido.revendedor_id,
+      numeroPedido: selectedPedido.numero_pedido
+    });
+  };
+
+  const gerarPDF = async (pedido) => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    let yPos = 20;
+
+    // Cabeçalho com logo e dados do fabricante
+    doc.setFontSize(18);
+    doc.setFont(undefined, 'bold');
+    doc.text("PEDIDO DE COMPRA", pageWidth / 2, yPos, { align: 'center' });
+    yPos += 10;
+
+    // Logo do fabricante (se existir)
+    if (user.logomarca) {
+      try {
+        const img = new Image();
+        img.src = user.logomarca;
+        await new Promise((resolve) => {
+          img.onload = () => {
+            doc.addImage(img, 'PNG', 15, yPos, 30, 30);
+            resolve();
+          };
+          img.onerror = resolve;
+        });
+      } catch (error) {
+        console.error("Erro ao carregar logo:", error);
+      }
+    }
+
+    // Dados do fabricante
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'bold');
+    doc.text("FABRICANTE:", 50, yPos);
+    doc.setFont(undefined, 'normal');
+    yPos += 5;
+    doc.text(user.empresa || user.full_name || '', 50, yPos);
+    yPos += 4;
+    if (user.cnpj) {
+      doc.text(`CNPJ: ${user.cnpj}`, 50, yPos);
+      yPos += 4;
+    }
+    if (user.telefone) {
+      doc.text(`Tel: ${user.telefone}`, 50, yPos);
+      yPos += 4;
+    }
+    if (user.email) {
+      doc.text(`Email: ${user.email}`, 50, yPos);
+      yPos += 4;
+    }
+    if (user.endereco) {
+      doc.text(`End: ${user.endereco}`, 50, yPos);
+      yPos += 4;
+    }
+
+    yPos += 10;
+    doc.setDrawColor(200);
+    doc.line(15, yPos, pageWidth - 15, yPos);
+    yPos += 10;
+
+    // Dados do revendedor comprador
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'bold');
+    doc.text("REVENDEDOR COMPRADOR:", 15, yPos);
+    yPos += 5;
+    doc.setFont(undefined, 'normal');
+    
+    // Buscar dados completos do revendedor
+    try {
+      const revendedor = await base44.entities.User.filter({ id: pedido.revendedor_id });
+      if (revendedor && revendedor[0]) {
+        const rev = revendedor[0];
+        doc.text(`Nome/Empresa: ${rev.empresa || rev.full_name || pedido.revendedor_nome}`, 15, yPos);
+        yPos += 4;
+        if (rev.cnpj) {
+          doc.text(`CNPJ: ${rev.cnpj}`, 15, yPos);
+          yPos += 4;
+        }
+        if (rev.telefone) {
+          doc.text(`Telefone: ${rev.telefone}`, 15, yPos);
+          yPos += 4;
+        }
+        if (rev.whatsapp) {
+          doc.text(`WhatsApp: ${rev.whatsapp}`, 15, yPos);
+          yPos += 4;
+        }
+        if (rev.email) {
+          doc.text(`Email: ${rev.email}`, 15, yPos);
+          yPos += 4;
+        }
+        if (rev.endereco) {
+          doc.text(`Endereço: ${rev.endereco}`, 15, yPos);
+          yPos += 4;
+        }
+        if (rev.cidade && rev.estado) {
+          doc.text(`Cidade/UF: ${rev.cidade} - ${rev.estado}`, 15, yPos);
+          yPos += 4;
+        }
+        if (rev.cep) {
+          doc.text(`CEP: ${rev.cep}`, 15, yPos);
+          yPos += 4;
+        }
+      }
+    } catch (error) {
+      doc.text(pedido.revendedor_nome, 15, yPos);
+      yPos += 4;
+    }
+
+    yPos += 5;
+    doc.line(15, yPos, pageWidth - 15, yPos);
+    yPos += 10;
+
+    // Informações do pedido
+    doc.setFont(undefined, 'bold');
+    doc.text(`Pedido: ${pedido.numero_pedido}`, 15, yPos);
+    doc.text(`Data: ${new Date(pedido.data_pedido).toLocaleDateString('pt-BR')}`, 100, yPos);
+    yPos += 5;
+    doc.text(`Status: ${statusLabels[pedido.status]}`, 15, yPos);
+    yPos += 10;
+
+    // Tabela de produtos
+    doc.setFont(undefined, 'bold');
+    doc.text("Cód", 15, yPos);
+    doc.text("Produto", 35, yPos);
+    doc.text("Qtd", 120, yPos);
+    doc.text("Preço Un.", 140, yPos);
+    doc.text("Subtotal", 170, yPos);
+    yPos += 2;
+    doc.line(15, yPos, pageWidth - 15, yPos);
+    yPos += 5;
+
+    doc.setFont(undefined, 'normal');
+    pedido.itens.forEach((item) => {
+      if (yPos > 270) {
+        doc.addPage();
+        yPos = 20;
+      }
+      doc.text(item.cod.substring(0, 12), 15, yPos);
+      const nomeTexto = item.nome.length > 40 ? item.nome.substring(0, 40) + '...' : item.nome;
+      doc.text(nomeTexto, 35, yPos);
+      doc.text(String(item.quantidade), 120, yPos);
+      doc.text(`R$ ${item.preco_unitario.toFixed(2)}`, 140, yPos);
+      doc.text(`R$ ${item.subtotal.toFixed(2)}`, 170, yPos);
+      yPos += 6;
+    });
+
+    yPos += 5;
+    doc.line(15, yPos, pageWidth - 15, yPos);
+    yPos += 7;
+
+    // Total
+    doc.setFont(undefined, 'bold');
+    doc.setFontSize(12);
+    doc.text("TOTAL:", 140, yPos);
+    doc.text(`R$ ${pedido.total.toFixed(2)}`, 170, yPos);
+
+    // Observações
+    if (pedido.observacoes) {
+      yPos += 10;
+      doc.setFontSize(10);
+      doc.text("Observações:", 15, yPos);
+      yPos += 5;
+      doc.setFont(undefined, 'normal');
+      const obsLines = doc.splitTextToSize(pedido.observacoes, pageWidth - 30);
+      doc.text(obsLines, 15, yPos);
+    }
+
+    doc.save(`Pedido_${pedido.numero_pedido}.pdf`);
+    toast({ title: "PDF gerado!", description: "Download iniciado." });
+  };
+
+  const imprimirPedido = () => {
+    window.print();
+    toast({ title: "Imprimindo...", description: "Prepare sua impressora." });
+  };
+
+  const compartilharPedido = (pedido) => {
+    const texto = `Pedido de Compra ${pedido.numero_pedido}\nRevendedor: ${pedido.revendedor_nome}\nTotal: R$ ${pedido.total.toFixed(2)}`;
+    
+    if (navigator.share) {
+      navigator.share({ 
+        title: `Pedido ${pedido.numero_pedido}`,
+        text: texto 
+      }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(texto);
+      toast({ title: "Copiado!", description: "Informações copiadas para área de transferência." });
+    }
   };
 
   const filteredPedidos = pedidosCompra.filter(pc => {
@@ -364,10 +586,59 @@ export default function PedidosCompraFabricante() {
                 <DialogTitle>Pedido de Compra {selectedPedido.numero_pedido}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
+                {/* Ações do Pedido */}
+                <div className="flex flex-wrap gap-2 border-b pb-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => gerarPDF(selectedPedido)}
+                    className="flex-1 sm:flex-none"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Exportar PDF
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={imprimirPedido}
+                    className="flex-1 sm:flex-none"
+                  >
+                    <Printer className="w-4 h-4 mr-2" />
+                    Imprimir
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => compartilharPedido(selectedPedido)}
+                    className="flex-1 sm:flex-none"
+                  >
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Compartilhar
+                  </Button>
+                </div>
+
                 <div className="bg-gray-50 p-4 rounded">
                   <p><strong>Revendedor:</strong> {selectedPedido.revendedor_nome}</p>
                   <p><strong>Data:</strong> {new Date(selectedPedido.data_pedido).toLocaleDateString('pt-BR')}</p>
-                  <p><strong>Status:</strong> <Badge className={statusColors[selectedPedido.status]}>{statusLabels[selectedPedido.status]}</Badge></p>
+                  <div className="mt-2">
+                    <label className="block text-sm font-semibold mb-2">Status do Pedido:</label>
+                    <Select 
+                      value={selectedPedido.status} 
+                      onValueChange={handleAtualizarStatus}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pendente">Pendente</SelectItem>
+                        <SelectItem value="confirmado">Confirmado</SelectItem>
+                        <SelectItem value="em_producao">Em Produção</SelectItem>
+                        <SelectItem value="despachado">Despachado</SelectItem>
+                        <SelectItem value="recebido">Recebido</SelectItem>
+                        <SelectItem value="cancelado">Cancelado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div>
