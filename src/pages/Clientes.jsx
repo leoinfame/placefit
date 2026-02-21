@@ -54,13 +54,19 @@ export default function Clientes() {
         });
         
         setClientes(clientesData);
-      } else if (currentUser.role === 'user' && (!currentUser.tipo_usuario || currentUser.tipo_usuario !== 'fabricante')) {
-        // Revendedor vê seus clientes específicos (da entidade Cliente)
-        const clientesData = await base44.entities.Cliente.filter({
-          fornecedor_id: currentUser.id
-        }, '-created_date');
-        
-        setClientes(clientesData);
+      } else if (currentUser.role === 'user') {
+        // Revendedor ou usuário comum vê seus clientes específicos (da entidade Cliente)
+        try {
+          const clientesData = await base44.entities.Cliente.filter({
+            fornecedor_id: currentUser.id
+          }, '-created_date');
+          
+          setClientes(clientesData);
+        } catch (error) {
+          // Se a entidade não existir, inicializa com array vazio
+          console.log("Cliente entity not accessible, initializing empty");
+          setClientes([]);
+        }
       } else {
         window.location.href = '/Dashboard';
         return;
