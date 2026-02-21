@@ -402,6 +402,11 @@ export default function Layout({ children, currentPageName }) {
           icon: Dumbbell,
         },
         {
+          title: "Financeiro",
+          url: createPageUrl("Financeiro"),
+          icon: ShoppingCart,
+        },
+        {
           title: "Sua Tabela",
           url: createPageUrl("Export"),
           icon: Download,
