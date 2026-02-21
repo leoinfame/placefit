@@ -1049,21 +1049,21 @@ export default function MyProducts() {
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-500 hover:to-green-500">
-                        <TableHead className="text-white font-semibold text-center w-16">
-                          <input
-                            type="checkbox"
-                            checked={selectedProducts.length === getMyProductsFiltered().length && getMyProductsFiltered().length > 0}
-                            onChange={handleSelectAll}
-                            className="w-4 h-4 cursor-pointer"
-                          />
-                        </TableHead>
-                        <TableHead className="text-white font-semibold w-32">Código</TableHead>
-                        <TableHead className="text-white font-semibold">Produto</TableHead>
-                        <TableHead className="text-white font-semibold w-32">Preço Custo</TableHead>
-                        <TableHead className="text-white font-semibold w-32">Preço Venda (R$)</TableHead>
-                        <TableHead className="text-white font-semibold text-center w-28">Disponível</TableHead>
-                        <TableHead className="text-white font-semibold text-center w-32">Ações</TableHead>
-                      </TableRow>
+                         <TableHead className="text-white font-semibold text-center w-16">
+                           <input
+                             type="checkbox"
+                             checked={selectedProducts.length === getMyProductsFiltered().length && getMyProductsFiltered().length > 0}
+                             onChange={handleSelectAll}
+                             className="w-4 h-4 cursor-pointer"
+                           />
+                         </TableHead>
+                         <TableHead className="text-white font-semibold">Produto</TableHead>
+                         <TableHead className="text-white font-semibold w-40">Fabricante</TableHead>
+                         <TableHead className="text-white font-semibold w-32">Preço Custo</TableHead>
+                         <TableHead className="text-white font-semibold w-32">Preço Venda (R$)</TableHead>
+                         <TableHead className="text-white font-semibold text-center w-28">Disponível</TableHead>
+                         <TableHead className="text-white font-semibold text-center w-32">Ações</TableHead>
+                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {getMyProductsFiltered().map((product, index) => {
@@ -1074,19 +1074,25 @@ export default function MyProducts() {
                             className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50 transition-colors`}
                             >
                             <TableCell className="text-center">
-                              <input
-                                type="checkbox"
-                                checked={selectedProducts.includes(product.id)}
-                                onChange={() => handleSelectProduct(product.id)}
-                                className="w-4 h-4 cursor-pointer"
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="outline" className="font-mono text-xs">
-                                {product.cod}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="font-medium">{product.nome}</TableCell>
+                               <input
+                                 type="checkbox"
+                                 checked={selectedProducts.includes(product.id)}
+                                 onChange={() => handleSelectProduct(product.id)}
+                                 className="w-4 h-4 cursor-pointer"
+                               />
+                             </TableCell>
+                             <TableCell className="font-medium">{product.nome}</TableCell>
+                             <TableCell>
+                               {product.fabricante_id ? (
+                                 <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs">
+                                   {product.fabricante_nome || fabricantes.find(f => f.id === product.fabricante_id)?.empresa || 'Fabricante'}
+                                 </Badge>
+                               ) : (
+                                 <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs">
+                                   PlaceFit
+                                 </Badge>
+                               )}
+                             </TableCell>
                             <TableCell>
                               {product.preco_fabricante ? (
                                 <span className="text-sm text-gray-600">
@@ -1208,7 +1214,12 @@ export default function MyProducts() {
                           <div className="flex items-start justify-between gap-2 flex-1 min-w-0">
                           <div className="flex-1 min-w-0 overflow-hidden">
                             <h3 className="font-semibold text-sm text-gray-900 break-words">{product.nome}</h3>
-                            <p className="text-xs text-gray-500 font-mono break-all">{product.cod}</p>
+                            <p className="text-xs text-gray-500 break-all">
+                              {product.fabricante_id ? 
+                                (product.fabricante_nome || fabricantes.find(f => f.id === product.fabricante_id)?.empresa || 'Fabricante')
+                                : 'PlaceFit'
+                              }
+                            </p>
                           </div>
                           {!isEditing && (
                             <div className="flex gap-1 flex-shrink-0">
