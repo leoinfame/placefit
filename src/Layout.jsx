@@ -342,7 +342,7 @@ export default function Layout({ children, currentPageName }) {
           icon: Package,
         },
         {
-          title: "Pedidos de Compra",
+          title: "Pedidos",
           url: createPageUrl("PedidosCompraFabricante"),
           icon: ShoppingCart,
         },

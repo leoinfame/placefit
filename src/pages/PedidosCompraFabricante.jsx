@@ -372,7 +372,7 @@ export default function PedidosCompraFabricante() {
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Pedidos de Compra</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Pedidos</h1>
             <p className="text-gray-600">Pedidos recebidos dos revendedores</p>
           </div>
         </div>
