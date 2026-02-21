@@ -129,14 +129,15 @@ export default function Products() {
         base44.entities.Unit.list()
       ]);
       
-      // Extrair IDs únicos de fabricantes dos produtos
+      // Buscar todos os fabricantes que têm produtos
       const fabricanteIds = [...new Set(productsData.filter(p => p.fabricante_id).map(p => p.fabricante_id))];
       
-      // Buscar todos os fabricantes que têm produtos
       let fabricantesData = [];
       if (fabricanteIds.length > 0) {
-        const allFabricantes = await base44.entities.User.filter({ tipo_usuario: 'fabricante' });
-        fabricantesData = allFabricantes.filter(f => fabricanteIds.includes(f.id));
+        const allUsers = await base44.entities.User.list();
+        fabricantesData = allUsers.filter(f => 
+          fabricanteIds.includes(f.id) && f.tipo_usuario === 'fabricante'
+        );
       }
       
       setProducts(productsData);
