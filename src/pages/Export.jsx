@@ -41,14 +41,10 @@ export default function Export() {
     const preview = availableProducts.map(sp => {
       const product = productsData.find(p => p.id === sp.product_id);
       return product ? {
-        codigo: product.cod,
         nome: product.nome,
         categoria: product.categoria,
         unidade: product.und,
-        peso: product.peso ? `${product.peso} kg` : '-',
-        dimensoes: product.dimensoes || '-',
-        preco: `R$ ${sp.preco.toFixed(2)}`,
-        observacoes: sp.observacoes || ''
+        preco: `R$ ${sp.preco.toFixed(2)}`
       } : null;
     }).filter(Boolean);
 
@@ -57,14 +53,10 @@ export default function Export() {
 
   const generatePreviewForFabricante = (productsData) => {
     const preview = productsData.map(product => ({
-      codigo: product.cod,
       nome: product.nome,
       categoria: product.categoria,
       unidade: product.und,
-      peso: product.peso ? `${product.peso} kg` : '-',
-      dimensoes: product.dimensoes || '-',
-      preco: product.preco_fabricante ? `R$ ${parseFloat(product.preco_fabricante).toFixed(2)}` : 'R$ 0,00',
-      observacoes: ''
+      preco: product.preco_fabricante ? `R$ ${parseFloat(product.preco_fabricante).toFixed(2)}` : 'R$ 0,00'
     }));
 
     setPreviewData(preview);
@@ -138,14 +130,10 @@ export default function Export() {
       }
 
       const exportData = previewData.map(item => ({
-        'Código': item.codigo,
         'Nome do Produto': item.nome,
         'Categoria': item.categoria,
         'Unidade': item.unidade,
-        'Peso': item.peso,
-        'Dimensões (L x A x P)': item.dimensoes,
-        'Preço': item.preco,
-        'Observações': item.observacoes
+        'Preço': item.preco
       }));
 
       // Converter para CSV
@@ -302,22 +290,18 @@ export default function Export() {
           <table>
             <thead>
               <tr>
-                <th>Código</th>
                 <th>Produto</th>
                 <th>Categoria</th>
                 <th>Unidade</th>
-                <th>Peso</th>
                 <th style="text-align: right;">Preço</th>
               </tr>
             </thead>
             <tbody>
               ${previewData.map(item => `
                 <tr>
-                  <td>${item.codigo}</td>
                   <td>${item.nome}</td>
                   <td>${item.categoria}</td>
                   <td>${item.unidade}</td>
-                  <td>${item.peso}</td>
                   <td class="price">${item.preco}</td>
                 </tr>
               `).join('')}
@@ -530,22 +514,15 @@ export default function Export() {
                       <table className="w-full text-sm border-collapse border border-gray-200">
                         <thead>
                           <tr className="bg-gradient-to-r from-blue-500 to-green-500 text-white">
-                            <th className="border border-gray-300 px-3 py-2 text-left">Código</th>
                             <th className="border border-gray-300 px-3 py-2 text-left">Produto</th>
                             <th className="border border-gray-300 px-3 py-2 text-left">Categoria</th>
                             <th className="border border-gray-300 px-3 py-2 text-left">Unidade</th>
-                            <th className="border border-gray-300 px-3 py-2 text-left">Peso</th>
-                            <th className="border border-gray-300 px-3 py-2 text-left">Dimensões (L x A x P)</th>
-                            <th className="border border-gray-300 px-3 py-2 text-left">Observações</th>
                             <th className="border border-gray-300 px-3 py-2 text-right">Preço</th>
                           </tr>
                         </thead>
                         <tbody>
                           {previewData.map((item, index) => (
                             <tr key={index} className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}>
-                              <td className="border border-gray-300 px-3 py-2 font-mono text-xs">
-                                {item.codigo}
-                              </td>
                               <td className="border border-gray-300 px-3 py-2 font-medium">
                                 {item.nome}
                               </td>
@@ -556,15 +533,6 @@ export default function Export() {
                               </td>
                               <td className="border border-gray-300 px-3 py-2 text-center">
                                 {item.unidade}
-                              </td>
-                              <td className="border border-gray-300 px-3 py-2 text-xs">
-                                {item.peso}
-                              </td>
-                              <td className="border border-gray-300 px-3 py-2 text-xs">
-                                {item.dimensoes}
-                              </td>
-                              <td className="border border-gray-300 px-3 py-2 text-xs">
-                                {item.observacoes}
                               </td>
                               <td className="border border-gray-300 px-3 py-2 text-right font-bold text-green-700">
                                 {item.preco}
