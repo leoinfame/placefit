@@ -288,7 +288,15 @@ export default function Orcamentos() {
           };
         }
         
-        produtosPorFabricante[produto.fabricante_id].itens.push(item);
+        // Usar o preço do fabricante em vez do preço de venda do revendedor
+        const precoFabricante = produto.preco_fabricante ? parseFloat(produto.preco_fabricante) : item.preco_unitario;
+        const itemParaFabricante = {
+          ...item,
+          preco_unitario: precoFabricante,
+          subtotal: precoFabricante * item.quantidade
+        };
+        
+        produtosPorFabricante[produto.fabricante_id].itens.push(itemParaFabricante);
       }
 
       // Criar um pedido de compra para cada fabricante
