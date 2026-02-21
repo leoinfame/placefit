@@ -342,6 +342,11 @@ export default function Layout({ children, currentPageName }) {
           icon: Package,
         },
         {
+          title: "Pedidos de Compra",
+          url: createPageUrl("PedidosCompraFabricante"),
+          icon: ShoppingCart,
+        },
+        {
           title: "Sua Tabela",
           url: createPageUrl("Export"),
           icon: Download,

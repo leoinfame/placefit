@@ -79,6 +79,7 @@ import Units from './pages/Units';
 import Usuarios from './pages/Usuarios';
 import Vendas from './pages/Vendas';
 import PedidosCompra from './pages/PedidosCompra';
+import PedidosCompraFabricante from './pages/PedidosCompraFabricante';
 import __Layout from './Layout.jsx';
 
 
@@ -115,6 +116,7 @@ export const PAGES = {
     "Usuarios": Usuarios,
     "Vendas": Vendas,
     "PedidosCompra": PedidosCompra,
+    "PedidosCompraFabricante": PedidosCompraFabricante,
 }
 
 export const pagesConfig = {
