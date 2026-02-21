@@ -55,6 +55,7 @@ export default function Orcamentos() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [selectedOrcamento, setSelectedOrcamento] = useState(null);
   const [editingOrcamento, setEditingOrcamento] = useState(null);
+  const [productSearchTerm, setProductSearchTerm] = useState("");
   
   // Novo orçamento
   const [newOrcamento, setNewOrcamento] = useState({
@@ -772,14 +773,28 @@ export default function Orcamentos() {
                 {newOrcamento.itens.map((item, idx) => (
                   <div key={idx} className="flex gap-2 mb-2 items-end">
                     <div className="flex-1">
+                      <Input
+                        placeholder="Digite o nome ou código do produto..."
+                        value={productSearchTerm}
+                        onChange={(e) => setProductSearchTerm(e.target.value)}
+                        className="mb-1"
+                      />
                       <Select value={item.product_id} onValueChange={(val) => updateItemProduct(idx, val)}>
                         <SelectTrigger>
-                          <SelectValue placeholder="Produto" />
+                          <SelectValue placeholder="Selecione o produto" />
                         </SelectTrigger>
-                        <SelectContent>
-                          {products.map(p => (
-                            <SelectItem key={p.id} value={p.id}>{p.nome} - R$ {(user.tipo_usuario === 'fabricante' ? p.preco_fabricante : p.preco_fornecedor).toFixed(2)}</SelectItem>
-                          ))}
+                        <SelectContent className="max-h-[300px]">
+                          {products
+                            .filter(p => 
+                              !productSearchTerm || 
+                              p.nome.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+                              p.cod.toLowerCase().includes(productSearchTerm.toLowerCase())
+                            )
+                            .map(p => (
+                              <SelectItem key={p.id} value={p.id}>
+                                {p.cod} - {p.nome} - R$ {(user.tipo_usuario === 'fabricante' ? p.preco_fabricante : p.preco_fornecedor).toFixed(2)}
+                              </SelectItem>
+                            ))}
                         </SelectContent>
                       </Select>
                     </div>
