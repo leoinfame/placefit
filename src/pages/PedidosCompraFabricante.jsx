@@ -146,11 +146,11 @@ export default function PedidosCompraFabricante() {
     const pageWidth = doc.internal.pageSize.width;
     let yPos = 20;
 
-    // Cabeçalho com logo e dados do fabricante
+    // Cabeçalho
     doc.setFontSize(18);
     doc.setFont(undefined, 'bold');
     doc.text("PEDIDO DE COMPRA", pageWidth / 2, yPos, { align: 'center' });
-    yPos += 10;
+    yPos += 15;
 
     // Logo do fabricante (se existir)
     if (user.logomarca) {
@@ -191,18 +191,12 @@ export default function PedidosCompraFabricante() {
     }
     if (user.endereco) {
       doc.text(`End: ${user.endereco}`, 50, yPos);
-      yPos += 4;
+      yPos += 6;
     }
 
-    yPos += 10;
-    doc.setDrawColor(200);
-    doc.line(15, yPos, pageWidth - 15, yPos);
-    yPos += 10;
-
-    // Dados do revendedor comprador
-    doc.setFontSize(10);
+    // Dados do revendedor comprador (abaixo do fabricante)
     doc.setFont(undefined, 'bold');
-    doc.text("REVENDEDOR COMPRADOR:", 15, yPos);
+    doc.text("COMPRADOR:", 50, yPos);
     yPos += 5;
     doc.setFont(undefined, 'normal');
     
@@ -211,43 +205,44 @@ export default function PedidosCompraFabricante() {
       const revendedor = await base44.entities.User.filter({ id: pedido.revendedor_id });
       if (revendedor && revendedor[0]) {
         const rev = revendedor[0];
-        doc.text(`Nome/Empresa: ${rev.empresa || rev.full_name || pedido.revendedor_nome}`, 15, yPos);
+        doc.text(rev.empresa || rev.full_name || pedido.revendedor_nome, 50, yPos);
         yPos += 4;
         if (rev.cnpj) {
-          doc.text(`CNPJ: ${rev.cnpj}`, 15, yPos);
+          doc.text(`CNPJ: ${rev.cnpj}`, 50, yPos);
           yPos += 4;
         }
         if (rev.telefone) {
-          doc.text(`Telefone: ${rev.telefone}`, 15, yPos);
+          doc.text(`Tel: ${rev.telefone}`, 50, yPos);
           yPos += 4;
         }
         if (rev.whatsapp) {
-          doc.text(`WhatsApp: ${rev.whatsapp}`, 15, yPos);
+          doc.text(`WhatsApp: ${rev.whatsapp}`, 50, yPos);
           yPos += 4;
         }
         if (rev.email) {
-          doc.text(`Email: ${rev.email}`, 15, yPos);
+          doc.text(`Email: ${rev.email}`, 50, yPos);
           yPos += 4;
         }
         if (rev.endereco) {
-          doc.text(`Endereço: ${rev.endereco}`, 15, yPos);
+          doc.text(`End: ${rev.endereco}`, 50, yPos);
           yPos += 4;
         }
         if (rev.cidade && rev.estado) {
-          doc.text(`Cidade/UF: ${rev.cidade} - ${rev.estado}`, 15, yPos);
+          doc.text(`${rev.cidade} - ${rev.estado}`, 50, yPos);
           yPos += 4;
         }
         if (rev.cep) {
-          doc.text(`CEP: ${rev.cep}`, 15, yPos);
+          doc.text(`CEP: ${rev.cep}`, 50, yPos);
           yPos += 4;
         }
       }
     } catch (error) {
-      doc.text(pedido.revendedor_nome, 15, yPos);
+      doc.text(pedido.revendedor_nome, 50, yPos);
       yPos += 4;
     }
 
     yPos += 5;
+    doc.setDrawColor(200);
     doc.line(15, yPos, pageWidth - 15, yPos);
     yPos += 10;
 
