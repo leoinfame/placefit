@@ -173,17 +173,40 @@ export default function Layout({ children, currentPageName }) {
   };
 
   const getEffectiveUser = () => {
-    if (!user || user.role !== 'admin') return user;
+    if (!user) return null;
     
+    // Se não for admin, retorna o usuário real
+    if (user.role !== 'admin') {
+      return user;
+    }
+    
+    // Admin simulando outro tipo de usuário
     if (adminViewMode === 'fornecedor') {
-      return { ...user, role: 'user', tipo_usuario: null, aprovado: true };
+      return { 
+        ...user, 
+        role: 'user', 
+        tipo_usuario: undefined,  // Revendedor não tem tipo_usuario definido
+        aprovado: true 
+      };
     }
     if (adminViewMode === 'fabricante') {
-      return { ...user, role: 'user', tipo_usuario: 'fabricante', aprovado: true };
+      return { 
+        ...user, 
+        role: 'user', 
+        tipo_usuario: 'fabricante', 
+        aprovado: true 
+      };
     }
     if (adminViewMode === 'transportador') {
-      return { ...user, role: 'user', tipo_usuario: 'transportador', aprovado: true };
+      return { 
+        ...user, 
+        role: 'user', 
+        tipo_usuario: 'transportador', 
+        aprovado: true 
+      };
     }
+    
+    // Admin normal
     return user;
   };
 
@@ -300,6 +323,7 @@ export default function Layout({ children, currentPageName }) {
         }
       );
     } else if (effectiveUser.tipo_usuario === 'fabricante') {
+      // Menu para Fabricantes
       baseItems.push(
         {
           title: "Notificações",
@@ -339,6 +363,7 @@ export default function Layout({ children, currentPageName }) {
         }
       );
     } else {
+      // Menu para Revendedores (role='user', sem tipo_usuario ou tipo_usuario não definido)
       baseItems.push(
         {
           title: "Notificações",
@@ -532,7 +557,15 @@ export default function Layout({ children, currentPageName }) {
                         {user.empresa || user.full_name}
                       </p>
                       <p className="text-xs text-gray-500 truncate">
-                        {getEffectiveUser().role === 'admin' ? 'Administrador' : getEffectiveUser().tipo_usuario === 'fabricante' ? 'Fabricante' : getEffectiveUser().tipo_usuario === 'transportador' ? 'Transportadora' : 'Revendedor'}
+                        {
+                          getEffectiveUser()?.role === 'admin' 
+                            ? 'Administrador' 
+                            : getEffectiveUser()?.tipo_usuario === 'fabricante' 
+                              ? 'Fabricante' 
+                              : getEffectiveUser()?.tipo_usuario === 'transportador' 
+                                ? 'Transportadora' 
+                                : 'Revendedor'
+                        }
                       </p>
                     </div>
                   </div>
