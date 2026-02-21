@@ -814,9 +814,9 @@ export default function MyProducts() {
                     <TableBody>
                       {filteredProducts.map((product, index) => {
                         const fabricanteNome = product.fabricante_id ? 
-                          (fabricantes.find(f => f.id === product.fabricante_id)?.empresa || 
-                           fabricantes.find(f => f.id === product.fabricante_id)?.full_name || 
-                           'Fabricante') : null;
+                         (product.fabricante_nome || 
+                          fabricantes.find(f => f.id === product.fabricante_id)?.empresa || 
+                          'Fabricante') : null;
                         const precoSugerido = product.preco_fabricante ? parseFloat(product.preco_fabricante) : null;
 
                         return (
@@ -893,8 +893,8 @@ export default function MyProducts() {
             <div className="md:hidden space-y-3 w-full">
               {filteredProducts.map((product) => {
                 const fabricanteNome = product.fabricante_id ? 
-                  (fabricantes.find(f => f.id === product.fabricante_id)?.empresa || 
-                   fabricantes.find(f => f.id === product.fabricante_id)?.full_name || 
+                  (product.fabricante_nome || 
+                   fabricantes.find(f => f.id === product.fabricante_id)?.empresa || 
                    'Fabricante') : null;
                 const precoSugerido = product.preco_fabricante ? parseFloat(product.preco_fabricante) : null;
 
