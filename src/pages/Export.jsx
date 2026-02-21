@@ -199,70 +199,98 @@ export default function Export() {
           <meta charset="UTF-8">
           <title>Tabela de Preços - ${user?.empresa || user?.full_name}</title>
           <style>
-            @page { margin: 0; }
+            @page { 
+              margin: 1.5cm 1cm 2cm 1cm;
+              size: A4;
+            }
             * { margin: 0; padding: 0; box-sizing: border-box; }
             body {
               background: white;
-              margin: 1cm;
               font-family: Arial, sans-serif;
               color: #000;
             }
             .header {
               text-align: center;
-              margin-bottom: 20px;
-              padding: 20px;
+              margin-bottom: 8px;
+              padding: 0;
             }
             .logo {
-              max-width: 150px;
-              max-height: 80px;
-              margin-bottom: 15px;
+              max-width: 80px;
+              max-height: 50px;
+              margin-bottom: 4px;
             }
             .company-name {
-              font-size: 24px;
+              font-size: 14px;
               font-weight: bold;
-              margin-bottom: 10px;
+              margin-bottom: 2px;
             }
             .company-info {
-              font-size: 12px;
-              line-height: 1.6;
+              font-size: 9px;
+              line-height: 1.3;
+              margin-bottom: 4px;
             }
             .title {
-              font-size: 18px;
+              font-size: 12px;
               font-weight: bold;
               text-align: center;
-              margin: 20px 0;
+              margin: 6px 0 2px 0;
               text-transform: uppercase;
             }
             .date {
               text-align: center;
-              font-size: 11px;
+              font-size: 9px;
               color: #666;
-              margin-bottom: 20px;
+              margin-bottom: 8px;
             }
             table {
               width: 100%;
               border-collapse: collapse;
-              margin-top: 10px;
+              margin-top: 0;
+              page-break-inside: avoid;
+            }
+            thead {
+              display: table-header-group;
+              page-break-after: avoid;
+            }
+            tbody {
+              display: table-row-group;
             }
             th, td {
-              border: 1px solid #333;
-              padding: 8px;
+              border: 0.5px solid #999;
+              padding: 4px 6px;
               text-align: left;
-              font-size: 11px;
+              font-size: 10px;
             }
             th {
-              background-color: #f0f0f0;
+              background-color: #e8e8e8;
               font-weight: bold;
+              height: 20px;
+            }
+            tr {
+              page-break-inside: avoid;
             }
             tr:nth-child(even) {
-              background-color: #fafafa;
+              background-color: #f9f9f9;
             }
             .price {
               text-align: right;
               font-weight: bold;
             }
             @media print {
-              body { margin: 1cm; }
+              body { 
+                margin: 0;
+                padding: 0;
+              }
+              table {
+                page-break-inside: auto;
+              }
+              tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+              }
+              thead {
+                display: table-header-group;
+              }
             }
           </style>
         </head>
@@ -271,11 +299,10 @@ export default function Export() {
             ${user?.logomarca ? `<img src="${user.logomarca}" alt="Logo" class="logo">` : ''}
             <div class="company-name">${user?.empresa || user?.full_name}</div>
             <div class="company-info">
-              ${user?.whatsapp ? `Tel: ${user.whatsapp}<br>` : ''}
-              ${user?.email ? `E-mail: ${user.email}<br>` : ''}
-              ${user?.endereco ? `${user.endereco}<br>` : ''}
-              ${user?.site ? `${user.site}` : ''}
+              ${user?.whatsapp ? `Tel: ${user.whatsapp} ` : ''}
+              ${user?.email ? `| ${user.email}` : ''}
             </div>
+            ${user?.endereco ? `<div class="company-info">${user.endereco}</div>` : ''}
           </div>
 
           <div class="title">Tabela de Preços</div>
@@ -285,7 +312,7 @@ export default function Export() {
             <thead>
               <tr>
                 <th>Produto</th>
-                <th style="text-align: right;">Preço</th>
+                <th style="text-align: right; width: 100px;">Preço</th>
               </tr>
             </thead>
             <tbody>
