@@ -274,6 +274,31 @@ export default function Orcamentos() {
         status: 'confirmado'
       });
 
+      // Obter dados do cliente
+      const cliente = clientes.find(c => c.id === orcamento.cliente_id);
+
+      // Calcular peso total dos produtos
+      let pesoTotal = 0;
+      for (const item of orcamento.itens) {
+        const produto = products.find(p => p.id === item.product_id);
+        if (produto && produto.peso) {
+          pesoTotal += parseFloat(produto.peso) * item.quantidade;
+        }
+      }
+
+      // Criar oferta de frete inativa (precisa aprovação)
+      if (cliente && orcamento.frete > 0) {
+        await base44.entities.FreightOffer.create({
+          supplier_id: user.id,
+          cidade: cliente.cidade || '',
+          estado: cliente.estado || '',
+          peso_total: pesoTotal || 0,
+          valor_ofertado: parseFloat(orcamento.frete),
+          observacoes: `Oferta de frete do orçamento ${orcamento.numero_pedido} - Cliente: ${cliente.nome}. Revendedor: ${user.empresa || user.full_name}. Email: ${user.email}. WhatsApp: ${user.whatsapp || 'Não informado'}`,
+          ativo: false  // Inativo até aprovação do revendedor
+        });
+      }
+
       // Agrupar produtos por fabricante
       const produtosPorFabricante = {};
       
@@ -334,7 +359,7 @@ export default function Orcamentos() {
       queryClient.invalidateQueries({ queryKey: ['orcamentos'] });
       toast({ 
         title: "Venda concluída!", 
-        description: "O orçamento foi convertido em venda e os pedidos de compra foram gerados." 
+        description: "O orçamento foi convertido em venda, pedidos de compra gerados e oferta de frete registrada." 
       });
     },
   });
