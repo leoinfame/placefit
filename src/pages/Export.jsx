@@ -42,8 +42,6 @@ export default function Export() {
       const product = productsData.find(p => p.id === sp.product_id);
       return product ? {
         nome: product.nome,
-        categoria: product.categoria,
-        unidade: product.und,
         preco: `R$ ${sp.preco.toFixed(2)}`
       } : null;
     }).filter(Boolean);
@@ -54,8 +52,6 @@ export default function Export() {
   const generatePreviewForFabricante = (productsData) => {
     const preview = productsData.map(product => ({
       nome: product.nome,
-      categoria: product.categoria,
-      unidade: product.und,
       preco: product.preco_fabricante ? `R$ ${parseFloat(product.preco_fabricante).toFixed(2)}` : 'R$ 0,00'
     }));
 
@@ -131,8 +127,6 @@ export default function Export() {
 
       const exportData = previewData.map(item => ({
         'Nome do Produto': item.nome,
-        'Categoria': item.categoria,
-        'Unidade': item.unidade,
         'Preço': item.preco
       }));
 
@@ -291,8 +285,6 @@ export default function Export() {
             <thead>
               <tr>
                 <th>Produto</th>
-                <th>Categoria</th>
-                <th>Unidade</th>
                 <th style="text-align: right;">Preço</th>
               </tr>
             </thead>
@@ -300,8 +292,6 @@ export default function Export() {
               ${previewData.map(item => `
                 <tr>
                   <td>${item.nome}</td>
-                  <td>${item.categoria}</td>
-                  <td>${item.unidade}</td>
                   <td class="price">${item.preco}</td>
                 </tr>
               `).join('')}
@@ -515,8 +505,6 @@ export default function Export() {
                         <thead>
                           <tr className="bg-gradient-to-r from-blue-500 to-green-500 text-white">
                             <th className="border border-gray-300 px-3 py-2 text-left">Produto</th>
-                            <th className="border border-gray-300 px-3 py-2 text-left">Categoria</th>
-                            <th className="border border-gray-300 px-3 py-2 text-left">Unidade</th>
                             <th className="border border-gray-300 px-3 py-2 text-right">Preço</th>
                           </tr>
                         </thead>
@@ -525,14 +513,6 @@ export default function Export() {
                             <tr key={index} className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}>
                               <td className="border border-gray-300 px-3 py-2 font-medium">
                                 {item.nome}
-                              </td>
-                              <td className="border border-gray-300 px-3 py-2">
-                                <Badge variant="outline" className="text-xs">
-                                  {item.categoria}
-                                </Badge>
-                              </td>
-                              <td className="border border-gray-300 px-3 py-2 text-center">
-                                {item.unidade}
                               </td>
                               <td className="border border-gray-300 px-3 py-2 text-right font-bold text-green-700">
                                 {item.preco}
