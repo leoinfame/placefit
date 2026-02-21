@@ -123,12 +123,22 @@ export default function Products() {
   const loadProducts = async () => {
     try {
       // Fetch products, manufacturers, categories, and units
-      const [productsData, fabricantesData, categoriesData, unitsData] = await Promise.all([
+      const [productsData, categoriesData, unitsData] = await Promise.all([
         base44.entities.Product.list('-updated_date'),
-        base44.entities.User.filter({ tipo_usuario: 'fabricante', aprovado: true }),
         base44.entities.Category.list(),
         base44.entities.Unit.list()
       ]);
+      
+      // Extrair IDs únicos de fabricantes dos produtos
+      const fabricanteIds = [...new Set(productsData.filter(p => p.fabricante_id).map(p => p.fabricante_id))];
+      
+      // Buscar todos os fabricantes que têm produtos
+      let fabricantesData = [];
+      if (fabricanteIds.length > 0) {
+        const allFabricantes = await base44.entities.User.filter({ tipo_usuario: 'fabricante' });
+        fabricantesData = allFabricantes.filter(f => fabricanteIds.includes(f.id));
+      }
+      
       setProducts(productsData);
       setFabricantes(fabricantesData);
       setCategories(categoriesData.filter(c => c.ativo).map(c => c.nome));
