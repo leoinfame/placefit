@@ -41,6 +41,7 @@ export default function PedidosCompra() {
   const [fabricantes, setFabricantes] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedVenda, setSelectedVenda] = useState(null);
+  const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [selectedPedido, setSelectedPedido] = useState(null);
@@ -290,17 +291,29 @@ export default function PedidosCompra() {
     );
   }
 
+  const getPedidosCompraByVenda = (vendaId) => {
+    return pedidosCompra.filter(pc => pc.venda_id === vendaId);
+  };
+
+  const hasAllPedidosFinalizados = (vendaId) => {
+    const pedidos = getPedidosCompraByVenda(vendaId);
+    if (pedidos.length === 0) return false;
+    return pedidos.every(pc => pc.status === 'recebido');
+  };
+
   const filteredVendas = vendas.filter(v => {
     const matchSearch = searchTerm === "" || 
       v.numero_pedido.toLowerCase().includes(searchTerm.toLowerCase()) ||
       v.cliente_nome.toLowerCase().includes(searchTerm.toLowerCase());
     
-    return matchSearch;
+    const allFinalizados = hasAllPedidosFinalizados(v.id);
+    const matchStatus = 
+      statusFilter === "all" ||
+      (statusFilter === "aberto" && !allFinalizados) ||
+      (statusFilter === "finalizado" && allFinalizados);
+    
+    return matchSearch && matchStatus;
   });
-
-  const getPedidosCompraByVenda = (vendaId) => {
-    return pedidosCompra.filter(pc => pc.venda_id === vendaId);
-  };
 
   const statusColors = {
     pendente: "bg-yellow-100 text-yellow-800",
@@ -346,7 +359,7 @@ export default function PedidosCompra() {
           )}
         </div>
 
-        {/* Busca */}
+        {/* Busca e Filtros */}
         {!selectedVenda && (
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
@@ -358,12 +371,22 @@ export default function PedidosCompra() {
                 className="pl-10 bg-white/80 border-gray-200"
               />
             </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full md:w-48 bg-white/80">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="aberto">Pedidos em Aberto</SelectItem>
+                <SelectItem value="finalizado">Pedidos Finalizados</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         )}
 
         {/* Stats */}
         {!selectedVenda ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
               <CardContent className="p-4 text-center">
                 <ShoppingCart className="w-8 h-8 text-blue-600 mx-auto mb-2" />
@@ -371,20 +394,31 @@ export default function PedidosCompra() {
                 <p className="text-sm text-blue-700">Total de Vendas</p>
               </CardContent>
             </Card>
-            <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+            <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200">
               <CardContent className="p-4 text-center">
-                <Package className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-purple-900">{pedidosCompra.length}</div>
-                <p className="text-sm text-purple-700">Pedidos de Compra</p>
+                <Package className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-yellow-900">
+                  {vendas.filter(v => !hasAllPedidosFinalizados(v.id)).length}
+                </div>
+                <p className="text-sm text-yellow-700">Pedidos em Aberto</p>
               </CardContent>
             </Card>
             <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
               <CardContent className="p-4 text-center">
                 <Package className="w-8 h-8 text-green-600 mx-auto mb-2" />
                 <div className="text-2xl font-bold text-green-900">
+                  {vendas.filter(v => hasAllPedidosFinalizados(v.id)).length}
+                </div>
+                <p className="text-sm text-green-700">Pedidos Finalizados</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+              <CardContent className="p-4 text-center">
+                <Package className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-purple-900">
                   {new Set(pedidosCompra.map(p => p.fabricante_id)).size}
                 </div>
-                <p className="text-sm text-green-700">Fabricantes</p>
+                <p className="text-sm text-purple-700">Fabricantes</p>
               </CardContent>
             </Card>
           </div>
@@ -457,6 +491,7 @@ export default function PedidosCompra() {
                     <TableBody>
                       {filteredVendas.map((venda, index) => {
                         const pedidos = getPedidosCompraByVenda(venda.id);
+                        const allFinalizados = hasAllPedidosFinalizados(venda.id);
                         return (
                           <TableRow key={venda.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                             <TableCell className="font-mono text-sm">{venda.numero_pedido}</TableCell>
@@ -466,9 +501,14 @@ export default function PedidosCompra() {
                               R$ {venda.total.toFixed(2)}
                             </TableCell>
                             <TableCell className="text-center">
-                              <Badge variant="outline" className="bg-purple-50">
-                                {pedidos.length} pedido(s)
-                              </Badge>
+                              <div className="flex items-center gap-1 justify-center">
+                                <Badge variant="outline" className={allFinalizados ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}>
+                                  {pedidos.length} pedido(s)
+                                </Badge>
+                                {allFinalizados && (
+                                  <Badge className="bg-green-600 text-white">✓ Finalizado</Badge>
+                                )}
+                              </div>
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center justify-center gap-1">
@@ -479,6 +519,16 @@ export default function PedidosCompra() {
                                 >
                                   Ver Pedidos
                                 </Button>
+                                {!allFinalizados && (
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleMarcarTodosFinalizados(venda.id)}
+                                    className="h-8 bg-green-600 hover:bg-green-700"
+                                    title="Marcar todos como recebidos"
+                                  >
+                                    ✓ Finalizar
+                                  </Button>
+                                )}
                               </div>
                             </TableCell>
                           </TableRow>
@@ -594,6 +644,7 @@ export default function PedidosCompra() {
             ) : (
               filteredVendas.map((venda) => {
                 const pedidos = getPedidosCompraByVenda(venda.id);
+                const allFinalizados = hasAllPedidosFinalizados(venda.id);
                 return (
                   <Card key={venda.id} className="bg-white shadow w-full">
                     <CardContent className="p-3 w-full">
@@ -603,9 +654,14 @@ export default function PedidosCompra() {
                             <p className="font-mono text-xs text-gray-500 break-all">{venda.numero_pedido}</p>
                             <h3 className="font-semibold text-sm text-gray-900 break-words">{venda.cliente_nome}</h3>
                             <p className="text-xs text-gray-500">{new Date(venda.data_pedido).toLocaleDateString('pt-BR')}</p>
-                            <Badge className="mt-1 bg-purple-100 text-purple-800">
-                              {pedidos.length} pedido(s) de compra
-                            </Badge>
+                            <div className="flex gap-1 mt-1">
+                              <Badge className={allFinalizados ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}>
+                                {pedidos.length} pedido(s)
+                              </Badge>
+                              {allFinalizados && (
+                                <Badge className="bg-green-600 text-white">✓ Finalizado</Badge>
+                              )}
+                            </div>
                           </div>
                           <div className="flex-shrink-0 text-right">
                             <p className="font-bold text-green-700 text-sm">R$ {venda.total.toFixed(2)}</p>
@@ -617,8 +673,17 @@ export default function PedidosCompra() {
                             onClick={() => setSelectedVenda(venda)}
                             className="flex-1 h-8 text-xs bg-blue-600"
                           >
-                            Ver Pedidos de Compra
+                            Ver Pedidos
                           </Button>
+                          {!allFinalizados && (
+                            <Button
+                              size="sm"
+                              onClick={() => handleMarcarTodosFinalizados(venda.id)}
+                              className="h-8 px-2 text-xs bg-green-600"
+                            >
+                              ✓ Finalizar
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </CardContent>
