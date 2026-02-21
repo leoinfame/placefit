@@ -140,8 +140,8 @@ export default function PedidosCompraFabricante() {
       
       await base44.entities.PedidoCompra.update(pedidoId, { status: novoStatus });
       
-      // Se o status for confirmado ou recebido, criar uma venda automaticamente
-      if ((novoStatus === 'confirmado' || novoStatus === 'recebido') && pedido) {
+      // Se o status for "em_producao", criar uma venda automaticamente
+      if (novoStatus === 'em_producao' && pedido) {
         // Verificar se já existe uma venda para este pedido de compra
         const vendasExistentes = await base44.entities.Pedido.filter({ 
           fornecedor_id: user.id,
