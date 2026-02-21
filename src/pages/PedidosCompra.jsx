@@ -40,14 +40,22 @@ export default function PedidosCompra() {
   const [user, setUser] = useState(null);
   const [fabricantes, setFabricantes] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedFabricante, setSelectedFabricante] = useState("all");
-  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [selectedVenda, setSelectedVenda] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [selectedPedido, setSelectedPedido] = useState(null);
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  const { data: vendas = [] } = useQuery({
+    queryKey: ['vendas-pedidos-compra'],
+    queryFn: async () => {
+      const all = await base44.entities.Pedido.list('-created_date');
+      return all.filter(p => p.tipo === 'venda' && p.fornecedor_id === user?.id);
+    },
+    enabled: !!user,
+  });
 
   const { data: pedidosCompra = [] } = useQuery({
     queryKey: ['pedidos-compra'],
@@ -282,16 +290,17 @@ export default function PedidosCompra() {
     );
   }
 
-  const filteredPedidos = pedidosCompra.filter(pc => {
+  const filteredVendas = vendas.filter(v => {
     const matchSearch = searchTerm === "" || 
-      pc.numero_pedido.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      pc.fabricante_nome.toLowerCase().includes(searchTerm.toLowerCase());
+      v.numero_pedido.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      v.cliente_nome.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchFabricante = selectedFabricante === "all" || pc.fabricante_id === selectedFabricante;
-    const matchStatus = selectedStatus === "all" || pc.status === selectedStatus;
-    
-    return matchSearch && matchFabricante && matchStatus;
+    return matchSearch;
   });
+
+  const getPedidosCompraByVenda = (vendaId) => {
+    return pedidosCompra.filter(pc => pc.venda_id === vendaId);
+  };
 
   const statusColors = {
     pendente: "bg-yellow-100 text-yellow-800",
@@ -318,246 +327,369 @@ export default function PedidosCompra() {
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Pedidos de Compra</h1>
-            <p className="text-gray-600">Gerados automaticamente a partir das vendas concluídas</p>
+            {!selectedVenda ? (
+              <>
+                <h1 className="text-3xl font-bold text-gray-900">Pedidos de Compra</h1>
+                <p className="text-gray-600">Selecione uma venda para ver os pedidos de compra por fabricante</p>
+              </>
+            ) : (
+              <>
+                <h1 className="text-3xl font-bold text-gray-900">Pedidos de Compra - Venda {selectedVenda.numero_pedido}</h1>
+                <p className="text-gray-600">Cliente: {selectedVenda.cliente_nome}</p>
+              </>
+            )}
           </div>
+          {selectedVenda && (
+            <Button onClick={() => setSelectedVenda(null)} variant="outline">
+              ← Voltar para Vendas
+            </Button>
+          )}
         </div>
 
-        {/* Busca e Filtros */}
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Buscar por número ou fabricante..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-white/80 border-gray-200"
-            />
+        {/* Busca */}
+        {!selectedVenda && (
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Buscar venda por número ou cliente..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-white/80 border-gray-200"
+              />
+            </div>
           </div>
-          <Select value={selectedFabricante} onValueChange={setSelectedFabricante}>
-            <SelectTrigger className="w-full md:w-64 bg-white/80">
-              <SelectValue placeholder="Fabricante" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos Fabricantes</SelectItem>
-              {fabricantes.map(f => (
-                <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-            <SelectTrigger className="w-full md:w-48 bg-white/80">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos Status</SelectItem>
-              <SelectItem value="pendente">Pendente</SelectItem>
-              <SelectItem value="enviado">Enviado</SelectItem>
-              <SelectItem value="confirmado">Confirmado</SelectItem>
-              <SelectItem value="em_producao">Em Produção</SelectItem>
-              <SelectItem value="despachado">Despachado</SelectItem>
-              <SelectItem value="recebido">Recebido</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        )}
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
-            <CardContent className="p-4 text-center">
-              <ShoppingCart className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-blue-900">{pedidosCompra.length}</div>
-              <p className="text-sm text-blue-700">Total de Pedidos</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200">
-            <CardContent className="p-4 text-center">
-              <Package className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-yellow-900">
-                {pedidosCompra.filter(p => p.status === 'pendente').length}
-              </div>
-              <p className="text-sm text-yellow-700">Pendentes</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
-            <CardContent className="p-4 text-center">
-              <Package className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-purple-900">
-                {pedidosCompra.filter(p => p.status === 'em_producao').length}
-              </div>
-              <p className="text-sm text-purple-700">Em Produção</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
-            <CardContent className="p-4 text-center">
-              <Package className="w-8 h-8 text-green-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-green-900">
-                {pedidosCompra.filter(p => p.status === 'recebido').length}
-              </div>
-              <p className="text-sm text-green-700">Recebidos</p>
-            </CardContent>
-          </Card>
-        </div>
+        {!selectedVenda ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+              <CardContent className="p-4 text-center">
+                <ShoppingCart className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-blue-900">{vendas.length}</div>
+                <p className="text-sm text-blue-700">Total de Vendas</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+              <CardContent className="p-4 text-center">
+                <Package className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-purple-900">{pedidosCompra.length}</div>
+                <p className="text-sm text-purple-700">Pedidos de Compra</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+              <CardContent className="p-4 text-center">
+                <Package className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-green-900">
+                  {new Set(pedidosCompra.map(p => p.fabricante_id)).size}
+                </div>
+                <p className="text-sm text-green-700">Fabricantes</p>
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+              <CardContent className="p-4 text-center">
+                <ShoppingCart className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-blue-900">{getPedidosCompraByVenda(selectedVenda.id).length}</div>
+                <p className="text-sm text-blue-700">Total de Pedidos</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200">
+              <CardContent className="p-4 text-center">
+                <Package className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-yellow-900">
+                  {getPedidosCompraByVenda(selectedVenda.id).filter(p => p.status === 'pendente').length}
+                </div>
+                <p className="text-sm text-yellow-700">Pendentes</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+              <CardContent className="p-4 text-center">
+                <Package className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-purple-900">
+                  {getPedidosCompraByVenda(selectedVenda.id).filter(p => p.status === 'em_producao').length}
+                </div>
+                <p className="text-sm text-purple-700">Em Produção</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+              <CardContent className="p-4 text-center">
+                <Package className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-green-900">
+                  {getPedidosCompraByVenda(selectedVenda.id).filter(p => p.status === 'recebido').length}
+                </div>
+                <p className="text-sm text-green-700">Recebidos</p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
-        {/* Tabela de Pedidos - Desktop */}
+        {/* Lista de Vendas ou Pedidos - Desktop */}
         <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hidden md:block">
           <CardHeader>
-            <CardTitle>Lista de Pedidos de Compra</CardTitle>
+            <CardTitle>{!selectedVenda ? 'Vendas com Pedidos de Compra' : 'Pedidos de Compra por Fabricante'}</CardTitle>
           </CardHeader>
           <CardContent>
-            {filteredPedidos.length === 0 ? (
-              <div className="text-center py-12">
-                <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum pedido de compra</h3>
-                <p className="text-gray-600">Pedidos de compra são gerados automaticamente ao converter orçamentos em vendas</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-500 hover:to-green-500">
-                      <TableHead className="text-white font-semibold">Número</TableHead>
-                      <TableHead className="text-white font-semibold">Fabricante</TableHead>
-                      <TableHead className="text-white font-semibold">Data</TableHead>
-                      <TableHead className="text-white font-semibold">Itens</TableHead>
-                      <TableHead className="text-white font-semibold text-right">Total</TableHead>
-                      <TableHead className="text-white font-semibold">Status</TableHead>
-                      <TableHead className="text-white font-semibold text-center">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredPedidos.map((pc, index) => (
-                      <TableRow key={pc.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                        <TableCell className="font-mono text-sm">{pc.numero_pedido}</TableCell>
-                        <TableCell>{pc.fabricante_nome}</TableCell>
-                        <TableCell>{new Date(pc.data_pedido).toLocaleDateString('pt-BR')}</TableCell>
-                        <TableCell>{pc.itens.length} produto(s)</TableCell>
-                        <TableCell className="text-right font-bold text-green-700">
-                          R$ {pc.total.toFixed(2)}
-                        </TableCell>
-                        <TableCell>
-                          <Select
-                            value={pc.status}
-                            onValueChange={(newStatus) => updateStatusMutation.mutate({ id: pc.id, status: newStatus })}
-                          >
-                            <SelectTrigger className="w-40">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="pendente">Pendente</SelectItem>
-                              <SelectItem value="enviado">Enviado</SelectItem>
-                              <SelectItem value="confirmado">Confirmado</SelectItem>
-                              <SelectItem value="em_producao">Em Produção</SelectItem>
-                              <SelectItem value="despachado">Despachado</SelectItem>
-                              <SelectItem value="recebido">Recebido</SelectItem>
-                              <SelectItem value="cancelado">Cancelado</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center justify-center gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleViewPedido(pc)}
-                              className="h-8 px-2 hover:bg-blue-50"
-                              title="Visualizar"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => generatePDF(pc)}
-                              className="h-8 px-2 hover:bg-purple-50"
-                              title="Gerar PDF"
-                            >
-                              <FileText className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => enviarEmailFabricante(pc)}
-                              className="h-8 px-2 hover:bg-green-50"
-                              title="Enviar Email"
-                              disabled={pc.status !== 'pendente'}
-                            >
-                              <Mail className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
+            {!selectedVenda ? (
+              // Lista de Vendas
+              filteredVendas.length === 0 ? (
+                <div className="text-center py-12">
+                  <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhuma venda</h3>
+                  <p className="text-gray-600">As vendas concluídas aparecerão aqui</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-500 hover:to-green-500">
+                        <TableHead className="text-white font-semibold">Número</TableHead>
+                        <TableHead className="text-white font-semibold">Cliente</TableHead>
+                        <TableHead className="text-white font-semibold">Data</TableHead>
+                        <TableHead className="text-white font-semibold text-right">Total</TableHead>
+                        <TableHead className="text-white font-semibold text-center">Pedidos de Compra</TableHead>
+                        <TableHead className="text-white font-semibold text-center">Ações</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredVendas.map((venda, index) => {
+                        const pedidos = getPedidosCompraByVenda(venda.id);
+                        return (
+                          <TableRow key={venda.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                            <TableCell className="font-mono text-sm">{venda.numero_pedido}</TableCell>
+                            <TableCell>{venda.cliente_nome}</TableCell>
+                            <TableCell>{new Date(venda.data_pedido).toLocaleDateString('pt-BR')}</TableCell>
+                            <TableCell className="text-right font-bold text-green-700">
+                              R$ {venda.total.toFixed(2)}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Badge variant="outline" className="bg-purple-50">
+                                {pedidos.length} pedido(s)
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center justify-center gap-1">
+                                <Button
+                                  size="sm"
+                                  onClick={() => setSelectedVenda(venda)}
+                                  className="h-8 bg-blue-600 hover:bg-blue-700"
+                                >
+                                  Ver Pedidos
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              )
+            ) : (
+              // Lista de Pedidos de Compra da venda selecionada
+              getPedidosCompraByVenda(selectedVenda.id).length === 0 ? (
+                <div className="text-center py-12">
+                  <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum pedido de compra</h3>
+                  <p className="text-gray-600">Esta venda não possui pedidos de compra</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-500 hover:to-green-500">
+                        <TableHead className="text-white font-semibold">Número</TableHead>
+                        <TableHead className="text-white font-semibold">Fabricante</TableHead>
+                        <TableHead className="text-white font-semibold">Itens</TableHead>
+                        <TableHead className="text-white font-semibold text-right">Total</TableHead>
+                        <TableHead className="text-white font-semibold">Status</TableHead>
+                        <TableHead className="text-white font-semibold text-center">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {getPedidosCompraByVenda(selectedVenda.id).map((pc, index) => (
+                        <TableRow key={pc.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                          <TableCell className="font-mono text-sm">{pc.numero_pedido}</TableCell>
+                          <TableCell>{pc.fabricante_nome}</TableCell>
+                          <TableCell>{pc.itens.length} produto(s)</TableCell>
+                          <TableCell className="text-right font-bold text-green-700">
+                            R$ {pc.total.toFixed(2)}
+                          </TableCell>
+                          <TableCell>
+                            <Select
+                              value={pc.status}
+                              onValueChange={(newStatus) => updateStatusMutation.mutate({ id: pc.id, status: newStatus })}
+                            >
+                              <SelectTrigger className="w-40">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="pendente">Pendente</SelectItem>
+                                <SelectItem value="enviado">Enviado</SelectItem>
+                                <SelectItem value="confirmado">Confirmado</SelectItem>
+                                <SelectItem value="em_producao">Em Produção</SelectItem>
+                                <SelectItem value="despachado">Despachado</SelectItem>
+                                <SelectItem value="recebido">Recebido</SelectItem>
+                                <SelectItem value="cancelado">Cancelado</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center justify-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleViewPedido(pc)}
+                                className="h-8 px-2 hover:bg-blue-50"
+                                title="Visualizar"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => generatePDF(pc)}
+                                className="h-8 px-2 hover:bg-purple-50"
+                                title="Gerar PDF"
+                              >
+                                <FileText className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => enviarEmailFabricante(pc)}
+                                className="h-8 px-2 hover:bg-green-50"
+                                title="Enviar Email"
+                                disabled={pc.status !== 'pendente'}
+                              >
+                                <Mail className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )
             )}
           </CardContent>
         </Card>
 
-        {/* Cards de Pedidos - Mobile */}
+        {/* Cards - Mobile */}
         <div className="md:hidden space-y-3 w-full">
-          {filteredPedidos.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-12">
-                <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum pedido</h3>
-                <p className="text-gray-600 text-sm">Pedidos são gerados automaticamente</p>
-              </CardContent>
-            </Card>
-          ) : (
-            filteredPedidos.map((pc) => (
-              <Card key={pc.id} className="bg-white shadow w-full">
-                <CardContent className="p-3 w-full">
-                  <div className="space-y-2 w-full">
-                    <div className="flex items-start justify-between gap-2 w-full">
-                      <div className="flex-1 min-w-0 overflow-hidden">
-                        <p className="font-mono text-xs text-gray-500 break-all">{pc.numero_pedido}</p>
-                        <h3 className="font-semibold text-sm text-gray-900 break-words">{pc.fabricante_nome}</h3>
-                        <p className="text-xs text-gray-500">{new Date(pc.data_pedido).toLocaleDateString('pt-BR')}</p>
-                        <Badge className={`mt-1 ${statusColors[pc.status]}`}>
-                          {statusLabels[pc.status]}
-                        </Badge>
-                      </div>
-                      <div className="flex-shrink-0 text-right">
-                        <p className="font-bold text-green-700 text-sm">R$ {pc.total.toFixed(2)}</p>
-                        <p className="text-xs text-gray-500">{pc.itens.length} itens</p>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-1 w-full pt-2 border-t">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleViewPedido(pc)}
-                        className="flex-1 h-8 text-xs"
-                      >
-                        <Eye className="w-3 h-3 mr-1" />
-                        Ver
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => generatePDF(pc)}
-                        className="flex-1 h-8 text-xs"
-                      >
-                        <FileText className="w-3 h-3 mr-1" />
-                        PDF
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => enviarEmailFabricante(pc)}
-                        className="flex-1 h-8 text-xs"
-                        disabled={pc.status !== 'pendente'}
-                      >
-                        <Mail className="w-3 h-3 mr-1" />
-                        Email
-                      </Button>
-                    </div>
-                  </div>
+          {!selectedVenda ? (
+            // Cards de Vendas
+            filteredVendas.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhuma venda</h3>
+                  <p className="text-gray-600 text-sm">Vendas aparecerão aqui</p>
                 </CardContent>
               </Card>
-            ))
+            ) : (
+              filteredVendas.map((venda) => {
+                const pedidos = getPedidosCompraByVenda(venda.id);
+                return (
+                  <Card key={venda.id} className="bg-white shadow w-full">
+                    <CardContent className="p-3 w-full">
+                      <div className="space-y-2 w-full">
+                        <div className="flex items-start justify-between gap-2 w-full">
+                          <div className="flex-1 min-w-0 overflow-hidden">
+                            <p className="font-mono text-xs text-gray-500 break-all">{venda.numero_pedido}</p>
+                            <h3 className="font-semibold text-sm text-gray-900 break-words">{venda.cliente_nome}</h3>
+                            <p className="text-xs text-gray-500">{new Date(venda.data_pedido).toLocaleDateString('pt-BR')}</p>
+                            <Badge className="mt-1 bg-purple-100 text-purple-800">
+                              {pedidos.length} pedido(s) de compra
+                            </Badge>
+                          </div>
+                          <div className="flex-shrink-0 text-right">
+                            <p className="font-bold text-green-700 text-sm">R$ {venda.total.toFixed(2)}</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-1 w-full pt-2 border-t">
+                          <Button
+                            size="sm"
+                            onClick={() => setSelectedVenda(venda)}
+                            className="flex-1 h-8 text-xs bg-blue-600"
+                          >
+                            Ver Pedidos de Compra
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })
+            )
+          ) : (
+            // Cards de Pedidos de Compra
+            getPedidosCompraByVenda(selectedVenda.id).length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum pedido</h3>
+                  <p className="text-gray-600 text-sm">Esta venda não possui pedidos</p>
+                </CardContent>
+              </Card>
+            ) : (
+              getPedidosCompraByVenda(selectedVenda.id).map((pc) => (
+                <Card key={pc.id} className="bg-white shadow w-full">
+                  <CardContent className="p-3 w-full">
+                    <div className="space-y-2 w-full">
+                      <div className="flex items-start justify-between gap-2 w-full">
+                        <div className="flex-1 min-w-0 overflow-hidden">
+                          <p className="font-mono text-xs text-gray-500 break-all">{pc.numero_pedido}</p>
+                          <h3 className="font-semibold text-sm text-gray-900 break-words">{pc.fabricante_nome}</h3>
+                          <p className="text-xs text-gray-500">{new Date(pc.data_pedido).toLocaleDateString('pt-BR')}</p>
+                          <Badge className={`mt-1 ${statusColors[pc.status]}`}>
+                            {statusLabels[pc.status]}
+                          </Badge>
+                        </div>
+                        <div className="flex-shrink-0 text-right">
+                          <p className="font-bold text-green-700 text-sm">R$ {pc.total.toFixed(2)}</p>
+                          <p className="text-xs text-gray-500">{pc.itens.length} itens</p>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-1 w-full pt-2 border-t">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewPedido(pc)}
+                          className="flex-1 h-8 text-xs"
+                        >
+                          <Eye className="w-3 h-3 mr-1" />
+                          Ver
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => generatePDF(pc)}
+                          className="flex-1 h-8 text-xs"
+                        >
+                          <FileText className="w-3 h-3 mr-1" />
+                          PDF
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => enviarEmailFabricante(pc)}
+                          className="flex-1 h-8 text-xs"
+                          disabled={pc.status !== 'pendente'}
+                        >
+                          <Mail className="w-3 h-3 mr-1" />
+                          Email
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )
           )}
         </div>
 
