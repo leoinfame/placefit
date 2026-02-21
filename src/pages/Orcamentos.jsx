@@ -295,6 +295,7 @@ export default function Orcamentos() {
       for (const fabricanteId in produtosPorFabricante) {
         const dadosFabricante = produtosPorFabricante[fabricanteId];
         const totalPedido = dadosFabricante.itens.reduce((sum, item) => sum + item.subtotal, 0);
+        const numeroPedido = `PC-${Date.now()}-${fabricanteId.slice(0, 6)}`;
         
         await base44.entities.PedidoCompra.create({
           revendedor_id: user.id,
@@ -302,11 +303,19 @@ export default function Orcamentos() {
           fabricante_id: fabricanteId,
           fabricante_nome: dadosFabricante.fabricante_nome,
           venda_id: orcamento.id,
-          numero_pedido: `PC-${Date.now()}-${fabricanteId.slice(0, 6)}`,
+          numero_pedido: numeroPedido,
           data_pedido: new Date().toISOString().split('T')[0],
           itens: dadosFabricante.itens,
           total: totalPedido,
           status: 'pendente'
+        });
+        
+        // Criar notificação para o fabricante
+        await base44.entities.Notification.create({
+          supplier_id: fabricanteId,
+          tipo: 'mensagem_placefit',
+          mensagem: `Novo pedido de compra ${numeroPedido} recebido de ${user.empresa || user.full_name}! Total: R$ ${totalPedido.toFixed(2)}`,
+          lida: false
         });
       }
 
