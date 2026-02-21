@@ -39,6 +39,8 @@ const ESTADOS = [
 export default function Frete() {
   const [user, setUser] = useState(null);
   const [freightOffers, setFreightOffers] = useState([]);
+  const [transportadores, setTransportadores] = useState([]);
+  const [rotasTransportadores, setRotasTransportadores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [editingOffer, setEditingOffer] = useState(null);
@@ -50,6 +52,7 @@ export default function Frete() {
     observacoes: "",
     ativo: true
   });
+  const [selectedEstado, setSelectedEstado] = useState("all");
 
   const { toast } = useToast();
 
@@ -69,6 +72,18 @@ export default function Frete() {
 
       const offers = await base44.entities.FreightOffer.filter({ supplier_id: currentUser.id });
       setFreightOffers(offers);
+
+      // Carregar transportadores e suas rotas
+      const allUsers = await base44.entities.User.list();
+      const transportadoresAprovados = allUsers.filter(u => 
+        u.tipo_usuario === 'transportador' && u.aprovado === true
+      );
+      setTransportadores(transportadoresAprovados);
+
+      if (transportadoresAprovados.length > 0) {
+        const rotas = await base44.entities.TransportadorRota.filter({ ativo: true });
+        setRotasTransportadores(rotas);
+      }
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
     }
@@ -239,6 +254,107 @@ export default function Frete() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Transportadores e Rotas Disponíveis */}
+        {transportadores.length > 0 && (
+          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                  <Truck className="w-6 h-6" />
+                  Transportadores Disponíveis
+                </h2>
+                <Select value={selectedEstado} onValueChange={setSelectedEstado}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Filtrar por estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Estados</SelectItem>
+                    {ESTADOS.map(estado => (
+                      <SelectItem key={estado} value={estado}>
+                        {estado}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-4">
+                {transportadores.map(transportador => {
+                  const rotasDoTransportador = rotasTransportadores.filter(r => 
+                    r.transportador_id === transportador.id &&
+                    (selectedEstado === "all" || r.estado === selectedEstado)
+                  );
+
+                  if (rotasDoTransportador.length === 0 && selectedEstado !== "all") return null;
+
+                  return (
+                    <div key={transportador.id} className="p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border-2 border-blue-200">
+                      <div className="flex items-start gap-4">
+                        {transportador.logomarca && (
+                          <img 
+                            src={transportador.logomarca} 
+                            alt={transportador.empresa}
+                            className="w-16 h-16 object-contain rounded-lg bg-white p-2"
+                          />
+                        )}
+                        <div className="flex-1">
+                          <h3 className="font-bold text-lg text-gray-900">{transportador.empresa}</h3>
+                          {transportador.whatsapp && (
+                            <p className="text-sm text-gray-600">📞 {transportador.whatsapp}</p>
+                          )}
+                          
+                          {rotasDoTransportador.length > 0 ? (
+                            <div className="mt-3 space-y-2">
+                              <p className="text-sm font-semibold text-gray-700">Rotas Periódicas:</p>
+                              {rotasDoTransportador.map(rota => (
+                                <div key={rota.id} className="p-3 bg-white rounded border">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <Badge className="bg-blue-600 text-white">{rota.estado}</Badge>
+                                    <span className="font-medium text-sm">{rota.cidades}</span>
+                                  </div>
+                                  {rota.periodicidade && (
+                                    <p className="text-xs text-gray-600">
+                                      🔄 Periodicidade: {rota.periodicidade}
+                                    </p>
+                                  )}
+                                  {rota.dias_carregamento && (
+                                    <p className="text-xs text-gray-600">
+                                      📅 Dias de carregamento: {rota.dias_carregamento}
+                                    </p>
+                                  )}
+                                  {rota.observacoes && (
+                                    <p className="text-xs text-gray-600 mt-1">
+                                      💬 {rota.observacoes}
+                                    </p>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-sm text-gray-500 mt-2">Nenhuma rota cadastrada ainda</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {transportadores.filter(t => {
+                const rotas = rotasTransportadores.filter(r => 
+                  r.transportador_id === t.id &&
+                  (selectedEstado === "all" || r.estado === selectedEstado)
+                );
+                return selectedEstado === "all" || rotas.length > 0;
+              }).length === 0 && (
+                <div className="text-center py-8">
+                  <p className="text-gray-600">Nenhum transportador encontrado para este filtro.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Tabela de Ofertas */}
         {freightOffers.length === 0 ? (

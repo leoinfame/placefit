@@ -1,13 +1,28 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { UploadFile } from "@/integrations/Core";
-import { Save, Upload, Building, FileText, Lock, Eye, EyeOff } from "lucide-react";
+import { Save, Upload, Building, FileText, Lock, Eye, EyeOff, MapPin, Plus, Trash2, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/components/ui/use-toast";
+
+const ESTADOS = [
+  "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA",
+  "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN",
+  "RS", "RO", "RR", "SC", "SP", "SE", "TO"
+];
 
 export default function Profile() {
   const [user, setUser] = useState(null);
@@ -26,6 +41,15 @@ export default function Profile() {
     newPassword: "",
     confirmPassword: ""
   });
+  const [rotas, setRotas] = useState([]);
+  const [rotaFormData, setRotaFormData] = useState({
+    estado: "",
+    cidades: "",
+    periodicidade: "",
+    dias_carregamento: "",
+    observacoes: ""
+  });
+  const [editingRota, setEditingRota] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
@@ -37,6 +61,8 @@ export default function Profile() {
     new: false,
     confirm: false
   });
+  
+  const { toast } = useToast();
 
   useEffect(() => {
     loadUser();
@@ -56,6 +82,15 @@ export default function Profile() {
         site: currentUser.site || "",
         logomarca: currentUser.logomarca || ""
       });
+      
+      // Carregar rotas se for transportador
+      if (currentUser.tipo_usuario === 'transportador') {
+        const rotasData = await base44.entities.TransportadorRota.filter({ 
+          transportador_id: currentUser.id,
+          ativo: true 
+        });
+        setRotas(rotasData);
+      }
     } catch (error) {
       console.error("Erro ao carregar usuário:", error);
     }
@@ -150,6 +185,102 @@ export default function Profile() {
   const formatWhatsApp = (value) => {
     const numbers = value.replace(/\D/g, '');
     return numbers.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+  };
+
+  const handleAddRota = async () => {
+    if (!rotaFormData.estado || !rotaFormData.cidades) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Estado e Cidades são obrigatórios.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const rotaData = {
+        transportador_id: user.id,
+        estado: rotaFormData.estado,
+        cidades: rotaFormData.cidades,
+        periodicidade: rotaFormData.periodicidade,
+        dias_carregamento: rotaFormData.dias_carregamento,
+        observacoes: rotaFormData.observacoes,
+        ativo: true
+      };
+
+      if (editingRota) {
+        await base44.entities.TransportadorRota.update(editingRota.id, rotaData);
+        toast({
+          title: "Rota atualizada!",
+          description: "A rota foi atualizada com sucesso."
+        });
+      } else {
+        await base44.entities.TransportadorRota.create(rotaData);
+        toast({
+          title: "Rota cadastrada!",
+          description: "A rota foi adicionada com sucesso."
+        });
+      }
+
+      setRotaFormData({
+        estado: "",
+        cidades: "",
+        periodicidade: "",
+        dias_carregamento: "",
+        observacoes: ""
+      });
+      setEditingRota(null);
+      loadUser();
+    } catch (error) {
+      console.error("Erro ao salvar rota:", error);
+      toast({
+        title: "Erro",
+        description: "Erro ao salvar rota. Tente novamente.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleEditRota = (rota) => {
+    setEditingRota(rota);
+    setRotaFormData({
+      estado: rota.estado,
+      cidades: rota.cidades,
+      periodicidade: rota.periodicidade || "",
+      dias_carregamento: rota.dias_carregamento || "",
+      observacoes: rota.observacoes || ""
+    });
+  };
+
+  const handleDeleteRota = async (rotaId) => {
+    if (confirm("Tem certeza que deseja excluir esta rota?")) {
+      try {
+        await base44.entities.TransportadorRota.delete(rotaId);
+        toast({
+          title: "Rota excluída",
+          description: "A rota foi removida com sucesso."
+        });
+        loadUser();
+      } catch (error) {
+        console.error("Erro ao excluir rota:", error);
+        toast({
+          title: "Erro",
+          description: "Erro ao excluir rota. Tente novamente.",
+          variant: "destructive"
+        });
+      }
+    }
+  };
+
+  const handleCancelEditRota = () => {
+    setEditingRota(null);
+    setRotaFormData({
+      estado: "",
+      cidades: "",
+      periodicidade: "",
+      dias_carregamento: "",
+      observacoes: ""
+    });
   };
 
   if (loading) {
@@ -418,6 +549,181 @@ export default function Profile() {
             </Button>
           </div>
         </form>
+
+        {/* Rotas do Transportador */}
+        {user?.tipo_usuario === 'transportador' && (
+          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Truck className="w-5 h-5" />
+                Minhas Rotas Periódicas
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <p className="text-sm text-blue-800">
+                  Cadastre as rotas que você já faz periodicamente. Essas informações estarão disponíveis para os revendedores na área de fretes.
+                </p>
+              </div>
+
+              {/* Formulário de Rota */}
+              <div className="space-y-4 p-4 bg-gray-50 rounded-lg border">
+                <h4 className="font-semibold text-gray-900">
+                  {editingRota ? "Editar Rota" : "Adicionar Nova Rota"}
+                </h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="rota_estado">Estado *</Label>
+                    <Select
+                      value={rotaFormData.estado}
+                      onValueChange={(value) => setRotaFormData({ ...rotaFormData, estado: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o estado" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ESTADOS.map(estado => (
+                          <SelectItem key={estado} value={estado}>
+                            {estado}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="rota_cidades">Cidades *</Label>
+                    <Input
+                      id="rota_cidades"
+                      value={rotaFormData.cidades}
+                      onChange={(e) => setRotaFormData({ ...rotaFormData, cidades: e.target.value })}
+                      placeholder="Ex: São Paulo, Campinas, Sorocaba"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="rota_periodicidade">Periodicidade</Label>
+                    <Input
+                      id="rota_periodicidade"
+                      value={rotaFormData.periodicidade}
+                      onChange={(e) => setRotaFormData({ ...rotaFormData, periodicidade: e.target.value })}
+                      placeholder="Ex: Semanal, Quinzenal, Mensal"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="rota_dias">Dias de Carregamento</Label>
+                    <Input
+                      id="rota_dias"
+                      value={rotaFormData.dias_carregamento}
+                      onChange={(e) => setRotaFormData({ ...rotaFormData, dias_carregamento: e.target.value })}
+                      placeholder="Ex: Segundas e Quartas"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="rota_observacoes">Observações</Label>
+                  <Textarea
+                    id="rota_observacoes"
+                    value={rotaFormData.observacoes}
+                    onChange={(e) => setRotaFormData({ ...rotaFormData, observacoes: e.target.value })}
+                    placeholder="Informações adicionais sobre a rota..."
+                    rows={2}
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    onClick={handleAddRota}
+                    className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+                  >
+                    {editingRota ? (
+                      <>
+                        <Save className="w-4 h-4 mr-2" />
+                        Atualizar Rota
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Adicionar Rota
+                      </>
+                    )}
+                  </Button>
+                  {editingRota && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleCancelEditRota}
+                    >
+                      Cancelar
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* Lista de Rotas Cadastradas */}
+              {rotas.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-gray-900">Rotas Cadastradas</h4>
+                  {rotas.map(rota => (
+                    <div key={rota.id} className="p-4 bg-white border rounded-lg">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Badge className="bg-blue-100 text-blue-700">
+                              {rota.estado}
+                            </Badge>
+                            <span className="font-medium text-gray-900">{rota.cidades}</span>
+                          </div>
+                          
+                          {rota.periodicidade && (
+                            <p className="text-sm text-gray-600">
+                              <strong>Periodicidade:</strong> {rota.periodicidade}
+                            </p>
+                          )}
+                          
+                          {rota.dias_carregamento && (
+                            <p className="text-sm text-gray-600">
+                              <strong>Dias de Carregamento:</strong> {rota.dias_carregamento}
+                            </p>
+                          )}
+                          
+                          {rota.observacoes && (
+                            <p className="text-sm text-gray-600">
+                              <strong>Obs:</strong> {rota.observacoes}
+                            </p>
+                          )}
+                        </div>
+                        
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditRota(rota)}
+                            className="hover:bg-blue-50 hover:text-blue-700"
+                          >
+                            <FileText className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteRota(rota.id)}
+                            className="hover:bg-red-50 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Alteração de Senha */}
         <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
