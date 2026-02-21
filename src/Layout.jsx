@@ -387,6 +387,11 @@ export default function Layout({ children, currentPageName }) {
           icon: ShoppingCart,
         },
         {
+          title: "Pedidos de Compra",
+          url: createPageUrl("PedidosCompra"),
+          icon: ShoppingCart,
+        },
+        {
           title: "Frete",
           url: createPageUrl("Frete"),
           icon: Dumbbell,

@@ -267,16 +267,56 @@ export default function Orcamentos() {
 
   const converterParaVendaMutation = useMutation({
     mutationFn: async (orcamento) => {
-      return base44.entities.Pedido.update(orcamento.id, {
+      // Atualizar orçamento para venda
+      await base44.entities.Pedido.update(orcamento.id, {
         tipo: 'venda',
         status: 'confirmado'
       });
+
+      // Agrupar produtos por fabricante
+      const produtosPorFabricante = {};
+      
+      for (const item of orcamento.itens) {
+        const produto = products.find(p => p.id === item.product_id);
+        if (!produto || !produto.fabricante_id) continue;
+        
+        if (!produtosPorFabricante[produto.fabricante_id]) {
+          produtosPorFabricante[produto.fabricante_id] = {
+            fabricante_id: produto.fabricante_id,
+            fabricante_nome: produto.fabricante_nome,
+            itens: []
+          };
+        }
+        
+        produtosPorFabricante[produto.fabricante_id].itens.push(item);
+      }
+
+      // Criar um pedido de compra para cada fabricante
+      for (const fabricanteId in produtosPorFabricante) {
+        const dadosFabricante = produtosPorFabricante[fabricanteId];
+        const totalPedido = dadosFabricante.itens.reduce((sum, item) => sum + item.subtotal, 0);
+        
+        await base44.entities.PedidoCompra.create({
+          revendedor_id: user.id,
+          revendedor_nome: user.empresa || user.full_name,
+          fabricante_id: fabricanteId,
+          fabricante_nome: dadosFabricante.fabricante_nome,
+          venda_id: orcamento.id,
+          numero_pedido: `PC-${Date.now()}-${fabricanteId.slice(0, 6)}`,
+          data_pedido: new Date().toISOString().split('T')[0],
+          itens: dadosFabricante.itens,
+          total: totalPedido,
+          status: 'pendente'
+        });
+      }
+
+      return orcamento;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orcamentos'] });
       toast({ 
         title: "Venda concluída!", 
-        description: "O orçamento foi convertido em venda e movido para o menu Vendas." 
+        description: "O orçamento foi convertido em venda e os pedidos de compra foram gerados." 
       });
     },
   });

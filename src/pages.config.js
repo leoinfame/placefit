@@ -78,6 +78,7 @@ import Transportadores from './pages/Transportadores';
 import Units from './pages/Units';
 import Usuarios from './pages/Usuarios';
 import Vendas from './pages/Vendas';
+import PedidosCompra from './pages/PedidosCompra';
 import __Layout from './Layout.jsx';
 
 
@@ -113,6 +114,7 @@ export const PAGES = {
     "Units": Units,
     "Usuarios": Usuarios,
     "Vendas": Vendas,
+    "PedidosCompra": PedidosCompra,
 }
 
 export const pagesConfig = {
