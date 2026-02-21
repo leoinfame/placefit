@@ -66,6 +66,8 @@ import Marketplace from './pages/Marketplace';
 import MyProducts from './pages/MyProducts';
 import Notifications from './pages/Notifications';
 import Orcamentos from './pages/Orcamentos';
+import PedidosCompra from './pages/PedidosCompra';
+import PedidosCompraFabricante from './pages/PedidosCompraFabricante';
 import Products from './pages/Products';
 import Profile from './pages/Profile';
 import PublicRegister from './pages/PublicRegister';
@@ -78,8 +80,6 @@ import Transportadores from './pages/Transportadores';
 import Units from './pages/Units';
 import Usuarios from './pages/Usuarios';
 import Vendas from './pages/Vendas';
-import PedidosCompra from './pages/PedidosCompra';
-import PedidosCompraFabricante from './pages/PedidosCompraFabricante';
 import __Layout from './Layout.jsx';
 
 
@@ -103,6 +103,8 @@ export const PAGES = {
     "MyProducts": MyProducts,
     "Notifications": Notifications,
     "Orcamentos": Orcamentos,
+    "PedidosCompra": PedidosCompra,
+    "PedidosCompraFabricante": PedidosCompraFabricante,
     "Products": Products,
     "Profile": Profile,
     "PublicRegister": PublicRegister,
@@ -115,8 +117,6 @@ export const PAGES = {
     "Units": Units,
     "Usuarios": Usuarios,
     "Vendas": Vendas,
-    "PedidosCompra": PedidosCompra,
-    "PedidosCompraFabricante": PedidosCompraFabricante,
 }
 
 export const pagesConfig = {

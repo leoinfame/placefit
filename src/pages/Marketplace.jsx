@@ -93,13 +93,12 @@ export default function Marketplace() {
         return true;
       });
 
-      // Incluir tanto fornecedores quanto fabricantes aprovados
+      // Incluir APENAS revendedores (não fabricantes)
       const approvedSuppliers = usersData.filter(s => {
-        // Incluir se aprovado e é fornecedor (role=user sem tipo_usuario) ou fabricante
+        // Incluir se aprovado e é revendedor (role=user sem tipo_usuario ou tipo_usuario diferente de fabricante e transportador)
         const isApproved = s.aprovado === true;
-        const isSupplier = s.role === 'user' && (!s.tipo_usuario || s.tipo_usuario !== 'fabricante');
-        const isFabricante = s.tipo_usuario === 'fabricante';
-        return isApproved && (isSupplier || isFabricante);
+        const isSupplier = s.role === 'user' && (!s.tipo_usuario || (s.tipo_usuario !== 'fabricante' && s.tipo_usuario !== 'transportador'));
+        return isApproved && isSupplier;
       });
 
       const availableSupplierProducts = supplierProductsData.filter(sp =>
@@ -160,21 +159,7 @@ export default function Marketplace() {
 
     prices.push(...supplierPrices);
 
-    // Se o produto tem fabricante_id, adicionar o fabricante (com ou sem preço)
-    if (product && product.fabricante_id) {
-      const fabricante = suppliers.find(s => s.id === product.fabricante_id);
-      const hasPrice = product.preco_fabricante && parseFloat(product.preco_fabricante) > 0;
-      console.log('  - Fabricante:', fabricante?.empresa || fabricante?.full_name, 'Preço:', hasPrice ? product.preco_fabricante : 'Sem preço');
-      if (fabricante) {
-        prices.push({
-          supplier: fabricante,
-          price: hasPrice ? parseFloat(product.preco_fabricante) : null,
-          observacoes: ''
-        });
-      }
-    }
-
-    console.log(`  Total de fornecedores/fabricantes encontrados: ${prices.length}`);
+    console.log(`  Total de revendedores encontrados: ${prices.length}`);
 
     // Ordenar: produtos com preço primeiro (por valor), depois sem preço
     return prices.sort((a, b) => {
