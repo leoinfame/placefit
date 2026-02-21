@@ -96,28 +96,149 @@ export default function FabricantesRevendedor() {
         return;
       }
 
-      // Gerar CSV
-      const headers = ["Código", "Nome", "Categoria", "Unidade", "Peso (kg)", "Dimensões (cm)", "Preço"];
-      const rows = fabricanteProducts.map(p => [
-        p.cod || "",
-        p.nome || "",
-        p.categoria || "",
-        p.und || "",
-        p.peso || "",
-        p.dimensoes || "",
-        p.preco_fabricante || ""
-      ]);
+      // Importar jsPDF dinamicamente
+      const { jsPDF } = await import('jspdf');
+      const doc = new jsPDF('p', 'mm', 'a4');
+      
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 15;
+      let yPosition = margin;
 
-      const csvContent = [
-        headers.join(","),
-        ...rows.map(row => row.map(cell => `"${cell}"`).join(","))
-      ].join("\n");
+      // Logo e cabeçalho
+      if (fabricante.logomarca) {
+        try {
+          doc.addImage(fabricante.logomarca, 'PNG', margin, yPosition, 30, 30);
+          yPosition += 35;
+        } catch (e) {
+          console.log("Erro ao adicionar logo, continuando sem logo");
+        }
+      }
 
-      const blob = new Blob(["\ufeff" + csvContent], { type: "text/csv;charset=utf-8;" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = `tabela_${fabricante.empresa || fabricante.full_name}_${new Date().toISOString().split('T')[0]}.csv`;
-      link.click();
+      // Nome da empresa
+      doc.setFontSize(18);
+      doc.setFont(undefined, 'bold');
+      doc.text(fabricante.empresa || fabricante.full_name, margin, yPosition);
+      yPosition += 8;
+
+      // Informações de contato
+      doc.setFontSize(9);
+      doc.setFont(undefined, 'normal');
+      if (fabricante.endereco) {
+        doc.text(fabricante.endereco, margin, yPosition);
+        yPosition += 5;
+      }
+      if (fabricante.whatsapp) {
+        doc.text(`WhatsApp: ${fabricante.whatsapp}`, margin, yPosition);
+        yPosition += 5;
+      }
+      if (fabricante.site) {
+        doc.text(`Site: ${fabricante.site}`, margin, yPosition);
+        yPosition += 5;
+      }
+
+      yPosition += 5;
+      
+      // Linha separadora
+      doc.setLineWidth(0.5);
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 8;
+
+      // Título da tabela
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.text('Tabela de Produtos', margin, yPosition);
+      yPosition += 10;
+
+      // Cabeçalho da tabela
+      doc.setFontSize(8);
+      doc.setFont(undefined, 'bold');
+      doc.setFillColor(240, 240, 240);
+      doc.rect(margin, yPosition - 5, pageWidth - 2 * margin, 7, 'F');
+      
+      const colWidths = {
+        cod: 22,
+        nome: 60,
+        categoria: 25,
+        und: 15,
+        peso: 18,
+        dim: 25,
+        preco: 20
+      };
+
+      let xPos = margin + 2;
+      doc.text('Código', xPos, yPosition);
+      xPos += colWidths.cod;
+      doc.text('Nome do Produto', xPos, yPosition);
+      xPos += colWidths.nome;
+      doc.text('Categoria', xPos, yPosition);
+      xPos += colWidths.categoria;
+      doc.text('Und', xPos, yPosition);
+      xPos += colWidths.und;
+      doc.text('Peso (kg)', xPos, yPosition);
+      xPos += colWidths.peso;
+      doc.text('Dimensões', xPos, yPosition);
+      xPos += colWidths.dim;
+      doc.text('Preço (R$)', xPos, yPosition);
+      
+      yPosition += 8;
+
+      // Produtos
+      doc.setFont(undefined, 'normal');
+      doc.setFontSize(7);
+
+      fabricanteProducts.forEach((product, index) => {
+        // Verificar se precisa de nova página
+        if (yPosition > pageHeight - 20) {
+          doc.addPage();
+          yPosition = margin;
+        }
+
+        // Linha alternada
+        if (index % 2 === 0) {
+          doc.setFillColor(250, 250, 250);
+          doc.rect(margin, yPosition - 4, pageWidth - 2 * margin, 6, 'F');
+        }
+
+        xPos = margin + 2;
+        doc.text(product.cod || '', xPos, yPosition);
+        xPos += colWidths.cod;
+        
+        const nomeTruncado = (product.nome || '').length > 40 
+          ? product.nome.substring(0, 37) + '...' 
+          : product.nome || '';
+        doc.text(nomeTruncado, xPos, yPosition);
+        xPos += colWidths.nome;
+        
+        doc.text(product.categoria || '', xPos, yPosition);
+        xPos += colWidths.categoria;
+        doc.text(product.und || '', xPos, yPosition);
+        xPos += colWidths.und;
+        doc.text(product.peso ? product.peso.toString() : '', xPos, yPosition);
+        xPos += colWidths.peso;
+        doc.text(product.dimensoes || '', xPos, yPosition);
+        xPos += colWidths.dim;
+        doc.text(product.preco_fabricante ? `R$ ${product.preco_fabricante.toFixed(2)}` : '', xPos, yPosition);
+        
+        yPosition += 6;
+      });
+
+      // Rodapé
+      const totalPages = doc.internal.pages.length - 1;
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setFont(undefined, 'normal');
+        doc.text(
+          `Página ${i} de ${totalPages} - Gerado em ${new Date().toLocaleDateString('pt-BR')}`,
+          pageWidth / 2,
+          pageHeight - 10,
+          { align: 'center' }
+        );
+      }
+
+      // Salvar PDF
+      doc.save(`tabela_${fabricante.empresa || fabricante.full_name}_${new Date().toISOString().split('T')[0]}.pdf`);
 
       toast({
         title: "Download concluído!",
