@@ -56,17 +56,23 @@ export default function FabricantesRevendedor() {
 
       // Buscar todos os usuários e filtrar fabricantes aprovados
       const allUsers = await base44.entities.User.list();
+      console.log("Total de usuários carregados:", allUsers.length);
+      
       const fabricantesAprovados = allUsers.filter(
         u => u.tipo_usuario === 'fabricante' && u.aprovado === true
       );
+      console.log("Fabricantes aprovados encontrados:", fabricantesAprovados.length);
 
       setFabricantes(fabricantesAprovados);
       setFilteredFabricantes(fabricantesAprovados);
     } catch (error) {
-      console.error("Erro ao carregar fabricantes:", error);
+      console.error("Erro detalhado ao carregar fabricantes:", error);
+      console.error("Mensagem:", error.message);
+      console.error("Stack:", error.stack);
+      
       toast({
-        title: "Erro",
-        description: "Não foi possível carregar os fabricantes.",
+        title: "Erro ao carregar fabricantes",
+        description: error.message || "Não foi possível carregar os fabricantes.",
         variant: "destructive",
       });
     }
