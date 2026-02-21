@@ -442,13 +442,9 @@ export default function MyProducts() {
         return product ? {
           'Código (SKU)': product.cod,
           'Nome do Produto': product.nome,
-          'Categoria': product.categoria,
           'Unidade': product.und,
-          'Peso (kg)': product.peso || '',
-          'Dimensões (L x A x P)': product.dimensoes || '',
           'Preço': sp.preco || 0,
-          'Disponível': sp.disponivel ? 'SIM' : 'NÃO',
-          'Observações': sp.observacoes || ''
+          'Disponível': sp.disponivel ? 'SIM' : 'NÃO'
         } : null;
       }).filter(Boolean);
 
@@ -466,11 +462,11 @@ export default function MyProducts() {
       const headers = Object.keys(myProductsData[0] || {});
       const csvContent = [
         // Instruções
-        `"INSTRUÇÕES:"`,
-        `"1. Atualize os valores nas colunas Preço, Disponível (SIM/NÃO) e Observações."`,
-        `"2. NÃO altere as colunas Código (SKU), Nome do Produto, Categoria, Unidade, Peso (kg) e Dimensões (L x A x P)."`,
-        `"3. Certifique-se de que o preço seja um número válido (ex: 123.45, use ponto como separador decimal) e Disponível seja 'SIM' ou 'NÃO' (não sensível a maiúsculas/minúsculas)."`,
-        `"4. Após editar, salve o arquivo como CSV (separado por vírgulas) e importe de volta no sistema."`,
+         `"INSTRUÇÕES:"`,
+         `"1. Atualize os valores nas colunas Preço e Disponível (SIM/NÃO)."`,
+         `"2. NÃO altere as colunas Código (SKU), Nome do Produto e Unidade."`,
+         `"3. Certifique-se de que o preço seja um número válido (ex: 123.45, use ponto como separador decimal) e Disponível seja 'SIM' ou 'NÃO'."`,
+         `"4. Após editar, salve o arquivo como CSV (separado por vírgulas) e importe de volta no sistema."`,
         `""`, // Empty line
         // Column headers
         headers.map(h => `"${(h + '').replace(/"/g, '""')}"`).join(','),
@@ -1404,13 +1400,12 @@ export default function MyProducts() {
                         <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
                           <li><strong>Preço:</strong> Valor numérico (ex: 299.90, use ponto como separador decimal)</li>
                           <li><strong>Disponível:</strong> Escreva "SIM" ou "NÃO" (não sensível a maiúsculas/minúsculas)</li>
-                          <li><strong>Observações:</strong> Informações adicionais (opcional)</li>
                         </ul>
                         <Alert className="bg-amber-50 border-amber-200">
                           <AlertCircle className="w-4 h-4 text-amber-600" />
                           <AlertDescription className="text-amber-800 text-sm">
-                            <strong>Importante:</strong> NÃO altere as colunas de Código (SKU), Nome do Produto, Categoria, Unidade, Peso (kg) e Dimensões (L x A x P).
-                            Altere apenas Preço, Disponibilidade e Observações. Colunas alteradas incorretamente podem ser ignoradas.
+                            <strong>Importante:</strong> NÃO altere as colunas de Código (SKU), Nome do Produto e Unidade.
+                            Altere apenas Preço e Disponibilidade. Colunas alteradas incorretamente podem ser ignoradas.
                           </AlertDescription>
                         </Alert>
                       </div>
