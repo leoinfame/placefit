@@ -276,29 +276,150 @@ export default function FabricantesRevendedor() {
     setChatMessages(prev => [...prev, { role: "user", content: userMessage }]);
 
     try {
-      // Buscar base de conhecimento do fabricante
-      const knowledgeBase = await base44.entities.AIKnowledge.filter({
+      // Buscar produtos do fabricante
+      const allProducts = await base44.entities.Product.list();
+      const products = allProducts.filter(
+        p => p.fabricante_id === selectedFabricante.id && p.aprovado_produto === true && p.ativo !== false
+      );
+
+      // Buscar base de conhecimento
+      const allKnowledge = await base44.entities.AIKnowledge.filter({ 
         fabricante_id: selectedFabricante.id,
         ativo: true
       });
+      
+      const knowledgeContext = allKnowledge.length > 0 ? `
+═══════════════════════════════════════════════════════════════
+📖 BASE DE CONHECIMENTO ADICIONAL:
+═══════════════════════════════════════════════════════════════
 
-      const context = knowledgeBase.map(k => `${k.titulo}: ${k.conteudo}`).join("\n\n");
+${allKnowledge.map((k, i) => `
+CONHECIMENTO ${i + 1} - ${k.categoria}: ${k.titulo}
+${k.conteudo}
+`).join('\n')}
+` : '';
 
-      // Chamar LLM com contexto
-      const response = await base44.integrations.Core.InvokeLLM({
-        prompt: `Você é um assistente virtual da empresa ${selectedFabricante.empresa || selectedFabricante.full_name}.
-        
-Base de conhecimento:
-${context}
-
-Pergunta do cliente: ${userMessage}
-
-Responda de forma profissional e útil, usando apenas as informações da base de conhecimento. Se não souber a resposta, seja honesto e sugira entrar em contato diretamente.`,
+      // Buscar histórico de conversas aprovadas
+      const allHistory = await base44.entities.ChatHistory.filter({
+        fabricante_id: selectedFabricante.id
       });
+      
+      const approvedHistory = allHistory.filter(h => 
+        h.feedback === "aprovado" || h.correcao
+      );
+      
+      const trainingContext = approvedHistory.length > 0 ? `
+═══════════════════════════════════════════════════════════════
+📚 EXEMPLOS DE RESPOSTAS APROVADAS (APRENDIZADO):
+═══════════════════════════════════════════════════════════════
+
+${approvedHistory.map((h, i) => `
+EXEMPLO ${i + 1}:
+PERGUNTA: ${h.user_message}
+RESPOSTA CORRETA: ${h.correcao || h.agent_response}
+${h.observacoes ? `OBSERVAÇÃO: ${h.observacoes}` : ''}
+`).join('\n---\n')}
+` : '';
+
+      // Criar lista completa de produtos
+      const productsFullList = products.map((p, idx) => {
+        const details = [];
+        details.push(`CÓDIGO: ${p.cod}`);
+        details.push(`NOME: ${p.nome}`);
+        details.push(`CATEGORIA: ${p.categoria}`);
+        details.push(`UNIDADE: ${p.und}`);
+        if (p.peso) details.push(`PESO: ${p.peso}kg`);
+        if (p.dimensoes) details.push(`DIMENSÕES: ${p.dimensoes}`);
+        if (p.preco_fabricante) details.push(`PREÇO: R$ ${parseFloat(p.preco_fabricante).toFixed(2)}`);
+        if (p.foto) details.push(`FOTO DISPONÍVEL: ${p.foto}`);
+        
+        return `
+═══════════════════════════════════════════════════════════════
+PRODUTO #${idx + 1}:
+═══════════════════════════════════════════════════════════════
+${details.map(d => `  ${d}`).join('\n')}
+`;
+      }).join('\n');
+
+      const systemContext = `
+Você é o agente de vendas virtual da ${selectedFabricante.empresa || selectedFabricante.full_name}, fabricante de equipamentos fitness.
+
+${selectedFabricante.instrucoes_agente_ia ? `
+═══════════════════════════════════════════════════════════════
+🎯 INSTRUÇÕES CUSTOMIZADAS PRIORITÁRIAS:
+═══════════════════════════════════════════════════════════════
+
+${selectedFabricante.instrucoes_agente_ia}
+
+⚠️ IMPORTANTE: Estas instruções têm PRIORIDADE sobre as regras padrão.
+` : ''}
+
+${trainingContext}
+
+${knowledgeContext}
+
+═══════════════════════════════════════════════════════════════
+🏭 INFORMAÇÕES DA EMPRESA:
+═══════════════════════════════════════════════════════════════
+
+FABRICANTE: ${selectedFabricante.empresa || selectedFabricante.full_name}
+${selectedFabricante.whatsapp ? `WHATSAPP: ${selectedFabricante.whatsapp}` : ''}
+${selectedFabricante.email ? `EMAIL: ${selectedFabricante.email}` : ''}
+${selectedFabricante.site ? `WEBSITE: ${selectedFabricante.site}` : ''}
+${selectedFabricante.endereco ? `ENDEREÇO: ${selectedFabricante.endereco}` : ''}
+${selectedFabricante.formas_pagamento ? `\n💳 FORMAS DE PAGAMENTO:\n${selectedFabricante.formas_pagamento}` : ''}
+${selectedFabricante.prazo_entrega ? `\n🚚 PRAZO DE ENTREGA:\n${selectedFabricante.prazo_entrega}` : ''}
+${selectedFabricante.politica_troca ? `\n🔄 POLÍTICA DE TROCA:\n${selectedFabricante.politica_troca}` : ''}
+${selectedFabricante.historia_empresa ? `\n📋 SOBRE A EMPRESA:\n${selectedFabricante.historia_empresa}` : ''}
+
+═══════════════════════════════════════════════════════════════
+⚠️ INSTRUÇÕES CRÍTICAS - VOCÊ É UM AGENTE DE VENDAS:
+═══════════════════════════════════════════════════════════════
+
+1. 🎯 SUA MISSÃO:
+   • Você representa EXCLUSIVAMENTE a ${selectedFabricante.empresa || selectedFabricante.full_name}
+   • Atenda clientes interessados em fazer orçamentos
+   • Seja proativo, profissional e prestativo
+   • Destaque a qualidade e diferenciais dos produtos
+
+2. 💰 ORÇAMENTOS:
+   • Quando um cliente pedir orçamento:
+     ➜ Liste os produtos solicitados com códigos, nomes e preços
+     ➜ Calcule o valor total do orçamento
+     ➜ Informe condições de pagamento e entrega (se disponível)
+     ➜ Pergunte a quantidade desejada de cada item
+   
+3. 📋 TABELA DE PRODUTOS:
+   • Você tem ${products.length} produtos cadastrados
+   • SEMPRE busque na lista completa abaixo
+   • Para cada produto, você tem: código, nome, categoria, unidade, peso, dimensões, preço e FOTO (quando disponível)
+   • Se o cliente perguntar sobre disponibilidade, consulte a lista
+
+4. 💼 PROFISSIONALISMO:
+   • Seja cordial e profissional
+   • Responda de forma clara e objetiva
+   • Destaque os benefícios dos produtos
+   • Incentive o fechamento de negócio
+   • Ofereça suporte para dúvidas técnicas
+
+═══════════════════════════════════════════════════════════════
+📦 BASE DE DADOS COMPLETA - ${products.length} PRODUTOS:
+═══════════════════════════════════════════════════════════════
+
+${productsFullList}
+
+RESPONDA EM PORTUGUÊS BRASILEIRO DE FORMA PROFISSIONAL E COMERCIAL.
+`;
+
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: `${systemContext}\n\n════════════════════════════════════════════════════════════════\n💬 MENSAGEM DO CLIENTE:\n════════════════════════════════════════════════════════════════\n\n${userMessage}\n\n════════════════════════════════════════════════════════════════\n⚠️ IMPORTANTE:\n════════════════════════════════════════════════════════════════\n\nVocê representa a ${selectedFabricante.empresa || selectedFabricante.full_name}.\n\nSe for um pedido de orçamento:\n• Liste os produtos com códigos e preços\n• Calcule o total\n• Pergunte quantidades se necessário\n• Seja profissional e comercial\n\nVocê tem ${products.length} produtos disponíveis. Consulte a lista completa acima antes de responder.`,
+      });
+
+      const assistantMessage = typeof response === 'string' ? response : response.response || "Desculpe, não consegui processar sua pergunta.";
 
       setChatMessages(prev => [...prev, { 
         role: "assistant", 
-        content: response 
+        content: assistantMessage
       }]);
 
       // Salvar histórico
@@ -306,7 +427,8 @@ Responda de forma profissional e útil, usando apenas as informações da base d
         fabricante_id: selectedFabricante.id,
         fabricante_nome: selectedFabricante.empresa || selectedFabricante.full_name,
         user_message: userMessage,
-        agent_response: response,
+        agent_response: assistantMessage,
+        feedback: "pendente"
       });
 
     } catch (error) {
