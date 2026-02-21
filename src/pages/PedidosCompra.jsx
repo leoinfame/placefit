@@ -96,6 +96,28 @@ export default function PedidosCompra() {
     },
   });
 
+  const marcarTodosFinalizadosMutation = useMutation({
+    mutationFn: async (vendaId) => {
+      const pedidos = getPedidosCompraByVenda(vendaId);
+      await Promise.all(
+        pedidos.map(pc => base44.entities.PedidoCompra.update(pc.id, { status: 'recebido' }))
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pedidos-compra'] });
+      toast({ 
+        title: "Pedidos finalizados!", 
+        description: "Todos os pedidos de compra foram marcados como recebidos." 
+      });
+    },
+  });
+
+  const handleMarcarTodosFinalizados = (vendaId) => {
+    if (confirm("Marcar todos os pedidos de compra desta venda como recebidos?")) {
+      marcarTodosFinalizadosMutation.mutate(vendaId);
+    }
+  };
+
   const handleViewPedido = (pedido) => {
     setSelectedPedido(pedido);
     setShowViewDialog(true);
