@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Package, Search, ImageIcon } from "lucide-react";
+import { Package, Search, ImageIcon, FileText } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function Catalogo() {
   const [user, setUser] = useState(null);
@@ -11,6 +13,9 @@ export default function Catalogo() {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [exportingPDF, setExportingPDF] = useState(false);
+
+  const { toast } = useToast();
 
   useEffect(() => {
     loadData();
@@ -61,6 +66,188 @@ export default function Catalogo() {
       console.error("Erro ao carregar dados:", error);
     }
     setLoading(false);
+  };
+
+  const exportToPDF = () => {
+    setExportingPDF(true);
+    
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Catálogo - ${user?.empresa || user?.full_name}</title>
+        <style>
+          @page { 
+            size: A4; 
+            margin: 15mm; 
+          }
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          body {
+            font-family: Arial, sans-serif;
+            font-size: 11pt;
+            color: #333;
+          }
+          .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 3px solid #2563eb;
+            margin-bottom: 20px;
+          }
+          .header img {
+            max-width: 120px;
+            max-height: 80px;
+            margin-bottom: 10px;
+          }
+          .header h1 {
+            color: #2563eb;
+            font-size: 24pt;
+            margin-bottom: 5px;
+          }
+          .header p {
+            color: #666;
+            font-size: 10pt;
+            margin: 3px 0;
+          }
+          .products-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+          }
+          .product-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px;
+            page-break-inside: avoid;
+            background: #fff;
+          }
+          .product-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            background: #f3f4f6;
+          }
+          .product-name {
+            font-weight: bold;
+            font-size: 11pt;
+            color: #1f2937;
+            margin-bottom: 8px;
+            line-height: 1.3;
+          }
+          .product-category {
+            display: inline-block;
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 9pt;
+            margin-bottom: 8px;
+          }
+          .product-info {
+            font-size: 9pt;
+            color: #666;
+          }
+          .product-info div {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px solid #f3f4f6;
+          }
+          .product-info div:last-child {
+            border-bottom: none;
+          }
+          .product-info .label {
+            font-weight: 600;
+            color: #4b5563;
+          }
+          .product-info .value {
+            color: #1f2937;
+            font-weight: 500;
+          }
+          .footer {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 2px solid #e5e7eb;
+            text-align: center;
+            font-size: 9pt;
+            color: #999;
+          }
+          @media print {
+            body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          ${user?.logomarca ? `<img src="${user.logomarca}" alt="Logo" />` : ''}
+          <h1>${user?.empresa || user?.full_name}</h1>
+          ${user?.cnpj ? `<p><strong>CNPJ:</strong> ${user.cnpj}</p>` : ''}
+          ${user?.endereco ? `<p>${user.endereco}</p>` : ''}
+          ${user?.whatsapp ? `<p><strong>WhatsApp:</strong> ${user.whatsapp}</p>` : ''}
+          ${user?.site ? `<p><strong>Site:</strong> ${user.site}</p>` : ''}
+        </div>
+        
+        <div class="products-grid">
+          ${filteredProducts.map(product => `
+            <div class="product-card">
+              ${product.foto ? `<img src="${product.foto}" class="product-image" alt="${product.nome}" />` : '<div class="product-image"></div>'}
+              <div class="product-name">${product.nome}</div>
+              <div class="product-category">${product.categoria}</div>
+              <div class="product-info">
+                <div>
+                  <span class="label">Código:</span>
+                  <span class="value">${product.cod}</span>
+                </div>
+                ${product.peso ? `
+                  <div>
+                    <span class="label">Peso:</span>
+                    <span class="value">${product.peso} kg</span>
+                  </div>
+                ` : ''}
+                ${product.dimensoes ? `
+                  <div>
+                    <span class="label">Dimensões:</span>
+                    <span class="value">${product.dimensoes} cm</span>
+                  </div>
+                ` : ''}
+                <div>
+                  <span class="label">Unidade:</span>
+                  <span class="value">${product.und}</span>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        
+        <div class="footer">
+          <p>Catálogo gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</p>
+          <p>Total de ${filteredProducts.length} produto(s)</p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    
+    printWindow.onload = () => {
+      setTimeout(() => {
+        printWindow.print();
+        setExportingPDF(false);
+        toast({
+          title: "PDF gerado!",
+          description: "Use a janela de impressão para salvar como PDF.",
+        });
+      }, 500);
+    };
   };
 
   if (loading) {
@@ -132,11 +319,28 @@ export default function Catalogo() {
           />
         </div>
 
-        {/* Estatísticas */}
-        <div className="flex items-center justify-between">
+        {/* Estatísticas e Ações */}
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <h2 className="text-2xl font-bold text-gray-900">
             Catálogo de Produtos ({filteredProducts.length})
           </h2>
+          <Button
+            onClick={exportToPDF}
+            disabled={exportingPDF || filteredProducts.length === 0}
+            className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+          >
+            {exportingPDF ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Gerando PDF...
+              </>
+            ) : (
+              <>
+                <FileText className="w-4 h-4 mr-2" />
+                Exportar PDF
+              </>
+            )}
+          </Button>
         </div>
 
         {/* Grid de Produtos */}
