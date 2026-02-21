@@ -142,31 +142,22 @@ export default function PedidosCompraFabricante() {
       
       // Se o status for "em_producao", criar uma venda automaticamente
       if (novoStatus === 'em_producao' && pedido) {
-        // Verificar se já existe uma venda para este pedido de compra
-        const vendasExistentes = await base44.entities.Pedido.filter({ 
+        const numeroPedidoVenda = `VENDA-${Date.now()}`;
+        await base44.entities.Pedido.create({
           fornecedor_id: user.id,
+          cliente_id: pedido.revendedor_id,
+          cliente_nome: pedido.revendedor_nome,
+          numero_pedido: numeroPedidoVenda,
+          data_pedido: new Date().toISOString().split('T')[0],
+          tipo: 'venda',
+          itens: pedido.itens,
+          subtotal: pedido.total,
+          frete: 0,
+          desconto: 0,
+          total: pedido.total,
+          status: 'confirmado',
           observacoes: `Pedido de compra ${pedido.numero_pedido} confirmado`
         });
-        
-        // Criar venda apenas se ainda não existir
-        if (vendasExistentes.length === 0) {
-          const numeroPedidoVenda = `VENDA-${Date.now()}`;
-          await base44.entities.Pedido.create({
-            fornecedor_id: user.id,
-            cliente_id: pedido.revendedor_id,
-            cliente_nome: pedido.revendedor_nome,
-            numero_pedido: numeroPedidoVenda,
-            data_pedido: new Date().toISOString().split('T')[0],
-            tipo: 'venda',
-            itens: pedido.itens,
-            subtotal: pedido.total,
-            frete: 0,
-            desconto: 0,
-            total: pedido.total,
-            status: 'confirmado',
-            observacoes: `Pedido de compra ${pedido.numero_pedido} confirmado`
-          });
-        }
       }
       
       // Criar notificação para o revendedor
