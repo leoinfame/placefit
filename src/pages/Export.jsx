@@ -486,9 +486,9 @@ export default function Export() {
                 {previewData.length > 0 ? (
                   <div className="space-y-4">
                     {/* Cabeçalho da Empresa */}
-                    <div className="text-center p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border">
+                    <div className="text-center p-3 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border">
                       {user?.logomarca && (
-                        <div className="w-20 h-20 mx-auto mb-3 rounded-lg overflow-hidden bg-white p-2">
+                        <div className="w-16 h-16 mx-auto mb-2 rounded-lg overflow-hidden bg-white p-1">
                           <img
                             src={user.logomarca}
                             alt="Logo"
@@ -496,31 +496,25 @@ export default function Export() {
                           />
                         </div>
                       )}
-                      <h2 className="text-xl font-bold text-gray-900 mb-2">
+                      <h2 className="text-lg font-bold text-gray-900 mb-1">
                         {user?.empresa || user?.full_name}
                       </h2>
-                      <div className="text-sm text-gray-600 space-y-1">
+                      <div className="text-xs text-gray-600 space-y-0.5">
                         {user?.whatsapp && (
                           <div className="flex items-center justify-center gap-1">
                             <Phone className="w-3 h-3" />
-                            {user.whatsapp}
+                            <span>{user.whatsapp}</span>
                           </div>
                         )}
                         {user?.email && (
                           <div className="flex items-center justify-center gap-1">
                             <Mail className="w-3 h-3" />
-                            {user.email}
-                          </div>
-                        )}
-                        {user?.site && (
-                          <div className="flex items-center justify-center gap-1">
-                            <Globe className="w-3 h-3" />
-                            {user.site}
+                            <span>{user.email}</span>
                           </div>
                         )}
                       </div>
-                      <Separator className="my-3" />
-                      <p className="font-semibold text-gray-800">TABELA DE PREÇOS</p>
+                      <Separator className="my-2" />
+                      <p className="font-semibold text-gray-800 text-sm">TABELA DE PREÇOS</p>
                       <p className="text-xs text-gray-500">
                         Atualizada em {new Date().toLocaleDateString('pt-BR')}
                       </p>
