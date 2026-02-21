@@ -955,11 +955,18 @@ export default function Products() {
                 <SelectContent>
                   <SelectItem value="all">Todos os Fabricantes</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
-                  {fabricantes.map(fab => (
-                    <SelectItem key={fab.id} value={fab.id}>
-                      {fab.empresa || fab.full_name}
-                    </SelectItem>
-                  ))}
+                  {fabricantes
+                    .filter(fab => fab.empresa || fab.full_name)
+                    .sort((a, b) => {
+                      const nomeA = a.empresa || a.full_name || '';
+                      const nomeB = b.empresa || b.full_name || '';
+                      return nomeA.localeCompare(nomeB);
+                    })
+                    .map(fab => (
+                      <SelectItem key={fab.id} value={fab.id}>
+                        {fab.empresa || fab.full_name || `Fabricante ${fab.id.substring(0, 8)}`}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
