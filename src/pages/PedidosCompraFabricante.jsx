@@ -136,7 +136,38 @@ export default function PedidosCompraFabricante() {
 
   const atualizarStatusMutation = useMutation({
     mutationFn: async ({ pedidoId, novoStatus, revendedorId, numeroPedido }) => {
+      const pedido = pedidosCompra.find(p => p.id === pedidoId);
+      
       await base44.entities.PedidoCompra.update(pedidoId, { status: novoStatus });
+      
+      // Se o status for confirmado ou recebido, criar uma venda automaticamente
+      if ((novoStatus === 'confirmado' || novoStatus === 'recebido') && pedido) {
+        // Verificar se já existe uma venda para este pedido de compra
+        const vendasExistentes = await base44.entities.Pedido.filter({ 
+          fornecedor_id: user.id,
+          observacoes: `Pedido de compra ${pedido.numero_pedido} confirmado`
+        });
+        
+        // Criar venda apenas se ainda não existir
+        if (vendasExistentes.length === 0) {
+          const numeroPedidoVenda = `VENDA-${Date.now()}`;
+          await base44.entities.Pedido.create({
+            fornecedor_id: user.id,
+            cliente_id: pedido.revendedor_id,
+            cliente_nome: pedido.revendedor_nome,
+            numero_pedido: numeroPedidoVenda,
+            data_pedido: new Date().toISOString().split('T')[0],
+            tipo: 'venda',
+            itens: pedido.itens,
+            subtotal: pedido.total,
+            frete: 0,
+            desconto: 0,
+            total: pedido.total,
+            status: 'confirmado',
+            observacoes: `Pedido de compra ${pedido.numero_pedido} confirmado`
+          });
+        }
+      }
       
       // Criar notificação para o revendedor
       await base44.entities.Notification.create({
@@ -150,7 +181,7 @@ export default function PedidosCompraFabricante() {
       queryClient.invalidateQueries({ queryKey: ['pedidos-compra-fabricante'] });
       toast({ 
         title: "Status atualizado!", 
-        description: "O revendedor foi notificado da alteração." 
+        description: "O pedido foi atualizado e registrado em suas vendas." 
       });
     },
   });

@@ -61,6 +61,7 @@ import Export from './pages/Export';
 import FabricanteProdutos from './pages/FabricanteProdutos';
 import Fabricantes from './pages/Fabricantes';
 import FabricantesRevendedor from './pages/FabricantesRevendedor';
+import Financeiro from './pages/Financeiro';
 import Frete from './pages/Frete';
 import Marketplace from './pages/Marketplace';
 import MyProducts from './pages/MyProducts';
@@ -80,7 +81,6 @@ import Transportadores from './pages/Transportadores';
 import Units from './pages/Units';
 import Usuarios from './pages/Usuarios';
 import Vendas from './pages/Vendas';
-import Financeiro from './pages/Financeiro';
 import __Layout from './Layout.jsx';
 
 
@@ -99,6 +99,7 @@ export const PAGES = {
     "FabricanteProdutos": FabricanteProdutos,
     "Fabricantes": Fabricantes,
     "FabricantesRevendedor": FabricantesRevendedor,
+    "Financeiro": Financeiro,
     "Frete": Frete,
     "Marketplace": Marketplace,
     "MyProducts": MyProducts,
@@ -118,7 +119,6 @@ export const PAGES = {
     "Units": Units,
     "Usuarios": Usuarios,
     "Vendas": Vendas,
-    "Financeiro": Financeiro,
 }
 
 export const pagesConfig = {
