@@ -57,6 +57,23 @@ export default function PublicRegisterFabricante() {
     return numbers.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
   };
 
+  const formatWebsite = (value) => {
+    if (!value) return '';
+    let url = value.trim();
+    
+    url = url.replace(/\s/g, '');
+    
+    if (url && !url.match(/^https?:\/\//i)) {
+      url = 'http://' + url;
+    }
+    
+    if (url && !url.match(/^https?:\/\/www\./i) && !url.match(/^https?:\/\/[^.]+\.[^.]+$/)) {
+      url = url.replace(/^(https?:\/\/)/, '$1www.');
+    }
+    
+    return url;
+  };
+
   const handleLogoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -252,12 +269,15 @@ export default function PublicRegisterFabricante() {
                     </Label>
                     <Input
                       id="site"
-                      type="url"
                       value={formData.site}
                       onChange={(e) => setFormData({ ...formData, site: e.target.value })}
-                      placeholder="https://www.suafabrica.com.br"
+                      onBlur={(e) => setFormData({ ...formData, site: formatWebsite(e.target.value) })}
+                      placeholder="suafabrica.com.br"
                       className="mt-1"
                     />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Digite apenas o domínio, ex: suafabrica.com.br
+                    </p>
                   </div>
 
                   {/* História da Empresa */}

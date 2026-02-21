@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
@@ -46,6 +45,26 @@ export default function PublicRegister() {
   const formatWhatsApp = (value) => {
     const numbers = value.replace(/\D/g, '');
     return numbers.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+  };
+
+  const formatWebsite = (value) => {
+    if (!value) return '';
+    let url = value.trim();
+    
+    // Remove espaços
+    url = url.replace(/\s/g, '');
+    
+    // Adiciona http:// se não tiver protocolo
+    if (url && !url.match(/^https?:\/\//i)) {
+      url = 'http://' + url;
+    }
+    
+    // Adiciona www. se não tiver
+    if (url && !url.match(/^https?:\/\/www\./i) && !url.match(/^https?:\/\/[^.]+\.[^.]+$/)) {
+      url = url.replace(/^(https?:\/\/)/, '$1www.');
+    }
+    
+    return url;
   };
 
   return (
@@ -166,12 +185,15 @@ export default function PublicRegister() {
                     </Label>
                     <Input
                       id="site"
-                      type="url"
                       value={formData.site}
                       onChange={(e) => setFormData({ ...formData, site: e.target.value })}
-                      placeholder="https://www.suaempresa.com.br"
+                      onBlur={(e) => setFormData({ ...formData, site: formatWebsite(e.target.value) })}
+                      placeholder="suaempresa.com.br"
                       className="mt-1"
                     />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Digite apenas o domínio, ex: suaempresa.com.br
+                    </p>
                   </div>
                 </div>
 

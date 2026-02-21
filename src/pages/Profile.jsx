@@ -187,6 +187,23 @@ export default function Profile() {
     return numbers.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
   };
 
+  const formatWebsite = (value) => {
+    if (!value) return '';
+    let url = value.trim();
+    
+    url = url.replace(/\s/g, '');
+    
+    if (url && !url.match(/^https?:\/\//i)) {
+      url = 'http://' + url;
+    }
+    
+    if (url && !url.match(/^https?:\/\/www\./i) && !url.match(/^https?:\/\/[^.]+\.[^.]+$/)) {
+      url = url.replace(/^(https?:\/\/)/, '$1www.');
+    }
+    
+    return url;
+  };
+
   const handleAddRota = async () => {
     if (!rotaFormData.estado || !rotaFormData.cidades) {
       toast({
@@ -425,11 +442,14 @@ export default function Profile() {
                       <Label htmlFor="site">Website</Label>
                       <Input
                         id="site"
-                        type="url"
                         value={formData.site}
                         onChange={(e) => setFormData({ ...formData, site: e.target.value })}
-                        placeholder="https://www.suaempresa.com.br"
+                        onBlur={(e) => setFormData({ ...formData, site: formatWebsite(e.target.value) })}
+                        placeholder="suaempresa.com.br"
                       />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Digite apenas o domínio, ex: suaempresa.com.br
+                      </p>
                     </div>
                   </div>
                 </CardContent>

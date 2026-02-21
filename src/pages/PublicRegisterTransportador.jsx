@@ -51,6 +51,23 @@ export default function PublicRegisterTransportador() {
     return numbers.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
   };
 
+  const formatWebsite = (value) => {
+    if (!value) return '';
+    let url = value.trim();
+    
+    url = url.replace(/\s/g, '');
+    
+    if (url && !url.match(/^https?:\/\//i)) {
+      url = 'http://' + url;
+    }
+    
+    if (url && !url.match(/^https?:\/\/www\./i) && !url.match(/^https?:\/\/[^.]+\.[^.]+$/)) {
+      url = url.replace(/^(https?:\/\/)/, '$1www.');
+    }
+    
+    return url;
+  };
+
   if (success) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50 flex items-center justify-center p-4">
@@ -158,11 +175,14 @@ export default function PublicRegisterTransportador() {
                   <Label htmlFor="site">Site (opcional)</Label>
                   <Input
                     id="site"
-                    type="url"
                     value={formData.site}
                     onChange={(e) => setFormData({ ...formData, site: e.target.value })}
-                    placeholder="https://www.suatransportadora.com"
+                    onBlur={(e) => setFormData({ ...formData, site: formatWebsite(e.target.value) })}
+                    placeholder="suatransportadora.com"
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Digite apenas o domínio, ex: suatransportadora.com
+                  </p>
                 </div>
 
                 {error && (
