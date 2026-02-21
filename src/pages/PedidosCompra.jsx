@@ -591,23 +591,9 @@ export default function PedidosCompra() {
                             R$ {pc.total.toFixed(2)}
                           </TableCell>
                           <TableCell>
-                            <Select
-                              value={pc.status}
-                              onValueChange={(newStatus) => updateStatusMutation.mutate({ id: pc.id, status: newStatus })}
-                            >
-                              <SelectTrigger className="w-40">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="pendente">Pendente</SelectItem>
-                                <SelectItem value="enviado">Enviado</SelectItem>
-                                <SelectItem value="confirmado">Confirmado</SelectItem>
-                                <SelectItem value="em_producao">Em Produção</SelectItem>
-                                <SelectItem value="despachado">Despachado</SelectItem>
-                                <SelectItem value="recebido">Recebido</SelectItem>
-                                <SelectItem value="cancelado">Cancelado</SelectItem>
-                              </SelectContent>
-                            </Select>
+                            <Badge className={statusColors[pc.status]}>
+                              {statusLabels[pc.status]}
+                            </Badge>
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center justify-center gap-1">
