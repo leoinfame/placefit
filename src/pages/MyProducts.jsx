@@ -371,19 +371,31 @@ export default function MyProducts() {
     }
 
     setApplyingBulk(true);
+    let successCount = 0;
+    let skippedCount = 0;
+
     try {
       for (const productId of selectedCatalogProducts) {
+        // Verificar se o produto já existe na lista do fornecedor
+        const alreadyExists = supplierProducts.some(sp => sp.product_id === productId);
+        
+        if (alreadyExists) {
+          skippedCount++;
+          continue;
+        }
+
         await base44.entities.SupplierProduct.create({
           supplier_id: user.id,
           product_id: productId,
           preco: 0,
           disponivel: true
         });
+        successCount++;
       }
 
       toast({
         title: "Sucesso!",
-        description: `${selectedCatalogProducts.length} produtos adicionados à sua tabela.`,
+        description: `${successCount} produto(s) adicionado(s) à sua tabela.${skippedCount > 0 ? ` ${skippedCount} já estavam adicionados.` : ''}`,
       });
 
       setSelectedCatalogProducts([]);
