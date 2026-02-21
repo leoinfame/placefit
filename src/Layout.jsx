@@ -352,6 +352,11 @@ export default function Layout({ children, currentPageName }) {
           icon: Package,
         },
         {
+          title: "Fabricantes",
+          url: createPageUrl("FabricantesRevendedor"),
+          icon: Store,
+        },
+        {
           title: "Meus Produtos",
           url: createPageUrl("MyProducts"),
           icon: ShoppingCart,

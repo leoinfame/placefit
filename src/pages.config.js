@@ -50,6 +50,7 @@
 import AdminFrete from './pages/AdminFrete';
 import AdminNotifications from './pages/AdminNotifications';
 import AtendenteIA from './pages/AtendenteIA';
+import Catalogo from './pages/Catalogo';
 import Categories from './pages/Categories';
 import Clientes from './pages/Clientes';
 import ClientesVendas from './pages/ClientesVendas';
@@ -76,7 +77,7 @@ import Transportadores from './pages/Transportadores';
 import Units from './pages/Units';
 import Usuarios from './pages/Usuarios';
 import Vendas from './pages/Vendas';
-import Catalogo from './pages/Catalogo';
+import FabricantesRevendedor from './pages/FabricantesRevendedor';
 import __Layout from './Layout.jsx';
 
 
@@ -84,6 +85,7 @@ export const PAGES = {
     "AdminFrete": AdminFrete,
     "AdminNotifications": AdminNotifications,
     "AtendenteIA": AtendenteIA,
+    "Catalogo": Catalogo,
     "Categories": Categories,
     "Clientes": Clientes,
     "ClientesVendas": ClientesVendas,
@@ -110,7 +112,7 @@ export const PAGES = {
     "Units": Units,
     "Usuarios": Usuarios,
     "Vendas": Vendas,
-    "Catalogo": Catalogo,
+    "FabricantesRevendedor": FabricantesRevendedor,
 }
 
 export const pagesConfig = {
