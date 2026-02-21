@@ -234,6 +234,11 @@ export default function Layout({ children, currentPageName }) {
           icon: Bell,
         },
         {
+          title: "Catálogo",
+          url: createPageUrl("Catalogo"),
+          icon: Package,
+        },
+        {
           title: "Produtos",
           url: createPageUrl("Products"),
           icon: Package,
@@ -303,6 +308,11 @@ export default function Layout({ children, currentPageName }) {
           badge: unreadNotifications > 0 ? unreadNotifications : null
         },
         {
+          title: "Catálogo",
+          url: createPageUrl("Catalogo"),
+          icon: Package,
+        },
+        {
           title: "Meus Produtos",
           url: createPageUrl("FabricanteProdutos"),
           icon: Package,
@@ -335,6 +345,11 @@ export default function Layout({ children, currentPageName }) {
           url: createPageUrl("Notifications"),
           icon: Bell,
           badge: unreadNotifications > 0 ? unreadNotifications : null
+        },
+        {
+          title: "Catálogo",
+          url: createPageUrl("Catalogo"),
+          icon: Package,
         },
         {
           title: "Meus Produtos",
