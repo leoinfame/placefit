@@ -42,34 +42,29 @@ export default function Clientes() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      if (currentUser.role !== 'admin') {
+      if (currentUser.role === 'admin') {
+        // Admin vê todos os clientes do marketplace
+        const allUsers = await base44.entities.User.list('-created_date');
+        
+        const clientesData = allUsers.filter(u => {
+          if (u.role === 'admin') return false;
+          if (u.role === 'user' && u.aprovado) return false;
+          if (u.ultima_visita_marketplace) return true;
+          return u.role !== 'user';
+        });
+        
+        setClientes(clientesData);
+      } else if (currentUser.role === 'user' && (!currentUser.tipo_usuario || currentUser.tipo_usuario !== 'fabricante')) {
+        // Revendedor vê seus clientes específicos (da entidade Cliente)
+        const clientesData = await base44.entities.Cliente.filter({
+          fornecedor_id: currentUser.id
+        }, '-created_date');
+        
+        setClientes(clientesData);
+      } else {
         window.location.href = '/Dashboard';
         return;
       }
-
-      // Carregar todos os usuários
-      const allUsers = await base44.entities.User.list('-created_date');
-      
-      // Filtrar clientes: usuários que visitaram o marketplace (têm ultima_visita_marketplace) 
-      // OU que não são admin nem fornecedores aprovados
-      const clientesData = allUsers.filter(u => {
-        // Excluir admins
-        if (u.role === 'admin') return false;
-        
-        // Excluir fornecedores aprovados
-        if (u.role === 'user' && u.aprovado) return false;
-        
-        // Incluir qualquer usuário que tenha visitado o marketplace
-        if (u.ultima_visita_marketplace) return true;
-        
-        // Incluir usuários que não são fornecedores
-        return u.role !== 'user';
-      });
-      
-      console.log("Total de usuários:", allUsers.length);
-      console.log("Clientes identificados:", clientesData.length);
-      
-      setClientes(clientesData);
     } catch (error) {
       console.error("Erro ao carregar clientes:", error);
     }
@@ -81,9 +76,9 @@ export default function Clientes() {
     
     if (searchTerm) {
       filtered = filtered.filter(cliente =>
-        (cliente.full_name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (cliente.full_name?.toLowerCase() || cliente.nome?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
         (cliente.email?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-        (cliente.whatsapp || '').includes(searchTerm)
+        (cliente.whatsapp?.toLowerCase() || cliente.telefone?.toLowerCase() || '').includes(searchTerm)
       );
     }
     
@@ -103,17 +98,33 @@ export default function Clientes() {
   };
 
   const exportToCSV = () => {
-    const headers = ['Nome', 'E-mail', 'WhatsApp', 'Data de Cadastro', 'Última Visita'];
-    const csvData = filteredClientes.map(cliente => [
-      cliente.full_name || '',
-      cliente.email || '',
-      cliente.whatsapp || '',
-      formatDate(cliente.created_date),
-      formatDate(cliente.ultima_visita_marketplace)
-    ]);
+    const headers = user?.role === 'admin' 
+      ? ['Nome', 'E-mail', 'WhatsApp', 'Data de Cadastro', 'Última Visita']
+      : ['Nome', 'E-mail', 'WhatsApp', 'Telefone', 'Cidade', 'Data de Cadastro'];
+    
+    const csvData = filteredClientes.map(cliente => {
+      if (user?.role === 'admin') {
+        return [
+          cliente.full_name || '',
+          cliente.email || '',
+          cliente.whatsapp || '',
+          formatDate(cliente.created_date),
+          formatDate(cliente.ultima_visita_marketplace)
+        ];
+      } else {
+        return [
+          cliente.nome || '',
+          cliente.email || '',
+          cliente.telefone || '',
+          cliente.cidade || '',
+          cliente.cidade || '',
+          formatDate(cliente.created_date)
+        ];
+      }
+    });
 
     const csvContent = [
-      headers.join(','),
+      headers.map(h => `"${h}"`).join(','),
       ...csvData.map(row => row.map(cell => `"${cell}"`).join(','))
     ].join('\n');
 
@@ -121,7 +132,10 @@ export default function Clientes() {
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `clientes_marketplace_${new Date().toISOString().split('T')[0]}.csv`);
+    const fileName = user?.role === 'admin' 
+      ? `clientes_marketplace_${new Date().toISOString().split('T')[0]}.csv`
+      : `meus_clientes_${new Date().toISOString().split('T')[0]}.csv`;
+    link.setAttribute('download', fileName);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -219,15 +233,26 @@ export default function Clientes() {
           }
 
           // Verificar se o cliente já existe
-          const existingCliente = clientes.find(c => c.email === email);
+          const existingCliente = clientes.find(c => c.email === email || c.nome === nome);
           if (existingCliente) {
-            errorDetails.push(`Cliente ${nome}: Já existe um cliente com este e-mail.`);
+            errorDetails.push(`Cliente ${nome}: Já existe um cliente com este nome/e-mail.`);
             errorCount++;
             continue;
           }
 
-          // Criar novo cliente (usuário)
-          await base44.users.inviteUser(email, "user");
+          if (user?.role === 'admin') {
+            // Admin: convidar como usuário do marketplace
+            await base44.users.inviteUser(email, "user");
+          } else {
+            // Revendedor: criar cliente na entidade Cliente
+            await base44.entities.Cliente.create({
+              fornecedor_id: user.id,
+              nome: nome,
+              email: email,
+              telefone: whatsapp,
+              ativo: true
+            });
+          }
           successCount++;
         } catch (error) {
           console.error("Erro ao criar cliente:", item, error);
@@ -291,7 +316,9 @@ export default function Clientes() {
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Clientes do Marketplace</h1>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {user?.role === 'admin' ? 'Clientes do Marketplace' : 'Meus Clientes'}
+            </h1>
             <p className="text-gray-600">Visualize, gerencie e importe clientes</p>
           </div>
           <div className="flex gap-2">
@@ -315,42 +342,46 @@ export default function Clientes() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 bg-white/80 backdrop-blur-sm">
-            <TabsTrigger value="clientes">Clientes ({clientes.length})</TabsTrigger>
+            <TabsTrigger value="clientes">
+              {user?.role === 'admin' ? 'Clientes' : 'Meus Clientes'} ({clientes.length})
+            </TabsTrigger>
             <TabsTrigger value="importar">Importar CSV</TabsTrigger>
           </TabsList>
 
           <TabsContent value="clientes" className="space-y-6">
 
         {/* Estatísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 border">
-            <CardContent className="p-4 text-center">
-              <Users className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-blue-900">{clientes.length}</div>
-              <p className="text-sm text-blue-700">Total de Clientes</p>
-            </CardContent>
-          </Card>
+        {user?.role === 'admin' && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 border">
+              <CardContent className="p-4 text-center">
+                <Users className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-blue-900">{clientes.length}</div>
+                <p className="text-sm text-blue-700">Total de Clientes</p>
+              </CardContent>
+            </Card>
 
-          <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200 border">
-            <CardContent className="p-4 text-center">
-              <Mail className="w-8 h-8 text-green-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-green-900">
-                {clientes.filter(c => c.email).length}
-              </div>
-              <p className="text-sm text-green-700">Com E-mail</p>
-            </CardContent>
-          </Card>
+            <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200 border">
+              <CardContent className="p-4 text-center">
+                <Mail className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-green-900">
+                  {clientes.filter(c => c.email).length}
+                </div>
+                <p className="text-sm text-green-700">Com E-mail</p>
+              </CardContent>
+            </Card>
 
-          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 border">
-            <CardContent className="p-4 text-center">
-              <Phone className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-purple-900">
-                {clientes.filter(c => c.whatsapp).length}
-              </div>
-              <p className="text-sm text-purple-700">Com WhatsApp</p>
-            </CardContent>
-          </Card>
-        </div>
+            <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 border">
+              <CardContent className="p-4 text-center">
+                <Phone className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-purple-900">
+                  {clientes.filter(c => c.whatsapp).length}
+                </div>
+                <p className="text-sm text-purple-700">Com WhatsApp</p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Filtro */}
         <div className="flex flex-col md:flex-row gap-4">
@@ -369,77 +400,102 @@ export default function Clientes() {
 
         {/* Tabela de Clientes */}
         <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="w-5 h-5" />
-              Lista de Clientes ({filteredClientes.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {filteredClientes.length === 0 ? (
-              <div className="text-center py-12">
-                <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum cliente encontrado</h3>
-                <p className="text-gray-600">Os clientes aparecerão aqui quando acessarem o marketplace.</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>E-mail</TableHead>
-                      <TableHead>WhatsApp</TableHead>
-                      <TableHead>Data de Cadastro</TableHead>
-                      <TableHead>Última Visita</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredClientes.map((cliente) => (
-                      <TableRow key={cliente.id} className="hover:bg-blue-50">
-                        <TableCell className="font-medium">
-                          {cliente.full_name || 'Não informado'}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Mail className="w-4 h-4 text-gray-400" />
-                            <span className="text-sm">{cliente.email || 'Não informado'}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Phone className="w-4 h-4 text-gray-400" />
-                            <span className="text-sm">{cliente.whatsapp || 'Não informado'}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <Calendar className="w-4 h-4" />
-                            {formatDate(cliente.created_date)}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2 text-sm">
-                            <Eye className="w-4 h-4 text-gray-400" />
-                            {cliente.ultima_visita_marketplace ? (
-                              <span className="text-gray-600">
-                                {formatDate(cliente.ultima_visita_marketplace)}
-                              </span>
-                            ) : (
-                              <Badge variant="secondary" className="text-xs">
-                                Nunca acessou
-                              </Badge>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-          </Card>
+         <CardHeader>
+           <CardTitle className="flex items-center gap-2">
+             <Users className="w-5 h-5" />
+             {user?.role === 'admin' ? 'Lista de Clientes' : 'Meus Clientes'} ({filteredClientes.length})
+           </CardTitle>
+         </CardHeader>
+         <CardContent>
+           {filteredClientes.length === 0 ? (
+             <div className="text-center py-12">
+               <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+               <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum cliente encontrado</h3>
+               <p className="text-gray-600">
+                 {user?.role === 'admin' 
+                   ? 'Os clientes aparecerão aqui quando acessarem o marketplace.'
+                   : 'Você ainda não possui clientes. Importe um arquivo CSV para adicionar.'}
+               </p>
+             </div>
+           ) : (
+             <div className="overflow-x-auto">
+               <Table>
+                 <TableHeader>
+                   <TableRow>
+                     <TableHead>Nome</TableHead>
+                     <TableHead>E-mail</TableHead>
+                     <TableHead>{user?.role === 'admin' ? 'WhatsApp' : 'Telefone'}</TableHead>
+                     {user?.role === 'admin' && <TableHead>Data de Cadastro</TableHead>}
+                     {user?.role === 'admin' && <TableHead>Última Visita</TableHead>}
+                     {user?.role !== 'admin' && <TableHead>Cidade</TableHead>}
+                     {user?.role !== 'admin' && <TableHead>Data de Cadastro</TableHead>}
+                   </TableRow>
+                 </TableHeader>
+                 <TableBody>
+                   {filteredClientes.map((cliente) => (
+                     <TableRow key={cliente.id} className="hover:bg-blue-50">
+                       <TableCell className="font-medium">
+                         {user?.role === 'admin' ? (cliente.full_name || 'Não informado') : cliente.nome}
+                       </TableCell>
+                       <TableCell>
+                         <div className="flex items-center gap-2">
+                           <Mail className="w-4 h-4 text-gray-400" />
+                           <span className="text-sm">{cliente.email || 'Não informado'}</span>
+                         </div>
+                       </TableCell>
+                       <TableCell>
+                         <div className="flex items-center gap-2">
+                           <Phone className="w-4 h-4 text-gray-400" />
+                           <span className="text-sm">
+                             {user?.role === 'admin' 
+                               ? (cliente.whatsapp || 'Não informado')
+                               : (cliente.telefone || 'Não informado')}
+                           </span>
+                         </div>
+                       </TableCell>
+                       {user?.role === 'admin' && (
+                         <>
+                           <TableCell>
+                             <div className="flex items-center gap-2 text-sm text-gray-600">
+                               <Calendar className="w-4 h-4" />
+                               {formatDate(cliente.created_date)}
+                             </div>
+                           </TableCell>
+                           <TableCell>
+                             <div className="flex items-center gap-2 text-sm">
+                               <Eye className="w-4 h-4 text-gray-400" />
+                               {cliente.ultima_visita_marketplace ? (
+                                 <span className="text-gray-600">
+                                   {formatDate(cliente.ultima_visita_marketplace)}
+                                 </span>
+                               ) : (
+                                 <Badge variant="secondary" className="text-xs">
+                                   Nunca acessou
+                                 </Badge>
+                               )}
+                             </div>
+                           </TableCell>
+                         </>
+                       )}
+                       {user?.role !== 'admin' && (
+                         <>
+                           <TableCell className="text-sm">{cliente.cidade || 'Não informado'}</TableCell>
+                           <TableCell>
+                             <div className="flex items-center gap-2 text-sm text-gray-600">
+                               <Calendar className="w-4 h-4" />
+                               {formatDate(cliente.created_date)}
+                             </div>
+                           </TableCell>
+                         </>
+                       )}
+                     </TableRow>
+                   ))}
+                 </TableBody>
+               </Table>
+             </div>
+           )}
+         </CardContent>
+        </Card>
           </TabsContent>
 
           <TabsContent value="importar" className="space-y-6">
