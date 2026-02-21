@@ -53,14 +53,39 @@ export default function FabricantesRevendedor() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      // Buscar todos os usuários do tipo fabricante aprovados
-      const allUsers = await base44.entities.User.list();
-      const fabricantesAprovados = allUsers.filter(
-        u => u.tipo_usuario === 'fabricante' && u.aprovado === true
-      );
+      // Buscar todos os produtos aprovados
+      const allProducts = await base44.entities.Product.list();
+      const approvedProducts = allProducts.filter(p => p.aprovado_produto === true && p.fabricante_id);
 
-      setFabricantes(fabricantesAprovados);
-      setFilteredFabricantes(fabricantesAprovados);
+      // Extrair fabricantes únicos dos produtos
+      const fabricantesMap = new Map();
+      approvedProducts.forEach(product => {
+        if (product.fabricante_id && product.fabricante_nome && !fabricantesMap.has(product.fabricante_id)) {
+          fabricantesMap.set(product.fabricante_id, {
+            id: product.fabricante_id,
+            empresa: product.fabricante_nome,
+            full_name: product.fabricante_nome,
+            tipo_usuario: 'fabricante',
+            aprovado: true
+          });
+        }
+      });
+
+      // Buscar dados completos dos fabricantes
+      try {
+        const allUsers = await base44.entities.User.list();
+        const fabricantesCompletos = Array.from(fabricantesMap.values()).map(fab => {
+          const userData = allUsers.find(u => u.id === fab.id);
+          return userData ? userData : fab;
+        });
+        setFabricantes(fabricantesCompletos);
+        setFilteredFabricantes(fabricantesCompletos);
+      } catch (userError) {
+        // Se não conseguir listar usuários, usar apenas dados básicos dos produtos
+        const fabricantesBasicos = Array.from(fabricantesMap.values());
+        setFabricantes(fabricantesBasicos);
+        setFilteredFabricantes(fabricantesBasicos);
+      }
     } catch (error) {
       console.error("Erro ao carregar fabricantes:", error);
       toast({
