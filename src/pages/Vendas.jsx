@@ -61,7 +61,7 @@ export default function Vendas() {
       setUser(currentUser);
 
       const allPedidos = await base44.entities.Pedido.list();
-      const pedidosData = currentUser.role === 'admin' 
+      let pedidosData = currentUser.role === 'admin' 
         ? allPedidos.filter(p => p.tipo === 'venda')
         : allPedidos.filter(p => p.fornecedor_id === currentUser.id && p.tipo === 'venda');
       
@@ -71,6 +71,23 @@ export default function Vendas() {
           : base44.entities.Cliente.filter({ fornecedor_id: currentUser.id, ativo: true }),
         base44.entities.Product.list()
       ]);
+
+      // Calcular lucro para revendedores
+      if (currentUser.role !== 'admin' && !currentUser.tipo_usuario) {
+        pedidosData = pedidosData.map(pedido => {
+          let lucroTotal = 0;
+          pedido.itens.forEach(item => {
+            const produto = productsData.find(p => p.id === item.product_id);
+            if (produto && produto.preco_fabricante) {
+              const precoFabricante = parseFloat(produto.preco_fabricante);
+              const precoVenda = parseFloat(item.preco_unitario);
+              const lucroItem = (precoVenda - precoFabricante) * item.quantidade;
+              lucroTotal += lucroItem;
+            }
+          });
+          return { ...pedido, lucro_total: lucroTotal };
+        });
+      }
 
       let myProductsList = [];
 
@@ -584,27 +601,32 @@ export default function Vendas() {
                     <CardContent className="p-4">
                       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="font-semibold text-gray-900">{pedido.numero_pedido}</h3>
-                            <Badge className={getStatusColor(pedido.status)}>
-                              {pedido.status.replace('_', ' ')}
-                            </Badge>
-                          </div>
-                          <div className="text-sm text-gray-600 space-y-1">
-                            <p><strong>Cliente:</strong> {pedido.cliente_nome}</p>
-                            {user?.role === 'admin' && (
-                              <p><strong>Fornecedor:</strong> {fornecedores.find(f => f.id === pedido.fornecedor_id)?.nome || 'N/A'}</p>
-                            )}
-                            <p><strong>Data:</strong> {new Date(pedido.data_pedido).toLocaleDateString('pt-BR')}</p>
-                            <p><strong>Itens:</strong> {pedido.itens.length} produto(s)</p>
-                          </div>
+                         <div className="flex items-center gap-3 mb-2">
+                           <h3 className="font-semibold text-gray-900">{pedido.numero_pedido}</h3>
+                           <Badge className={getStatusColor(pedido.status)}>
+                             {pedido.status.replace('_', ' ')}
+                           </Badge>
+                         </div>
+                         <div className="text-sm text-gray-600 space-y-1">
+                           <p><strong>Cliente:</strong> {pedido.cliente_nome}</p>
+                           {user?.role === 'admin' && (
+                             <p><strong>Fornecedor:</strong> {fornecedores.find(f => f.id === pedido.fornecedor_id)?.nome || 'N/A'}</p>
+                           )}
+                           <p><strong>Data:</strong> {new Date(pedido.data_pedido).toLocaleDateString('pt-BR')}</p>
+                           <p><strong>Itens:</strong> {pedido.itens.length} produto(s)</p>
+                         </div>
                         </div>
                         <div className="flex flex-col items-end gap-2">
-                          <div className="text-right">
-                            <p className="text-2xl font-bold text-blue-600">
-                              R$ {pedido.total.toFixed(2)}
-                            </p>
-                          </div>
+                         <div className="text-right">
+                           <p className="text-2xl font-bold text-blue-600">
+                             R$ {pedido.total.toFixed(2)}
+                           </p>
+                           {pedido.lucro_total !== undefined && (
+                             <p className="text-sm font-semibold text-green-600 mt-1">
+                               Lucro: R$ {pedido.lucro_total.toFixed(2)}
+                             </p>
+                           )}
+                         </div>
                           <div className="flex gap-2">
                             <Button
                               variant="outline"
@@ -1093,6 +1115,11 @@ export default function Vendas() {
                   <p className="text-xl font-bold text-blue-600">
                     Total: R$ {viewingPedido.total.toFixed(2)}
                   </p>
+                  {viewingPedido.lucro_total !== undefined && (
+                    <p className="text-lg font-bold text-green-600 pt-2 border-t">
+                      Lucro: R$ {viewingPedido.lucro_total.toFixed(2)}
+                    </p>
+                  )}
                 </div>
 
                 {viewingPedido.observacoes && (
