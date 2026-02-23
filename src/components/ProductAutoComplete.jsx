@@ -78,29 +78,27 @@ export default function ProductAutoComplete({
             <p className="text-sm font-medium text-gray-900 truncate">{selectedProduct.cod} - {selectedProduct.nome}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <Input
-            type="number"
-            step="1"
-            min="1"
-            value={qtd}
-            onChange={(e) => handleQuantidadeChange(e.target.value)}
-            className="w-20 text-center"
-            placeholder="Qtd"
-          />
-          <div className="w-28 text-right">
-            <p className="text-xs text-gray-500">R$ {preco.toFixed(2)}</p>
-            <p className="text-sm font-bold text-green-700">R$ {subtotal.toFixed(2)}</p>
-          </div>
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            onClick={onRemove}
-            className="hover:bg-red-100 hover:text-red-700"
-          >
-            <X className="w-4 h-4" />
-          </Button>
+        <Input
+          type="number"
+          step="1"
+          min="1"
+          value={qtd}
+          onChange={(e) => handleQuantidadeChange(e.target.value)}
+          className="w-20 text-center flex-shrink-0"
+          placeholder="Qtd"
+        />
+        <div className="w-28 text-right flex-shrink-0">
+          <p className="text-xs text-gray-500">Unit: R$ {preco.toFixed(2)}</p>
+          <p className="text-sm font-bold text-green-700">R$ {subtotal.toFixed(2)}</p>
         </div>
+        <Button 
+          size="sm" 
+          variant="ghost" 
+          onClick={onRemove}
+          className="hover:bg-red-100 hover:text-red-700 flex-shrink-0"
+        >
+          <X className="w-4 h-4" />
+        </Button>
       </div>
     );
   }

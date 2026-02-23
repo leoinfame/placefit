@@ -159,14 +159,28 @@ export default function Orcamentos() {
     const preco = isFabricante ? parseFloat(product.preco_fabricante) : parseFloat(product.preco_fornecedor);
 
     const updatedItens = [...newOrcamento.itens];
-    updatedItens[index] = {
-      product_id: product.id,
-      cod: product.cod,
-      nome: product.nome,
-      quantidade: 1,
-      preco_unitario: preco,
-      subtotal: preco * 1
-    };
+    
+    // Se o índice não existe, adicionar novo item
+    if (index >= updatedItens.length) {
+      updatedItens.push({
+        product_id: product.id,
+        cod: product.cod,
+        nome: product.nome,
+        quantidade: 1,
+        preco_unitario: preco,
+        subtotal: preco * 1
+      });
+    } else {
+      updatedItens[index] = {
+        product_id: product.id,
+        cod: product.cod,
+        nome: product.nome,
+        quantidade: 1,
+        preco_unitario: preco,
+        subtotal: preco * 1
+      };
+    }
+    
     setNewOrcamento({ ...newOrcamento, itens: updatedItens });
 
     // Adicionar automaticamente um novo campo vazio
