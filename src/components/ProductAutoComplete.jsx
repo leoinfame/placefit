@@ -30,6 +30,13 @@ export default function ProductAutoComplete({
   }, [autoFocus]);
 
   useEffect(() => {
+    if (selectedProductData?.product_id) {
+      const produto = products.find(p => p.id === selectedProductData.product_id);
+      setSelectedProduct(produto);
+    }
+  }, [selectedProductData, products]);
+
+  useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target) &&
           inputRef.current && !inputRef.current.contains(event.target)) {
