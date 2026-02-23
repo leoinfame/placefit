@@ -140,35 +140,38 @@ export default function Orcamentos() {
   };
 
   const addItemToOrcamento = () => {
-    setNewOrcamento({
-      ...newOrcamento,
+    setNewOrcamento(prev => ({
+      ...prev,
       itens: [
-        ...newOrcamento.itens,
+        ...prev.itens,
         { product_id: "", cod: "", nome: "", quantidade: 1, preco_unitario: 0, subtotal: 0 }
       ]
-    });
+    }));
   };
 
   const removeItemFromOrcamento = (index) => {
-    const updatedItens = newOrcamento.itens.filter((_, i) => i !== index);
-    setNewOrcamento({ ...newOrcamento, itens: updatedItens });
+    setNewOrcamento(prev => ({
+      ...prev,
+      itens: prev.itens.filter((_, i) => i !== index)
+    }));
   };
 
   const handleProductSelect = (index, product) => {
     const isFabricante = user.tipo_usuario === 'fabricante';
     const preco = isFabricante ? parseFloat(product.preco_fabricante) : parseFloat(product.preco_fornecedor);
 
-    const updatedItens = [...newOrcamento.itens];
-    updatedItens[index] = {
-      product_id: product.id,
-      cod: product.cod,
-      nome: product.nome,
-      quantidade: 1,
-      preco_unitario: preco,
-      subtotal: preco * 1
-    };
-    
-    setNewOrcamento({ ...newOrcamento, itens: updatedItens });
+    setNewOrcamento(prev => {
+      const updatedItens = [...prev.itens];
+      updatedItens[index] = {
+        product_id: product.id,
+        cod: product.cod,
+        nome: product.nome,
+        quantidade: 1,
+        preco_unitario: preco,
+        subtotal: preco * 1
+      };
+      return { ...prev, itens: updatedItens };
+    });
 
     // Adicionar automaticamente um novo campo vazio
     setTimeout(() => {
@@ -177,10 +180,12 @@ export default function Orcamentos() {
   };
 
   const updateItemQuantidade = (index, quantidade) => {
-    const updatedItens = [...newOrcamento.itens];
-    updatedItens[index].quantidade = parseFloat(quantidade) || 0;
-    updatedItens[index].subtotal = updatedItens[index].preco_unitario * updatedItens[index].quantidade;
-    setNewOrcamento({ ...newOrcamento, itens: updatedItens });
+    setNewOrcamento(prev => {
+      const updatedItens = [...prev.itens];
+      updatedItens[index].quantidade = parseFloat(quantidade) || 0;
+      updatedItens[index].subtotal = updatedItens[index].preco_unitario * updatedItens[index].quantidade;
+      return { ...prev, itens: updatedItens };
+    });
   };
 
   const calculateTotals = (orcamento) => {
