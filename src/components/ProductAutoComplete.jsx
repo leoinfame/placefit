@@ -40,8 +40,8 @@ export default function ProductAutoComplete({
 
   const filteredProducts = searchTerm.trim() 
     ? products.filter(p => 
-        p.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.cod.toLowerCase().includes(searchTerm.toLowerCase())
+        p.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.cod?.toLowerCase().includes(searchTerm.toLowerCase())
       ).slice(0, 10)
     : [];
 
@@ -126,16 +126,15 @@ export default function ProductAutoComplete({
               onClick={() => handleSelectProduct(product)}
               className="w-full px-4 py-2 text-left hover:bg-blue-50 border-b last:border-b-0 transition-colors"
             >
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">{product.nome}</p>
-                  <p className="text-xs text-gray-500">{product.cod}</p>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">{product.cod} - {product.nome}</p>
+                  <p className="text-xs text-gray-500">{product.und || 'un'}</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-green-700">
-                    R$ {(userType === 'fabricante' ? product.preco_fabricante : product.preco_fornecedor).toFixed(2)}
+                <div className="text-right flex-shrink-0">
+                  <p className="text-sm font-semibold text-green-700 whitespace-nowrap">
+                    R$ {(userType === 'fabricante' ? parseFloat(product.preco_fabricante) : parseFloat(product.preco_fornecedor)).toFixed(2)}
                   </p>
-                  <p className="text-xs text-gray-500">{product.und}</p>
                 </div>
               </div>
             </button>
