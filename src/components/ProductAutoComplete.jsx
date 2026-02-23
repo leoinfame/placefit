@@ -11,11 +11,14 @@ export default function ProductAutoComplete({
   onQuantidadeChange,
   subtotal = 0,
   userType,
-  autoFocus = false
+  autoFocus = false,
+  selectedProductData = null
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(
+    selectedProductData?.product_id ? products.find(p => p.id === selectedProductData.product_id) : null
+  );
   const [qtd, setQtd] = useState(quantidade);
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);

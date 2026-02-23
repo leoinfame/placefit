@@ -61,7 +61,7 @@ export default function Orcamentos() {
   // Novo orçamento
   const [newOrcamento, setNewOrcamento] = useState({
     cliente_id: "",
-    itens: [],
+    itens: [{ product_id: "", cod: "", nome: "", quantidade: 1, preco_unitario: 0, subtotal: 0 }],
     frete: 0,
     desconto: 0,
     observacoes: ""
@@ -159,27 +159,14 @@ export default function Orcamentos() {
     const preco = isFabricante ? parseFloat(product.preco_fabricante) : parseFloat(product.preco_fornecedor);
 
     const updatedItens = [...newOrcamento.itens];
-    
-    // Se o índice não existe, adicionar novo item
-    if (index >= updatedItens.length) {
-      updatedItens.push({
-        product_id: product.id,
-        cod: product.cod,
-        nome: product.nome,
-        quantidade: 1,
-        preco_unitario: preco,
-        subtotal: preco * 1
-      });
-    } else {
-      updatedItens[index] = {
-        product_id: product.id,
-        cod: product.cod,
-        nome: product.nome,
-        quantidade: 1,
-        preco_unitario: preco,
-        subtotal: preco * 1
-      };
-    }
+    updatedItens[index] = {
+      product_id: product.id,
+      cod: product.cod,
+      nome: product.nome,
+      quantidade: 1,
+      preco_unitario: preco,
+      subtotal: preco * 1
+    };
     
     setNewOrcamento({ ...newOrcamento, itens: updatedItens });
 
@@ -224,17 +211,24 @@ export default function Orcamentos() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orcamentos'] });
       setShowNewDialog(false);
-      setNewOrcamento({ cliente_id: "", itens: [], frete: 0, desconto: 0, observacoes: "" });
+      setNewOrcamento({ 
+        cliente_id: "", 
+        itens: [{ product_id: "", cod: "", nome: "", quantidade: 1, preco_unitario: 0, subtotal: 0 }], 
+        frete: 0, 
+        desconto: 0, 
+        observacoes: "" 
+      });
       toast({ title: "Orçamento criado!", description: "O orçamento foi criado com sucesso." });
     },
   });
 
   const handleCreateOrcamento = () => {
-    if (!newOrcamento.cliente_id || newOrcamento.itens.length === 0) {
+    const itensValidos = newOrcamento.itens.filter(i => i.product_id);
+    if (!newOrcamento.cliente_id || itensValidos.length === 0) {
       toast({ title: "Erro", description: "Selecione um cliente e adicione produtos.", variant: "destructive" });
       return;
     }
-    createOrcamentoMutation.mutate(newOrcamento);
+    createOrcamentoMutation.mutate({...newOrcamento, itens: itensValidos});
   };
 
   const handleViewOrcamento = (orcamento) => {
@@ -807,22 +801,11 @@ export default function Orcamentos() {
               <div>
                 <Label className="mb-3 block">Produtos *</Label>
                 <div className="space-y-3">
-                  {newOrcamento.itens.length === 0 && (
-                    <ProductAutoComplete
-                      products={products}
-                      onSelect={(product) => handleProductSelect(0, product)}
-                      onRemove={() => {}}
-                      quantidade={1}
-                      onQuantidadeChange={() => {}}
-                      subtotal={0}
-                      userType={user?.tipo_usuario}
-                      autoFocus={true}
-                    />
-                  )}
                   {newOrcamento.itens.map((item, idx) => (
                     <ProductAutoComplete
                       key={idx}
                       products={products}
+                      selectedProductData={item.product_id ? item : null}
                       onSelect={(product) => handleProductSelect(idx, product)}
                       onRemove={() => removeItemFromOrcamento(idx)}
                       quantidade={item.quantidade}
