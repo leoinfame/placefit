@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
+import ProductAutoComplete from "@/components/ProductAutoComplete";
 
 export default function Orcamentos() {
   const [user, setUser] = useState(null);
@@ -153,23 +154,25 @@ export default function Orcamentos() {
     setNewOrcamento({ ...newOrcamento, itens: updatedItens });
   };
 
-  const updateItemProduct = (index, productId) => {
-    const product = products.find(p => p.id === productId);
-    if (!product) return;
-
+  const handleProductSelect = (index, product) => {
     const isFabricante = user.tipo_usuario === 'fabricante';
     const preco = isFabricante ? parseFloat(product.preco_fabricante) : parseFloat(product.preco_fornecedor);
 
     const updatedItens = [...newOrcamento.itens];
     updatedItens[index] = {
-      ...updatedItens[index],
-      product_id: productId,
+      product_id: product.id,
       cod: product.cod,
       nome: product.nome,
+      quantidade: 1,
       preco_unitario: preco,
-      subtotal: preco * updatedItens[index].quantidade
+      subtotal: preco * 1
     };
     setNewOrcamento({ ...newOrcamento, itens: updatedItens });
+
+    // Adicionar automaticamente um novo campo vazio
+    setTimeout(() => {
+      addItemToOrcamento();
+    }, 100);
   };
 
   const updateItemQuantidade = (index, quantidade) => {
@@ -788,58 +791,34 @@ export default function Orcamentos() {
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <Label>Produtos *</Label>
-                  <Button size="sm" onClick={addItemToOrcamento} variant="outline">
-                    <Plus className="w-4 h-4 mr-1" />
-                    Adicionar Produto
-                  </Button>
+                <Label className="mb-3 block">Produtos *</Label>
+                <div className="space-y-3">
+                  {newOrcamento.itens.length === 0 && (
+                    <ProductAutoComplete
+                      products={products}
+                      onSelect={(product) => handleProductSelect(0, product)}
+                      onRemove={() => {}}
+                      quantidade={1}
+                      onQuantidadeChange={() => {}}
+                      subtotal={0}
+                      userType={user?.tipo_usuario}
+                      autoFocus={true}
+                    />
+                  )}
+                  {newOrcamento.itens.map((item, idx) => (
+                    <ProductAutoComplete
+                      key={idx}
+                      products={products}
+                      onSelect={(product) => handleProductSelect(idx, product)}
+                      onRemove={() => removeItemFromOrcamento(idx)}
+                      quantidade={item.quantidade}
+                      onQuantidadeChange={(qtd) => updateItemQuantidade(idx, qtd)}
+                      subtotal={item.subtotal}
+                      userType={user?.tipo_usuario}
+                      autoFocus={idx === newOrcamento.itens.length - 1}
+                    />
+                  ))}
                 </div>
-                {newOrcamento.itens.map((item, idx) => (
-                  <div key={idx} className="flex gap-2 mb-2 items-end">
-                    <div className="flex-1">
-                      <Input
-                        placeholder="Digite o nome ou código do produto..."
-                        value={productSearchTerm}
-                        onChange={(e) => setProductSearchTerm(e.target.value)}
-                        className="mb-1"
-                      />
-                      <Select value={item.product_id} onValueChange={(val) => updateItemProduct(idx, val)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o produto" />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-[300px]">
-                          {products
-                            .filter(p => 
-                              !productSearchTerm || 
-                              p.nome.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
-                              p.cod.toLowerCase().includes(productSearchTerm.toLowerCase())
-                            )
-                            .map(p => (
-                              <SelectItem key={p.id} value={p.id}>
-                                {p.cod} - {p.nome} - R$ {(user.tipo_usuario === 'fabricante' ? p.preco_fabricante : p.preco_fornecedor).toFixed(2)}
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <Input
-                      type="number"
-                      placeholder="Qtd"
-                      value={item.quantidade}
-                      onChange={(e) => updateItemQuantidade(idx, e.target.value)}
-                      className="w-24"
-                    />
-                    <Input
-                      value={`R$ ${item.subtotal.toFixed(2)}`}
-                      readOnly
-                      className="w-32"
-                    />
-                    <Button size="sm" variant="ghost" onClick={() => removeItemFromOrcamento(idx)}>
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
