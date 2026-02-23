@@ -68,37 +68,39 @@ export default function ProductAutoComplete({
   };
 
   if (selectedProduct) {
+    const preco = userType === 'fabricante' ? parseFloat(selectedProduct.preco_fabricante) : parseFloat(selectedProduct.preco_fornecedor);
+    
     return (
       <div className="flex gap-2 items-center p-3 bg-blue-50 rounded-lg border border-blue-200">
-        <div className="flex-1 flex items-center gap-2">
-          <Package className="w-4 h-4 text-blue-600" />
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-900">{selectedProduct.cod} - {selectedProduct.nome}</p>
-            <p className="text-xs text-gray-600">
-              R$ {(userType === 'fabricante' ? selectedProduct.preco_fabricante : selectedProduct.preco_fornecedor).toFixed(2)}
-            </p>
+        <div className="flex-1 flex items-center gap-2 min-w-0">
+          <Package className="w-4 h-4 text-blue-600 flex-shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-900 truncate">{selectedProduct.cod} - {selectedProduct.nome}</p>
           </div>
         </div>
-        <Input
-          type="number"
-          step="1"
-          min="1"
-          value={qtd}
-          onChange={(e) => handleQuantidadeChange(e.target.value)}
-          className="w-20 text-center"
-          placeholder="Qtd"
-        />
-        <div className="w-28 text-right">
-          <p className="text-sm font-bold text-green-700">R$ {subtotal.toFixed(2)}</p>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <Input
+            type="number"
+            step="1"
+            min="1"
+            value={qtd}
+            onChange={(e) => handleQuantidadeChange(e.target.value)}
+            className="w-20 text-center"
+            placeholder="Qtd"
+          />
+          <div className="w-28 text-right">
+            <p className="text-xs text-gray-500">R$ {preco.toFixed(2)}</p>
+            <p className="text-sm font-bold text-green-700">R$ {subtotal.toFixed(2)}</p>
+          </div>
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            onClick={onRemove}
+            className="hover:bg-red-100 hover:text-red-700"
+          >
+            <X className="w-4 h-4" />
+          </Button>
         </div>
-        <Button 
-          size="sm" 
-          variant="ghost" 
-          onClick={onRemove}
-          className="hover:bg-red-100 hover:text-red-700"
-        >
-          <X className="w-4 h-4" />
-        </Button>
       </div>
     );
   }
