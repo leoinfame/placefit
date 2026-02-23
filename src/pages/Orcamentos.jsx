@@ -830,6 +830,9 @@ export default function Orcamentos() {
                     type="number"
                     step="0.01"
                     value={newOrcamento.frete}
+                    onFocus={(e) => {
+                      if (parseFloat(e.target.value) === 0) e.target.select();
+                    }}
                     onChange={(e) => setNewOrcamento({...newOrcamento, frete: parseFloat(e.target.value) || 0})}
                   />
                 </div>
@@ -839,6 +842,9 @@ export default function Orcamentos() {
                     type="number"
                     step="0.01"
                     value={newOrcamento.desconto}
+                    onFocus={(e) => {
+                      if (parseFloat(e.target.value) === 0) e.target.select();
+                    }}
                     onChange={(e) => setNewOrcamento({...newOrcamento, desconto: parseFloat(e.target.value) || 0})}
                   />
                 </div>
