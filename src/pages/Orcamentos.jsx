@@ -888,6 +888,162 @@ export default function Orcamentos() {
           </DialogContent>
         </Dialog>
 
+        {/* Dialog Editar */}
+        {editingOrcamento && (
+          <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Editar Orçamento {editingOrcamento.numero_pedido}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label>Cliente *</Label>
+                  <Select 
+                    value={editingOrcamento.cliente_id} 
+                    onValueChange={(val) => setEditingOrcamento({...editingOrcamento, cliente_id: val})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o cliente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clientes.map(c => (
+                        <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label className="mb-3 block">Produtos *</Label>
+                  <div className="space-y-3">
+                    {editingOrcamento.itens.map((item, idx) => (
+                      <ProductAutoComplete
+                        key={idx}
+                        products={products}
+                        selectedProductData={item.product_id ? item : null}
+                        onSelect={(product) => {
+                          const isFabricante = user.tipo_usuario === 'fabricante';
+                          const preco = isFabricante ? parseFloat(product.preco_fabricante) : parseFloat(product.preco_fornecedor);
+                          setEditingOrcamento(prev => {
+                            const updatedItens = [...prev.itens];
+                            updatedItens[idx] = {
+                              product_id: product.id,
+                              cod: product.cod,
+                              nome: product.nome,
+                              quantidade: 1,
+                              preco_unitario: preco,
+                              subtotal: preco * 1
+                            };
+                            return { ...prev, itens: updatedItens };
+                          });
+                        }}
+                        onRemove={() => {
+                          setEditingOrcamento(prev => ({
+                            ...prev,
+                            itens: prev.itens.filter((_, i) => i !== idx)
+                          }));
+                        }}
+                        quantidade={item.quantidade}
+                        onQuantidadeChange={(qtd) => {
+                          setEditingOrcamento(prev => {
+                            const updatedItens = [...prev.itens];
+                            updatedItens[idx].quantidade = parseFloat(qtd) || 0;
+                            updatedItens[idx].subtotal = updatedItens[idx].preco_unitario * updatedItens[idx].quantidade;
+                            return { ...prev, itens: updatedItens };
+                          });
+                        }}
+                        subtotal={item.subtotal}
+                        userType={user?.tipo_usuario}
+                      />
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setEditingOrcamento(prev => ({
+                          ...prev,
+                          itens: [...prev.itens, { product_id: "", cod: "", nome: "", quantidade: 1, preco_unitario: 0, subtotal: 0 }]
+                        }));
+                      }}
+                      className="w-full"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Adicionar Produto
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Frete (R$)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={editingOrcamento.frete}
+                      onFocus={(e) => {
+                        if (parseFloat(e.target.value) === 0) e.target.select();
+                      }}
+                      onChange={(e) => setEditingOrcamento({...editingOrcamento, frete: parseFloat(e.target.value) || 0})}
+                    />
+                  </div>
+                  <div>
+                    <Label>Desconto (R$)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={editingOrcamento.desconto}
+                      onFocus={(e) => {
+                        if (parseFloat(e.target.value) === 0) e.target.select();
+                      }}
+                      onChange={(e) => setEditingOrcamento({...editingOrcamento, desconto: parseFloat(e.target.value) || 0})}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Observações</Label>
+                  <Textarea
+                    value={editingOrcamento.observacoes || ""}
+                    onChange={(e) => setEditingOrcamento({...editingOrcamento, observacoes: e.target.value})}
+                    rows={3}
+                  />
+                </div>
+
+                {(() => {
+                  const { subtotal, total } = calculateTotals(editingOrcamento);
+                  return (
+                    <div className="bg-gray-50 p-4 rounded">
+                      <div className="flex justify-between mb-1">
+                        <span>Subtotal:</span>
+                        <span className="font-semibold">R$ {subtotal.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between mb-1">
+                        <span>Frete:</span>
+                        <span>R$ {editingOrcamento.frete.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between mb-1">
+                        <span>Desconto:</span>
+                        <span>R$ {editingOrcamento.desconto.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between font-bold text-lg border-t pt-2">
+                        <span>Total:</span>
+                        <span className="text-green-700">R$ {total.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setShowEditDialog(false)}>Cancelar</Button>
+                  <Button onClick={handleSaveEdit} className="bg-green-600 hover:bg-green-700">
+                    Salvar Alterações
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+
         {/* Dialog Visualizar */}
         {selectedOrcamento && (
           <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
