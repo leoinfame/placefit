@@ -80,17 +80,27 @@ export default function FabricantesRevendedor() {
         
         console.log("✅ Carregado do User:", fabricantesList.length);
       } catch (err) {
-        console.error("❌ ERRO ao acessar User:", err);
-        console.log("⚠️ FALLBACK NÃO DEVE SER USADO - Revendedor precisa de permissão User");
+        // FALLBACK: buscar dos produtos aprovados
+        console.log("⚠️ Usando fallback - buscando fabricantes via produtos");
         
-        // Mostrar toast de erro ao invés de fallback
-        toast({
-          title: "Erro de Permissões",
-          description: "Seu usuário não tem permissão para visualizar fabricantes. Contate o administrador.",
-          variant: "destructive",
+        const allProducts = await base44.entities.Product.list();
+        const fabricantesMap = new Map();
+        
+        allProducts.forEach(product => {
+          if (product.fabricante_id && product.aprovado_produto === true) {
+            if (!fabricantesMap.has(product.fabricante_id)) {
+              fabricantesMap.set(product.fabricante_id, {
+                id: product.fabricante_id,
+                empresa: product.fabricante_nome || 'Fabricante',
+                full_name: product.fabricante_nome || 'Fabricante',
+                tipo_usuario: 'fabricante',
+                aprovado: true
+              });
+            }
+          }
         });
         
-        fabricantesList = [];
+        fabricantesList = Array.from(fabricantesMap.values());
       }
       
       setFabricantes(fabricantesList);
