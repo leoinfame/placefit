@@ -34,6 +34,13 @@ export default function FabricantesRevendedor() {
 
   useEffect(() => {
     loadData();
+    
+    // Recarregar dados a cada 30 segundos para pegar atualizações
+    const interval = setInterval(() => {
+      loadData();
+    }, 30000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {

@@ -55,6 +55,13 @@ export default function MyProducts() {
 
   useEffect(() => {
     loadData();
+    
+    // Recarregar dados a cada 30 segundos para pegar atualizações
+    const interval = setInterval(() => {
+      loadData();
+    }, 30000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const loadData = async () => {
