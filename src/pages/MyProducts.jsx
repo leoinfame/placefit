@@ -82,35 +82,38 @@ export default function MyProducts() {
         return true;
       });
 
-      // Extrair fabricantes únicos dos produtos
-      const fabricantesMap = new Map();
-      productsData.forEach(product => {
-        if (product.fabricante_id && !fabricantesMap.has(product.fabricante_id)) {
-          fabricantesMap.set(product.fabricante_id, {
-            id: product.fabricante_id,
-            empresa: product.fabricante_nome || 'Fabricante',
-            full_name: product.fabricante_nome || 'Fabricante',
-            tipo_usuario: 'fabricante',
-            aprovado: true
-          });
-        }
-      });
+      // Buscar IDs únicos de fabricantes
+      const fabricanteIds = [...new Set(
+        productsData.filter(p => p.fabricante_id).map(p => p.fabricante_id)
+      )];
       
-      let uniqueFabricantes = Array.from(fabricantesMap.values());
+      let uniqueFabricantes = [];
       
-      // Tentar enriquecer com dados completos
+      // TENTAR buscar dados atualizados do User primeiro
       try {
         const allUsers = await base44.entities.User.list();
-        uniqueFabricantes = uniqueFabricantes.map(fab => {
-          const fullUser = allUsers.find(u => u.id === fab.id);
-          if (fullUser && fullUser.tipo_usuario === 'fabricante' && fullUser.aprovado === true) {
-            return fullUser;
-          }
-          return fab;
-        });
-        console.log("Dados dos fabricantes enriquecidos");
+        uniqueFabricantes = allUsers.filter(u => 
+          fabricanteIds.includes(u.id) && 
+          u.tipo_usuario === 'fabricante' && 
+          u.aprovado === true
+        );
+        console.log("Fabricantes carregados do User (dados atualizados)");
       } catch (err) {
-        console.log("Usando dados básicos dos produtos");
+        // FALLBACK: Usar dados dos produtos
+        console.log("Fallback: usando dados dos produtos");
+        const fabricantesMap = new Map();
+        productsData.forEach(product => {
+          if (product.fabricante_id && !fabricantesMap.has(product.fabricante_id)) {
+            fabricantesMap.set(product.fabricante_id, {
+              id: product.fabricante_id,
+              empresa: product.fabricante_nome || 'Fabricante',
+              full_name: product.fabricante_nome || 'Fabricante',
+              tipo_usuario: 'fabricante',
+              aprovado: true
+            });
+          }
+        });
+        uniqueFabricantes = Array.from(fabricantesMap.values());
       }
 
       // Extrair fabricantes dos produtos selecionados
