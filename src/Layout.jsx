@@ -337,6 +337,11 @@ export default function Layout({ children, currentPageName }) {
           icon: Package,
         },
         {
+          title: "Fabricantes",
+          url: createPageUrl("FabricantesParaFabricantes"),
+          icon: Store,
+        },
+        {
           title: "Meus Produtos",
           url: createPageUrl("FabricanteProdutos"),
           icon: Package,
