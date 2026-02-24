@@ -10,9 +10,17 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Não autorizado' }, { status: 401 });
         }
 
-        // Pegar fabricante_id dos parâmetros
-        const { searchParams } = new URL(req.url);
-        const fabricante_id = searchParams.get('fabricante_id');
+        // Pegar fabricante_id do body ou query params
+        let fabricante_id;
+        
+        try {
+            const body = await req.json();
+            fabricante_id = body.fabricante_id;
+        } catch {
+            // Se não tiver body, tenta query params
+            const { searchParams } = new URL(req.url);
+            fabricante_id = searchParams.get('fabricante_id');
+        }
 
         if (!fabricante_id) {
             return Response.json({ error: 'fabricante_id é obrigatório' }, { status: 400 });
