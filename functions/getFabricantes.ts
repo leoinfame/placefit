@@ -10,7 +10,8 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Não autorizado' }, { status: 401 });
         }
 
-        // Usar service role para acessar todos os fabricantes aprovados
+        // Buscar todos os usuários usando service role
+        // Service role funciona independente de quem está logado
         const allUsers = await base44.asServiceRole.entities.User.list();
         const fabricantes = allUsers.filter(u => 
             u.tipo_usuario === 'fabricante' && 
