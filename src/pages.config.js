@@ -60,6 +60,7 @@ import Dashboard from './pages/Dashboard';
 import Export from './pages/Export';
 import FabricanteProdutos from './pages/FabricanteProdutos';
 import Fabricantes from './pages/Fabricantes';
+import FabricantesParaFabricantes from './pages/FabricantesParaFabricantes';
 import FabricantesRevendedor from './pages/FabricantesRevendedor';
 import Financeiro from './pages/Financeiro';
 import Frete from './pages/Frete';
@@ -81,7 +82,6 @@ import Transportadores from './pages/Transportadores';
 import Units from './pages/Units';
 import Usuarios from './pages/Usuarios';
 import Vendas from './pages/Vendas';
-import FabricantesParaFabricantes from './pages/FabricantesParaFabricantes';
 import __Layout from './Layout.jsx';
 
 
@@ -99,6 +99,7 @@ export const PAGES = {
     "Export": Export,
     "FabricanteProdutos": FabricanteProdutos,
     "Fabricantes": Fabricantes,
+    "FabricantesParaFabricantes": FabricantesParaFabricantes,
     "FabricantesRevendedor": FabricantesRevendedor,
     "Financeiro": Financeiro,
     "Frete": Frete,
@@ -120,7 +121,6 @@ export const PAGES = {
     "Units": Units,
     "Usuarios": Usuarios,
     "Vendas": Vendas,
-    "FabricantesParaFabricantes": FabricantesParaFabricantes,
 }
 
 export const pagesConfig = {

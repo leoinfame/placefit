@@ -58,12 +58,9 @@ export default function FabricantesParaFabricantes() {
       const { getFabricantes } = await import('@/functions/getFabricantes');
       const response = await getFabricantes();
       
-      if (!response.data || !response.data.fabricantes) {
-        throw new Error("Resposta inválida do servidor");
-      }
-      
-      // Filtrar para excluir o fabricante logado
-      const fabricantesList = response.data.fabricantes.filter(f => f.id !== currentUser.id);
+      // A resposta vem diretamente como { fabricantes: [...] }
+      const fabricantesList = (response.data?.fabricantes || response.fabricantes || [])
+        .filter(f => f.id !== currentUser.id);
       
       setFabricantes(fabricantesList);
       setFilteredFabricantes(fabricantesList);
