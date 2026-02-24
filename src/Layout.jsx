@@ -435,11 +435,6 @@ export default function Layout({ children, currentPageName }) {
           title: "Vendas",
           url: createPageUrl("Vendas"),
           icon: ShoppingCart,
-        },
-        {
-          title: "  • Clientes",
-          url: createPageUrl("ClientesVendas"),
-          icon: Users,
         }
       );
     }
