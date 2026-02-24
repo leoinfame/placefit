@@ -561,8 +561,8 @@ export default function Clientes() {
               )}
             </div>
           ) : (
-             {user?.role === 'admin' ? (
-               <div className="overflow-x-auto">
+            user?.role === 'admin' ? (
+              <div className="overflow-x-auto">
                  <Table>
                    <TableHeader>
                      <TableRow>
