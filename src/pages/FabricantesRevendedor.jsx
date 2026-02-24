@@ -58,50 +58,12 @@ export default function FabricantesRevendedor() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      let fabricantesList = [];
-      
-      // TENTAR buscar do User primeiro (dados atualizados)
-      try {
-        const allUsers = await base44.entities.User.list();
-        const fabricantesAprovados = allUsers.filter(u => 
-          u.tipo_usuario === 'fabricante' && u.aprovado === true
-        );
-        
-        const allProducts = await base44.entities.Product.list();
-        const fabricantesComProdutos = new Set(
-          allProducts
-            .filter(p => p.aprovado_produto === true && p.fabricante_id)
-            .map(p => p.fabricante_id)
-        );
-        
-        fabricantesList = fabricantesAprovados.filter(fab => 
-          fabricantesComProdutos.has(fab.id)
-        );
-        
-        console.log("✅ Carregado do User:", fabricantesList.length);
-      } catch (err) {
-        // FALLBACK: buscar dos produtos aprovados
-        console.log("⚠️ Usando fallback - buscando fabricantes via produtos");
-        
-        const allProducts = await base44.entities.Product.list();
-        const fabricantesMap = new Map();
-        
-        allProducts.forEach(product => {
-          if (product.fabricante_id && product.aprovado_produto === true) {
-            if (!fabricantesMap.has(product.fabricante_id)) {
-              fabricantesMap.set(product.fabricante_id, {
-                id: product.fabricante_id,
-                empresa: product.fabricante_nome || 'Fabricante',
-                full_name: product.fabricante_nome || 'Fabricante',
-                tipo_usuario: 'fabricante',
-                aprovado: true
-              });
-            }
-          }
-        });
-        
-        fabricantesList = Array.from(fabricantesMap.values());
-      }
+      // Usar função backend com service role
+      console.log("🔍 Buscando fabricantes via backend...");
+      const { getFabricantes } = await import('@/functions/getFabricantes');
+      const response = await getFabricantes();
+      const fabricantesList = response.data.fabricantes;
+      console.log("✅ Fabricantes encontrados:", fabricantesList.length);
       
       setFabricantes(fabricantesList);
       setFilteredFabricantes(fabricantesList);
@@ -119,6 +81,8 @@ export default function FabricantesRevendedor() {
         description: "Não foi possível carregar fabricantes.",
         variant: "destructive",
       });
+      setFabricantes([]);
+      setFilteredFabricantes([]);
     }
     setLoading(false);
   };
