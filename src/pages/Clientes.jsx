@@ -560,8 +560,9 @@ export default function Clientes() {
                 </div>
               )}
             </div>
-          ) : (
-            user?.role === 'admin' ? (
+            ) : (
+            <>
+            {user?.role === 'admin' ? (
               <div className="overflow-x-auto">
                  <Table>
                    <TableHeader>
@@ -678,8 +679,9 @@ export default function Clientes() {
                  ))}
                </div>
              )}
-           )}
-         </CardContent>
+            </>
+            )}
+            </CardContent>
         </Card>
           </TabsContent>
 
