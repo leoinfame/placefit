@@ -82,19 +82,28 @@ export default function MyProducts() {
         return true;
       });
 
-      // Buscar TODOS os fabricantes aprovados
-      const allUsers = await base44.entities.User.filter({
-        tipo_usuario: 'fabricante',
-        aprovado: true
-      });
-      
       // Extrair IDs únicos de fabricantes dos produtos
       const fabricanteIds = [...new Set(
         productsData.filter(p => p.fabricante_id).map(p => p.fabricante_id)
       )];
       
-      // Filtrar apenas fabricantes que têm produtos
-      const uniqueFabricantes = allUsers.filter(u => fabricanteIds.includes(u.id));
+      // Buscar dados completos dos fabricantes aprovados
+      const fabricantesPromises = fabricanteIds.map(async (id) => {
+        try {
+          const fabricanteUsers = await base44.entities.User.filter({
+            id: id,
+            tipo_usuario: 'fabricante',
+            aprovado: true
+          });
+          return fabricanteUsers.length > 0 ? fabricanteUsers[0] : null;
+        } catch (err) {
+          console.log(`Não foi possível carregar fabricante ${id}`);
+          return null;
+        }
+      });
+      
+      const fabricantesResults = await Promise.all(fabricantesPromises);
+      const uniqueFabricantes = fabricantesResults.filter(f => f !== null);
 
       // Extrair fabricantes dos produtos selecionados
       const myProductIds = supplierProductsData.map(sp => sp.product_id);

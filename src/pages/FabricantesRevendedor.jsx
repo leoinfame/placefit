@@ -54,15 +54,38 @@ export default function FabricantesRevendedor() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      // Buscar TODOS os usuários fabricantes aprovados diretamente
-      const allUsers = await base44.entities.User.filter({
-        tipo_usuario: 'fabricante',
-        aprovado: true
+      // Buscar produtos aprovados e extrair fabricantes únicos
+      const allProducts = await base44.entities.Product.filter({
+        aprovado_produto: true
       });
       
-      console.log("Fabricantes aprovados encontrados:", allUsers.length);
-      setFabricantes(allUsers);
-      setFilteredFabricantes(allUsers);
+      // Criar mapa de fabricantes com dados dos produtos
+      const fabricantesMap = new Map();
+      
+      for (const product of allProducts) {
+        if (product.fabricante_id && !fabricantesMap.has(product.fabricante_id)) {
+          // Buscar dados completos do fabricante
+          try {
+            const fabricanteUsers = await base44.entities.User.filter({
+              id: product.fabricante_id,
+              tipo_usuario: 'fabricante',
+              aprovado: true
+            });
+            
+            if (fabricanteUsers.length > 0) {
+              fabricantesMap.set(product.fabricante_id, fabricanteUsers[0]);
+            }
+          } catch (err) {
+            console.log(`Não foi possível carregar dados do fabricante ${product.fabricante_id}`);
+          }
+        }
+      }
+      
+      const fabricantesList = Array.from(fabricantesMap.values());
+      console.log("Fabricantes aprovados encontrados:", fabricantesList.length);
+      
+      setFabricantes(fabricantesList);
+      setFilteredFabricantes(fabricantesList);
     } catch (error) {
       console.error("Erro ao carregar fabricantes:", error);
       
