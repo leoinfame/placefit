@@ -54,23 +54,37 @@ export default function FabricantesRevendedor() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      // Buscar todos os produtos para extrair IDs de fabricantes
+      // Buscar todos os produtos aprovados
       const allProducts = await base44.entities.Product.list();
       
-      // Extrair IDs únicos de fabricantes dos produtos aprovados
-      const fabricanteIds = new Set();
+      // Criar mapa de fabricantes com todas as informações disponíveis nos produtos
+      const fabricantesMap = new Map();
+      
       allProducts.forEach(product => {
         if (product.fabricante_id && product.aprovado_produto === true) {
-          fabricanteIds.add(product.fabricante_id);
+          const fabId = product.fabricante_id;
+          
+          // Se já existe, mesclar informações (pegar a mais completa)
+          if (fabricantesMap.has(fabId)) {
+            const existing = fabricantesMap.get(fabId);
+            // Manter dados mais completos
+            fabricantesMap.set(fabId, {
+              ...existing,
+              empresa: existing.empresa || product.fabricante_nome || 'Fabricante',
+              // Outros campos viriam de User, mas não temos acesso como revendedor
+            });
+          } else {
+            fabricantesMap.set(fabId, {
+              id: fabId,
+              empresa: product.fabricante_nome || 'Fabricante',
+              tipo_usuario: 'fabricante',
+              aprovado: true
+            });
+          }
         }
       });
-
-      // Buscar dados completos de cada fabricante
-      const allUsers = await base44.entities.User.list();
-      const fabricantesAprovados = allUsers.filter(
-        u => fabricanteIds.has(u.id) && u.tipo_usuario === 'fabricante' && u.aprovado === true
-      );
       
+      const fabricantesAprovados = Array.from(fabricantesMap.values());
       console.log("Fabricantes aprovados encontrados:", fabricantesAprovados.length);
 
       setFabricantes(fabricantesAprovados);

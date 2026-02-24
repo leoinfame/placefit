@@ -82,34 +82,34 @@ export default function MyProducts() {
         return true;
       });
 
-      // Extrair IDs únicos de fabricantes
-      const fabricanteIds = new Set();
+      // Extrair fabricantes únicos dos produtos
+      const fabricantesMap = new Map();
       productsData.forEach(p => {
-        if (p.fabricante_id) {
-          fabricanteIds.add(p.fabricante_id);
+        if (p.fabricante_id && !fabricantesMap.has(p.fabricante_id)) {
+          fabricantesMap.set(p.fabricante_id, {
+            id: p.fabricante_id,
+            empresa: p.fabricante_nome || 'Fabricante'
+          });
         }
       });
       
-      // Buscar usuários fabricantes
-      const allUsers = await base44.entities.User.list();
-      const uniqueFabricantes = allUsers.filter(u => 
-        fabricanteIds.has(u.id) && u.tipo_usuario === 'fabricante'
-      );
+      const uniqueFabricantes = Array.from(fabricantesMap.values());
 
       // Extrair fabricantes dos produtos selecionados
       const myProductIds = supplierProductsData.map(sp => sp.product_id);
       const myProducts = productsData.filter(p => myProductIds.includes(p.id));
       
-      const myFabricanteIds = new Set();
+      const myFabricantesMap = new Map();
       myProducts.forEach(p => {
-        if (p.fabricante_id) {
-          myFabricanteIds.add(p.fabricante_id);
+        if (p.fabricante_id && !myFabricantesMap.has(p.fabricante_id)) {
+          myFabricantesMap.set(p.fabricante_id, {
+            id: p.fabricante_id,
+            empresa: p.fabricante_nome || 'Fabricante'
+          });
         }
       });
       
-      const uniqueMyFabricantes = allUsers.filter(u => 
-        myFabricanteIds.has(u.id) && u.tipo_usuario === 'fabricante'
-      );
+      const uniqueMyFabricantes = Array.from(myFabricantesMap.values());
 
       setProducts(productsData);
       setSupplierProducts(supplierProductsData);
