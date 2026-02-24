@@ -87,27 +87,11 @@ export default function MyProducts() {
         productsData.filter(p => p.fabricante_id).map(p => p.fabricante_id)
       )];
       
-      // Tentar buscar dados completos dos usuários
-      let uniqueFabricantes = [];
-      try {
-        const allUsers = await base44.entities.User.list();
-        uniqueFabricantes = allUsers.filter(u => 
-          fabricanteIds.includes(u.id) && u.tipo_usuario === 'fabricante'
-        );
-      } catch (error) {
-        console.error("Erro ao buscar usuários, usando dados dos produtos:", error);
-        // Fallback: usar dados dos produtos
-        const fabricantesMap = new Map();
-        productsData.forEach(p => {
-          if (p.fabricante_id && !fabricantesMap.has(p.fabricante_id)) {
-            fabricantesMap.set(p.fabricante_id, {
-              id: p.fabricante_id,
-              empresa: p.fabricante_nome || 'Fabricante'
-            });
-          }
-        });
-        uniqueFabricantes = Array.from(fabricantesMap.values());
-      }
+      // Buscar dados completos dos usuários fabricantes aprovados
+      const allUsers = await base44.entities.User.list();
+      const uniqueFabricantes = allUsers.filter(u => 
+        fabricanteIds.includes(u.id) && u.tipo_usuario === 'fabricante' && u.aprovado === true
+      );
 
       // Extrair fabricantes dos produtos selecionados
       const myProductIds = supplierProductsData.map(sp => sp.product_id);
