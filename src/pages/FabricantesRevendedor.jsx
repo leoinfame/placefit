@@ -63,8 +63,19 @@ export default function FabricantesRevendedor() {
       const { getFabricantes } = await import('@/functions/getFabricantes');
       const response = await getFabricantes();
       
-      if (!response || !response.data || !response.data.fabricantes) {
-        throw new Error("Resposta inválida do servidor");
+      console.log("📦 Resposta recebida:", response);
+      
+      // Verificar se a resposta tem a estrutura correta
+      if (!response) {
+        throw new Error("Nenhuma resposta do servidor");
+      }
+      
+      if (response.status && response.status >= 400) {
+        throw new Error(response.data?.error || response.data?.details || "Erro no servidor");
+      }
+      
+      if (!response.data || !response.data.fabricantes) {
+        throw new Error("Formato de resposta inválido do servidor");
       }
       
       const fabricantesList = response.data.fabricantes;
@@ -80,9 +91,9 @@ export default function FabricantesRevendedor() {
         });
       }
     } catch (error) {
-      console.error("Erro ao carregar fabricantes:", error);
+      console.error("❌ Erro ao carregar fabricantes:", error);
       toast({
-        title: "Erro",
+        title: "Erro ao carregar fabricantes",
         description: error.message || "Não foi possível carregar fabricantes.",
         variant: "destructive",
       });
