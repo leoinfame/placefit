@@ -54,35 +54,42 @@ export default function FabricantesRevendedor() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      // Buscar produtos aprovados e extrair fabricantes únicos
-      const allProducts = await base44.entities.Product.filter({
-        aprovado_produto: true
-      });
+      // Buscar todos os produtos
+      const allProducts = await base44.entities.Product.list();
       
-      // Criar mapa de fabricantes com dados dos produtos
+      // Extrair fabricantes únicos dos produtos aprovados
       const fabricantesMap = new Map();
       
-      for (const product of allProducts) {
-        if (product.fabricante_id && !fabricantesMap.has(product.fabricante_id)) {
-          // Buscar dados completos do fabricante
-          try {
-            const fabricanteUsers = await base44.entities.User.filter({
+      allProducts.forEach(product => {
+        if (product.fabricante_id && product.aprovado_produto === true) {
+          if (!fabricantesMap.has(product.fabricante_id)) {
+            fabricantesMap.set(product.fabricante_id, {
               id: product.fabricante_id,
+              empresa: product.fabricante_nome || 'Fabricante',
+              full_name: product.fabricante_nome || 'Fabricante',
               tipo_usuario: 'fabricante',
               aprovado: true
             });
-            
-            if (fabricanteUsers.length > 0) {
-              fabricantesMap.set(product.fabricante_id, fabricanteUsers[0]);
-            }
-          } catch (err) {
-            console.log(`Não foi possível carregar dados do fabricante ${product.fabricante_id}`);
           }
         }
-      }
+      });
       
       const fabricantesList = Array.from(fabricantesMap.values());
-      console.log("Fabricantes aprovados encontrados:", fabricantesList.length);
+      console.log("Fabricantes extraídos dos produtos:", fabricantesList.length);
+      
+      // Tentar enriquecer com dados completos dos usuários
+      try {
+        const allUsers = await base44.entities.User.list();
+        fabricantesList.forEach(fab => {
+          const fullUser = allUsers.find(u => u.id === fab.id);
+          if (fullUser && fullUser.tipo_usuario === 'fabricante' && fullUser.aprovado === true) {
+            Object.assign(fab, fullUser);
+          }
+        });
+        console.log("Dados dos fabricantes enriquecidos");
+      } catch (err) {
+        console.log("Usando dados básicos dos produtos (sem permissão para User.list)");
+      }
       
       setFabricantes(fabricantesList);
       setFilteredFabricantes(fabricantesList);

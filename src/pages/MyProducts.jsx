@@ -82,28 +82,36 @@ export default function MyProducts() {
         return true;
       });
 
-      // Extrair IDs únicos de fabricantes dos produtos
-      const fabricanteIds = [...new Set(
-        productsData.filter(p => p.fabricante_id).map(p => p.fabricante_id)
-      )];
-      
-      // Buscar dados completos dos fabricantes aprovados
-      const fabricantesPromises = fabricanteIds.map(async (id) => {
-        try {
-          const fabricanteUsers = await base44.entities.User.filter({
-            id: id,
+      // Extrair fabricantes únicos dos produtos
+      const fabricantesMap = new Map();
+      productsData.forEach(product => {
+        if (product.fabricante_id && !fabricantesMap.has(product.fabricante_id)) {
+          fabricantesMap.set(product.fabricante_id, {
+            id: product.fabricante_id,
+            empresa: product.fabricante_nome || 'Fabricante',
+            full_name: product.fabricante_nome || 'Fabricante',
             tipo_usuario: 'fabricante',
             aprovado: true
           });
-          return fabricanteUsers.length > 0 ? fabricanteUsers[0] : null;
-        } catch (err) {
-          console.log(`Não foi possível carregar fabricante ${id}`);
-          return null;
         }
       });
       
-      const fabricantesResults = await Promise.all(fabricantesPromises);
-      const uniqueFabricantes = fabricantesResults.filter(f => f !== null);
+      let uniqueFabricantes = Array.from(fabricantesMap.values());
+      
+      // Tentar enriquecer com dados completos
+      try {
+        const allUsers = await base44.entities.User.list();
+        uniqueFabricantes = uniqueFabricantes.map(fab => {
+          const fullUser = allUsers.find(u => u.id === fab.id);
+          if (fullUser && fullUser.tipo_usuario === 'fabricante' && fullUser.aprovado === true) {
+            return fullUser;
+          }
+          return fab;
+        });
+        console.log("Dados dos fabricantes enriquecidos");
+      } catch (err) {
+        console.log("Usando dados básicos dos produtos");
+      }
 
       // Extrair fabricantes dos produtos selecionados
       const myProductIds = supplierProductsData.map(sp => sp.product_id);
