@@ -82,16 +82,19 @@ export default function MyProducts() {
         return true;
       });
 
+      // Buscar TODOS os fabricantes aprovados
+      const allUsers = await base44.entities.User.filter({
+        tipo_usuario: 'fabricante',
+        aprovado: true
+      });
+      
       // Extrair IDs únicos de fabricantes dos produtos
       const fabricanteIds = [...new Set(
         productsData.filter(p => p.fabricante_id).map(p => p.fabricante_id)
       )];
       
-      // Buscar dados completos dos usuários fabricantes aprovados
-      const allUsers = await base44.entities.User.list();
-      const uniqueFabricantes = allUsers.filter(u => 
-        fabricanteIds.includes(u.id) && u.tipo_usuario === 'fabricante' && u.aprovado === true
-      );
+      // Filtrar apenas fabricantes que têm produtos
+      const uniqueFabricantes = allUsers.filter(u => fabricanteIds.includes(u.id));
 
       // Extrair fabricantes dos produtos selecionados
       const myProductIds = supplierProductsData.map(sp => sp.product_id);

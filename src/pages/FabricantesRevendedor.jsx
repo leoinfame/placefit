@@ -54,29 +54,17 @@ export default function FabricantesRevendedor() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      // Buscar produtos para identificar fabricantes
-      const allProducts = await base44.entities.Product.list();
+      // Buscar TODOS os usuários fabricantes aprovados diretamente
+      const allUsers = await base44.entities.User.filter({
+        tipo_usuario: 'fabricante',
+        aprovado: true
+      });
       
-      // Extrair IDs únicos de fabricantes dos produtos aprovados
-      const fabricanteIds = [...new Set(
-        allProducts
-          .filter(p => p.fabricante_id && p.aprovado_produto === true)
-          .map(p => p.fabricante_id)
-      )];
-
-      console.log("IDs de fabricantes encontrados:", fabricanteIds.length);
-
-      // Buscar usuários fabricantes aprovados
-      const allUsers = await base44.entities.User.list();
-      const fabricantesAprovados = allUsers.filter(u => 
-        fabricanteIds.includes(u.id) && u.tipo_usuario === 'fabricante' && u.aprovado === true
-      );
-      
-      console.log("Fabricantes aprovados com dados completos:", fabricantesAprovados.length);
-      setFabricantes(fabricantesAprovados);
-      setFilteredFabricantes(fabricantesAprovados);
+      console.log("Fabricantes aprovados encontrados:", allUsers.length);
+      setFabricantes(allUsers);
+      setFilteredFabricantes(allUsers);
     } catch (error) {
-      console.error("Erro crítico ao carregar fabricantes:", error);
+      console.error("Erro ao carregar fabricantes:", error);
       
       toast({
         title: "Erro ao carregar fabricantes",
