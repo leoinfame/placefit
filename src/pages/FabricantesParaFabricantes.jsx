@@ -87,10 +87,10 @@ export default function FabricantesParaFabricantes() {
   const downloadFabricanteTable = async (fabricante) => {
     setDownloadingTable(fabricante.id);
     try {
-      const allProducts = await base44.entities.Product.list();
-      const fabricanteProducts = allProducts.filter(
-        p => p.fabricante_id === fabricante.id && p.aprovado_produto === true
-      );
+      // Usar função backend com service role
+      const { getFabricanteProducts } = await import('@/functions/getFabricanteProducts');
+      const response = await getFabricanteProducts({ fabricante_id: fabricante.id });
+      const fabricanteProducts = response?.data?.products || [];
 
       if (fabricanteProducts.length === 0) {
         toast({
@@ -257,10 +257,10 @@ export default function FabricantesParaFabricantes() {
     setLoadingCatalogo(true);
 
     try {
-      const allProducts = await base44.entities.Product.list();
-      const fabricanteProducts = allProducts.filter(
-        p => p.fabricante_id === fabricante.id && p.aprovado_produto === true
-      );
+      // Usar função backend com service role
+      const { getFabricanteProducts } = await import('@/functions/getFabricanteProducts');
+      const response = await getFabricanteProducts({ fabricante_id: fabricante.id });
+      const fabricanteProducts = response?.data?.products || [];
       setCatalogoProducts(fabricanteProducts);
     } catch (error) {
       console.error("Erro ao carregar catálogo:", error);
