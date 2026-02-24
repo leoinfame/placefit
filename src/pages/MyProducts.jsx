@@ -82,35 +82,44 @@ export default function MyProducts() {
         return true;
       });
 
-      // Buscar todos os usuários para obter informações completas dos fabricantes
-      const allUsers = await base44.entities.User.list();
-      
       // Extrair IDs únicos de fabricantes dos produtos
-      const fabricanteIds = new Set();
-      productsData.forEach(p => {
-        if (p.fabricante_id) {
-          fabricanteIds.add(p.fabricante_id);
-        }
-      });
+      const fabricanteIds = [...new Set(
+        productsData.filter(p => p.fabricante_id).map(p => p.fabricante_id)
+      )];
       
-      // Filtrar apenas fabricantes que têm produtos
-      const uniqueFabricantes = allUsers.filter(u => 
-        fabricanteIds.has(u.id) && u.tipo_usuario === 'fabricante'
-      );
+      // Tentar buscar dados completos dos usuários
+      let uniqueFabricantes = [];
+      try {
+        const allUsers = await base44.entities.User.list();
+        uniqueFabricantes = allUsers.filter(u => 
+          fabricanteIds.includes(u.id) && u.tipo_usuario === 'fabricante'
+        );
+      } catch (error) {
+        console.error("Erro ao buscar usuários, usando dados dos produtos:", error);
+        // Fallback: usar dados dos produtos
+        const fabricantesMap = new Map();
+        productsData.forEach(p => {
+          if (p.fabricante_id && !fabricantesMap.has(p.fabricante_id)) {
+            fabricantesMap.set(p.fabricante_id, {
+              id: p.fabricante_id,
+              empresa: p.fabricante_nome || 'Fabricante'
+            });
+          }
+        });
+        uniqueFabricantes = Array.from(fabricantesMap.values());
+      }
 
       // Extrair fabricantes dos produtos selecionados
       const myProductIds = supplierProductsData.map(sp => sp.product_id);
       const myProducts = productsData.filter(p => myProductIds.includes(p.id));
       
-      const myFabricanteIds = new Set();
-      myProducts.forEach(p => {
-        if (p.fabricante_id) {
-          myFabricanteIds.add(p.fabricante_id);
-        }
-      });
+      const myFabricanteIds = [...new Set(
+        myProducts.filter(p => p.fabricante_id).map(p => p.fabricante_id)
+      )];
       
-      const uniqueMyFabricantes = allUsers.filter(u => 
-        myFabricanteIds.has(u.id) && u.tipo_usuario === 'fabricante'
+      // Se já temos os usuários carregados, usar eles
+      const uniqueMyFabricantes = uniqueFabricantes.filter(u => 
+        myFabricanteIds.includes(u.id)
       );
 
       setProducts(productsData);

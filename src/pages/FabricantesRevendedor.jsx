@@ -54,18 +54,53 @@ export default function FabricantesRevendedor() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      // Buscar todos os usuários fabricantes aprovados
-      const allUsers = await base44.entities.User.list();
-      const fabricantesAprovados = allUsers.filter(
-        u => u.tipo_usuario === 'fabricante' && u.aprovado === true
-      );
+      // Buscar produtos para identificar fabricantes
+      const allProducts = await base44.entities.Product.list();
       
-      console.log("Fabricantes aprovados encontrados:", fabricantesAprovados.length);
+      // Extrair IDs únicos de fabricantes dos produtos aprovados
+      const fabricanteIds = [...new Set(
+        allProducts
+          .filter(p => p.fabricante_id && p.aprovado_produto === true)
+          .map(p => p.fabricante_id)
+      )];
 
-      setFabricantes(fabricantesAprovados);
-      setFilteredFabricantes(fabricantesAprovados);
+      console.log("IDs de fabricantes encontrados:", fabricanteIds.length);
+
+      // Tentar buscar usuários
+      try {
+        const allUsers = await base44.entities.User.list();
+        const fabricantesAprovados = allUsers.filter(u => 
+          fabricanteIds.includes(u.id) && u.tipo_usuario === 'fabricante' && u.aprovado === true
+        );
+        
+        console.log("Fabricantes com dados completos:", fabricantesAprovados.length);
+        setFabricantes(fabricantesAprovados);
+        setFilteredFabricantes(fabricantesAprovados);
+      } catch (userError) {
+        console.error("Erro ao buscar usuários, usando dados dos produtos:", userError);
+        
+        // Fallback: usar dados dos produtos
+        const fabricantesMap = new Map();
+        allProducts.forEach(p => {
+          if (p.fabricante_id && p.aprovado_produto === true && fabricanteIds.includes(p.fabricante_id)) {
+            if (!fabricantesMap.has(p.fabricante_id)) {
+              fabricantesMap.set(p.fabricante_id, {
+                id: p.fabricante_id,
+                empresa: p.fabricante_nome || 'Fabricante',
+                tipo_usuario: 'fabricante',
+                aprovado: true
+              });
+            }
+          }
+        });
+        
+        const fabricantesFromProducts = Array.from(fabricantesMap.values());
+        console.log("Fabricantes do fallback:", fabricantesFromProducts.length);
+        setFabricantes(fabricantesFromProducts);
+        setFilteredFabricantes(fabricantesFromProducts);
+      }
     } catch (error) {
-      console.error("Erro detalhado ao carregar fabricantes:", error);
+      console.error("Erro crítico ao carregar fabricantes:", error);
       
       toast({
         title: "Erro ao carregar fabricantes",
