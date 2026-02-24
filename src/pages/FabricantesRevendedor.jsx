@@ -62,6 +62,11 @@ export default function FabricantesRevendedor() {
       console.log("🔍 Buscando fabricantes via backend...");
       const { getFabricantes } = await import('@/functions/getFabricantes');
       const response = await getFabricantes();
+      
+      if (!response.data || !response.data.fabricantes) {
+        throw new Error("Resposta inválida do servidor");
+      }
+      
       const fabricantesList = response.data.fabricantes;
       console.log("✅ Fabricantes encontrados:", fabricantesList.length);
       
@@ -78,7 +83,7 @@ export default function FabricantesRevendedor() {
       console.error("Erro ao carregar fabricantes:", error);
       toast({
         title: "Erro",
-        description: "Não foi possível carregar fabricantes.",
+        description: error.message || "Não foi possível carregar fabricantes.",
         variant: "destructive",
       });
       setFabricantes([]);

@@ -100,12 +100,30 @@ export default function MyProducts() {
       try {
         const { getFabricantes } = await import('@/functions/getFabricantes');
         const response = await getFabricantes();
-        const allFabricantes = response.data.fabricantes;
-        uniqueFabricantes = allFabricantes.filter(u => fabricanteIds.includes(u.id));
-        console.log("Fabricantes carregados via backend (dados atualizados)");
+        
+        if (response.data && response.data.fabricantes) {
+          const allFabricantes = response.data.fabricantes;
+          uniqueFabricantes = allFabricantes.filter(u => fabricanteIds.includes(u.id));
+          console.log("Fabricantes carregados via backend (dados atualizados)");
+        } else {
+          throw new Error("Resposta inválida do servidor");
+        }
       } catch (err) {
         console.error("Erro ao buscar fabricantes:", err);
-        uniqueFabricantes = [];
+        // Fallback para nome do produto se backend falhar
+        const fabricantesMap = new Map();
+        productsData.forEach(product => {
+          if (product.fabricante_id && !fabricantesMap.has(product.fabricante_id)) {
+            fabricantesMap.set(product.fabricante_id, {
+              id: product.fabricante_id,
+              empresa: product.fabricante_nome || 'Fabricante',
+              full_name: product.fabricante_nome || 'Fabricante',
+              tipo_usuario: 'fabricante',
+              aprovado: true
+            });
+          }
+        });
+        uniqueFabricantes = Array.from(fabricantesMap.values());
       }
 
       // Extrair fabricantes dos produtos selecionados

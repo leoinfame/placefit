@@ -11,10 +11,11 @@ Deno.serve(async (req) => {
         }
 
         // Usar service role para acessar todos os fabricantes aprovados
-        const fabricantes = await base44.asServiceRole.entities.User.filter({
-            tipo_usuario: 'fabricante',
-            aprovado: true
-        });
+        const allUsers = await base44.asServiceRole.entities.User.list();
+        const fabricantes = allUsers.filter(u => 
+            u.tipo_usuario === 'fabricante' && 
+            u.aprovado === true
+        );
 
         return Response.json({ fabricantes });
     } catch (error) {
