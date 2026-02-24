@@ -60,28 +60,48 @@ export default function FabricantesRevendedor() {
 
       let fabricantesList = [];
       
-      // Buscar fabricantes diretamente da entidade User (dados atualizados)
-      const allUsers = await base44.entities.User.list();
-      console.log("Total usuários:", allUsers.length);
-      
-      const fabricantesAprovados = allUsers.filter(u => 
-        u.tipo_usuario === 'fabricante' && u.aprovado === true
-      );
-      console.log("Fabricantes aprovados:", fabricantesAprovados.length, fabricantesAprovados.map(f => f.empresa));
-      
-      // Verificar quais têm produtos aprovados
-      const allProducts = await base44.entities.Product.list();
-      const fabricantesComProdutos = new Set(
-        allProducts
-          .filter(p => p.aprovado_produto === true && p.fabricante_id)
-          .map(p => p.fabricante_id)
-      );
-      
-      fabricantesList = fabricantesAprovados.filter(fab => 
-        fabricantesComProdutos.has(fab.id)
-      );
-      
-      console.log("✅ Fabricantes finais com produtos:", fabricantesList.length, fabricantesList.map(f => ({ id: f.id, empresa: f.empresa })));
+      // TENTAR buscar do User primeiro (dados atualizados)
+      try {
+        const allUsers = await base44.entities.User.list();
+        const fabricantesAprovados = allUsers.filter(u => 
+          u.tipo_usuario === 'fabricante' && u.aprovado === true
+        );
+        
+        const allProducts = await base44.entities.Product.list();
+        const fabricantesComProdutos = new Set(
+          allProducts
+            .filter(p => p.aprovado_produto === true && p.fabricante_id)
+            .map(p => p.fabricante_id)
+        );
+        
+        fabricantesList = fabricantesAprovados.filter(fab => 
+          fabricantesComProdutos.has(fab.id)
+        );
+        
+        console.log("✅ Carregado do User:", fabricantesList.length);
+      } catch (err) {
+        // FALLBACK: buscar dos produtos
+        console.log("⚠️ Sem permissão User, usando produtos");
+        
+        const allProducts = await base44.entities.Product.list();
+        const fabricantesMap = new Map();
+        
+        allProducts.forEach(product => {
+          if (product.fabricante_id && product.aprovado_produto === true) {
+            if (!fabricantesMap.has(product.fabricante_id)) {
+              fabricantesMap.set(product.fabricante_id, {
+                id: product.fabricante_id,
+                empresa: product.fabricante_nome || 'Fabricante',
+                full_name: product.fabricante_nome || 'Fabricante',
+                tipo_usuario: 'fabricante',
+                aprovado: true
+              });
+            }
+          }
+        });
+        
+        fabricantesList = Array.from(fabricantesMap.values());
+      }
       
       setFabricantes(fabricantesList);
       setFilteredFabricantes(fabricantesList);
@@ -89,15 +109,14 @@ export default function FabricantesRevendedor() {
       if (forceRefresh) {
         toast({
           title: "Atualizado!",
-          description: "Lista de fabricantes recarregada com sucesso.",
+          description: "Lista de fabricantes recarregada.",
         });
       }
     } catch (error) {
       console.error("Erro ao carregar fabricantes:", error);
-      
       toast({
-        title: "Erro ao carregar fabricantes",
-        description: error.message || "Não foi possível carregar os fabricantes.",
+        title: "Erro",
+        description: "Não foi possível carregar fabricantes.",
         variant: "destructive",
       });
     }
