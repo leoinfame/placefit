@@ -34,13 +34,6 @@ export default function FabricantesRevendedor() {
 
   useEffect(() => {
     loadData();
-    
-    // Recarregar dados a cada 30 segundos para pegar atualizações
-    const interval = setInterval(() => {
-      loadData();
-    }, 30000);
-    
-    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -56,59 +49,49 @@ export default function FabricantesRevendedor() {
     }
   }, [searchTerm, fabricantes]);
 
-  const loadData = async () => {
+  const loadData = async (forceRefresh = false) => {
     try {
+      if (forceRefresh) {
+        setLoading(true);
+      }
+      
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
       let fabricantesList = [];
       
-      // TENTAR buscar fabricantes diretamente da entidade User (dados sempre atualizados)
-      try {
-        const allUsers = await base44.entities.User.list();
-        const fabricantesAprovados = allUsers.filter(u => 
-          u.tipo_usuario === 'fabricante' && u.aprovado === true
-        );
-        
-        // Verificar quais têm produtos aprovados
-        const allProducts = await base44.entities.Product.list();
-        const fabricantesComProdutos = new Set(
-          allProducts
-            .filter(p => p.aprovado_produto === true && p.fabricante_id)
-            .map(p => p.fabricante_id)
-        );
-        
-        fabricantesList = fabricantesAprovados.filter(fab => 
-          fabricantesComProdutos.has(fab.id)
-        );
-        
-        console.log("Fabricantes carregados do User (dados atualizados):", fabricantesList.length);
-      } catch (err) {
-        // FALLBACK: Extrair dos produtos se não tiver permissão
-        console.log("Fallback: extraindo fabricantes dos produtos");
-        
-        const allProducts = await base44.entities.Product.list();
-        const fabricantesMap = new Map();
-        
-        allProducts.forEach(product => {
-          if (product.fabricante_id && product.aprovado_produto === true) {
-            if (!fabricantesMap.has(product.fabricante_id)) {
-              fabricantesMap.set(product.fabricante_id, {
-                id: product.fabricante_id,
-                empresa: product.fabricante_nome || 'Fabricante',
-                full_name: product.fabricante_nome || 'Fabricante',
-                tipo_usuario: 'fabricante',
-                aprovado: true
-              });
-            }
-          }
-        });
-        
-        fabricantesList = Array.from(fabricantesMap.values());
-      }
+      // Buscar fabricantes diretamente da entidade User (dados atualizados)
+      const allUsers = await base44.entities.User.list();
+      console.log("Total usuários:", allUsers.length);
+      
+      const fabricantesAprovados = allUsers.filter(u => 
+        u.tipo_usuario === 'fabricante' && u.aprovado === true
+      );
+      console.log("Fabricantes aprovados:", fabricantesAprovados.length, fabricantesAprovados.map(f => f.empresa));
+      
+      // Verificar quais têm produtos aprovados
+      const allProducts = await base44.entities.Product.list();
+      const fabricantesComProdutos = new Set(
+        allProducts
+          .filter(p => p.aprovado_produto === true && p.fabricante_id)
+          .map(p => p.fabricante_id)
+      );
+      
+      fabricantesList = fabricantesAprovados.filter(fab => 
+        fabricantesComProdutos.has(fab.id)
+      );
+      
+      console.log("✅ Fabricantes finais com produtos:", fabricantesList.length, fabricantesList.map(f => ({ id: f.id, empresa: f.empresa })));
       
       setFabricantes(fabricantesList);
       setFilteredFabricantes(fabricantesList);
+      
+      if (forceRefresh) {
+        toast({
+          title: "Atualizado!",
+          description: "Lista de fabricantes recarregada com sucesso.",
+        });
+      }
     } catch (error) {
       console.error("Erro ao carregar fabricantes:", error);
       
@@ -539,15 +522,34 @@ RESPONDA EM PORTUGUÊS BRASILEIRO DE FORMA PROFISSIONAL E COMERCIAL.
           </p>
         </div>
 
-        {/* Busca */}
-        <div className="relative">
-          <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-          <Input
-            placeholder="Buscar fabricantes por nome..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-white/80 border-gray-200 h-12"
-          />
+        {/* Busca e Refresh */}
+        <div className="flex gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+            <Input
+              placeholder="Buscar fabricantes por nome..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-white/80 border-gray-200 h-12"
+            />
+          </div>
+          <Button
+            onClick={() => loadData(true)}
+            variant="outline"
+            className="h-12 px-6"
+            disabled={loading}
+          >
+            {loading ? (
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+            ) : (
+              <>
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Atualizar
+              </>
+            )}
+          </Button>
         </div>
 
         {/* Estatísticas */}
