@@ -422,6 +422,11 @@ export default function Layout({ children, currentPageName }) {
           icon: Download,
         },
         {
+          title: "Atendente IA",
+          url: createPageUrl("AtendenteIARevendedor"),
+          icon: Package,
+        },
+        {
           title: "Orçamentos",
           url: createPageUrl("Orcamentos"),
           icon: Dumbbell,
