@@ -96,31 +96,16 @@ export default function MyProducts() {
       
       let uniqueFabricantes = [];
       
-      // TENTAR buscar dados atualizados do User primeiro
+      // Buscar fabricantes via backend function
       try {
-        const allUsers = await base44.entities.User.list();
-        uniqueFabricantes = allUsers.filter(u => 
-          fabricanteIds.includes(u.id) && 
-          u.tipo_usuario === 'fabricante' && 
-          u.aprovado === true
-        );
-        console.log("Fabricantes carregados do User (dados atualizados)");
+        const { getFabricantes } = await import('@/functions/getFabricantes');
+        const response = await getFabricantes();
+        const allFabricantes = response.data.fabricantes;
+        uniqueFabricantes = allFabricantes.filter(u => fabricanteIds.includes(u.id));
+        console.log("Fabricantes carregados via backend (dados atualizados)");
       } catch (err) {
-        // FALLBACK: Usar dados dos produtos
-        console.log("Fallback: usando dados dos produtos");
-        const fabricantesMap = new Map();
-        productsData.forEach(product => {
-          if (product.fabricante_id && !fabricantesMap.has(product.fabricante_id)) {
-            fabricantesMap.set(product.fabricante_id, {
-              id: product.fabricante_id,
-              empresa: product.fabricante_nome || 'Fabricante',
-              full_name: product.fabricante_nome || 'Fabricante',
-              tipo_usuario: 'fabricante',
-              aprovado: true
-            });
-          }
-        });
-        uniqueFabricantes = Array.from(fabricantesMap.values());
+        console.error("Erro ao buscar fabricantes:", err);
+        uniqueFabricantes = [];
       }
 
       // Extrair fabricantes dos produtos selecionados
@@ -131,7 +116,7 @@ export default function MyProducts() {
         myProducts.filter(p => p.fabricante_id).map(p => p.fabricante_id)
       )];
       
-      // Se já temos os usuários carregados, usar eles
+      // Filtrar apenas os fabricantes dos produtos selecionados
       const uniqueMyFabricantes = uniqueFabricantes.filter(u => 
         myFabricanteIds.includes(u.id)
       );
