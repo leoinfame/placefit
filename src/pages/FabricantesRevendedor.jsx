@@ -63,7 +63,7 @@ export default function FabricantesRevendedor() {
       const { getFabricantes } = await import('@/functions/getFabricantes');
       const response = await getFabricantes();
       
-      if (!response.data || !response.data.fabricantes) {
+      if (!response || !response.data || !response.data.fabricantes) {
         throw new Error("Resposta inválida do servidor");
       }
       
