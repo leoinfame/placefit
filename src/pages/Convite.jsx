@@ -30,58 +30,64 @@ export default function Convite() {
   };
 
   const shareWhatsApp = () => {
-    const text = `Cadastre-se na PlaceFit - A plataforma que conecta fabricantes, fornecedores e transportadoras do setor fitness! ${conviteLink}`;
+    const text = `Cadastre-se na PlaceFit - O Ecossistema Digital que Conecta Toda a Cadeia de Suprimentos do Fitness! ${conviteLink}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   const shareTelegram = () => {
-    const text = `Cadastre-se na PlaceFit - A plataforma completa para o setor fitness`;
+    const text = `Cadastre-se na PlaceFit - O Ecossistema Digital que Conecta Toda a Cadeia de Suprimentos do Fitness`;
     window.open(`https://t.me/share/url?url=${encodeURIComponent(conviteLink)}&text=${encodeURIComponent(text)}`, '_blank');
   };
   const userTypes = [
     {
       title: "Fabricante",
       icon: Package,
-      description: "Cadastre seus produtos, alcance milhares de fornecedores e amplie sua rede de distribuição em todo o Brasil.",
+      description: "Gerencie produtos e tabelas de preços. Receba pedidos automatizados. Otimize logística com visibilidade total.",
       color: "from-purple-500 to-purple-600",
       hoverColor: "hover:from-purple-600 hover:to-purple-700",
       bgColor: "bg-purple-50",
       link: "/PublicRegisterFabricante",
+      buttonText: "PROGRAMA PILOTO",
+      buttonSubtext: "Junte-se ao programa piloto e seja parte da transformação desde o início",
       benefits: [
-        "Vitrine digital para seus produtos",
-        "Conexão direta com fornecedores",
-        "Gestão de catálogo e preços",
-        "Analytics de vendas"
+        "Maior Visualização dos produtos",
+        "Aumento de Vendas qualificado",
+        "Visibilidade Total do ciclo",
+        "Gestão Logística integrada"
       ]
     },
     {
-      title: "Fornecedor",
+      title: "Revendedor",
       icon: Store,
-      description: "Acesse catálogos de múltiplos fabricantes, compare preços, monte sua tabela personalizada e venda mais.",
+      description: "Acesse catálogos multi-fabricante. Crie orçamentos profissionais. Gerencie clientes e negocie fretes.",
       color: "from-blue-500 to-blue-600",
       hoverColor: "hover:from-blue-600 hover:to-blue-700",
       bgColor: "bg-blue-50",
       link: "/PublicRegister",
+      buttonText: "CADASTRO GRÁTIS",
+      buttonSubtext: "Cadastre-se gratuitamente e comece a vender com mais inteligência",
       benefits: [
-        "Acesso a todos os fabricantes",
-        "Compare preços em tempo real",
-        "Tabela personalizada de preços",
-        "Exportação fácil de dados"
+        "Catálogos Completos em um lugar",
+        "Orçamentos Rápidos e profissionais",
+        "Gestão Centralizada de clientes",
+        "Ofertas de Frete otimizadas"
       ]
     },
     {
-      title: "Transportadora",
+      title: "Transportador",
       icon: Truck,
-      description: "Publique suas rotas disponíveis, conecte-se com fornecedores e otimize seus fretes de retorno.",
+      description: "Encontre ofertas de frete compatíveis. Otimize rotas e ocupação de carga. Divulgue rotas futuras.",
       color: "from-orange-500 to-orange-600",
       hoverColor: "hover:from-orange-600 hover:to-orange-700",
       bgColor: "bg-orange-50",
       link: "/PublicRegisterTransportador",
+      buttonText: "ACESSAR OFERTAS",
+      buttonSubtext: "Acesse ofertas de frete e otimize suas rotas agora mesmo",
       benefits: [
-        "Publique rotas disponíveis",
-        "Fretes de complemento",
-        "Conexão com fornecedores",
-        "Maximize sua rentabilidade"
+        "Ofertas Compatíveis com rotas",
+        "Maior Ocupação dos veículos",
+        "Negociação Direta com embarcadores",
+        "Redução de Ociosidade"
       ]
     }
   ];
@@ -134,7 +140,7 @@ export default function Convite() {
                 Bem-vindo ao PlaceFit
               </h1>
               <p className="text-lg text-gray-600 max-w-2xl">
-                A plataforma completa que conecta fabricantes, fornecedores e transportadoras do setor fitness
+                O Ecossistema Digital que Conecta Toda a Cadeia de Suprimentos do Fitness
               </p>
             </div>
           </div>
@@ -148,8 +154,8 @@ export default function Convite() {
             Escolha o perfil ideal para você
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Seja você um fabricante querendo expandir sua distribuição, um fornecedor buscando os melhores preços, 
-            ou uma transportadora otimizando suas rotas - temos a solução perfeita para você!
+            Seja você um fabricante querendo expandir sua distribuição, um revendedor buscando os melhores preços, 
+            ou um transportador otimizando suas rotas - temos a solução perfeita para você!
           </p>
         </div>
 
@@ -188,11 +194,17 @@ export default function Convite() {
                   ))}
                 </div>
 
+                <div className="mb-3">
+                  <p className="text-xs text-gray-500 text-center mb-2">
+                    {type.buttonSubtext}
+                  </p>
+                </div>
+                
                 <a href={type.link}>
                   <Button 
                     className={`w-full bg-gradient-to-r ${type.color} ${type.hoverColor} text-white font-semibold py-6 text-lg group-hover:scale-105 transition-transform`}
                   >
-                    Cadastrar como {type.title}
+                    {type.buttonText}
                     <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </a>
@@ -220,7 +232,7 @@ export default function Convite() {
                   Explore o Marketplace
                 </h3>
                 <p className="text-white/90 text-lg mb-6">
-                  Navegue por milhares de produtos fitness, compare preços de diferentes fornecedores e fabricantes, 
+                  Navegue por milhares de produtos fitness, compare preços de diferentes revendedores e fabricantes, 
                   tudo em um só lugar. Sem cadastro necessário!
                 </p>
                 <div className="flex flex-wrap gap-4 justify-center md:justify-start">
@@ -230,7 +242,7 @@ export default function Convite() {
                   </div>
                   <div className="flex items-center gap-2 text-white">
                     <Users className="w-5 h-5" />
-                    <span>Múltiplos fornecedores</span>
+                    <span>Múltiplos revendedores</span>
                   </div>
                   <div className="flex items-center gap-2 text-white">
                     <Building2 className="w-5 h-5" />
@@ -279,7 +291,7 @@ export default function Convite() {
               <div className="text-4xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent mb-2">
                 200+
               </div>
-              <p className="text-sm text-gray-600">Fornecedores Ativos</p>
+              <p className="text-sm text-gray-600">Revendedores Ativos</p>
             </CardContent>
           </Card>
           
