@@ -58,8 +58,8 @@ export default function FabricantesParaFabricantes() {
       const { getFabricantes } = await import('@/functions/getFabricantes');
       const response = await getFabricantes();
       
-      // A resposta vem diretamente como { fabricantes: [...] }
-      const fabricantesList = (response.data?.fabricantes || response.fabricantes || [])
+      // A resposta vem como axios response: response.data.fabricantes
+      const fabricantesList = (response?.data?.fabricantes || [])
         .filter(f => f.id !== currentUser.id);
       
       setFabricantes(fabricantesList);
