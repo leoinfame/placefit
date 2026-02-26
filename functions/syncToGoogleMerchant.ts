@@ -23,6 +23,17 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Produto não encontrado' }, { status: 404 });
         }
 
+        // Validar se o produto está aprovado e ativo
+        if (!product.aprovado_produto || !product.ativo) {
+            return Response.json({ 
+                success: false,
+                message: 'Produto não sincronizado: produto não está aprovado ou não está ativo',
+                product_id: product.id,
+                aprovado_produto: product.aprovado_produto,
+                ativo: product.ativo
+            }, { status: 200 });
+        }
+
         // Buscar dados do revendedor
         const supplier = await base44.asServiceRole.entities.User.get(data.supplier_id);
         if (!supplier) {
