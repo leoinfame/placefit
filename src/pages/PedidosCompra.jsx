@@ -35,6 +35,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/components/ui/use-toast";
+import { getPedidosCompraComFabricante } from "@/functions/getPedidosCompraComFabricante";
 
 export default function PedidosCompra() {
   const [user, setUser] = useState(null);
@@ -59,13 +60,18 @@ export default function PedidosCompra() {
   });
 
   const { data: pedidosCompra = [] } = useQuery({
-    queryKey: ['pedidos-compra'],
-    queryFn: async () => {
-      const all = await base44.entities.PedidoCompra.list('-created_date');
-      return all.filter(p => p.revendedor_id === user?.id);
-    },
-    enabled: !!user,
-  });
+     queryKey: ['pedidos-compra'],
+     queryFn: async () => {
+       try {
+         const response = await getPedidosCompraComFabricante();
+         return response.data || [];
+       } catch (error) {
+         console.error("Erro ao buscar pedidos:", error);
+         return [];
+       }
+     },
+     enabled: !!user,
+   });
 
   useEffect(() => {
     loadData();
@@ -132,13 +138,13 @@ export default function PedidosCompra() {
   };
 
   const generatePDF = (pedido) => {
-    const fabricante = fabricantes.find(f => f.id === pedido.fabricante_id);
-
-    // Debug: log dos dados
-    console.log('Pedido:', pedido);
-    console.log('Fabricante ID:', pedido.fabricante_id);
-    console.log('Fabricantes disponíveis:', fabricantes);
-    console.log('Fabricante encontrado:', fabricante);
+    // Usar dados injetados do pedido em vez de buscar em fabricantes
+    const fabricanteLogo = pedido.fabricante_logo;
+    const fabricanteNome = pedido.fabricante_nome;
+    const fabricanteEmail = pedido.fabricante_email;
+    const fabricanteWhatsapp = pedido.fabricante_whatsapp;
+    const fabricanteEndereco = pedido.fabricante_endereco;
+    const fabricanteSite = pedido.fabricante_site;
 
     const htmlContent = `
       <!DOCTYPE html>
@@ -186,13 +192,13 @@ export default function PedidosCompra() {
 
           <div class="header-box">
             <div class="header-title">Fabricante (Fornecedor)</div>
-            ${fabricante?.logomarca ? `<img src="${fabricante.logomarca}" class="logo" alt="Logo Fabricante">` : '<div style="font-size: 11px; color: #999;">Sem logo</div>'}
-            <div class="company-name">${fabricante?.nome || pedido.fabricante_nome}</div>
+            ${fabricanteLogo ? `<img src="${fabricanteLogo}" class="logo" alt="Logo Fabricante">` : '<div style="font-size: 11px; color: #999;">Sem logo</div>'}
+            <div class="company-name">${fabricanteNome}</div>
             <div class="company-info">
-              ${fabricante?.whatsapp ? `<strong>Tel:</strong> ${fabricante.whatsapp}<br>` : ''}
-              ${fabricante?.email ? `<strong>E-mail:</strong> ${fabricante.email}<br>` : ''}
-              ${fabricante?.endereco ? `<strong>Endereço:</strong> ${fabricante.endereco}<br>` : ''}
-              ${fabricante?.site ? `<strong>Site:</strong> ${fabricante.site}` : ''}
+              ${fabricanteWhatsapp ? `<strong>Tel:</strong> ${fabricanteWhatsapp}<br>` : ''}
+              ${fabricanteEmail ? `<strong>E-mail:</strong> ${fabricanteEmail}<br>` : ''}
+              ${fabricanteEndereco ? `<strong>Endereço:</strong> ${fabricanteEndereco}<br>` : ''}
+              ${fabricanteSite ? `<strong>Site:</strong> ${fabricanteSite}` : ''}
             </div>
           </div>
         </div>
@@ -853,38 +859,37 @@ export default function PedidosCompra() {
               </DialogHeader>
               <div className="space-y-4">
                 {(() => {
-                  const fabricante = fabricantes.find(f => f.id === selectedPedido.fabricante_id);
-                  return (
-                    <div className="bg-gradient-to-br from-blue-50 to-green-50 p-4 rounded border border-blue-200">
-                      <div className="flex gap-4 items-start">
-                        {fabricante?.logomarca && (
-                          <img src={fabricante.logomarca} alt="Logo" className="w-16 h-16 object-contain rounded" />
-                        )}
-                        <div className="flex-1">
-                          <h3 className="text-lg font-bold text-gray-900">{selectedPedido.fabricante_nome}</h3>
-                          {fabricante?.email && (
-                            <p className="text-sm text-gray-600"><strong>E-mail:</strong> {fabricante.email}</p>
+                    return (
+                      <div className="bg-gradient-to-br from-blue-50 to-green-50 p-4 rounded border border-blue-200">
+                        <div className="flex gap-4 items-start">
+                          {selectedPedido.fabricante_logo && (
+                            <img src={selectedPedido.fabricante_logo} alt="Logo" className="w-16 h-16 object-contain rounded" />
                           )}
-                          {fabricante?.whatsapp && (
-                            <p className="text-sm text-gray-600"><strong>WhatsApp:</strong> {fabricante.whatsapp}</p>
-                          )}
-                          {fabricante?.endereco && (
-                            <p className="text-sm text-gray-600"><strong>Endereço:</strong> {fabricante.endereco}</p>
-                          )}
-                          {fabricante?.site && (
-                            <p className="text-sm text-gray-600"><strong>Site:</strong> {fabricante.site}</p>
-                          )}
+                          <div className="flex-1">
+                            <h3 className="text-lg font-bold text-gray-900">{selectedPedido.fabricante_nome}</h3>
+                            {selectedPedido.fabricante_email && (
+                              <p className="text-sm text-gray-600"><strong>E-mail:</strong> {selectedPedido.fabricante_email}</p>
+                            )}
+                            {selectedPedido.fabricante_whatsapp && (
+                              <p className="text-sm text-gray-600"><strong>WhatsApp:</strong> {selectedPedido.fabricante_whatsapp}</p>
+                            )}
+                            {selectedPedido.fabricante_endereco && (
+                              <p className="text-sm text-gray-600"><strong>Endereço:</strong> {selectedPedido.fabricante_endereco}</p>
+                            )}
+                            {selectedPedido.fabricante_site && (
+                              <p className="text-sm text-gray-600"><strong>Site:</strong> {selectedPedido.fabricante_site}</p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="mt-3 pt-3 border-t border-blue-200 flex justify-between items-center">
+                          <div>
+                            <p className="text-xs text-gray-600"><strong>Data do Pedido:</strong> {new Date(selectedPedido.data_pedido).toLocaleDateString('pt-BR')}</p>
+                          </div>
+                          <Badge className={statusColors[selectedPedido.status]}>{statusLabels[selectedPedido.status]}</Badge>
                         </div>
                       </div>
-                      <div className="mt-3 pt-3 border-t border-blue-200 flex justify-between items-center">
-                        <div>
-                          <p className="text-xs text-gray-600"><strong>Data do Pedido:</strong> {new Date(selectedPedido.data_pedido).toLocaleDateString('pt-BR')}</p>
-                        </div>
-                        <Badge className={statusColors[selectedPedido.status]}>{statusLabels[selectedPedido.status]}</Badge>
-                      </div>
-                    </div>
-                  );
-                })()}
+                    );
+                  })()}
 
                 <div>
                   <h3 className="font-semibold mb-2">Produtos:</h3>
