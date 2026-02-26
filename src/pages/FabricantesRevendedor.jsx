@@ -60,21 +60,16 @@ export default function FabricantesRevendedor() {
 
       // Usar função backend com service role
       console.log("🔍 Buscando fabricantes via backend...");
-      const { getFabricantes } = await import('@/functions/getFabricantes');
-      const response = await getFabricantes();
+      const response = await base44.functions.invoke('getFabricantes', {});
       
       console.log("📦 Resposta recebida:", response);
       
       // Verificar se a resposta tem a estrutura correta
-      if (!response) {
+      if (!response || !response.data) {
         throw new Error("Nenhuma resposta do servidor");
       }
       
-      if (response.status && response.status >= 400) {
-        throw new Error(response.data?.error || response.data?.details || "Erro no servidor");
-      }
-      
-      if (!response.data || !response.data.fabricantes) {
+      if (!response.data.fabricantes) {
         throw new Error("Formato de resposta inválido do servidor");
       }
       
