@@ -534,9 +534,14 @@ function LayoutContent({
   const { setOpen, open } = useSidebar();
 
   // Fechar sidebar ao mudar de rota (em todos os níveis de acesso)
+  const previousPathRef = React.useRef(location.pathname);
+  
   React.useEffect(() => {
-    // Sempre fecha o menu quando a rota muda
-    setOpen(false);
+    // Só fecha se a rota realmente mudou (não no mount inicial)
+    if (previousPathRef.current !== location.pathname) {
+      setOpen(false);
+    }
+    previousPathRef.current = location.pathname;
   }, [location.pathname, setOpen]);
 
   // Handler para fechar menu ao clicar em item (especialmente para mobile)
