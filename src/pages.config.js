@@ -49,6 +49,7 @@
  */
 import AdminFrete from './pages/AdminFrete';
 import AdminNotifications from './pages/AdminNotifications';
+import AdminVersions from './pages/AdminVersions';
 import AtendenteIA from './pages/AtendenteIA';
 import AtendenteIARevendedor from './pages/AtendenteIARevendedor';
 import Catalogo from './pages/Catalogo';
@@ -84,13 +85,13 @@ import Transportadores from './pages/Transportadores';
 import Units from './pages/Units';
 import Usuarios from './pages/Usuarios';
 import Vendas from './pages/Vendas';
-import AdminVersions from './pages/AdminVersions';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AdminFrete": AdminFrete,
     "AdminNotifications": AdminNotifications,
+    "AdminVersions": AdminVersions,
     "AtendenteIA": AtendenteIA,
     "AtendenteIARevendedor": AtendenteIARevendedor,
     "Catalogo": Catalogo,
@@ -126,7 +127,6 @@ export const PAGES = {
     "Units": Units,
     "Usuarios": Usuarios,
     "Vendas": Vendas,
-    "AdminVersions": AdminVersions,
 }
 
 export const pagesConfig = {

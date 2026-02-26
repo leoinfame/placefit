@@ -860,8 +860,8 @@ export default function MyProducts() {
                     <TableBody>
                       {filteredProducts.map((product, index) => {
                         const fabricanteNome = product.fabricante_id ? 
-                         (product.fabricante_nome || 
-                          fabricantes.find(f => f.id === product.fabricante_id)?.empresa || 
+                         (fabricantes.find(f => f.id === product.fabricante_id)?.empresa || 
+                          product.fabricante_nome || 
                           'Fabricante') : null;
                         const precoSugerido = product.preco_fabricante ? parseFloat(product.preco_fabricante) : null;
 
@@ -939,8 +939,8 @@ export default function MyProducts() {
             <div className="md:hidden space-y-3 w-full">
               {filteredProducts.map((product) => {
                 const fabricanteNome = product.fabricante_id ? 
-                  (product.fabricante_nome || 
-                   fabricantes.find(f => f.id === product.fabricante_id)?.empresa || 
+                  (fabricantes.find(f => f.id === product.fabricante_id)?.empresa || 
+                   product.fabricante_nome || 
                    'Fabricante') : null;
                 const precoSugerido = product.preco_fabricante ? parseFloat(product.preco_fabricante) : null;
 
@@ -1125,7 +1125,7 @@ export default function MyProducts() {
                              <TableCell>
                                {product.fabricante_id ? (
                                  <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs">
-                                   {product.fabricante_nome || fabricantes.find(f => f.id === product.fabricante_id)?.empresa || 'Fabricante'}
+                                   {fabricantes.find(f => f.id === product.fabricante_id)?.empresa || product.fabricante_nome || 'Fabricante'}
                                  </Badge>
                                ) : (
                                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs">
@@ -1256,7 +1256,7 @@ export default function MyProducts() {
                             <h3 className="font-semibold text-sm text-gray-900 break-words">{product.nome}</h3>
                             <p className="text-xs text-gray-500 break-all">
                               {product.fabricante_id ? 
-                                (product.fabricante_nome || fabricantes.find(f => f.id === product.fabricante_id)?.empresa || 'Fabricante')
+                                (fabricantes.find(f => f.id === product.fabricante_id)?.empresa || product.fabricante_nome || 'Fabricante')
                                 : 'PlaceFit'
                               }
                             </p>

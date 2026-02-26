@@ -11,31 +11,12 @@ Deno.serve(async (req) => {
         }
 
         // Buscar todos os usuários usando service role
-        // Service role funciona independente de quem está logado
         const allUsers = await base44.asServiceRole.entities.User.list();
-        const fabricantes = allUsers.filter(u => {
-            // Deve ser aprovado
-            if (u.aprovado !== true) return false;
-            
-            // É fabricante se:
-            // 1. Tem tipo_usuario === 'fabricante' OU
-            // 2. NÃO é transportador E NÃO é admin E tem empresa preenchida (revendedor ou fabricante sem tipo_usuario definido)
-            const isFabricante = u.tipo_usuario === 'fabricante';
-            const isTransportador = u.tipo_usuario === 'transportador';
-            const isAdmin = u.role === 'admin';
-            const hasEmpresa = u.empresa && u.empresa.trim() !== '';
-            
-            // Se for explicitamente fabricante, retorna
-            if (isFabricante) return true;
-            
-            // Se não é transportador, não é admin, e tem empresa = pode ser fabricante ou revendedor
-            // Para diferenciar, consideramos que fabricantes geralmente têm CNPJ formatado
-            if (!isTransportador && !isAdmin && hasEmpresa) {
-                return true; // Retorna todos que têm empresa e não são transportadores/admins
-            }
-            
-            return false;
-        });
+        
+        // Filtrar apenas fabricantes aprovados
+        const fabricantes = allUsers.filter(u => 
+            u.tipo_usuario === 'fabricante' && u.aprovado === true
+        );
 
         return Response.json({ fabricantes });
     } catch (error) {
