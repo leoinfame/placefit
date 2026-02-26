@@ -79,7 +79,15 @@ export default function PedidosCompra() {
       const allUsers = await base44.entities.User.list();
       const fabricantesData = allUsers
         .filter(u => u.tipo_usuario === 'fabricante')
-        .map(u => ({ id: u.id, nome: u.empresa || u.full_name, email: u.email, whatsapp: u.whatsapp }));
+        .map(u => ({ 
+          id: u.id, 
+          nome: u.empresa || u.full_name, 
+          email: u.email, 
+          whatsapp: u.whatsapp,
+          logomarca: u.logomarca,
+          endereco: u.endereco,
+          site: u.site
+        }));
       setFabricantes(fabricantesData);
 
     } catch (error) {
@@ -774,11 +782,39 @@ export default function PedidosCompra() {
                 <DialogTitle>Pedido de Compra {selectedPedido.numero_pedido}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
-                <div className="bg-gray-50 p-4 rounded">
-                  <p><strong>Fabricante:</strong> {selectedPedido.fabricante_nome}</p>
-                  <p><strong>Data:</strong> {new Date(selectedPedido.data_pedido).toLocaleDateString('pt-BR')}</p>
-                  <p><strong>Status:</strong> <Badge className={statusColors[selectedPedido.status]}>{statusLabels[selectedPedido.status]}</Badge></p>
-                </div>
+                {(() => {
+                  const fabricante = fabricantes.find(f => f.id === selectedPedido.fabricante_id);
+                  return (
+                    <div className="bg-gradient-to-br from-blue-50 to-green-50 p-4 rounded border border-blue-200">
+                      <div className="flex gap-4 items-start">
+                        {fabricante?.logomarca && (
+                          <img src={fabricante.logomarca} alt="Logo" className="w-16 h-16 object-contain rounded" />
+                        )}
+                        <div className="flex-1">
+                          <h3 className="text-lg font-bold text-gray-900">{selectedPedido.fabricante_nome}</h3>
+                          {fabricante?.email && (
+                            <p className="text-sm text-gray-600"><strong>E-mail:</strong> {fabricante.email}</p>
+                          )}
+                          {fabricante?.whatsapp && (
+                            <p className="text-sm text-gray-600"><strong>WhatsApp:</strong> {fabricante.whatsapp}</p>
+                          )}
+                          {fabricante?.endereco && (
+                            <p className="text-sm text-gray-600"><strong>Endereço:</strong> {fabricante.endereco}</p>
+                          )}
+                          {fabricante?.site && (
+                            <p className="text-sm text-gray-600"><strong>Site:</strong> {fabricante.site}</p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="mt-3 pt-3 border-t border-blue-200 flex justify-between items-center">
+                        <div>
+                          <p className="text-xs text-gray-600"><strong>Data do Pedido:</strong> {new Date(selectedPedido.data_pedido).toLocaleDateString('pt-BR')}</p>
+                        </div>
+                        <Badge className={statusColors[selectedPedido.status]}>{statusLabels[selectedPedido.status]}</Badge>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 <div>
                   <h3 className="font-semibold mb-2">Produtos:</h3>
