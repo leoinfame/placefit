@@ -531,10 +531,10 @@ function LayoutContent({
   children 
 }) {
   const location = useLocation();
-  const { setOpen, isMobile } = useSidebar();
+  const { setOpen, isMobile, state } = useSidebar();
 
   // Fechar sidebar automaticamente ao mudar de rota no mobile
-  useEffect(() => {
+  React.useEffect(() => {
     if (isMobile) {
       setOpen(false);
     }
