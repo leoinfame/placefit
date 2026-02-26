@@ -50,6 +50,7 @@
 import AdminFrete from './pages/AdminFrete';
 import AdminNotifications from './pages/AdminNotifications';
 import AtendenteIA from './pages/AtendenteIA';
+import AtendenteIARevendedor from './pages/AtendenteIARevendedor';
 import Catalogo from './pages/Catalogo';
 import Categories from './pages/Categories';
 import Clientes from './pages/Clientes';
@@ -82,7 +83,7 @@ import Transportadores from './pages/Transportadores';
 import Units from './pages/Units';
 import Usuarios from './pages/Usuarios';
 import Vendas from './pages/Vendas';
-import AtendenteIARevendedor from './pages/AtendenteIARevendedor';
+import DocumentacaoTecnica from './pages/DocumentacaoTecnica';
 import __Layout from './Layout.jsx';
 
 
@@ -90,6 +91,7 @@ export const PAGES = {
     "AdminFrete": AdminFrete,
     "AdminNotifications": AdminNotifications,
     "AtendenteIA": AtendenteIA,
+    "AtendenteIARevendedor": AtendenteIARevendedor,
     "Catalogo": Catalogo,
     "Categories": Categories,
     "Clientes": Clientes,
@@ -122,7 +124,7 @@ export const PAGES = {
     "Units": Units,
     "Usuarios": Usuarios,
     "Vendas": Vendas,
-    "AtendenteIARevendedor": AtendenteIARevendedor,
+    "DocumentacaoTecnica": DocumentacaoTecnica,
 }
 
 export const pagesConfig = {
