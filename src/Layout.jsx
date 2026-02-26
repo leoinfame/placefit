@@ -674,7 +674,7 @@ function LayoutContent({
           </SidebarFooter>
         </Sidebar>
 
-        <main className="flex-1 flex flex-col">
+        <main className="flex-1 flex flex-col overflow-x-hidden w-full max-w-full">
           <header className="bg-white/80 backdrop-blur-xl border-b border-white/20 px-6 py-4">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-4 lg:hidden">
@@ -736,7 +736,7 @@ function LayoutContent({
             </div>
           </header>
 
-          <div className="flex-1 overflow-auto">
+          <div className="flex-1 overflow-auto overflow-x-hidden w-full max-w-full">
             {/* PWA Install Banner */}
             {showInstallBanner && (
               <div className="bg-gradient-to-r from-blue-600 to-green-600 text-white p-4 shadow-lg">
