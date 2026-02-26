@@ -85,34 +85,28 @@ Deno.serve(async (req) => {
         // Verificar secrets necessárias
         const merchantId = Deno.env.get("GOOGLE_MERCHANT_ID");
         const serviceAccountJson = Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON");
-        const apiKey = Deno.env.get("GOOGLE_API_KEY");
 
-        if (!merchantId || (!serviceAccountJson && !apiKey)) {
-            console.warn('GOOGLE_MERCHANT_ID ou credenciais do Google não configuradas');
+        if (!merchantId || !serviceAccountJson) {
+            console.warn('GOOGLE_MERCHANT_ID ou GOOGLE_SERVICE_ACCOUNT_JSON não configurados');
             return Response.json({ 
                 warning: 'Credenciais do Google não configuradas - produto preparado mas não enviado',
                 product: googleProduct 
             });
         }
 
-        // Obter access token do Google (usando Service Account)
-        let accessToken;
-        if (serviceAccountJson) {
-            const credentials = JSON.parse(serviceAccountJson);
-            const jwt = await createGoogleJWT(credentials);
-            const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({
-                    grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-                    assertion: jwt
-                })
-            });
-            const tokenData = await tokenResponse.json();
-            accessToken = tokenData.access_token;
-        } else {
-            accessToken = apiKey;
-        }
+        // Obter access token do Google usando Service Account
+        const credentials = JSON.parse(serviceAccountJson);
+        const jwt = await createGoogleJWT(credentials);
+        const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+                grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+                assertion: jwt
+            })
+        });
+        const tokenData = await tokenResponse.json();
+        const accessToken = tokenData.access_token;
 
         // Enviar para Google Merchant Center
         const googleResponse = await fetch(
