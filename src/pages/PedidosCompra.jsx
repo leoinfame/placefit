@@ -133,7 +133,7 @@ export default function PedidosCompra() {
 
   const generatePDF = (pedido) => {
     const fabricante = fabricantes.find(f => f.id === pedido.fabricante_id);
-    
+
     const htmlContent = `
       <!DOCTYPE html>
       <html>
@@ -143,48 +143,58 @@ export default function PedidosCompra() {
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body { font-family: Arial, sans-serif; padding: 20px; }
-          .header { text-align: center; margin-bottom: 30px; padding: 20px; border-bottom: 2px solid #333; }
-          .logo { max-width: 120px; margin-bottom: 10px; }
-          .company-name { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
-          .company-info { font-size: 11px; line-height: 1.5; color: #666; }
-          .title { font-size: 16px; font-weight: bold; text-align: center; margin: 20px 0; }
+          .header-section { display: flex; gap: 40px; margin-bottom: 30px; padding: 20px; border: 2px solid #333; border-radius: 8px; }
+          .header-box { flex: 1; }
+          .header-title { font-size: 12px; font-weight: bold; color: #666; margin-bottom: 10px; text-transform: uppercase; }
+          .logo { max-width: 100px; margin-bottom: 10px; }
+          .company-name { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
+          .company-info { font-size: 11px; line-height: 1.6; color: #333; }
+          .title { font-size: 18px; font-weight: bold; text-align: center; margin: 20px 0; color: #333; }
+          .subtitle { text-align: center; font-size: 12px; color: #666; margin-bottom: 20px; }
           .section { margin: 20px 0; }
-          .section-title { font-size: 13px; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+          .section-title { font-size: 13px; font-weight: bold; margin-bottom: 10px; border-bottom: 2px solid #333; padding-bottom: 5px; }
           table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-          th, td { border: 1px solid #333; padding: 8px; text-align: left; font-size: 11px; }
+          th, td { border: 1px solid #333; padding: 10px; text-align: left; font-size: 11px; }
           th { background-color: #f0f0f0; font-weight: bold; }
           .total-row { font-weight: bold; background-color: #f9f9f9; }
           .text-right { text-align: right; }
+          .divider { margin: 30px 0; border-top: 2px dashed #ccc; }
         </style>
       </head>
       <body>
-        <div class="header">
-          ${user?.logomarca ? `<img src="${user.logomarca}" class="logo" alt="Logo">` : ''}
-          <div class="company-name">${user?.empresa || user?.full_name}</div>
-          <div class="company-info">
-            ${user?.whatsapp ? `Tel: ${user.whatsapp} | ` : ''}
-            ${user?.email ? `E-mail: ${user.email}` : ''}<br>
-            ${user?.endereco ? `${user.endereco}<br>` : ''}
-            ${user?.site ? user.site : ''}
+        <div class="title">PEDIDO DE COMPRA</div>
+        <div class="subtitle">Número: ${pedido.numero_pedido} | Data: ${new Date(pedido.data_pedido).toLocaleDateString('pt-BR')}</div>
+
+        <div class="header-section">
+          <div class="header-box">
+            <div class="header-title">Revendedor (Solicitante)</div>
+            ${user?.logomarca ? `<img src="${user.logomarca}" class="logo" alt="Logo">` : ''}
+            <div class="company-name">${user?.empresa || user?.full_name}</div>
+            <div class="company-info">
+              ${user?.whatsapp ? `<strong>Tel:</strong> ${user.whatsapp}<br>` : ''}
+              ${user?.email ? `<strong>E-mail:</strong> ${user.email}<br>` : ''}
+              ${user?.endereco ? `<strong>Endereço:</strong> ${user.endereco}<br>` : ''}
+              ${user?.site ? `<strong>Site:</strong> ${user.site}` : ''}
+            </div>
+          </div>
+
+          <div class="header-box">
+            <div class="header-title">Fabricante (Fornecedor)</div>
+            ${fabricante?.logomarca ? `<img src="${fabricante.logomarca}" class="logo" alt="Logo Fabricante">` : '<div style="font-size: 11px; color: #999;">Sem logo</div>'}
+            <div class="company-name">${fabricante?.nome || pedido.fabricante_nome}</div>
+            <div class="company-info">
+              ${fabricante?.whatsapp ? `<strong>Tel:</strong> ${fabricante.whatsapp}<br>` : ''}
+              ${fabricante?.email ? `<strong>E-mail:</strong> ${fabricante.email}<br>` : ''}
+              ${fabricante?.endereco ? `<strong>Endereço:</strong> ${fabricante.endereco}<br>` : ''}
+              ${fabricante?.site ? `<strong>Site:</strong> ${fabricante.site}` : ''}
+            </div>
           </div>
         </div>
 
-        <div class="title">PEDIDO DE COMPRA - ${pedido.numero_pedido}</div>
-        <div style="text-align: center; font-size: 11px; color: #666; margin-bottom: 20px;">
-          Data: ${new Date(pedido.data_pedido).toLocaleDateString('pt-BR')}
-        </div>
+        <div class="divider"></div>
 
         <div class="section">
-          <div class="section-title">FORNECEDOR</div>
-          <div style="font-size: 11px;">
-            <strong>${fabricante?.nome || pedido.fabricante_nome}</strong><br>
-            ${fabricante?.email ? `E-mail: ${fabricante.email}<br>` : ''}
-            ${fabricante?.whatsapp ? `WhatsApp: ${fabricante.whatsapp}<br>` : ''}
-          </div>
-        </div>
-
-        <div class="section">
-          <div class="section-title">PRODUTOS SOLICITADOS</div>
+          <div class="section-title">ITENS SOLICITADOS</div>
           <table>
             <thead>
               <tr>
@@ -211,9 +221,9 @@ export default function PedidosCompra() {
 
         <div class="section">
           <table>
-            <tr style="background-color: #e0e0e0; font-weight: bold; font-size: 13px;">
-              <td>TOTAL DO PEDIDO</td>
-              <td class="text-right">R$ ${pedido.total.toFixed(2)}</td>
+            <tr style="background-color: #e8e8e8; font-weight: bold; font-size: 12px;">
+              <td colspan="4" style="text-align: right; padding: 12px;">TOTAL DO PEDIDO:</td>
+              <td class="text-right" style="background-color: #d0d0d0; font-size: 13px;">R$ ${pedido.total.toFixed(2)}</td>
             </tr>
           </table>
         </div>
@@ -221,9 +231,14 @@ export default function PedidosCompra() {
         ${pedido.observacoes ? `
           <div class="section">
             <div class="section-title">OBSERVAÇÕES</div>
-            <div style="font-size: 11px;">${pedido.observacoes}</div>
+            <div style="font-size: 11px; padding: 10px; background-color: #f9f9f9; border: 1px solid #ddd;">${pedido.observacoes}</div>
           </div>
         ` : ''}
+
+        <div style="margin-top: 40px; text-align: center; font-size: 10px; color: #999;">
+          <p>Documento gerado automaticamente pelo sistema PlaceFit</p>
+          <p>${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</p>
+        </div>
       </body>
       </html>
     `;
