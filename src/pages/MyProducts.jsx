@@ -1114,15 +1114,17 @@ export default function MyProducts() {
                              </TableCell>
                              <TableCell className="font-medium">{product.nome}</TableCell>
                              <TableCell>
-                               {product.fabricante_id ? (
-                                 <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs">
-                                   {fabricantes.find(f => f.id === product.fabricante_id)?.empresa || product.fabricante_nome || 'Fabricante'}
-                                 </Badge>
-                               ) : (
-                                 <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs">
-                                   PlaceFit
-                                 </Badge>
-                               )}
+                              {product.fabricante_id ? (
+                                <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs">
+                                  {fabricantes.find(f => f.id === product.fabricante_id)?.empresa || 
+                                   fabricantes.find(f => f.id === product.fabricante_id)?.full_name || 
+                                   product.fabricante_nome || 'Fabricante'}
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs">
+                                  PlaceFit
+                                </Badge>
+                              )}
                              </TableCell>
                             <TableCell>
                               {product.preco_fabricante ? (
@@ -1247,7 +1249,9 @@ export default function MyProducts() {
                             <h3 className="font-semibold text-sm text-gray-900 break-words">{product.nome}</h3>
                             <p className="text-xs text-gray-500 break-all">
                               {product.fabricante_id ? 
-                                (fabricantes.find(f => f.id === product.fabricante_id)?.empresa || product.fabricante_nome || 'Fabricante')
+                                (fabricantes.find(f => f.id === product.fabricante_id)?.empresa || 
+                                 fabricantes.find(f => f.id === product.fabricante_id)?.full_name || 
+                                 product.fabricante_nome || 'Fabricante')
                                 : 'PlaceFit'
                               }
                             </p>

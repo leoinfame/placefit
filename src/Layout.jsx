@@ -531,14 +531,12 @@ function LayoutContent({
   children 
 }) {
   const location = useLocation();
-  const { setOpen, isMobile, state } = useSidebar();
+  const { setOpen } = useSidebar();
 
-  // Fechar sidebar automaticamente ao mudar de rota no mobile
+  // Fechar sidebar ao mudar de rota
   React.useEffect(() => {
-    if (isMobile) {
-      setOpen(false);
-    }
-  }, [location.pathname, isMobile, setOpen]);
+    setOpen(false);
+  }, [location.pathname, setOpen]);
 
   return (
     <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 to-blue-50 overflow-x-hidden">
@@ -599,7 +597,7 @@ function LayoutContent({
                             : ''
                         }`}
                       >
-                        <Link to={item.url} className="flex items-center gap-3 px-3 py-3">
+                        <Link to={item.url} onClick={() => setOpen(false)} className="flex items-center gap-3 px-3 py-3">
                           <item.icon className="w-4 h-4" />
                           <span className="font-medium">{item.title}</span>
                           {item.badge && (
