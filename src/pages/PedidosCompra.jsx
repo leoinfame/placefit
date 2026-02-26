@@ -238,7 +238,7 @@ export default function PedidosCompra() {
 
   const enviarEmailFabricante = async (pedido) => {
     const fabricante = fabricantes.find(f => f.id === pedido.fabricante_id);
-    
+
     if (!fabricante?.email) {
       toast({
         title: "Erro",
@@ -264,7 +264,7 @@ export default function PedidosCompra() {
         <p><strong>De:</strong> ${user.empresa || user.full_name}</p>
         <p><strong>Data:</strong> ${new Date(pedido.data_pedido).toLocaleDateString('pt-BR')}</p>
         <p><strong>Contato:</strong> ${user.whatsapp || user.email}</p>
-        
+
         <h3 style="margin-top: 20px;">Produtos Solicitados:</h3>
         <table border="1" cellpadding="8" cellspacing="0" style="width: 100%; border-collapse: collapse;">
           <thead>
@@ -280,9 +280,9 @@ export default function PedidosCompra() {
             ${itensHTML}
           </tbody>
         </table>
-        
+
         <h3 style="margin-top: 20px;">Total: R$ ${pedido.total.toFixed(2)}</h3>
-        
+
         ${pedido.observacoes ? `<p><strong>Observações:</strong> ${pedido.observacoes}</p>` : ''}
       `;
 
@@ -292,17 +292,37 @@ export default function PedidosCompra() {
         body: emailBody
       });
 
+      // Criar uma venda para o fabricante baseado no pedido de compra
+      const venda = vendas.find(v => v.id === pedido.venda_id);
+      if (venda) {
+        await base44.entities.Pedido.create({
+          fornecedor_id: fabricante.id,
+          cliente_id: pedido.revendedor_id,
+          cliente_nome: pedido.revendedor_nome,
+          numero_pedido: pedido.numero_pedido,
+          data_pedido: pedido.data_pedido,
+          tipo: 'venda',
+          itens: pedido.itens,
+          subtotal: pedido.itens.reduce((sum, item) => sum + item.subtotal, 0),
+          total: pedido.total,
+          frete: 0,
+          desconto: 0,
+          status: 'confirmado',
+          observacoes: `Pedido recebido: ${pedido.numero_pedido}`
+        });
+      }
+
       await updateStatusMutation.mutateAsync({ id: pedido.id, status: 'enviado' });
 
       toast({
-        title: "E-mail enviado!",
-        description: "O pedido de compra foi enviado ao fabricante.",
+        title: "Pedido enviado!",
+        description: "O pedido foi enviado ao fabricante e já aparece no painel dele.",
       });
     } catch (error) {
-      console.error("Erro ao enviar e-mail:", error);
+      console.error("Erro ao enviar pedido:", error);
       toast({
         title: "Erro",
-        description: "Não foi possível enviar o e-mail.",
+        description: "Não foi possível enviar o pedido.",
         variant: "destructive"
       });
     }
@@ -590,53 +610,69 @@ export default function PedidosCompra() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {getPedidosCompraByVenda(selectedVenda.id).map((pc, index) => (
-                        <TableRow key={pc.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                          <TableCell className="font-mono text-sm">{pc.numero_pedido}</TableCell>
-                          <TableCell>{pc.fabricante_nome}</TableCell>
-                          <TableCell>{pc.itens.length} produto(s)</TableCell>
-                          <TableCell className="text-right font-bold text-green-700">
-                            R$ {pc.total.toFixed(2)}
-                          </TableCell>
-                          <TableCell>
-                            <Badge className={statusColors[pc.status]}>
-                              {statusLabels[pc.status]}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center justify-center gap-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleViewPedido(pc)}
-                                className="h-8 px-2 hover:bg-blue-50"
-                                title="Visualizar"
-                              >
-                                <Eye className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => generatePDF(pc)}
-                                className="h-8 px-2 hover:bg-purple-50"
-                                title="Gerar PDF"
-                              >
-                                <FileText className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => enviarEmailFabricante(pc)}
-                                className="h-8 px-2 hover:bg-green-50"
-                                title="Enviar Email"
-                                disabled={pc.status !== 'pendente'}
-                              >
-                                <Mail className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {getPedidosCompraByVenda(selectedVenda.id).map((pc, index) => {
+                        const fab = fabricantes.find(f => f.id === pc.fabricante_id);
+                        return (
+                          <TableRow key={pc.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                            <TableCell className="font-mono text-sm">{pc.numero_pedido}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                {fab?.logomarca && (
+                                  <img src={fab.logomarca} alt="Logo" className="w-6 h-6 object-contain rounded" />
+                                )}
+                                <div>
+                                  <p className="font-semibold text-sm">{pc.fabricante_nome}</p>
+                                  {fab?.email && <p className="text-xs text-gray-500">{fab.email}</p>}
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>{pc.itens.length} produto(s)</TableCell>
+                            <TableCell className="text-right font-bold text-green-700">
+                              R$ {pc.total.toFixed(2)}
+                            </TableCell>
+                            <TableCell>
+                              <Badge className={statusColors[pc.status]}>
+                                {statusLabels[pc.status]}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center justify-center gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleViewPedido(pc)}
+                                  className="h-8 px-2 hover:bg-blue-50"
+                                  title="Visualizar"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => generatePDF(pc)}
+                                  className="h-8 px-2 hover:bg-purple-50"
+                                  title="Gerar PDF"
+                                >
+                                  <FileText className="w-4 h-4" />
+                                </Button>
+                                {pc.status === 'pendente' ? (
+                                  <Button
+                                    size="sm"
+                                    onClick={() => enviarEmailFabricante(pc)}
+                                    className="h-8 px-2 bg-green-600 hover:bg-green-700 text-white"
+                                    title="Enviar ao Fabricante"
+                                  >
+                                    <Mail className="w-4 h-4 mr-1" />
+                                    Enviar
+                                  </Button>
+                                ) : (
+                                  <Badge className="bg-blue-100 text-blue-800 text-xs">Enviado</Badge>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>
@@ -718,58 +754,71 @@ export default function PedidosCompra() {
                 </CardContent>
               </Card>
             ) : (
-              getPedidosCompraByVenda(selectedVenda.id).map((pc) => (
-                <Card key={pc.id} className="bg-white shadow w-full">
-                  <CardContent className="p-3 w-full">
-                    <div className="space-y-2 w-full">
-                      <div className="flex items-start justify-between gap-2 w-full">
-                        <div className="flex-1 min-w-0 overflow-hidden">
-                          <p className="font-mono text-xs text-gray-500 break-all">{pc.numero_pedido}</p>
-                          <h3 className="font-semibold text-sm text-gray-900 break-words">{pc.fabricante_nome}</h3>
-                          <p className="text-xs text-gray-500">{new Date(pc.data_pedido).toLocaleDateString('pt-BR')}</p>
-                          <Badge className={`mt-1 ${statusColors[pc.status]}`}>
-                            {statusLabels[pc.status]}
-                          </Badge>
+              getPedidosCompraByVenda(selectedVenda.id).map((pc) => {
+                const fab = fabricantes.find(f => f.id === pc.fabricante_id);
+                return (
+                  <Card key={pc.id} className="bg-white shadow w-full">
+                    <CardContent className="p-3 w-full">
+                      <div className="space-y-2 w-full">
+                        <div className="flex items-start justify-between gap-2 w-full">
+                          <div className="flex-1 min-w-0 overflow-hidden">
+                            <p className="font-mono text-xs text-gray-500 break-all">{pc.numero_pedido}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              {fab?.logomarca && (
+                                <img src={fab.logomarca} alt="Logo" className="w-8 h-8 object-contain rounded" />
+                              )}
+                              <div>
+                                <h3 className="font-semibold text-sm text-gray-900 break-words">{pc.fabricante_nome}</h3>
+                                {fab?.email && <p className="text-xs text-gray-500">{fab.email}</p>}
+                              </div>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">{new Date(pc.data_pedido).toLocaleDateString('pt-BR')}</p>
+                            <Badge className={`mt-1 ${statusColors[pc.status]}`}>
+                              {statusLabels[pc.status]}
+                            </Badge>
+                          </div>
+                          <div className="flex-shrink-0 text-right">
+                            <p className="font-bold text-green-700 text-sm">R$ {pc.total.toFixed(2)}</p>
+                            <p className="text-xs text-gray-500">{pc.itens.length} itens</p>
+                          </div>
                         </div>
-                        <div className="flex-shrink-0 text-right">
-                          <p className="font-bold text-green-700 text-sm">R$ {pc.total.toFixed(2)}</p>
-                          <p className="text-xs text-gray-500">{pc.itens.length} itens</p>
+                        <div className="flex flex-wrap gap-1 w-full pt-2 border-t">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleViewPedido(pc)}
+                            className="flex-1 h-8 text-xs"
+                          >
+                            <Eye className="w-3 h-3 mr-1" />
+                            Ver
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => generatePDF(pc)}
+                            className="flex-1 h-8 text-xs"
+                          >
+                            <FileText className="w-3 h-3 mr-1" />
+                            PDF
+                          </Button>
+                          {pc.status === 'pendente' ? (
+                            <Button
+                              size="sm"
+                              onClick={() => enviarEmailFabricante(pc)}
+                              className="flex-1 h-8 text-xs bg-green-600 hover:bg-green-700 text-white"
+                            >
+                              <Mail className="w-3 h-3 mr-1" />
+                              Enviar
+                            </Button>
+                          ) : (
+                            <Badge className="flex-1 bg-blue-100 text-blue-800 text-xs justify-center">Enviado</Badge>
+                          )}
                         </div>
                       </div>
-                      <div className="flex flex-wrap gap-1 w-full pt-2 border-t">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleViewPedido(pc)}
-                          className="flex-1 h-8 text-xs"
-                        >
-                          <Eye className="w-3 h-3 mr-1" />
-                          Ver
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => generatePDF(pc)}
-                          className="flex-1 h-8 text-xs"
-                        >
-                          <FileText className="w-3 h-3 mr-1" />
-                          PDF
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => enviarEmailFabricante(pc)}
-                          className="flex-1 h-8 text-xs"
-                          disabled={pc.status !== 'pendente'}
-                        >
-                          <Mail className="w-3 h-3 mr-1" />
-                          Email
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
+                    </CardContent>
+                  </Card>
+                );
+              })
             )
           )}
         </div>
