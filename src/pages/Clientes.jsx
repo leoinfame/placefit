@@ -432,14 +432,30 @@ export default function Clientes() {
 
     setSearchingCNPJ(true);
     try {
-      // Consultar API da Receita Federal (ReceitaWS é uma API pública)
-      const response = await fetch(`https://www.receitaws.com.br/v1/cnpj/${cnpjLimpo}`);
-      const data = await response.json();
+      // Usar InvokeLLM para consultar dados do CNPJ via web search
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Busque informações da empresa com CNPJ ${cnpjLimpo} no Brasil. Retorne um JSON com os seguintes campos: nome (ou fantasia), email, telefone, endereço (rua e número), bairro, cidade, estado (UF) e CEP. Se não encontrar algum campo, deixe vazio.`,
+        add_context_from_internet: true,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            nome: { type: "string" },
+            email: { type: "string" },
+            telefone: { type: "string" },
+            logradouro: { type: "string" },
+            numero: { type: "string" },
+            bairro: { type: "string" },
+            municipio: { type: "string" },
+            uf: { type: "string" },
+            cep: { type: "string" }
+          }
+        }
+      });
 
-      if (data.status === "ERROR") {
+      if (!result || !result.nome) {
         toast({
           title: "CNPJ não encontrado",
-          description: data.message || "Não foi possível encontrar dados para este CNPJ.",
+          description: "Não foi possível encontrar dados para este CNPJ.",
           variant: "destructive"
         });
         return;
@@ -448,13 +464,13 @@ export default function Clientes() {
       // Preencher formulário com dados retornados
       setFormData(prev => ({
         ...prev,
-        nome: data.nome || data.fantasia || prev.nome,
-        email: data.email || prev.email,
-        telefone: data.telefone || prev.telefone,
-        endereco: `${data.logradouro || ''}, ${data.numero || ''} - ${data.bairro || ''}`.trim(),
-        cidade: data.municipio || prev.cidade,
-        estado: data.uf || prev.estado,
-        cep: data.cep || prev.cep
+        nome: result.nome || prev.nome,
+        email: result.email || prev.email,
+        telefone: result.telefone || prev.telefone,
+        endereco: `${result.logradouro || ''}, ${result.numero || ''} - ${result.bairro || ''}`.trim(),
+        cidade: result.municipio || prev.cidade,
+        estado: result.uf || prev.estado,
+        cep: result.cep || prev.cep
       }));
 
       toast({
