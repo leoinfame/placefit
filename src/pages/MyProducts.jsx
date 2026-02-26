@@ -74,11 +74,17 @@ export default function MyProducts() {
         return;
       }
 
-      const [allProducts, supplierProductsData, unitsData] = await Promise.all([
-        base44.entities.Product.list(),
+      // Buscar produtos via backend function com service role para garantir permissões
+      const { getFabricanteProducts } = await import('@/functions/getFabricanteProducts');
+      
+      const [supplierProductsData, unitsData] = await Promise.all([
         base44.entities.SupplierProduct.filter({ supplier_id: currentUser.id }),
         base44.entities.Unit.list()
       ]);
+      
+      // Buscar todos os produtos via service role
+      const allProductsResponse = await base44.functions.invoke('getAllProducts');
+      const allProducts = allProductsResponse?.data?.products || [];
 
       // Filtrar apenas produtos ativos E aprovados (se forem de fabricantes)
       const productsData = allProducts.filter(p => {
