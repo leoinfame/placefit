@@ -56,6 +56,9 @@ Deno.serve(async (req) => {
             },
             brand: product.fabricante_nome || 'PlaceFit',
             condition: 'new',
+            channel: 'online',
+            contentLanguage: 'pt',
+            targetCountry: 'BR',
             shipping: [{
                 country: 'BR',
                 price: {
