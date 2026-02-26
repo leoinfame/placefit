@@ -320,6 +320,11 @@ export default function Layout({ children, currentPageName }) {
           title: "Convites",
           url: createPageUrl("Convite"),
           icon: Users,
+        },
+        {
+          title: "Versões",
+          url: createPageUrl("AdminVersions"),
+          icon: Package,
         }
       );
     } else if (effectiveUser.tipo_usuario === 'fabricante') {

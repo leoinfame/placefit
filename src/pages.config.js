@@ -58,6 +58,7 @@ import ClientesVendas from './pages/ClientesVendas';
 import Complementos from './pages/Complementos';
 import Convite from './pages/Convite';
 import Dashboard from './pages/Dashboard';
+import DocumentacaoTecnica from './pages/DocumentacaoTecnica';
 import Export from './pages/Export';
 import FabricanteProdutos from './pages/FabricanteProdutos';
 import Fabricantes from './pages/Fabricantes';
@@ -83,7 +84,7 @@ import Transportadores from './pages/Transportadores';
 import Units from './pages/Units';
 import Usuarios from './pages/Usuarios';
 import Vendas from './pages/Vendas';
-import DocumentacaoTecnica from './pages/DocumentacaoTecnica';
+import AdminVersions from './pages/AdminVersions';
 import __Layout from './Layout.jsx';
 
 
@@ -99,6 +100,7 @@ export const PAGES = {
     "Complementos": Complementos,
     "Convite": Convite,
     "Dashboard": Dashboard,
+    "DocumentacaoTecnica": DocumentacaoTecnica,
     "Export": Export,
     "FabricanteProdutos": FabricanteProdutos,
     "Fabricantes": Fabricantes,
@@ -124,7 +126,7 @@ export const PAGES = {
     "Units": Units,
     "Usuarios": Usuarios,
     "Vendas": Vendas,
-    "DocumentacaoTecnica": DocumentacaoTecnica,
+    "AdminVersions": AdminVersions,
 }
 
 export const pagesConfig = {
