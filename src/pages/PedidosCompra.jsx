@@ -134,6 +134,12 @@ export default function PedidosCompra() {
   const generatePDF = (pedido) => {
     const fabricante = fabricantes.find(f => f.id === pedido.fabricante_id);
 
+    // Debug: log dos dados
+    console.log('Pedido:', pedido);
+    console.log('Fabricante ID:', pedido.fabricante_id);
+    console.log('Fabricantes disponíveis:', fabricantes);
+    console.log('Fabricante encontrado:', fabricante);
+
     const htmlContent = `
       <!DOCTYPE html>
       <html>
