@@ -315,7 +315,7 @@ export default function Orcamentos() {
         });
       }
 
-      // Agrupar produtos por fabricante
+      // Agrupar produtos por fabricante para criar lista de pedidos pendentes
       const produtosPorFabricante = {};
       
       for (const item of orcamento.itens) {
@@ -341,7 +341,7 @@ export default function Orcamentos() {
         produtosPorFabricante[produto.fabricante_id].itens.push(itemParaFabricante);
       }
 
-      // Criar um pedido de compra para cada fabricante
+      // Criar pedidos de compra em estado "rascunho" (pendentes de envio)
       for (const fabricanteId in produtosPorFabricante) {
         const dadosFabricante = produtosPorFabricante[fabricanteId];
         const totalPedido = dadosFabricante.itens.reduce((sum, item) => sum + item.subtotal, 0);
@@ -357,15 +357,7 @@ export default function Orcamentos() {
           data_pedido: new Date().toISOString().split('T')[0],
           itens: dadosFabricante.itens,
           total: totalPedido,
-          status: 'pendente'
-        });
-        
-        // Criar notificação para o fabricante
-        await base44.entities.Notification.create({
-          supplier_id: fabricanteId,
-          tipo: 'mensagem_placefit',
-          mensagem: `Novo pedido de compra ${numeroPedido} recebido de ${user.empresa || user.full_name}! Total: R$ ${totalPedido.toFixed(2)}`,
-          lida: false
+          status: 'rascunho'  // Status rascunho até o revendedor enviar
         });
       }
 
@@ -375,7 +367,7 @@ export default function Orcamentos() {
       queryClient.invalidateQueries({ queryKey: ['orcamentos'] });
       toast({ 
         title: "Venda concluída!", 
-        description: "O orçamento foi convertido em venda, pedidos de compra gerados e oferta de frete registrada." 
+        description: "O orçamento foi convertido em venda. Acesse 'Pedidos de Compra' para revisar e enviar os pedidos aos fabricantes." 
       });
     },
   });
