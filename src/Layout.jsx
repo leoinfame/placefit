@@ -31,6 +31,7 @@ import {
   SidebarFooter,
   SidebarProvider,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import {
@@ -497,7 +498,48 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 to-blue-50 overflow-x-hidden">
+      <LayoutContent 
+        user={user} 
+        getEffectiveUser={getEffectiveUser}
+        getNavigationItems={getNavigationItems}
+        handleLogout={handleLogout}
+        handleInstallClick={handleInstallClick}
+        handleCloseBanner={handleCloseBanner}
+        showInstallBanner={showInstallBanner}
+        adminViewMode={adminViewMode}
+        handleAdminViewModeChange={handleAdminViewModeChange}
+        unreadNotifications={unreadNotifications}
+        currentPageName={currentPageName}
+        children={children}
+      />
+    </SidebarProvider>
+  );
+}
+
+function LayoutContent({ 
+  user, 
+  getEffectiveUser, 
+  getNavigationItems, 
+  handleLogout, 
+  handleInstallClick, 
+  handleCloseBanner, 
+  showInstallBanner, 
+  adminViewMode, 
+  handleAdminViewModeChange, 
+  unreadNotifications,
+  currentPageName,
+  children 
+}) {
+  const location = useLocation();
+  const { setOpen } = useSidebar();
+
+  const handleMenuItemClick = () => {
+    // Fechar sidebar ao clicar em um item (especialmente útil em mobile)
+    setOpen(false);
+  };
+
+  return (
+    <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 to-blue-50 overflow-x-hidden">
         <style>{`
           :root {
             --primary-blue: #1e40af;
@@ -555,7 +597,7 @@ export default function Layout({ children, currentPageName }) {
                             : ''
                         }`}
                       >
-                        <Link to={item.url} className="flex items-center gap-3 px-3 py-3">
+                        <Link to={item.url} onClick={handleMenuItemClick} className="flex items-center gap-3 px-3 py-3">
                           <item.icon className="w-4 h-4" />
                           <span className="font-medium">{item.title}</span>
                           {item.badge && (
@@ -723,6 +765,5 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </main>
       </div>
-    </SidebarProvider>
   );
 }
