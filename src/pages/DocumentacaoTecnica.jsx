@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { 
   Database, 
   Users, 
@@ -13,10 +14,314 @@ import {
   Bell,
   Layers,
   ArrowRight,
-  CheckCircle2
+  CheckCircle2,
+  Download
 } from "lucide-react";
+import jsPDF from "jspdf";
 
 export default function DocumentacaoTecnica() {
+  const [exporting, setExporting] = useState(false);
+
+  const exportToPDF = () => {
+    setExporting(true);
+    
+    try {
+      const doc = new jsPDF();
+      let y = 20;
+      const pageHeight = doc.internal.pageSize.height;
+      const margin = 20;
+      const lineHeight = 7;
+      
+      // Helper function para adicionar texto com quebra de linha
+      const addText = (text, size = 10, isBold = false) => {
+        if (y > pageHeight - margin) {
+          doc.addPage();
+          y = margin;
+        }
+        doc.setFontSize(size);
+        doc.setFont("helvetica", isBold ? "bold" : "normal");
+        const lines = doc.splitTextToSize(text, 170);
+        doc.text(lines, margin, y);
+        y += lines.length * lineHeight;
+      };
+
+      const addSpace = (space = 5) => {
+        y += space;
+      };
+
+      // Título
+      doc.setFontSize(22);
+      doc.setFont("helvetica", "bold");
+      doc.text("PlaceFit - Documentação Técnica", margin, y);
+      y += 15;
+      
+      doc.setFontSize(12);
+      doc.text("Arquitetura de Dados e Fluxos do Sistema", margin, y);
+      y += 10;
+      
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text("v1.0 - Atualizado em 26/02/2026", margin, y);
+      y += 20;
+
+      // Visão Geral
+      addText("VISÃO GERAL DO SISTEMA", 16, true);
+      addSpace(5);
+      
+      addText("O PlaceFit é uma plataforma B2B para o setor fitness que conecta três tipos de usuários: Revendedores, Fabricantes e Transportadoras. O sistema permite gerenciamento de catálogos, pedidos, clientes, fretes e atendimento via IA.");
+      addSpace(10);
+
+      addText("Tipos de Usuários:", 12, true);
+      addSpace(3);
+      addText("• Revendedores: Compram produtos de fabricantes e gerenciam vendas para clientes finais.");
+      addText("• Fabricantes: Cadastram produtos e recebem pedidos de compra dos revendedores.");
+      addText("• Transportadoras: Gerenciam rotas e oferecem fretes para os revendedores.");
+      addSpace(10);
+
+      addText("Stack Tecnológico:", 12, true);
+      addSpace(3);
+      addText("• Frontend: React, Tailwind CSS, shadcn/ui");
+      addText("• Backend: Base44 BaaS (Backend as a Service)");
+      addText("• Banco de Dados: Base44 Entities (NoSQL)");
+      addText("• Autenticação: Base44 Auth (Google OAuth)");
+      addText("• Funções Backend: Deno Deploy");
+      addText("• IA: Agentes com LLM para atendimento");
+      addSpace(15);
+
+      // Entidades
+      doc.addPage();
+      y = margin;
+      addText("ENTIDADES DO SISTEMA", 16, true);
+      addSpace(10);
+
+      // User
+      addText("1. User (Usuários)", 14, true);
+      addSpace(3);
+      addText("Entidade principal que armazena todos os usuários do sistema.");
+      addSpace(3);
+      addText("Campos principais:", 11, true);
+      addText("• role: Enum 'admin' ou 'user'");
+      addText("• tipo_usuario: 'fabricante' ou 'transportador' (undefined = revendedor)");
+      addText("• empresa, cnpj, endereco, whatsapp, site, logomarca");
+      addText("• aprovado: boolean (default: false)");
+      addText("• historia_empresa, formas_pagamento, prazo_entrega, politica_troca");
+      addSpace(8);
+
+      // Product
+      addText("2. Product (Produtos)", 14, true);
+      addSpace(3);
+      addText("Catálogo de produtos criados por admins ou fabricantes.");
+      addSpace(3);
+      addText("Campos principais:", 11, true);
+      addText("• nome, cod (SKU), peso, dimensoes");
+      addText("• und: Enum (peça, par, kg, metro, litro, caixa)");
+      addText("• categoria: Enum (Cardiovascular, Musculação, Funcional, etc)");
+      addText("• ativo: boolean (default: true)");
+      addText("• fabricante_id, fabricante_nome");
+      addText("• aprovado_produto: boolean (default: false)");
+      addText("• preco_fabricante: number");
+      addSpace(8);
+
+      // SupplierProduct
+      addText("3. SupplierProduct (Produtos do Revendedor)", 14, true);
+      addSpace(3);
+      addText("Relaciona produtos com revendedores, incluindo preços customizados.");
+      addSpace(3);
+      addText("Campos principais:", 11, true);
+      addText("• supplier_id (User.id), product_id (Product.id)");
+      addText("• preco: number");
+      addText("• disponivel: boolean (default: true)");
+      addSpace(8);
+
+      // Cliente
+      addText("4. Cliente (Clientes)", 14, true);
+      addSpace(3);
+      addText("Clientes finais dos revendedores e fabricantes.");
+      addSpace(3);
+      addText("Campos principais:", 11, true);
+      addText("• fornecedor_id, nome, cpf_cnpj, email, telefone");
+      addText("• endereco, cidade, estado, cep");
+      addText("• ativo: boolean (default: true)");
+      addSpace(8);
+
+      // Pedido
+      addText("5. Pedido (Orçamentos e Vendas)", 14, true);
+      addSpace(3);
+      addText("Pedidos criados por revendedores/fabricantes para clientes.");
+      addSpace(3);
+      addText("Campos principais:", 11, true);
+      addText("• fornecedor_id, cliente_id, numero_pedido, data_pedido");
+      addText("• tipo: Enum 'orcamento' ou 'venda'");
+      addText("• itens: Array (product_id, quantidade, preco_unitario, subtotal)");
+      addText("• subtotal, frete, desconto, total");
+      addText("• status: Enum (pendente, confirmado, em_separacao, enviado, entregue, cancelado)");
+      addSpace(8);
+
+      // PedidoCompra
+      doc.addPage();
+      y = margin;
+      addText("6. PedidoCompra (Pedidos de Compra)", 14, true);
+      addSpace(3);
+      addText("Pedidos que revendedores fazem para fabricantes.");
+      addSpace(3);
+      addText("Campos principais:", 11, true);
+      addText("• revendedor_id, fabricante_id, venda_id");
+      addText("• itens: Array (product_id, quantidade, preco_unitario, subtotal)");
+      addText("• total, numero_pedido, data_pedido");
+      addText("• status: Enum (pendente, enviado, confirmado, em_producao, despachado, recebido, cancelado)");
+      addSpace(8);
+
+      // TransportadorRota
+      addText("7. TransportadorRota (Rotas de Transporte)", 14, true);
+      addSpace(3);
+      addText("Rotas gerenciadas pelas transportadoras.");
+      addSpace(3);
+      addText("Campos principais:", 11, true);
+      addText("• transportador_id, estado (UF), cidades");
+      addText("• periodicidade, dias_carregamento");
+      addText("• ativo: boolean (default: true)");
+      addSpace(8);
+
+      // FreightOffer
+      addText("8. FreightOffer (Ofertas de Frete)", 14, true);
+      addSpace(3);
+      addText("Ofertas de frete para destinos específicos.");
+      addSpace(3);
+      addText("Campos principais:", 11, true);
+      addText("• supplier_id, cidade, estado, peso_total");
+      addText("• valor_ofertado, observacoes");
+      addText("• ativo: boolean (default: true)");
+      addSpace(8);
+
+      // Notification
+      addText("9. Notification (Notificações)", 14, true);
+      addSpace(3);
+      addText("Sistema de notificações para fornecedores.");
+      addSpace(3);
+      addText("Campos principais:", 11, true);
+      addText("• supplier_id, tipo, produto_id, fabricante_id");
+      addText("• mensagem, preco_antigo, preco_novo");
+      addText("• lida: boolean (default: false)");
+      addSpace(8);
+
+      // AIKnowledge
+      addText("10. AIKnowledge (Base de Conhecimento IA)", 14, true);
+      addSpace(3);
+      addText("Base de conhecimento para agente de IA.");
+      addSpace(3);
+      addText("Campos principais:", 11, true);
+      addText("• fabricante_id ou supplier_id");
+      addText("• titulo, conteudo");
+      addText("• categoria: Enum (Produtos, Fornecedores, Frete, Políticas, FAQ, Arquivos, Outros)");
+      addText("• ativo: boolean (default: true)");
+      addSpace(8);
+
+      // ChatHistory
+      addText("11. ChatHistory (Histórico de Chat)", 14, true);
+      addSpace(3);
+      addText("Histórico de conversas com agente de IA.");
+      addSpace(3);
+      addText("Campos principais:", 11, true);
+      addText("• fabricante_id, user_message, agent_response");
+      addText("• feedback: Enum (pendente, aprovado, inadequado)");
+      addText("• correcao, observacoes");
+      addSpace(10);
+
+      // Fluxos
+      doc.addPage();
+      y = margin;
+      addText("FLUXOS PRINCIPAIS DO SISTEMA", 16, true);
+      addSpace(10);
+
+      addText("1. Cadastro e Aprovação de Usuários", 13, true);
+      addSpace(3);
+      addText("1. Login com Google OAuth → 2. Registro em User (aprovado=false) → 3. Preenchimento de dados → 4. Admin aprova → 5. Acesso liberado");
+      addSpace(8);
+
+      addText("2. Gestão de Produtos", 13, true);
+      addSpace(3);
+      addText("Admin cria produtos aprovados. Fabricante cria pendentes. Admin aprova. Sistema notifica revendedores.");
+      addSpace(8);
+
+      addText("3. Revendedor Adiciona Produtos", 13, true);
+      addSpace(3);
+      addText("Acessa Catálogo → Adiciona à tabela → Define preço → Cria SupplierProduct → Produto em Meus Produtos");
+      addSpace(8);
+
+      addText("4. Orçamento e Venda", 13, true);
+      addSpace(3);
+      addText("Seleciona Cliente → Adiciona produtos → Calcula total → Cria Pedido (orcamento) → Confirma → tipo='venda'");
+      addSpace(8);
+
+      addText("5. Pedido de Compra", 13, true);
+      addSpace(3);
+      addText("Venda confirmada → Agrupa por fabricante → Cria PedidoCompra → Fabricante recebe → Atualiza status");
+      addSpace(8);
+
+      addText("6. Gestão de Frete", 13, true);
+      addSpace(3);
+      addText("Transportadora cria rotas → Fornecedor cria ofertas → Sistema consulta ao criar orçamento → Aplica valor");
+      addSpace(8);
+
+      addText("7. Sistema de Notificações", 13, true);
+      addSpace(3);
+      addText("Evento ocorre → Cria Notification → Badge no menu → Usuário acessa e marca como lida");
+      addSpace(8);
+
+      addText("8. Atendente IA", 13, true);
+      addSpace(3);
+      addText("Alimenta AIKnowledge → Cliente abre chat → Sistema busca contexto → Envia para LLM → Salva em ChatHistory");
+      addSpace(10);
+
+      // Integrações
+      doc.addPage();
+      y = margin;
+      addText("INTEGRAÇÕES E BACKEND", 16, true);
+      addSpace(10);
+
+      addText("Backend Functions:", 13, true);
+      addSpace(3);
+      addText("• getFabricantes.js: Busca fabricantes aprovados (service role)");
+      addText("• getFabricanteProducts.js: Produtos de fabricante específico (service role)");
+      addSpace(8);
+
+      addText("Core Integrations (Base44):", 13, true);
+      addSpace(3);
+      addText("• Core.InvokeLLM: Invoca IA para atendente virtual");
+      addText("• Core.SendEmail: Envia emails transacionais");
+      addText("• Core.UploadFile: Upload de arquivos (fotos, logos)");
+      addText("• Core.GenerateImage: Geração de imagens com IA");
+      addText("• Core.ExtractDataFromUploadedFile: Importação CSV/Excel");
+      addSpace(8);
+
+      addText("Autenticação:", 13, true);
+      addSpace(3);
+      addText("• Google OAuth via Base44 Auth");
+      addText("• base44.auth.me(), updateMe(), logout()");
+      addText("• base44.users.inviteUser() para convites");
+      addSpace(8);
+
+      addText("Segurança:", 13, true);
+      addSpace(3);
+      addText("• User: Apenas admins gerenciam outros usuários");
+      addText("• Service Role: Backend functions com acesso elevado");
+      addText("• Demais entidades: Acesso público (controlado por lógica)");
+      addSpace(10);
+
+      // Footer
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "italic");
+      doc.text("PlaceFit - Plataforma B2B para Fitness", margin, pageHeight - 15);
+      doc.text("Documentação Técnica v1.0 - Fevereiro 2026", margin, pageHeight - 10);
+
+      doc.save("PlaceFit_Documentacao_Tecnica.pdf");
+    } catch (error) {
+      console.error("Erro ao exportar PDF:", error);
+      alert("Erro ao exportar PDF: " + error.message);
+    } finally {
+      setExporting(false);
+    }
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -28,7 +333,17 @@ export default function DocumentacaoTecnica() {
           </div>
           <h2 className="text-2xl font-semibold text-gray-700">Documentação Técnica</h2>
           <p className="text-gray-600">Arquitetura de Dados e Fluxos do Sistema</p>
-          <Badge className="bg-green-600">v1.0 - Atualizado em 26/02/2026</Badge>
+          <div className="flex items-center justify-center gap-4">
+            <Badge className="bg-green-600">v1.0 - Atualizado em 26/02/2026</Badge>
+            <Button
+              onClick={exportToPDF}
+              disabled={exporting}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              {exporting ? "Exportando..." : "Exportar PDF"}
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="visao-geral" className="w-full">
