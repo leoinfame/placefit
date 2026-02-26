@@ -541,7 +541,8 @@ function LayoutContent({
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [location.pathname, open, setOpen]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, setOpen]);
 
   const handleMenuClick = () => {
     setOpen(false);
