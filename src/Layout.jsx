@@ -531,12 +531,14 @@ function LayoutContent({
   children 
 }) {
   const location = useLocation();
-  const { setOpen } = useSidebar();
+  const { setOpen, isMobile } = useSidebar();
 
-  const handleMenuItemClick = () => {
-    // Fechar sidebar ao clicar em um item (especialmente útil em mobile)
-    setOpen(false);
-  };
+  // Fechar sidebar automaticamente ao mudar de rota no mobile
+  useEffect(() => {
+    if (isMobile) {
+      setOpen(false);
+    }
+  }, [location.pathname, isMobile, setOpen]);
 
   return (
     <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 to-blue-50 overflow-x-hidden">
@@ -597,7 +599,7 @@ function LayoutContent({
                             : ''
                         }`}
                       >
-                        <Link to={item.url} onClick={handleMenuItemClick} className="flex items-center gap-3 px-3 py-3">
+                        <Link to={item.url} className="flex items-center gap-3 px-3 py-3">
                           <item.icon className="w-4 h-4" />
                           <span className="font-medium">{item.title}</span>
                           {item.badge && (
