@@ -533,18 +533,15 @@ function LayoutContent({
   const location = useLocation();
   const { setOpen, open } = useSidebar();
 
-  // Fechar sidebar ao mudar de rota apenas se estiver aberto
+  // Fechar sidebar ao mudar de rota (em todos os níveis de acesso)
   React.useEffect(() => {
-    if (open) {
-      const timer = setTimeout(() => {
-        setOpen(false);
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Sempre fecha o menu quando a rota muda
+    setOpen(false);
   }, [location.pathname, setOpen]);
 
+  // Handler para fechar menu ao clicar em item (especialmente para mobile)
   const handleMenuClick = () => {
+    // Fechar imediatamente em mobile/drawer mode
     setOpen(false);
   };
 
@@ -679,8 +676,10 @@ function LayoutContent({
           <header className="bg-white/80 backdrop-blur-xl border-b border-white/20 px-6 py-4">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-4 lg:hidden">
-                <SidebarTrigger>
-                  <Menu className="w-6 h-6" />
+                <SidebarTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-10 w-10">
+                    <Menu className="w-6 h-6" />
+                  </Button>
                 </SidebarTrigger>
                 <h1 className="text-xl font-semibold text-gray-900">PlaceFit</h1>
               </div>
