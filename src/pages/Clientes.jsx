@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Users, Search, Mail, Phone, Calendar, Eye, Download, Upload, FileSpreadsheet, CheckCircle, AlertCircle, Plus, Edit3, Trash2, MapPin, X } from "lucide-react";
+import { Users, Search, Mail, Phone, Calendar, Eye, Download, Upload, FileSpreadsheet, CheckCircle, AlertCircle, Plus, Edit3, Trash2, MapPin, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -37,6 +37,7 @@ export default function Clientes() {
   const [activeTab, setActiveTab] = useState("clientes");
   const [showDialog, setShowDialog] = useState(false);
   const [editingCliente, setEditingCliente] = useState(null);
+  const [searchingCNPJ, setSearchingCNPJ] = useState(false);
   const [formData, setFormData] = useState({
     nome: "",
     cpf_cnpj: "",
@@ -413,6 +414,69 @@ export default function Clientes() {
       ativo: true
     });
     setEditingCliente(null);
+  };
+
+  const buscarDadosCNPJ = async (cnpj) => {
+    // Limpar formatação do CNPJ
+    const cnpjLimpo = cnpj.replace(/[^\d]/g, '');
+    
+    // Validar se tem 14 dígitos
+    if (cnpjLimpo.length !== 14) {
+      toast({
+        title: "CNPJ inválido",
+        description: "O CNPJ deve ter 14 dígitos.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setSearchingCNPJ(true);
+    try {
+      // Consultar API da Receita Federal (ReceitaWS é uma API pública)
+      const response = await fetch(`https://www.receitaws.com.br/v1/cnpj/${cnpjLimpo}`);
+      const data = await response.json();
+
+      if (data.status === "ERROR") {
+        toast({
+          title: "CNPJ não encontrado",
+          description: data.message || "Não foi possível encontrar dados para este CNPJ.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Preencher formulário com dados retornados
+      setFormData(prev => ({
+        ...prev,
+        nome: data.nome || data.fantasia || prev.nome,
+        email: data.email || prev.email,
+        telefone: data.telefone || prev.telefone,
+        endereco: `${data.logradouro || ''}, ${data.numero || ''} - ${data.bairro || ''}`.trim(),
+        cidade: data.municipio || prev.cidade,
+        estado: data.uf || prev.estado,
+        cep: data.cep || prev.cep
+      }));
+
+      toast({
+        title: "Dados encontrados!",
+        description: "Os campos foram preenchidos automaticamente com base no CNPJ.",
+      });
+
+    } catch (error) {
+      console.error("Erro ao buscar CNPJ:", error);
+      toast({
+        title: "Erro na consulta",
+        description: "Não foi possível consultar o CNPJ. Tente novamente.",
+        variant: "destructive"
+      });
+    }
+    setSearchingCNPJ(false);
+  };
+
+  const handleCNPJBlur = () => {
+    if (formData.cpf_cnpj && formData.cpf_cnpj.replace(/[^\d]/g, '').length === 14) {
+      buscarDadosCNPJ(formData.cpf_cnpj);
+    }
   };
 
   if (loading) {
@@ -869,12 +933,24 @@ export default function Clientes() {
 
                <div>
                  <Label htmlFor="cpf_cnpj">CPF/CNPJ</Label>
-                 <Input
-                   id="cpf_cnpj"
-                   value={formData.cpf_cnpj}
-                   onChange={(e) => setFormData({ ...formData, cpf_cnpj: e.target.value })}
-                   placeholder="000.000.000-00"
-                 />
+                 <div className="relative">
+                   <Input
+                     id="cpf_cnpj"
+                     value={formData.cpf_cnpj}
+                     onChange={(e) => setFormData({ ...formData, cpf_cnpj: e.target.value })}
+                     onBlur={handleCNPJBlur}
+                     placeholder="00.000.000/0000-00"
+                     disabled={searchingCNPJ}
+                   />
+                   {searchingCNPJ && (
+                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                       <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                     </div>
+                   )}
+                 </div>
+                 <p className="text-xs text-gray-500 mt-1">
+                   Digite um CNPJ válido para preencher automaticamente
+                 </p>
                </div>
 
                <div>
