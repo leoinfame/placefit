@@ -289,6 +289,11 @@ export default function Layout({ children, currentPageName }) {
           icon: Package,
         },
         {
+          title: "  • China",
+          url: createPageUrl("FabricantesChina"),
+          icon: Globe,
+        },
+        {
           title: "Transportadoras",
           url: createPageUrl("Transportadores"),
           icon: Dumbbell,
