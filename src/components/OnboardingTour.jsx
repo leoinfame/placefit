@@ -173,7 +173,7 @@ export default function OnboardingTour({ onClose, tipoUsuario = "revendedor" }) 
           </Button>
 
           <div className="flex gap-1.5">
-            {TOUR_STEPS.map((_, i) => (
+            {tourSteps.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setStep(i)}
