@@ -247,14 +247,17 @@ export default function FabricantesChina() {
                             </div>
                           </div>
 
-                          {/* Pedidos em trânsito */}
-                          <div className="flex items-center gap-3">
+                          {/* Pedidos em trânsito + Ações */}
+                          <div className="flex items-center gap-2 flex-wrap">
                             {pedidosFab.length > 0 && (
                               <Badge className="bg-purple-100 text-purple-800 border-0">
                                 <Truck className="w-3.5 h-3.5 mr-1" />
                                 {pedidosFab.length} pedido{pedidosFab.length > 1 ? "s" : ""} ativo{pedidosFab.length > 1 ? "s" : ""}
                               </Badge>
                             )}
+                            <Button variant="ghost" size="icon" title="Informações da Fábrica" onClick={() => setInfoFab(fab)}>
+                              <Info className="w-4 h-4 text-blue-500" />
+                            </Button>
                             <Button variant="ghost" size="icon" onClick={() => handleEdit(fab)}>
                               <Edit className="w-4 h-4" />
                             </Button>
