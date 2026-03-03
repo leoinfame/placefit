@@ -71,6 +71,15 @@ export default function ProdutosChinaForm({ fabricante }) {
     setShowForm(true);
   };
 
+  const handleUploadFoto = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingFoto(true);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    setForm(f => ({ ...f, foto: file_url }));
+    setUploadingFoto(false);
+  };
+
   const handleDelete = async (id) => {
     if (!confirm("Remover este produto?")) return;
     await base44.entities.Product.delete(id);
