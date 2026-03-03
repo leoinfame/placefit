@@ -341,6 +341,9 @@ export default function FabricantesChina() {
                         <td className="p-3 font-medium text-green-700">
                           {p.valor_total_brl ? `R$ ${p.valor_total_brl.toLocaleString("pt-BR", {minimumFractionDigits:2})}` : "—"}
                         </td>
+                        <td className="p-3">
+                          <ExportDocsGenerator pedido={p} taxaCambio={taxaCambio} onUpdate={loadData} />
+                        </td>
                       </tr>
                     ))}
                   </tbody>
