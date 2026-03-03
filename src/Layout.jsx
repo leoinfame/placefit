@@ -554,13 +554,15 @@ function LayoutContent({
   const location = useLocation();
   const { setOpen, open } = useSidebar();
 
-  // Fechar sidebar ao mudar de rota (em todos os níveis de acesso)
+  // Fechar sidebar ao mudar de rota apenas em mobile
   const previousPathRef = React.useRef(location.pathname);
   
   React.useEffect(() => {
-    // Só fecha se a rota realmente mudou (não no mount inicial)
     if (previousPathRef.current !== location.pathname) {
-      setOpen(false);
+      // Só fecha em telas pequenas (modo drawer/mobile)
+      if (window.innerWidth < 768) {
+        setOpen(false);
+      }
     }
     previousPathRef.current = location.pathname;
   }, [location.pathname, setOpen]);
