@@ -53,6 +53,7 @@ export default function FabricantesChina() {
   const [loadingCambio, setLoadingCambio] = useState(false);
   const [expandedFab, setExpandedFab] = useState(null);
   const [infoFab, setInfoFab] = useState(null);
+  const [chatFab, setChatFab] = useState(null);
 
   useEffect(() => {
     loadData();
