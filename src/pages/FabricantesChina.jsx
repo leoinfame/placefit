@@ -192,6 +192,9 @@ export default function FabricantesChina() {
           <TabsList>
             <TabsTrigger value="fabricantes">Fabricantes</TabsTrigger>
             <TabsTrigger value="transito">Pedidos em Trânsito</TabsTrigger>
+            <TabsTrigger value="saude">
+              <BarChart2 className="w-3.5 h-3.5 mr-1" /> Saúde da Importação
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="fabricantes" className="mt-4">
