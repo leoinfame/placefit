@@ -82,10 +82,11 @@ import PublicTable from './pages/PublicTable';
 import Suppliers from './pages/Suppliers';
 import TransportadorRotas from './pages/TransportadorRotas';
 import Transportadores from './pages/Transportadores';
+import Treinamento from './pages/Treinamento';
 import Units from './pages/Units';
 import Usuarios from './pages/Usuarios';
 import Vendas from './pages/Vendas';
-import Treinamento from './pages/Treinamento';
+import Suporte from './pages/Suporte';
 import __Layout from './Layout.jsx';
 
 
@@ -125,10 +126,11 @@ export const PAGES = {
     "Suppliers": Suppliers,
     "TransportadorRotas": TransportadorRotas,
     "Transportadores": Transportadores,
+    "Treinamento": Treinamento,
     "Units": Units,
     "Usuarios": Usuarios,
     "Vendas": Vendas,
-    "Treinamento": Treinamento,
+    "Suporte": Suporte,
 }
 
 export const pagesConfig = {
