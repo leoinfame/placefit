@@ -87,6 +87,7 @@ import Treinamento from './pages/Treinamento';
 import Units from './pages/Units';
 import Usuarios from './pages/Usuarios';
 import Vendas from './pages/Vendas';
+import FabricantesChina from './pages/FabricantesChina';
 import __Layout from './Layout.jsx';
 
 
@@ -131,6 +132,7 @@ export const PAGES = {
     "Units": Units,
     "Usuarios": Usuarios,
     "Vendas": Vendas,
+    "FabricantesChina": FabricantesChina,
 }
 
 export const pagesConfig = {
