@@ -452,6 +452,11 @@ export default function Layout({ children, currentPageName }) {
           title: "Vendas",
           url: createPageUrl("Vendas"),
           icon: ShoppingCart,
+        },
+        {
+          title: "Suporte",
+          url: createPageUrl("Suporte"),
+          icon: HelpCircle,
         }
       );
     }
