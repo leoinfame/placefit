@@ -221,9 +221,23 @@ export default function ProdutosChinaForm({ fabricante }) {
               </Select>
             </div>
             <div className="col-span-2">
-              <Label>URL da Foto</Label>
-              <Input value={form.foto} onChange={e => setForm({...form, foto: e.target.value})}
-                placeholder="https://..." className="mt-1" />
+              <Label>Foto do Produto</Label>
+              <div className="mt-1 flex items-center gap-2">
+                <Input value={form.foto} onChange={e => setForm({...form, foto: e.target.value})}
+                  placeholder="Cole URL ou faça upload →" className="flex-1" />
+                <label className="cursor-pointer">
+                  <input type="file" accept="image/*" className="hidden" onChange={handleUploadFoto} />
+                  <Button type="button" variant="outline" size="sm" disabled={uploadingFoto} asChild>
+                    <span>
+                      <Upload className="w-4 h-4 mr-1" />
+                      {uploadingFoto ? "..." : "Upload"}
+                    </span>
+                  </Button>
+                </label>
+              </div>
+              {form.foto && (
+                <img src={form.foto} alt="preview" className="mt-2 h-20 rounded-lg object-cover border" />
+              )}
             </div>
           </div>
 
