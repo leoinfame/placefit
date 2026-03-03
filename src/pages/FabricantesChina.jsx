@@ -268,6 +268,23 @@ export default function FabricantesChina() {
                             📋 {fab.notas_verificacao}
                           </div>
                         )}
+
+                        {/* Produtos desta fábrica */}
+                        <div className="mt-3">
+                          <button
+                            onClick={() => setExpandedFab(expandedFab === fab.id ? null : fab.id)}
+                            className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                          >
+                            <Package className="w-4 h-4" />
+                            Gerenciar Produtos desta Fábrica
+                            {expandedFab === fab.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                          </button>
+                          {expandedFab === fab.id && (
+                            <div className="mt-3 pt-3 border-t border-gray-100">
+                              <ProdutosChinaForm fabricante={fab} />
+                            </div>
+                          )}
+                        </div>
                       </CardContent>
                     </Card>
                   );
