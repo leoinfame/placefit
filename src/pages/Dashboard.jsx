@@ -31,6 +31,7 @@ export default function Dashboard() {
   });
   const [loading, setLoading] = useState(true);
   const [recentActivity, setRecentActivity] = useState([]);
+  const [showTour, setShowTour] = useState(false);
 
   const { toast } = useToast();
 
