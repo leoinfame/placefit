@@ -106,12 +106,18 @@ export default function Dashboard() {
       
       setUser(currentUser);
 
-      // Mostrar tour apenas para revendedores no primeiro acesso
-      if (
+      // Mostrar tour para usuários não aprovados (sempre) ou no primeiro acesso
+      if (currentUser.role === 'user' && !currentUser.tipo_usuario) {
+        // Revendedor: mostrar se não aprovado OU se for primeiro acesso
+        if (!currentUser.aprovado || !localStorage.getItem('placefit_tour_done')) {
+          setShowTour(true);
+        }
+      } else if (
         currentUser.role === 'user' &&
-        !currentUser.tipo_usuario &&
-        !localStorage.getItem('placefit_tour_done')
+        (currentUser.tipo_usuario === 'fabricante' || currentUser.tipo_usuario === 'transportador') &&
+        !currentUser.aprovado
       ) {
+        // Fabricante/Transportador: mostrar enquanto não aprovado
         setShowTour(true);
       }
 
