@@ -22,6 +22,7 @@ export default function ProdutosChinaForm({ fabricante }) {
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState(null);
   const [form, setForm] = useState(EMPTY);
+  const [uploadingFoto, setUploadingFoto] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
