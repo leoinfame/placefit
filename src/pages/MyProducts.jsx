@@ -80,11 +80,13 @@ export default function MyProducts() {
         return;
       }
 
-      const [allProducts, supplierProductsData, unitsData] = await Promise.all([
+      const [allProducts, supplierProductsData, unitsData, chinafabs] = await Promise.all([
         base44.entities.Product.list(),
         base44.entities.SupplierProduct.filter({ supplier_id: currentUser.id }),
-        base44.entities.Unit.list()
+        base44.entities.Unit.list(),
+        base44.entities.FabricanteChina.list()
       ]);
+      setFabricantesChina(chinafabs);
 
       // Filtrar apenas produtos ativos E aprovados (se forem de fabricantes)
       const productsData = allProducts.filter(p => {
