@@ -901,21 +901,40 @@ export default function MyProducts() {
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              {fabricanteNome ? (
-                                <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700">
-                                  {fabricanteNome}
-                                </Badge>
-                              ) : (
-                                <Badge variant="outline" className="text-xs bg-green-50 text-green-700">
-                                  PlaceFit
-                                </Badge>
-                              )}
+                              <div className="flex flex-col gap-1">
+                                {fabricanteNome ? (
+                                  <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 w-fit">
+                                    {fabricanteNome}
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-xs bg-green-50 text-green-700 w-fit">
+                                    PlaceFit
+                                  </Badge>
+                                )}
+                                {product.origem === "china" && (
+                                  <InternationalProductBadge product={product} />
+                                )}
+                              </div>
                             </TableCell>
                             <TableCell className="text-right">
                               {precoSugerido ? (
-                                <span className="text-sm font-semibold text-green-600">
-                                  R$ {precoSugerido.toFixed(2)}
-                                </span>
+                                <div className="flex flex-col items-end gap-1">
+                                  <span className="text-sm font-semibold text-green-600">
+                                    R$ {precoSugerido.toFixed(2)}
+                                  </span>
+                                  {product.origem === "china" && (
+                                    <button
+                                      className="text-[10px] text-blue-600 hover:underline flex items-center gap-1"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setPreOrdemItems([{ ...product, quantidade: 1 }]);
+                                        setShowPreOrdem(true);
+                                      }}
+                                    >
+                                      <Ship className="w-3 h-3" /> Pré-Ordem
+                                    </button>
+                                  )}
+                                </div>
                               ) : (
                                 <span className="text-xs text-gray-400">-</span>
                               )}
