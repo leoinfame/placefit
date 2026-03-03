@@ -106,6 +106,15 @@ export default function Dashboard() {
       
       setUser(currentUser);
 
+      // Mostrar tour apenas para revendedores no primeiro acesso
+      if (
+        currentUser.role === 'user' &&
+        !currentUser.tipo_usuario &&
+        !localStorage.getItem('placefit_tour_done')
+      ) {
+        setShowTour(true);
+      }
+
       const products = await base44.entities.Product.list();
       const suppliers = await base44.entities.User.filter({ role: 'user' });
 
