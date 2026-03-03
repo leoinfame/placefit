@@ -50,6 +50,7 @@ export default function FabricantesChina() {
   const [taxaCambio, setTaxaCambio] = useState({ RMB: null, USD: null });
   const [loadingCambio, setLoadingCambio] = useState(false);
   const [expandedFab, setExpandedFab] = useState(null);
+  const [infoFab, setInfoFab] = useState(null);
 
   useEffect(() => {
     loadData();
