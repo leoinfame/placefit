@@ -16,7 +16,8 @@ import {
   Users,
   Smartphone,
   X,
-  Bell
+  Bell,
+  HelpCircle
 } from "lucide-react";
 import {
   Sidebar,
