@@ -10,9 +10,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Plus, Search, Star, Package, Truck, Globe, ExternalLink, Edit, Trash2, RefreshCw, ChevronDown, ChevronUp, Info, MapPin, Mail, MessageCircle, Phone, Clock, Tag
+  Plus, Search, Star, Package, Truck, Globe, ExternalLink, Edit, Trash2, RefreshCw, ChevronDown, ChevronUp, Info, MapPin, Mail, MessageCircle, Phone, Clock, Tag, BarChart2
 } from "lucide-react";
 import ProdutosChinaForm from "@/components/china/ProdutosChinaForm";
+import ChatFabricanteChina from "@/components/china/ChatFabricanteChina";
+import SaudeImportacaoDashboard from "@/components/china/SaudeImportacaoDashboard";
 
 const HUBS = ["Shandong", "Ningbo", "Shenzhen", "Guangzhou"];
 const STATUS_COLORS = {
