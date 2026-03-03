@@ -302,6 +302,11 @@ export default function Layout({ children, currentPageName }) {
           icon: TrendingUp,
         },
         {
+          title: "  • Saúde da Importação",
+          url: createPageUrl("SaudeImportacao"),
+          icon: Ship,
+        },
+        {
           title: "Compras Internacionais",
           url: createPageUrl("ComprasInternacionais"),
           icon: Ship,
