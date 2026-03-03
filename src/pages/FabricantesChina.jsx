@@ -15,6 +15,7 @@ import {
 import ProdutosChinaForm from "@/components/china/ProdutosChinaForm";
 import ChatFabricanteChina from "@/components/china/ChatFabricanteChina";
 import SaudeImportacaoDashboard from "@/components/china/SaudeImportacaoDashboard";
+import ExportDocsGenerator from "@/components/china/ExportDocsGenerator";
 
 const HUBS = ["Shandong", "Ningbo", "Shenzhen", "Guangzhou"];
 const STATUS_COLORS = {

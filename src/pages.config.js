@@ -82,6 +82,7 @@ import PublicRegister from './pages/PublicRegister';
 import PublicRegisterFabricante from './pages/PublicRegisterFabricante';
 import PublicRegisterTransportador from './pages/PublicRegisterTransportador';
 import PublicTable from './pages/PublicTable';
+import SaudeImportacao from './pages/SaudeImportacao';
 import Suporte from './pages/Suporte';
 import Suppliers from './pages/Suppliers';
 import TransportadorRotas from './pages/TransportadorRotas';
@@ -90,7 +91,6 @@ import Treinamento from './pages/Treinamento';
 import Units from './pages/Units';
 import Usuarios from './pages/Usuarios';
 import Vendas from './pages/Vendas';
-import SaudeImportacao from './pages/SaudeImportacao';
 import __Layout from './Layout.jsx';
 
 
@@ -130,6 +130,7 @@ export const PAGES = {
     "PublicRegisterFabricante": PublicRegisterFabricante,
     "PublicRegisterTransportador": PublicRegisterTransportador,
     "PublicTable": PublicTable,
+    "SaudeImportacao": SaudeImportacao,
     "Suporte": Suporte,
     "Suppliers": Suppliers,
     "TransportadorRotas": TransportadorRotas,
@@ -138,7 +139,6 @@ export const PAGES = {
     "Units": Units,
     "Usuarios": Usuarios,
     "Vendas": Vendas,
-    "SaudeImportacao": SaudeImportacao,
 }
 
 export const pagesConfig = {
