@@ -295,6 +295,11 @@ export default function Layout({ children, currentPageName }) {
           icon: Globe,
         },
         {
+          title: "Compras Internacionais",
+          url: createPageUrl("ComprasInternacionais"),
+          icon: Ship,
+        },
+        {
           title: "Transportadoras",
           url: createPageUrl("Transportadores"),
           icon: Dumbbell,
