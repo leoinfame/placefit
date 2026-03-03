@@ -17,7 +17,8 @@ import {
   Smartphone,
   X,
   Bell,
-  HelpCircle
+  HelpCircle,
+  Globe
 } from "lucide-react";
 import {
   Sidebar,
