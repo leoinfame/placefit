@@ -208,12 +208,14 @@ export default function AtualizacoesMercadoChina() {
     setLoading(true);
     const currentUser = await base44.auth.me();
     setUser(currentUser);
-    const [prods, fabs, sp] = await Promise.all([
-      base44.entities.Product.filter({ origem: "china" }),
+    const [allProds, fabs, sp] = await Promise.all([
+      base44.entities.Product.list(),
       base44.entities.FabricanteChina.list(),
       base44.entities.SupplierProduct.filter({ supplier_id: currentUser.id }),
     ]);
-    setProdutos(prods.filter(p => p.ativo !== false));
+    // Filtrar produtos chineses no client-side (mais confiável que filter por enum)
+    const prods = allProds.filter(p => p.origem === "china" && p.ativo !== false);
+    setProdutos(prods);
     setFabricantes(fabs);
     setSupplierProducts(sp);
     setLoading(false);
