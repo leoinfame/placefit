@@ -709,6 +709,9 @@ export default function MyProducts() {
           <p className="text-gray-600">Selecione produtos, configure preços e gerencie sua tabela</p>
         </div>
 
+        {/* Container Tracker China */}
+        <ContainerTracker />
+
         {/* Verificar se fornecedor foi aprovado */}
         {!user?.aprovado && (
           <Alert className="border-amber-200 bg-amber-50">
