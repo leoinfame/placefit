@@ -89,6 +89,7 @@ import Units from './pages/Units';
 import Usuarios from './pages/Usuarios';
 import Vendas from './pages/Vendas';
 import ComprasInternacionais from './pages/ComprasInternacionais';
+import AtualizacoesMercadoChina from './pages/AtualizacoesMercadoChina';
 import __Layout from './Layout.jsx';
 
 
@@ -135,6 +136,7 @@ export const PAGES = {
     "Usuarios": Usuarios,
     "Vendas": Vendas,
     "ComprasInternacionais": ComprasInternacionais,
+    "AtualizacoesMercadoChina": AtualizacoesMercadoChina,
 }
 
 export const pagesConfig = {

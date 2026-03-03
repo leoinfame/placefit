@@ -296,6 +296,11 @@ export default function Layout({ children, currentPageName }) {
           icon: Globe,
         },
         {
+          title: "  • Atualizações de Mercado",
+          url: createPageUrl("AtualizacoesMercadoChina"),
+          icon: TrendingUp,
+        },
+        {
           title: "Compras Internacionais",
           url: createPageUrl("ComprasInternacionais"),
           icon: Ship,
