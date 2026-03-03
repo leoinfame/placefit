@@ -19,7 +19,8 @@ import {
   Bell,
   HelpCircle,
   Globe,
-  Ship
+  Ship,
+  TrendingUp
 } from "lucide-react";
 import {
   Sidebar,
