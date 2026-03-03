@@ -152,6 +152,10 @@ export default function Suporte() {
       <div className="max-w-3xl mx-auto space-y-8">
         {/* Header */}
         <div>
+          <Link to={createPageUrl("Dashboard")} className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 transition-colors mb-4">
+            <ArrowLeft className="w-4 h-4" />
+            Voltar ao Painel
+          </Link>
           <div className="flex items-center gap-3 mb-2">
             <HelpCircle className="w-7 h-7 text-blue-600" />
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Central de Suporte</h1>
