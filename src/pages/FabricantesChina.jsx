@@ -261,6 +261,9 @@ export default function FabricantesChina() {
                                 {pedidosFab.length} pedido{pedidosFab.length > 1 ? "s" : ""} ativo{pedidosFab.length > 1 ? "s" : ""}
                               </Badge>
                             )}
+                            <Button variant="ghost" size="icon" title="Chat Bilíngue" onClick={() => setChatFab(fab)}>
+                              <MessageCircle className="w-4 h-4 text-green-500" />
+                            </Button>
                             <Button variant="ghost" size="icon" title="Informações da Fábrica" onClick={() => setInfoFab(fab)}>
                               <Info className="w-4 h-4 text-blue-500" />
                             </Button>
