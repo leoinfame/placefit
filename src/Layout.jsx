@@ -567,10 +567,11 @@ function LayoutContent({
     previousPathRef.current = location.pathname;
   }, [location.pathname, setOpen]);
 
-  // Handler para fechar menu ao clicar em item (especialmente para mobile)
+  // Handler para fechar menu ao clicar em item apenas em mobile
   const handleMenuClick = () => {
-    // Fechar imediatamente em mobile/drawer mode
-    setOpen(false);
+    if (window.innerWidth < 768) {
+      setOpen(false);
+    }
   };
 
   return (
