@@ -73,9 +73,35 @@ const DEFAULT_TOUR_STEPS = [
   },
 ];
 
-export default function OnboardingTour({ onClose }) {
+function getYouTubeEmbedUrl(url) {
+  if (!url) return null;
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([^&\s?]+)/);
+  return match ? `https://www.youtube.com/embed/${match[1]}` : null;
+}
+
+export default function OnboardingTour({ onClose, tipoUsuario = "revendedor" }) {
   const [step, setStep] = useState(0);
-  const current = TOUR_STEPS[step];
+  const [tourSteps, setTourSteps] = useState(DEFAULT_TOUR_STEPS);
+
+  useEffect(() => {
+    base44.entities.TreinamentoStep.filter({ tipo_usuario: tipoUsuario, ativo: true })
+      .then(data => {
+        if (data && data.length > 0) {
+          const sorted = data.sort((a, b) => a.ordem - b.ordem);
+          setTourSteps(sorted.map(s => ({
+            title: s.titulo,
+            description: s.descricao,
+            icon: s.icone || "📋",
+            highlight: null,
+            menuItem: s.menu_item || null,
+            video_url: s.video_url || null,
+          })));
+        }
+      })
+      .catch(() => {});
+  }, [tipoUsuario]);
+
+  const current = tourSteps[step];
   const isFirst = step === 0;
   const isLast = step === TOUR_STEPS.length - 1;
   const progress = Math.round((step / (TOUR_STEPS.length - 1)) * 100);
