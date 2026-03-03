@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Search, ShoppingCart, DollarSign, Package, Plus, Download, Upload, FileSpreadsheet, AlertCircle, CheckCircle, RefreshCw, Edit3, Trash2, Save, X, Percent, Power, CheckSquare } from "lucide-react";
+import { Search, ShoppingCart, DollarSign, Package, Plus, Download, Upload, FileSpreadsheet, AlertCircle, CheckCircle, RefreshCw, Edit3, Trash2, Save, X, Percent, Power, CheckSquare, Ship } from "lucide-react";
+import ContainerTracker from "@/components/china/ContainerTracker";
+import InternationalProductBadge from "@/components/china/InternationalProductBadge";
+import PreOrdemImportacao from "@/components/china/PreOrdemImportacao";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
