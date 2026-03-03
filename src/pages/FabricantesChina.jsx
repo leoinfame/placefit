@@ -10,8 +10,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Plus, Search, Star, Package, Truck, Globe, ExternalLink, Edit, Trash2, RefreshCw
+  Plus, Search, Star, Package, Truck, Globe, ExternalLink, Edit, Trash2, RefreshCw, ChevronDown, ChevronUp
 } from "lucide-react";
+import ProdutosChinaForm from "@/components/china/ProdutosChinaForm";
 
 const HUBS = ["Shandong", "Ningbo", "Shenzhen", "Guangzhou"];
 const STATUS_COLORS = {
