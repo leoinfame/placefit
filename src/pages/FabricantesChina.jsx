@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Plus, Search, Star, Package, Truck, Globe, ExternalLink, Edit, Trash2, RefreshCw, ChevronDown, ChevronUp
+  Plus, Search, Star, Package, Truck, Globe, ExternalLink, Edit, Trash2, RefreshCw, ChevronDown, ChevronUp, Info, MapPin, Mail, MessageCircle, Phone, Clock, Tag
 } from "lucide-react";
 import ProdutosChinaForm from "@/components/china/ProdutosChinaForm";
 
