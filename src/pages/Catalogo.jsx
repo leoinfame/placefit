@@ -383,9 +383,21 @@ export default function Catalogo() {
                       <h3 className="font-bold text-lg text-gray-900 mb-1 line-clamp-2">
                         {product.nome}
                       </h3>
-                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                        {product.categoria}
-                      </Badge>
+                      <div className="flex flex-wrap gap-1.5">
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                          {product.categoria}
+                        </Badge>
+                        {product.origem === "china" && (
+                          <Badge className="bg-red-50 text-red-700 border border-red-200 text-[10px]">
+                            🇨🇳 Importado
+                          </Badge>
+                        )}
+                        {product.fabricante_china_nome && (
+                          <Badge className="bg-orange-50 text-orange-700 border border-orange-200 text-[10px]">
+                            {product.fabricante_china_nome}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
 
                     <div className="space-y-2 text-sm">
