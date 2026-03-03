@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
 import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
-import { X, ChevronRight, ChevronLeft, CheckCircle } from "lucide-react";
+import { X, ChevronRight, ChevronLeft, CheckCircle, Youtube } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-const TOUR_STEPS = [
+const DEFAULT_TOUR_STEPS = [
   {
     title: "Bem-vindo ao PlaceFit! 🎉",
     description: "Você acaba de entrar na plataforma de revendedores de equipamentos fitness. Vamos te mostrar um tour rápido pelos principais recursos. São apenas 8 passos!",
