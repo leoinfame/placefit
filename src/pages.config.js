@@ -52,11 +52,13 @@ import AdminNotifications from './pages/AdminNotifications';
 import AdminVersions from './pages/AdminVersions';
 import AtendenteIA from './pages/AtendenteIA';
 import AtendenteIARevendedor from './pages/AtendenteIARevendedor';
+import AtualizacoesMercadoChina from './pages/AtualizacoesMercadoChina';
 import Catalogo from './pages/Catalogo';
 import Categories from './pages/Categories';
 import Clientes from './pages/Clientes';
 import ClientesVendas from './pages/ClientesVendas';
 import Complementos from './pages/Complementos';
+import ComprasInternacionais from './pages/ComprasInternacionais';
 import Convite from './pages/Convite';
 import Dashboard from './pages/Dashboard';
 import DocumentacaoTecnica from './pages/DocumentacaoTecnica';
@@ -88,8 +90,7 @@ import Treinamento from './pages/Treinamento';
 import Units from './pages/Units';
 import Usuarios from './pages/Usuarios';
 import Vendas from './pages/Vendas';
-import ComprasInternacionais from './pages/ComprasInternacionais';
-import AtualizacoesMercadoChina from './pages/AtualizacoesMercadoChina';
+import SaudeImportacao from './pages/SaudeImportacao';
 import __Layout from './Layout.jsx';
 
 
@@ -99,11 +100,13 @@ export const PAGES = {
     "AdminVersions": AdminVersions,
     "AtendenteIA": AtendenteIA,
     "AtendenteIARevendedor": AtendenteIARevendedor,
+    "AtualizacoesMercadoChina": AtualizacoesMercadoChina,
     "Catalogo": Catalogo,
     "Categories": Categories,
     "Clientes": Clientes,
     "ClientesVendas": ClientesVendas,
     "Complementos": Complementos,
+    "ComprasInternacionais": ComprasInternacionais,
     "Convite": Convite,
     "Dashboard": Dashboard,
     "DocumentacaoTecnica": DocumentacaoTecnica,
@@ -135,8 +138,7 @@ export const PAGES = {
     "Units": Units,
     "Usuarios": Usuarios,
     "Vendas": Vendas,
-    "ComprasInternacionais": ComprasInternacionais,
-    "AtualizacoesMercadoChina": AtualizacoesMercadoChina,
+    "SaudeImportacao": SaudeImportacao,
 }
 
 export const pagesConfig = {
