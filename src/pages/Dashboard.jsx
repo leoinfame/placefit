@@ -281,6 +281,8 @@ export default function Dashboard() {
   const { title, subtitle } = getWelcomeMessage();
 
   return (
+    <>
+    {showTour && <OnboardingTour onClose={() => setShowTour(false)} />}
     <div className="p-4 md:p-8 min-h-screen">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
