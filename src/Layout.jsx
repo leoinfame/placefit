@@ -18,7 +18,8 @@ import {
   X,
   Bell,
   HelpCircle,
-  Globe
+  Globe,
+  Ship
 } from "lucide-react";
 import {
   Sidebar,
