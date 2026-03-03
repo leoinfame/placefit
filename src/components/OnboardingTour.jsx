@@ -125,7 +125,7 @@ export default function OnboardingTour({ onClose, tipoUsuario = "revendedor" }) 
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-5 pb-2">
           <Badge variant="secondary" className="text-xs">
-            Passo {step + 1} de {TOUR_STEPS.length}
+            Passo {step + 1} de {tourSteps.length}
           </Badge>
           <button
             onClick={handleClose}
