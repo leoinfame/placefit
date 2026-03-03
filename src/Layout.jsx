@@ -323,6 +323,11 @@ export default function Layout({ children, currentPageName }) {
           icon: Users,
         },
         {
+          title: "Treinamento",
+          url: createPageUrl("Treinamento"),
+          icon: Package,
+        },
+        {
           title: "Versões",
           url: createPageUrl("AdminVersions"),
           icon: Package,
