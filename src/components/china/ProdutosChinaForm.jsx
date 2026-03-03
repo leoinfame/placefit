@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Edit, Trash2, Package, ImageIcon } from "lucide-react";
+import { Plus, Edit, Trash2, Package, ImageIcon, Upload } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 const CATEGORIAS = ["Cardiovascular", "Musculação", "Funcional", "Acessórios", "Vestuário", "Nutrição"];
