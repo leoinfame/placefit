@@ -341,6 +341,114 @@ export default function FabricantesChina() {
         </Tabs>
       </div>
 
+      {/* Dialog Info Fábrica */}
+      <Dialog open={!!infoFab} onOpenChange={() => setInfoFab(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              🏭 {infoFab?.nome_fabrica}
+            </DialogTitle>
+          </DialogHeader>
+          {infoFab && (
+            <div className="space-y-4 pt-1">
+              {/* Localização */}
+              <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                <MapPin className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Localização / HUB</p>
+                  <p className="text-gray-900 font-semibold">{infoFab.hub}, China</p>
+                </div>
+              </div>
+
+              {/* Contato */}
+              {infoFab.contato_nome && (
+                <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                  <Phone className="w-5 h-5 text-gray-500 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Contato na Fábrica</p>
+                    <p className="text-gray-900 font-semibold">{infoFab.contato_nome}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* WhatsApp / WeChat */}
+              {infoFab.contato_wechat && (
+                <a
+                  href={infoFab.contato_wechat.startsWith("+") ? `https://wa.me/${infoFab.contato_wechat.replace(/\D/g,"")}` : "#"}
+                  target="_blank" rel="noopener noreferrer"
+                  className="flex items-start gap-3 p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+                >
+                  <MessageCircle className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">WhatsApp / WeChat</p>
+                    <p className="text-green-700 font-semibold">{infoFab.contato_wechat}</p>
+                  </div>
+                </a>
+              )}
+
+              {/* Email */}
+              {infoFab.contato_email && (
+                <a
+                  href={`mailto:${infoFab.contato_email}`}
+                  className="flex items-start gap-3 p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
+                >
+                  <Mail className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Email</p>
+                    <p className="text-purple-700 font-semibold">{infoFab.contato_email}</p>
+                  </div>
+                </a>
+              )}
+
+              {/* Link 1688 */}
+              {infoFab.id_integracao && (
+                <a
+                  href={infoFab.id_integracao.startsWith("http") ? infoFab.id_integracao : `https://detail.1688.com/offer/${infoFab.id_integracao}`}
+                  target="_blank" rel="noopener noreferrer"
+                  className="flex items-start gap-3 p-3 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors"
+                >
+                  <ExternalLink className="w-5 h-5 text-orange-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Perfil 1688 / Alibaba</p>
+                    <p className="text-orange-700 font-semibold text-sm truncate">{infoFab.id_integracao}</p>
+                  </div>
+                </a>
+              )}
+
+              {/* Informações Logísticas */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 bg-gray-50 rounded-lg text-center">
+                  <Clock className="w-4 h-4 text-gray-400 mx-auto mb-1" />
+                  <p className="text-xs text-gray-500">Lead Time</p>
+                  <p className="font-bold text-gray-900">{infoFab.lead_time_min}–{infoFab.lead_time_max} dias</p>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-lg text-center">
+                  <Tag className="w-4 h-4 text-gray-400 mx-auto mb-1" />
+                  <p className="text-xs text-gray-500">NCM</p>
+                  <p className="font-bold text-gray-900">{infoFab.ncm || "—"}</p>
+                </div>
+              </div>
+
+              {/* Rating */}
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-gray-500">Rating de exportação:</p>
+                <div className="flex gap-0.5">
+                  {[1,2,3,4,5].map(s => (
+                    <Star key={s} className={`w-4 h-4 ${s <= (infoFab.rating_exportacao || 0) ? "fill-yellow-400 text-yellow-400" : "text-gray-200"}`} />
+                  ))}
+                </div>
+              </div>
+
+              {infoFab.notas_verificacao && (
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+                  📋 {infoFab.notas_verificacao}
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Dialog Form */}
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
