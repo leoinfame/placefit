@@ -146,6 +146,17 @@ export default function OnboardingTour({ onClose, tipoUsuario = "revendedor" }) 
               <span className="text-blue-700 text-sm font-medium">📌 Menu: {current.menuItem}</span>
             </div>
           )}
+
+          {current.video_url && getYouTubeEmbedUrl(current.video_url) && (
+            <div className="mt-4 rounded-xl overflow-hidden aspect-video shadow">
+              <iframe
+                src={getYouTubeEmbedUrl(current.video_url)}
+                className="w-full h-full"
+                allowFullScreen
+                title={current.title}
+              />
+            </div>
+          )}
         </div>
 
         {/* Footer */}
