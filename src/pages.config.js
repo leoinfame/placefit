@@ -63,6 +63,7 @@ import DocumentacaoTecnica from './pages/DocumentacaoTecnica';
 import Export from './pages/Export';
 import FabricanteProdutos from './pages/FabricanteProdutos';
 import Fabricantes from './pages/Fabricantes';
+import FabricantesChina from './pages/FabricantesChina';
 import FabricantesParaFabricantes from './pages/FabricantesParaFabricantes';
 import FabricantesRevendedor from './pages/FabricantesRevendedor';
 import Financeiro from './pages/Financeiro';
@@ -87,7 +88,7 @@ import Treinamento from './pages/Treinamento';
 import Units from './pages/Units';
 import Usuarios from './pages/Usuarios';
 import Vendas from './pages/Vendas';
-import FabricantesChina from './pages/FabricantesChina';
+import ComprasInternacionais from './pages/ComprasInternacionais';
 import __Layout from './Layout.jsx';
 
 
@@ -108,6 +109,7 @@ export const PAGES = {
     "Export": Export,
     "FabricanteProdutos": FabricanteProdutos,
     "Fabricantes": Fabricantes,
+    "FabricantesChina": FabricantesChina,
     "FabricantesParaFabricantes": FabricantesParaFabricantes,
     "FabricantesRevendedor": FabricantesRevendedor,
     "Financeiro": Financeiro,
@@ -132,7 +134,7 @@ export const PAGES = {
     "Units": Units,
     "Usuarios": Usuarios,
     "Vendas": Vendas,
-    "FabricantesChina": FabricantesChina,
+    "ComprasInternacionais": ComprasInternacionais,
 }
 
 export const pagesConfig = {
