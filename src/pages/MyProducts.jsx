@@ -54,6 +54,9 @@ export default function MyProducts() {
   const [selectedCatalogProducts, setSelectedCatalogProducts] = useState([]);
   const [bulkPercentage, setBulkPercentage] = useState("");
   const [applyingBulk, setApplyingBulk] = useState(false);
+  const [fabricantesChina, setFabricantesChina] = useState([]);
+  const [showPreOrdem, setShowPreOrdem] = useState(false);
+  const [preOrdemItems, setPreOrdemItems] = useState([]);
   const { toast } = useToast();
 
   useEffect(() => {
