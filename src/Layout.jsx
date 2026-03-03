@@ -329,6 +329,11 @@ export default function Layout({ children, currentPageName }) {
           icon: Package,
         },
         {
+          title: "Suporte",
+          url: createPageUrl("Suporte"),
+          icon: HelpCircle,
+        },
+        {
           title: "Versões",
           url: createPageUrl("AdminVersions"),
           icon: Package,
