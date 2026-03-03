@@ -347,8 +347,21 @@ export default function FabricantesChina() {
               </div>
             )}
           </TabsContent>
+
+          <TabsContent value="saude" className="mt-4">
+            <SaudeImportacaoDashboard />
+          </TabsContent>
         </Tabs>
       </div>
+
+      {/* Chat Bilíngue */}
+      {chatFab && (
+        <ChatFabricanteChina
+          fabricante={chatFab}
+          open={!!chatFab}
+          onClose={() => setChatFab(null)}
+        />
+      )}
 
       {/* Dialog Info Fábrica */}
       <Dialog open={!!infoFab} onOpenChange={() => setInfoFab(null)}>
