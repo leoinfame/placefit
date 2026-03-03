@@ -30,8 +30,8 @@ export default function ProdutosChinaForm({ fabricante }) {
 
   const loadProdutos = async () => {
     setLoading(true);
-    const all = await base44.entities.Product.filter({ fabricante_china_id: fabricante.id });
-    setProdutos(all);
+    const all = await base44.entities.Product.list();
+    setProdutos(all.filter(p => p.fabricante_china_id === fabricante.id));
     setLoading(false);
   };
 
