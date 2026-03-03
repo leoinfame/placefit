@@ -103,8 +103,8 @@ export default function OnboardingTour({ onClose, tipoUsuario = "revendedor" }) 
 
   const current = tourSteps[step];
   const isFirst = step === 0;
-  const isLast = step === TOUR_STEPS.length - 1;
-  const progress = Math.round((step / (TOUR_STEPS.length - 1)) * 100);
+  const isLast = step === tourSteps.length - 1;
+  const progress = tourSteps.length > 1 ? Math.round((step / (tourSteps.length - 1)) * 100) : 100;
 
   const handleClose = () => {
     localStorage.setItem("placefit_tour_done", "true");
