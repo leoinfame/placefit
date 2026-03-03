@@ -387,6 +387,11 @@ export default function Layout({ children, currentPageName }) {
           title: "  • Clientes",
           url: createPageUrl("ClientesVendas"),
           icon: Users,
+        },
+        {
+          title: "Suporte",
+          url: createPageUrl("Suporte"),
+          icon: HelpCircle,
         }
       );
     } else {
