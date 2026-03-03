@@ -324,6 +324,7 @@ export default function FabricantesChina() {
                       <th className="text-left p-3 font-semibold text-gray-600">CBM</th>
                       <th className="text-left p-3 font-semibold text-gray-600">Embarque Previsto</th>
                       <th className="text-left p-3 font-semibold text-gray-600">Valor (BRL)</th>
+                      <th className="text-left p-3 font-semibold text-gray-600">Docs / Escrow</th>
                     </tr>
                   </thead>
                   <tbody>
