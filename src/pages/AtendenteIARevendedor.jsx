@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { MessageSquare, Send, Bot, User, Loader2, X, Package, DollarSign, Store, Plus, Edit3, Trash2, BookOpen, Upload, FileText, Save, CheckCircle } from "lucide-react";
+import WhatsAppSetup from "@/components/whatsapp/WhatsAppSetup";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
