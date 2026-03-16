@@ -333,15 +333,35 @@ export default function Vendas() {
   const handleGerarPedidosCompra = async (pedido) => {
     try {
       const allProds = await base44.entities.Product.list();
-      
+
+      // Verificar se já existem PedidosCompra para esta venda
+      const pedidosExistentes = await base44.entities.PedidoCompra.filter({ venda_id: pedido.id });
+      if (pedidosExistentes.length > 0) {
+        toast({
+          title: "Aviso",
+          description: `Já existem ${pedidosExistentes.length} pedido(s) de compra para esta venda.`,
+        });
+        return;
+      }
+
       const porFabricante = {};
       (pedido.itens || []).forEach(item => {
         const produto = allProds.find(p => p.id === item.product_id);
-        const fabId = produto?.fabricante_id || 'sem_fabricante';
+        if (!produto) {
+          console.warn("Produto não encontrado:", item.product_id);
+          return;
+        }
+
+        const fabId = produto.fabricante_id;
+        if (!fabId) {
+          console.warn("Produto sem fabricante:", produto.nome);
+          return;
+        }
+
         if (!porFabricante[fabId]) {
           porFabricante[fabId] = {
             fabricante_id: fabId,
-            fabricante_nome: produto?.fabricante_nome || 'Sem Fabricante',
+            fabricante_nome: produto.fabricante_nome || 'Sem Nome',
             itens: []
           };
         }
@@ -350,7 +370,7 @@ export default function Vendas() {
 
       let pedidosCriados = 0;
       for (const [fabId, dados] of Object.entries(porFabricante)) {
-        if (fabId !== 'sem_fabricante') {
+        try {
           const totalFab = dados.itens.reduce((sum, item) => sum + item.subtotal, 0);
           await base44.entities.PedidoCompra.create({
             revendedor_id: user.id,
@@ -366,6 +386,8 @@ export default function Vendas() {
             observacoes: pedido.observacoes
           });
           pedidosCriados++;
+        } catch (err) {
+          console.error("Erro ao criar PedidoCompra para", fabId, err);
         }
       }
 
@@ -373,7 +395,7 @@ export default function Vendas() {
         title: "✓ Pedidos de Compra Gerados!",
         description: `${pedidosCriados} pedido(s) foi(foram) criado(s) com sucesso. Visualize em "Pedidos de Compra".`,
       });
-      loadData();
+      await loadData();
     } catch (error) {
       console.error("Erro ao gerar pedidos de compra:", error);
       toast({
