@@ -214,6 +214,10 @@ export default function FabricantesRevendedor() {
       }).join('');
 
       const html = `<!DOCTYPE html>
+      <!-- Categorias têm page-break-inside: avoid para não pular página -->
+      <style>
+      .categoria-bloco { page-break-inside: avoid; }
+      </style>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -223,16 +227,16 @@ export default function FabricantesRevendedor() {
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: Arial, sans-serif; color: #1e293b; background: #fff; }
     .page-wrapper { padding: 12px 16px; }
-    .cover { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: linear-gradient(135deg, ${c.primaryDark} 0%, ${c.primary} 50%, ${c.secondary} 100%); border-radius: 8px; margin-bottom: 12px; }
+    .cover { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: transparent; border-radius: 8px; margin-bottom: 6px; }
     .cover-logo { width: 56px; height: 56px; object-fit: contain; background: #fff; border-radius: 6px; padding: 4px; flex-shrink: 0; }
     .cover-logo-placeholder { width: 56px; height: 56px; background: rgba(255,255,255,0.15); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
-    .cover-title { font-size: 18px; font-weight: 800; color: #1e293b !important; line-height: 1.1; }
-    .cover-subtitle { font-size: 9px; font-weight: 600; color: #1e293b !important; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px; margin-top: 0px; }
-    .cover-contact { font-size: 8px; color: #1e293b !important; display: inline-block; margin-right: 12px; margin-top: 2px; }
+    .cover-title { font-size: 18px; font-weight: 800; color: #0f172a !important; line-height: 1.1; }
+    .cover-subtitle { font-size: 9px; font-weight: 600; color: #0f172a !important; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px; margin-top: 0px; }
+    .cover-contact { font-size: 8px; color: #475569 !important; display: inline-block; margin-right: 12px; margin-top: 2px; }
     .cover-right { text-align: right; flex-shrink: 0; }
-    .cover-doc-title { font-size: 11px; font-weight: 800; color: #1e293b !important; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.1; }
-    .cover-date { font-size: 8px; color: #1e293b !important; margin-top: 2px; }
-    .stats-bar { display: flex; gap: 8px; margin-bottom: 12px; }
+    .cover-doc-title { font-size: 11px; font-weight: 800; color: #0f172a !important; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.1; }
+    .cover-date { font-size: 8px; color: #475569 !important; margin-top: 2px; }
+    .stats-bar { display: flex; gap: 8px; margin-bottom: 12px; page-break-inside: avoid; }
     .stat-card { flex: 1; background: transparent; border: 1px solid #e2e8f0; border-radius: 4px; padding: 6px 8px; text-align: center; }
     .stat-num { font-size: 16px; font-weight: 800; color: ${c.primaryDark}; }
     .stat-label { font-size: 7px; color: #64748b; text-transform: uppercase; letter-spacing: 0.3px; font-weight: 600; }
@@ -282,7 +286,7 @@ export default function FabricantesRevendedor() {
     </div>
     <div class="footer-disclaimer">⚠️ <strong>Aviso:</strong> Esta tabela pode sofrer alterações sem aviso prévio. Consulte disponibilidade antes de confirmar o pedido.</div>
     <div style="margin-top:12px;display:flex;justify-content:space-between;">
-      <div class="footer-brand">Gerado por PlaceFit — Plataforma de Fabricantes de Equipamentos Fitness</div>
+      <div class="footer-brand">Documento gerado automaticamente</div>
       <div class="footer-brand">${nomeEmpresa} · ${dataGeracao}</div>
     </div>
   </div>
