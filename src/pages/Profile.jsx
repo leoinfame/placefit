@@ -34,7 +34,10 @@ export default function Profile() {
     endereco: "",
     whatsapp: "",
     site: "",
-    logomarca: ""
+    logomarca: "",
+    condicoes_pagamento: "",
+    prazo_producao: "",
+    informacoes_frete: ""
   });
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
@@ -80,7 +83,10 @@ export default function Profile() {
         endereco: currentUser.endereco || "",
         whatsapp: currentUser.whatsapp || "",
         site: currentUser.site || "",
-        logomarca: currentUser.logomarca || ""
+        logomarca: currentUser.logomarca || "",
+        condicoes_pagamento: currentUser.condicoes_pagamento || "",
+        prazo_producao: currentUser.prazo_producao || "",
+        informacoes_frete: currentUser.informacoes_frete || ""
       });
       
       // Carregar rotas se for transportador
@@ -110,7 +116,10 @@ export default function Profile() {
         endereco: formData.endereco,
         whatsapp: formData.whatsapp,
         site: formData.site,
-        logomarca: formData.logomarca
+        logomarca: formData.logomarca,
+        condicoes_pagamento: formData.condicoes_pagamento,
+        prazo_producao: formData.prazo_producao,
+        informacoes_frete: formData.informacoes_frete
       });
       
       setMessage("Dados salvos com sucesso!");
