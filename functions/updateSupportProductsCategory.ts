@@ -9,7 +9,6 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Admin only' }, { status: 403 });
     }
 
-    // Buscar apenas produtos que começam com 'Suporte'
     const products = await base44.asServiceRole.entities.Product.list();
     const toUpdate = products.filter(p => p.nome?.trim().startsWith('Suporte'));
 
@@ -17,15 +16,12 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, updated: 0 });
     }
 
-    // Atualizar em pequenos lotes com delay
+    // Atualizar sequencialmente com delay
     let count = 0;
-    for (let i = 0; i < toUpdate.length; i += 3) {
-      const batch = toUpdate.slice(i, i + 3);
-      await Promise.all(
-        batch.map(p => base44.asServiceRole.entities.Product.update(p.id, { categoria: 'Suportes' }))
-      );
-      count += batch.length;
-      await new Promise(r => setTimeout(r, 200));
+    for (const p of toUpdate) {
+      await base44.asServiceRole.entities.Product.update(p.id, { categoria: 'Suportes' });
+      count++;
+      await new Promise(r => setTimeout(r, 500));
     }
 
     return Response.json({ success: true, updated: count });
