@@ -271,7 +271,7 @@ export default function Dashboard() {
         icon: Package,
         href: createPageUrl("Orcamentos"),
         color: "from-amber-500 to-orange-600",
-        count: 0
+        count: stats.totalOrcamentos
       },
       {
         title: "Vendas",
