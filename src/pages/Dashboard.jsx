@@ -279,7 +279,7 @@ export default function Dashboard() {
         icon: ShoppingCart,
         href: createPageUrl("Vendas"),
         color: "from-green-500 to-emerald-600",
-        count: 0
+        count: stats.totalVendas
       },
       {
         title: "Sua Tabela",
