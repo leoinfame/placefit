@@ -222,12 +222,12 @@ export default function PedidosCompra() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="bg-gray-800 text-white">
-                          <th className="text-left px-4 py-2">Código</th>
-                          <th className="text-left px-4 py-2">Produto</th>
-                          <th className="text-center px-4 py-2">Qtd</th>
-                          <th className="text-right px-4 py-2">Preço Unit.</th>
-                          <th className="text-right px-4 py-2">Subtotal</th>
+                        <tr style={{background: 'transparent', borderBottom: '1px solid #e2e8f0'}}>
+                          <th className="text-left px-4 py-2" style={{color: '#1e293b !important'}}>Código</th>
+                          <th className="text-left px-4 py-2" style={{color: '#1e293b !important'}}>Produto</th>
+                          <th className="text-center px-4 py-2" style={{color: '#1e293b !important'}}>Qtd</th>
+                          <th className="text-right px-4 py-2" style={{color: '#1e293b !important'}}>Preço Unit.</th>
+                          <th className="text-right px-4 py-2" style={{color: '#1e293b !important'}}>Subtotal</th>
                         </tr>
                       </thead>
                       <tbody>

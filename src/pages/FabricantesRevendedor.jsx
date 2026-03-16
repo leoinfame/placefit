@@ -200,12 +200,12 @@ export default function FabricantesRevendedor() {
             </div>
             <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-top:none;">
               <thead>
-                <tr style="background:#f1f5f9;">
-                  <th style="padding:7px 10px;font-size:9px;font-weight:700;color:#1e293b;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e2e8f0;width:80px;">Código</th>
-                  <th style="padding:7px 10px;font-size:9px;font-weight:700;color:#1e293b;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e2e8f0;">Produto</th>
-                  <th style="padding:7px 10px;font-size:9px;font-weight:700;color:#1e293b;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e2e8f0;text-align:center;width:90px;">Especificação</th>
-                  <th style="padding:7px 10px;font-size:9px;font-weight:700;color:#1e293b;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e2e8f0;text-align:center;width:70px;">Unidade</th>
-                  <th style="padding:7px 10px;font-size:9px;font-weight:700;color:#1e293b;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e2e8f0;text-align:right;width:90px;">Preço</th>
+                <tr style="background:transparent;">
+                 <th style="padding:7px 10px;font-size:9px;font-weight:700;color:#1e293b !important;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e2e8f0;width:80px;">Código</th>
+                 <th style="padding:7px 10px;font-size:9px;font-weight:700;color:#1e293b !important;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e2e8f0;">Produto</th>
+                 <th style="padding:7px 10px;font-size:9px;font-weight:700;color:#1e293b !important;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e2e8f0;text-align:center;width:90px;">Especificação</th>
+                 <th style="padding:7px 10px;font-size:9px;font-weight:700;color:#1e293b !important;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e2e8f0;text-align:center;width:70px;">Unidade</th>
+                 <th style="padding:7px 10px;font-size:9px;font-weight:700;color:#1e293b !important;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e2e8f0;text-align:right;width:90px;">Preço</th>
                 </tr>
               </thead>
               <tbody>${linhas}</tbody>
