@@ -540,8 +540,10 @@ export default function Vendas() {
       let pedidosCriados = 0;
       for (const [fabId, dados] of Object.entries(porFabricante)) {
         try {
+          console.log(`📦 [handleGerarPedidosCompra] Criando PC para ${dados.fabricante_nome} (ID: ${fabId})`);
+
           const totalFab = dados.itens.reduce((sum, item) => sum + item.subtotal, 0);
-          await base44.entities.PedidoCompra.create({
+          const payloadPC = {
             revendedor_id: user.id,
             revendedor_nome: user.empresa || user.full_name,
             fabricante_id: fabId,
@@ -553,10 +555,27 @@ export default function Vendas() {
             total: totalFab,
             status: "pendente",
             observacoes: pedido.observacoes
-          });
+          };
+
+          console.log(`   Payload:`, payloadPC);
+
+          const novoPC = await base44.entities.PedidoCompra.create(payloadPC);
+          console.log(`✅ PC criado com sucesso (ID: ${novoPC.id})`);
           pedidosCriados++;
         } catch (err) {
-          console.error("Erro ao criar PedidoCompra para", fabId, err);
+          console.error(`❌ Erro ao criar PedidoCompra para ${dados.fabricante_nome}:`, err);
+          console.error(`   JSON do erro:`, JSON.stringify({
+            name: err?.name,
+            message: err?.message,
+            code: err?.code,
+            status: err?.status
+          }, null, 2));
+
+          alert(`❌ Erro ao criar PC para ${dados.fabricante_nome}:\n${JSON.stringify({
+            message: err?.message,
+            code: err?.code,
+            status: err?.status
+          }, null, 2)}`);
         }
       }
 
