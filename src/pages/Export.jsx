@@ -231,10 +231,10 @@ export default function Export() {
 
       return `
         <div style="margin-bottom:28px;page-break-inside:avoid;">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:0;padding:9px 14px;background:linear-gradient(90deg,#1e3a5f 0%,#1e40af 100%);border-radius:6px 6px 0 0;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:0;padding:9px 14px;background:linear-gradient(90deg,${c.primaryDark} 0%,${c.primary} 100%);border-radius:6px 6px 0 0;">
             <span style="font-size:14px;">${icon}</span>
-            <span style="font-size:12px;font-weight:700;color:#ffffff;letter-spacing:1.5px;text-transform:uppercase;">${cat}</span>
-            <span style="margin-left:auto;font-size:10px;color:#93c5fd;font-weight:500;">${itens.length} produto${itens.length !== 1 ? 's' : ''}</span>
+            <span style="font-size:12px;font-weight:700;color:${c.textOnPrimary};letter-spacing:1.5px;text-transform:uppercase;">${cat}</span>
+            <span style="margin-left:auto;font-size:10px;color:${c.light};font-weight:500;">${itens.length} produto${itens.length !== 1 ? 's' : ''}</span>
           </div>
           <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-top:none;">
             <thead>
