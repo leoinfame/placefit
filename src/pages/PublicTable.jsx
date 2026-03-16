@@ -21,6 +21,7 @@ export default function PublicTable() {
   const [supplierProducts, setSupplierProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const colors = useLogoColors(supplier?.logomarca);
 
   useEffect(() => {
     loadTableData();
