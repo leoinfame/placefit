@@ -225,7 +225,7 @@ export default function PedidosCompra() {
                       <div className="flex items-center gap-2">
                         <Hash className="w-4 h-4 text-gray-400" />
                         <div>
-                          <p className="text-xs text-gray-500">Ref. Venda</p>
+                          <p className="text-xs text-gray-500">Ref. Pedido</p>
                           <p className="font-mono font-bold text-sm text-gray-800">{selectedVenda.numero_pedido}</p>
                         </div>
                       </div>
