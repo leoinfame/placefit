@@ -372,25 +372,28 @@ export default function Vendas() {
           console.error(`   Tipo de erro: ${err?.name || 'desconhecido'}`);
           console.error(`   Mensagem: ${err?.message || 'sem mensagem'}`);
           console.error(`   Código: ${err?.code || 'sem código'}`);
+          console.error(`   Status HTTP: ${err?.status || 'sem status'}`);
           console.error(`   Stack: ${err?.stack}`);
           console.error(`   Resposta completa:`, err);
           
-          // Tentar extrair erro específico do RLS ou constraint
-          let erroDetalhado = err?.message || 'Erro desconhecido';
-          if (err?.message?.includes('RLS')) {
-            erroDetalhado = `Erro de permissão (RLS): ${err.message}`;
-          } else if (err?.message?.includes('foreign key')) {
-            erroDetalhado = `Erro de chave estrangeira: ${err.message}`;
-          } else if (err?.message?.includes('not null')) {
-            erroDetalhado = `Campo obrigatório faltando: ${err.message}`;
-          }
+          // Exibir erro JSON completo
+          const erroJSON = JSON.stringify({
+            name: err?.name,
+            message: err?.message,
+            code: err?.code,
+            status: err?.status,
+            response: err?.response,
+            details: err?.details
+          }, null, 2);
+          
+          console.error(`   JSON do erro:\n${erroJSON}`);
 
-          alert(`⚠️ ERRO AO CRIAR PC PARA ${dados.fabricante_nome}:\n${erroDetalhado}`);
+          alert(`⚠️ ERRO AO CRIAR PC PARA ${dados.fabricante_nome}:\n\nJSON DO ERRO:\n${erroJSON}`);
           
           resultadosPC.push({
             status: 'erro',
             fabricante: dados.fabricante_nome,
-            erro: erroDetalhado
+            erro: erroJSON
           });
           pcErro++;
         }
