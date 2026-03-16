@@ -59,6 +59,7 @@ const AuthenticatedApp = () => {
           }
         />
       ))}
+      <Route path="/PublicTableFabricante" element={<PublicTableFabricante />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
