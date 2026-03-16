@@ -103,6 +103,19 @@ export default function PedidosCompra() {
   };
 
   const getPedidosPorFabricante = (venda) => {
+    // Se for PedidoCompra (para revendedores), não precisa agrupar
+    if (venda._isPedidoCompra) {
+      const fabId = venda.fabricante_id || "__sem_fabricante__";
+      const fabricante = fabricantes.find(f => f.id === fabId) || { nome: venda.cliente_nome };
+      return [{
+        fabricante_id: fabId,
+        fabricante,
+        itens: venda.itens || [],
+        total: venda.total
+      }];
+    }
+    
+    // Para Pedido normal (fabricantes), agrupar por fabricante
     const grupos = {};
     (venda.itens || []).forEach(item => {
       const prod = allProducts.find(p => p.id === item.product_id);
