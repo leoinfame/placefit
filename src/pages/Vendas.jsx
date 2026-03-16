@@ -203,13 +203,10 @@ export default function Vendas() {
       const { subtotal, total } = calcularTotais();
       const numeroPedido = `PED-${Date.now()}`;
 
-      // ===== PASSO 1: DATA ENRICHMENT - Buscar TODOS os dados necessários ANTES de criar algo =====
-      const [allProds, allUsers] = await Promise.all([
-        base44.entities.Product.list(),
-        base44.entities.User.list()
-      ]);
+      // ===== PASSO 1: DATA ENRICHMENT (sem User - RLS protegido) =====
+      const allProds = await base44.entities.Product.list();
 
-      console.log(`📊 DATA ENRICHMENT: Carregadas ${allProds.length} produtos e ${allUsers.length} usuários`);
+      console.log(`📊 DATA ENRICHMENT: Carregados ${allProds.length} produtos`);
 
       // ===== PASSO 2: ENRIQUECIMENTO - Validar cada item e buscar fabricante_id se faltante =====
       const itensEnriquecidos = [];
