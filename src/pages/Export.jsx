@@ -471,6 +471,9 @@ export default function Export() {
 
   return (
     <div className="p-4 md:p-8 min-h-screen">
+      <style>{`
+        table th { color: #1e293b !important; }
+      `}</style>
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
         <div>
@@ -588,11 +591,11 @@ export default function Export() {
                           <table className="w-full text-xs">
                             <thead>
                               <tr className="bg-slate-50 border-b border-gray-200">
-                                <th className="px-3 py-1.5 text-left text-xs font-semibold uppercase tracking-wide w-16" style={{color: '#1e293b !important'}}>Cód.</th>
-                                <th className="px-3 py-1.5 text-left text-xs font-semibold uppercase tracking-wide" style={{color: '#1e293b !important'}}>Produto</th>
-                                <th className="px-3 py-1.5 text-center text-xs font-semibold uppercase tracking-wide w-20 hidden md:table-cell" style={{color: '#1e293b !important'}}>Espec.</th>
-                                <th className="px-3 py-1.5 text-center text-xs font-semibold uppercase tracking-wide w-16 hidden md:table-cell" style={{color: '#1e293b !important'}}>Und.</th>
-                                <th className="px-3 py-1.5 text-right text-xs font-semibold uppercase tracking-wide w-24" style={{color: '#1e293b !important'}}>Preço</th>
+                                <th className="px-3 py-1.5 text-left text-xs font-semibold uppercase tracking-wide w-16">Cód.</th>
+                                <th className="px-3 py-1.5 text-left text-xs font-semibold uppercase tracking-wide">Produto</th>
+                                <th className="px-3 py-1.5 text-center text-xs font-semibold uppercase tracking-wide w-20 hidden md:table-cell">Espec.</th>
+                                <th className="px-3 py-1.5 text-center text-xs font-semibold uppercase tracking-wide w-16 hidden md:table-cell">Und.</th>
+                                <th className="px-3 py-1.5 text-right text-xs font-semibold uppercase tracking-wide w-24">Preço</th>
                               </tr>
                             </thead>
                             <tbody>

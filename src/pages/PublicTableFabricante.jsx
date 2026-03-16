@@ -115,6 +115,7 @@ export default function PublicTableFabricante() {
           .no-print { display: none !important; }
           .print-full { page-break-inside: avoid; }
         }
+        table th { color: #1e293b !important; }
       `}</style>
 
       <div className="max-w-5xl mx-auto space-y-6">
@@ -237,11 +238,11 @@ export default function PublicTableFabricante() {
                       <table className="w-full border-collapse text-sm">
                         <thead>
                           <tr className="bg-slate-50 border-b border-gray-200">
-                            <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide w-20" style={{color: '#1e293b !important'}}>Código</th>
-                            <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide" style={{color: '#1e293b !important'}}>Produto</th>
-                            <th className="px-4 py-2 text-center text-xs font-semibold uppercase tracking-wide w-24 hidden md:table-cell" style={{color: '#1e293b !important'}}>Espec.</th>
-                            <th className="px-4 py-2 text-center text-xs font-semibold uppercase tracking-wide w-16" style={{color: '#1e293b !important'}}>Und.</th>
-                            <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wide w-28" style={{color: '#1e293b !important'}}>Preço</th>
+                            <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide w-20">Código</th>
+                            <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide">Produto</th>
+                            <th className="px-4 py-2 text-center text-xs font-semibold uppercase tracking-wide w-24 hidden md:table-cell">Espec.</th>
+                            <th className="px-4 py-2 text-center text-xs font-semibold uppercase tracking-wide w-16">Und.</th>
+                            <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wide w-28">Preço</th>
                           </tr>
                         </thead>
                         <tbody>
