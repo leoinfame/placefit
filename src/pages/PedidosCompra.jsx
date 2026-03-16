@@ -60,18 +60,13 @@ export default function PedidosCompra() {
   });
 
   const { data: pedidosCompra = [] } = useQuery({
-     queryKey: ['pedidos-compra'],
-     queryFn: async () => {
-       try {
-         const response = await getPedidosCompraComFabricante();
-         return response.data || [];
-       } catch (error) {
-         console.error("Erro ao buscar pedidos:", error);
-         return [];
-       }
-     },
-     enabled: !!user,
-   });
+    queryKey: ['pedidos-compra', user?.id],
+    queryFn: async () => {
+      const response = await getPedidosCompraComFabricante();
+      return response.data || [];
+    },
+    enabled: !!user?.id,
+  });
 
   useEffect(() => {
     loadData();
