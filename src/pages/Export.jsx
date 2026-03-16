@@ -565,10 +565,10 @@ export default function Export() {
 
                       {/* Produtos por categoria */}
                       {Object.entries(categorias).map(([cat, itens]) => (
-                        <div key={cat} className="rounded-lg overflow-hidden border border-gray-200">
-                          <div className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-blue-900 to-blue-700">
-                            <span className="text-xs font-bold text-white uppercase tracking-widest">{cat}</span>
-                            <span className="text-xs text-blue-300">{itens.length} produto{itens.length !== 1 ? 's' : ''}</span>
+                        <div key={cat} className="rounded-lg overflow-hidden border" style={{borderColor: colors ? colors.lightBorder : '#e2e8f0'}}>
+                          <div className="flex items-center justify-between px-3 py-2" style={{background: colors ? `linear-gradient(90deg, ${colors.primaryDark} 0%, ${colors.primary} 100%)` : 'linear-gradient(90deg,#1e3a5f,#1e40af)'}}>
+                            <span className="text-xs font-bold uppercase tracking-widest" style={{color: colors ? colors.textOnPrimary : '#ffffff'}}>{cat}</span>
+                            <span className="text-xs" style={{color: colors ? colors.light : '#93c5fd'}}>{itens.length} produto{itens.length !== 1 ? 's' : ''}</span>
                           </div>
                           <table className="w-full text-xs">
                             <thead>
