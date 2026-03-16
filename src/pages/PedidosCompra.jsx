@@ -97,34 +97,19 @@ export default function PedidosCompra() {
     setLoading(false);
   };
 
-  const getPedidosPorFabricante = (venda) => {
-    // Se for PedidoCompra (para revendedores), não precisa agrupar
-    if (venda._isPedidoCompra) {
-      const fabId = venda.fabricante_id || "__sem_fabricante__";
-      const fabricante = fabricantes.find(f => f.id === fabId) || { nome: venda.cliente_nome };
-      return [{
-        fabricante_id: fabId,
-        fabricante,
-        itens: venda.itens || [],
-        total: venda.total
-      }];
-    }
+  const getPedidosPorFabricante = (pedidoCompra) => {
+    // PedidoCompra já vem pronto, retorna direto em um grupo
+    const fabId = pedidoCompra.fabricante_id || "__sem_fabricante__";
+    const fabricante = fabricantes.find(f => f.id === fabId) || { 
+      nome: pedidoCompra.fabricante_nome || "Fabricante não identificado" 
+    };
     
-    // Para Pedido normal (fabricantes), agrupar por fabricante
-    const grupos = {};
-    (venda.itens || []).forEach(item => {
-      const prod = allProducts.find(p => p.id === item.product_id);
-      const fabId = prod?.fabricante_id || "__sem_fabricante__";
-      if (!grupos[fabId]) grupos[fabId] = { fabricante_id: fabId, itens: [] };
-      grupos[fabId].itens.push({ ...item, prod });
-    });
-    return Object.values(grupos).map(g => ({
-      ...g,
-      fabricante: g.fabricante_id === "__sem_fabricante__"
-        ? { nome: "Fabricante não identificado" }
-        : fabricantes.find(f => f.id === g.fabricante_id) || { nome: "Fabricante não identificado" },
-      total: g.itens.reduce((s, i) => s + (i.subtotal || 0), 0),
-    }));
+    return [{
+      fabricante_id: fabId,
+      fabricante,
+      itens: pedidoCompra.itens || [],
+      total: pedidoCompra.total || 0
+    }];
   };
 
   const handlePDF = (venda, grupo) => {
