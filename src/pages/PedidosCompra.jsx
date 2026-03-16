@@ -101,11 +101,18 @@ export default function PedidosCompra() {
   };
 
   const handlePDF = (venda, grupo) => {
-    const html = buildOrderHTML(venda, grupo.fabricante, grupo.itens, user);
-    const w = window.open("", "_blank");
-    w.document.write(html);
-    w.document.close();
-    setTimeout(() => w.print(), 600);
+    try {
+      const html = buildOrderHTML(venda, grupo.fabricante, grupo.itens, user);
+      const w = window.open("", "_blank");
+      if (w) {
+        w.document.write(html);
+        w.document.close();
+        setTimeout(() => w.print(), 600);
+      }
+    } catch (error) {
+      console.error("Erro ao gerar PDF:", error);
+      toast({ title: "Erro", description: "Erro ao gerar PDF.", variant: "destructive" });
+    }
   };
 
   const handleWhatsApp = (venda, grupo) => {

@@ -395,17 +395,26 @@ export default function Export() {
       return;
     }
 
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(buildPDFHTML());
-      printWindow.document.close();
-      setTimeout(() => printWindow.print(), 800);
-    }
+    try {
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(buildPDFHTML());
+        printWindow.document.close();
+        setTimeout(() => printWindow.print(), 800);
+      }
 
-    toast({
-      title: "PDF gerado!",
-      description: "Seu documento está pronto para impressão ou salvar como PDF.",
-    });
+      toast({
+        title: "PDF gerado!",
+        description: "Seu documento está pronto para impressão ou salvar como PDF.",
+      });
+    } catch (error) {
+      console.error("Erro ao gerar PDF:", error);
+      toast({
+        title: "Erro",
+        description: "Erro ao gerar PDF. Tente novamente.",
+        variant: "destructive"
+      });
+    }
   };
 
   const getPublicLink = () => {

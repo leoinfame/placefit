@@ -59,7 +59,13 @@ export default function PublicTableFabricante() {
     setLoading(false);
   };
 
-  const handlePrint = () => window.print();
+  const handlePrint = () => {
+    try {
+      window.print();
+    } catch (error) {
+      console.error("Erro ao imprimir:", error);
+    }
+  };
 
   const c = colors || {
     primary: '#1e3a5f', primaryDark: '#0f172a', secondary: '#1e40af',
