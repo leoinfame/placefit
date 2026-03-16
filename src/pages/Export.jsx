@@ -379,38 +379,27 @@ export default function Export() {
 </html>`;
   };
 
-  const generatePDF = async () => {
-    setExporting(true);
-    try {
-      if (previewData.length === 0) {
-        toast({
-          title: "Nenhum produto para gerar PDF",
-          description: "Sua tabela de preços está vazia.",
-          variant: "destructive"
-        });
-        setExporting(false);
-        return;
-      }
+  const generatePDF = () => {
+    if (previewData.length === 0) {
+      toast({
+        title: "Nenhum produto para gerar PDF",
+        description: "Sua tabela de preços está vazia.",
+        variant: "destructive"
+      });
+      return;
+    }
 
-      const printWindow = window.open('', '_blank');
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
       printWindow.document.write(buildPDFHTML());
       printWindow.document.close();
       setTimeout(() => printWindow.print(), 800);
-
-      toast({
-        title: "PDF gerado!",
-        description: "Seu documento está pronto para impressão ou salvar como PDF.",
-      });
-
-    } catch (error) {
-      console.error("Erro ao gerar PDF:", error);
-      toast({
-        title: "Erro",
-        description: "Erro ao gerar PDF. Tente novamente.",
-        variant: "destructive"
-      });
     }
-    setExporting(false);
+
+    toast({
+      title: "PDF gerado!",
+      description: "Seu documento está pronto para impressão ou salvar como PDF.",
+    });
   };
 
   const copyPublicLink = () => {
