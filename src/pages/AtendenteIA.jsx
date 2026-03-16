@@ -1484,6 +1484,10 @@ precisas sobre políticas, procedimentos, FAQ, etc.
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="whatsapp" className="space-y-4">
+            <WhatsAppSetup userId={user?.id} userType="admin" />
+          </TabsContent>
         </Tabs>
 
         {/* Dialog de Correção */}
