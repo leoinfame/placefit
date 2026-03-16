@@ -471,7 +471,7 @@ RESPONDA EM PORTUGUÊS BRASILEIRO DE FORMA PROFISSIONAL E COMERCIAL.
 `;
 
       const response = await base44.integrations.Core.InvokeLLM({
-        prompt: `${systemContext}\n\n════════════════════════════════════════════════════════════════\n💬 MENSAGEM DO CLIENTE:\n════════════════════════════════════════════════════════════════\n\n${userMessage}\n\n════════════════════════════════════════════════════════════════\n⚠️ IMPORTANTE:\n════════════════════════════════════════════════════════════════\n\nVocê representa a ${selectedFabricante.empresa || selectedFabricante.full_name}.\n\nSe for um pedido de orçamento:\n• Liste os produtos com códigos e preços\n• Calcule o total\n• Pergunte quantidades se necessário\n• Seja profissional e comercial\n\nVocê tem ${products.length} produtos disponíveis. Consulte a lista completa acima antes de responder.`,
+        prompt: `${systemContext}\n\n════════════════════════════════════════════════════════════════\n💬 MENSAGEM DO CLIENTE:\n════════════════════════════════════════════════════════════════\n\n${userMessage}\n\n════════════════════════════════════════════════════════════════\n⚠️ INSTRUÇÕES DE FORMATAÇÃO:\n════════════════════════════════════════════════════════════════\n\nSe a resposta envolver LISTAR PRODUTOS, siga este formato HTML:\n\n<h3>📦 Produtos Disponíveis</h3>\n<table>\n<tr><th>Código</th><th>Produto</th><th>Unidade</th><th>Especificações</th><th>Preço</th></tr>\n<tr><td>COD-001</td><td>Nome do Produto</td><td>peça</td><td>Peso/Dim</td><td>R$ 000,00</td></tr>\n</table>\n\n<p>Observações adicionais em parágrafos normais.</p>\n\nSe for ORÇAMENTO, use este formato:\n\n<h3>💰 Orçamento</h3>\n<table>\n<tr><th>Item</th><th>Qtd</th><th>Preço Unit.</th><th>Subtotal</th></tr>\n<tr><td>Produto 1</td><td>10</td><td>R$ 100,00</td><td>R$ 1.000,00</td></tr>\n</table>\n<p><strong>Total: R$ 1.000,00</strong></p>\n\nVocê representa a ${selectedFabricante.empresa || selectedFabricante.full_name}.\nSeja profissional, cordial e sempre use HTML para tabelas quando listar produtos ou valores.`,
       });
 
       const assistantMessage = typeof response === 'string' ? response : response.response || "Desculpe, não consegui processar sua pergunta.";
@@ -730,13 +730,17 @@ RESPONDA EM PORTUGUÊS BRASILEIRO DE FORMA PROFISSIONAL E COMERCIAL.
                 className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[80%] p-3 rounded-lg ${
+                  className={`max-w-[90%] p-3 rounded-lg ${
                     msg.role === 'user'
                       ? 'bg-blue-600 text-white'
                       : 'bg-white text-gray-900 border border-gray-200'
                   }`}
                 >
-                  {msg.content}
+                  {msg.role === 'user' ? (
+                    msg.content
+                  ) : (
+                    <AIResponseFormatter content={msg.content} />
+                  )}
                 </div>
               </div>
             ))}
