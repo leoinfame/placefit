@@ -243,25 +243,14 @@ export default function Vendas() {
 
         console.log(`✅ [Item ${idx + 1}] fabricante_id validado: ${fabId}`);
 
-        // Buscar dados do fabricante
+        // ✅ USAR DADOS DO PRODUTO (sem consultar User protegido)
         if (!mapeamentoFabricantes[fabId]) {
-          const fab = allUsers.find(u => u.id === fabId);
-          if (!fab) {
-            console.error(`❌ [Item ${idx + 1}] Fabricante não encontrado: ${fabId}`);
-            errosValidacao.push(
-              `Item ${idx + 1} - "${produto.nome}": Fabricante (${fabId}) não encontrado no banco. ` +
-              `Verifique a integridade dos dados.`
-            );
-            return;
-          }
-          
-          const fabNome = fab.empresa || fab.full_name || 'Fabricante';
-          console.log(`✅ [Item ${idx + 1}] Fabricante encontrado: ${fabNome} (ID: ${fabId})`);
+          const fabNome = produto.fabricante_nome || `Fabricante ${fabId.substring(0, 8)}`;
+          console.log(`✅ [Item ${idx + 1}] Fabricante: ${fabNome} (ID: ${fabId})`);
           
           mapeamentoFabricantes[fabId] = {
             fabricante_id: fabId,
             fabricante_nome: fabNome,
-            fabricante_obj: fab,
             itens: []
           };
         }
