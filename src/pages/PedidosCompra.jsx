@@ -352,10 +352,9 @@ export default function PedidosCompra() {
           </CardContent></Card>
         ) : (
           <div className="space-y-3">
-            {filteredVendas.map((venda) => {
-              const grupos = getPedidosPorFabricante(venda);
+            {filteredVendas.map((pedido) => {
               return (
-                <Card key={venda.id} className="hover:shadow-md transition-shadow cursor-pointer border border-gray-200" onClick={() => setSelectedVenda(venda)}>
+                <Card key={pedido.id} className="hover:shadow-md transition-shadow cursor-pointer border border-gray-200" onClick={() => setSelectedVenda(pedido)}>
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex-1 min-w-0">
