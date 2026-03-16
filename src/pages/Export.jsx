@@ -641,21 +641,12 @@ export default function Export() {
 
                 <Button
                   onClick={generatePDF}
-                  disabled={exporting || previewData.length === 0}
+                  disabled={previewData.length === 0}
                   variant="outline"
                   className="w-full hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200"
                 >
-                  {exporting ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-                      Gerando...
-                    </>
-                  ) : (
-                    <>
-                      <FileText className="w-4 h-4 mr-2" />
-                      Gerar PDF
-                    </>
-                  )}
+                  <FileText className="w-4 h-4 mr-2" />
+                  Gerar PDF
                 </Button>
               </CardContent>
             </Card>
