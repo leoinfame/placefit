@@ -42,7 +42,13 @@ export default function Export() {
       const product = productsData.find(p => p.id === sp.product_id);
       return product ? {
         nome: product.nome,
-        preco: `R$ ${sp.preco.toFixed(2)}`
+        cod: product.cod || '',
+        categoria: product.categoria || 'Outros',
+        und: product.und || 'peça',
+        dimensoes: product.dimensoes || '',
+        peso: product.peso ? `${product.peso}kg` : '',
+        preco: sp.preco,
+        precoFormatado: `R$ ${sp.preco.toFixed(2)}`
       } : null;
     }).filter(Boolean);
 
@@ -52,7 +58,13 @@ export default function Export() {
   const generatePreviewForFabricante = (productsData) => {
     const preview = productsData.map(product => ({
       nome: product.nome,
-      preco: product.preco_fabricante ? `R$ ${parseFloat(product.preco_fabricante).toFixed(2)}` : 'R$ 0,00'
+      cod: product.cod || '',
+      categoria: product.categoria || 'Outros',
+      und: product.und || 'peça',
+      dimensoes: product.dimensoes || '',
+      peso: product.peso ? `${product.peso}kg` : '',
+      preco: parseFloat(product.preco_fabricante || 0),
+      precoFormatado: product.preco_fabricante ? `R$ ${parseFloat(product.preco_fabricante).toFixed(2)}` : 'R$ 0,00'
     }));
 
     setPreviewData(preview);
