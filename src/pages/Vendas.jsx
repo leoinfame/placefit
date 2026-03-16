@@ -220,10 +220,13 @@ export default function Vendas() {
         observacoes: observacoes
       });
 
+      // Buscar produtos completos para criar pedidos de compra
+      const allProds = await base44.entities.Product.list();
+      
       // Criar pedidos de compra agrupados por fabricante
       const porFabricante = {};
       itens.forEach(item => {
-        const produto = productsData.find(p => p.id === item.product_id);
+        const produto = allProds.find(p => p.id === item.product_id);
         const fabId = produto?.fabricante_id || 'sem_fabricante';
         if (!porFabricante[fabId]) {
           porFabricante[fabId] = {
