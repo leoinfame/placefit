@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Plus, Search, Eye, Trash2, ShoppingCart, Package, FileText, Printer, User, Edit3, Save, Loader2 } from "lucide-react";
+import { Plus, Search, Eye, Trash2, ShoppingCart, Package, FileText, Printer, User, Edit3, Save, Loader2, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -308,6 +308,59 @@ export default function Vendas() {
           variant: "destructive"
         });
       }
+    }
+  };
+
+  const handleGerarPedidosCompra = async (pedido) => {
+    try {
+      const allProds = await base44.entities.Product.list();
+      
+      const porFabricante = {};
+      (pedido.itens || []).forEach(item => {
+        const produto = allProds.find(p => p.id === item.product_id);
+        const fabId = produto?.fabricante_id || 'sem_fabricante';
+        if (!porFabricante[fabId]) {
+          porFabricante[fabId] = {
+            fabricante_id: fabId,
+            fabricante_nome: produto?.fabricante_nome || 'Sem Fabricante',
+            itens: []
+          };
+        }
+        porFabricante[fabId].itens.push(item);
+      });
+
+      let pedidosCriados = 0;
+      for (const [fabId, dados] of Object.entries(porFabricante)) {
+        if (fabId !== 'sem_fabricante') {
+          const totalFab = dados.itens.reduce((sum, item) => sum + item.subtotal, 0);
+          await base44.entities.PedidoCompra.create({
+            revendedor_id: user.id,
+            revendedor_nome: user.empresa || user.full_name,
+            fabricante_id: fabId,
+            fabricante_nome: dados.fabricante_nome,
+            venda_id: pedido.id,
+            numero_pedido: `PC-${Date.now()}-${fabId.substring(0, 8)}`,
+            data_pedido: new Date().toISOString().split('T')[0],
+            itens: dados.itens,
+            total: totalFab,
+            status: "pendente",
+            observacoes: pedido.observacoes
+          });
+          pedidosCriados++;
+        }
+      }
+
+      toast({
+        title: "Sucesso!",
+        description: `${pedidosCriados} pedido(s) de compra criado(s) com sucesso.`,
+      });
+    } catch (error) {
+      console.error("Erro ao gerar pedidos de compra:", error);
+      toast({
+        title: "Erro",
+        description: "Erro ao gerar pedidos de compra.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -673,6 +726,15 @@ export default function Vendas() {
                               title="Ver detalhes"
                             >
                               <Eye className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleGerarPedidosCompra(pedido)}
+                              className="text-green-600 hover:bg-green-50"
+                              title="Gerar pedidos de compra"
+                            >
+                              <Zap className="w-4 h-4" />
                             </Button>
                             <Button
                               variant="outline"
