@@ -172,10 +172,10 @@ export default function PedidosCompra() {
             </Button>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                Pedidos de Compra — <span className="text-blue-600">{selectedVenda.numero_pedido}</span>
+                Pedido de Compra — <span className="text-blue-600">{selectedVenda.numero_pedido}</span>
               </h1>
               <p className="text-sm text-gray-500">
-                Cliente: <strong>{selectedVenda.cliente_nome}</strong> · Data: {fmtDate(selectedVenda.data_pedido)} · Total: <strong className="text-green-700">{fmtBRL(selectedVenda.total)}</strong>
+                Fabricante: <strong>{selectedVenda.fabricante_nome}</strong> · Data: {fmtDate(selectedVenda.data_pedido)} · Total: <strong className="text-green-700">{fmtBRL(selectedVenda.total)}</strong>
               </p>
             </div>
           </div>
