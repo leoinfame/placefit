@@ -214,11 +214,7 @@ export default function FabricantesRevendedor() {
       }).join('');
 
       const html = `<!DOCTYPE html>
-      <!-- Categorias têm page-break-inside: avoid para não pular página -->
-      <style>
-      .categoria-bloco { page-break-inside: avoid; }
-      </style>
-<html lang="pt-BR">
+      <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <title>Tabela de Preços — ${nomeEmpresa}</title>
