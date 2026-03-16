@@ -192,13 +192,13 @@ export default function FabricantesRevendedor() {
           </tr>`).join('');
 
         return `
-          <div style="margin-bottom:28px;page-break-inside:avoid;">
-            <div style="display:flex;align-items:center;gap:8px;padding:9px 14px;background:linear-gradient(90deg,${c.primaryDark} 0%,${c.primary} 100%);border-radius:6px 6px 0 0;">
-              <span style="font-size:14px;">${icon}</span>
-              <span style="font-size:12px;font-weight:700;color:#ffffff;letter-spacing:1.5px;text-transform:uppercase;">${cat}</span>
-              <span style="margin-left:auto;font-size:10px;color:#ffffff;font-weight:500;opacity:0.85;">${itens.length} produto${itens.length !== 1 ? 's' : ''}</span>
+          <div style="margin-bottom:10px;page-break-inside:avoid;">
+            <div style="display:flex;align-items:center;gap:6px;padding:6px 10px;background:transparent;border:1px solid #e2e8f0;border-bottom:none;border-radius:4px 4px 0 0;">
+              <span style="font-size:11px;">${icon}</span>
+              <span style="font-size:10px;font-weight:700;color:#1e293b;letter-spacing:1px;text-transform:uppercase;">${cat}</span>
+              <span style="margin-left:auto;font-size:8px;color:#64748b;font-weight:500;">${itens.length} item${itens.length !== 1 ? 's' : ''}</span>
             </div>
-            <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-top:none;">
+            <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-top:none;font-size:9px;">
               <thead>
                 <tr style="background:transparent;">
                  <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#1e293b !important;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;width:70px;">Código</th>
