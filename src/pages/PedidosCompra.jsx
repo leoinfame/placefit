@@ -193,18 +193,18 @@ export default function PedidosCompra() {
                   <div className="bg-gradient-to-r from-blue-50 to-slate-50 border-b border-gray-200 px-4 py-3">
                     <div className="flex flex-col md:flex-row md:items-center gap-3">
                       <div className="flex items-center gap-3 flex-1">
-                        {fab?.logomarca ? (
-                          <img src={fab.logomarca} alt="logo" className="w-10 h-10 object-contain rounded border bg-white p-0.5" />
-                        ) : (
-                          <div className="w-10 h-10 rounded border bg-blue-100 flex items-center justify-center">
-                            <Building2 className="w-5 h-5 text-blue-600" />
-                          </div>
-                        )}
-                        <div>
-                          <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Fabricante</p>
-                          <p className="font-bold text-gray-900 text-sm">{fab?.empresa || fab?.full_name || fab?.nome}</p>
-                          <p className="text-xs text-gray-500">{fab?.whatsapp || fab?.email || ""}</p>
+                      {fab?.logomarca ? (
+                        <img src={fab.logomarca} alt="logo" className="w-10 h-10 object-contain rounded border bg-white p-0.5" />
+                      ) : (
+                        <div className="w-10 h-10 rounded border bg-blue-100 flex items-center justify-center">
+                          <Building2 className="w-5 h-5 text-blue-600" />
                         </div>
+                      )}
+                      <div>
+                        <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Fabricante (Receptor)</p>
+                        <p className="font-bold text-gray-900 text-sm">{fab?.empresa || fab?.full_name || fab?.nome || selectedVenda.fabricante_nome}</p>
+                        <p className="text-xs text-gray-500">{fab?.whatsapp || fab?.email || ""}</p>
+                      </div>
                       </div>
                       <div className="hidden md:block w-px h-10 bg-gray-300" />
                       <div className="flex items-center gap-3 flex-1">
