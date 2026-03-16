@@ -579,11 +579,11 @@ export default function Export() {
                           <table className="w-full text-xs">
                             <thead>
                               <tr className="bg-slate-50 border-b border-gray-200">
-                                <th className="px-3 py-1.5 text-left text-gray-500 font-semibold uppercase tracking-wide w-16">Cód.</th>
-                                <th className="px-3 py-1.5 text-left text-gray-500 font-semibold uppercase tracking-wide">Produto</th>
-                                <th className="px-3 py-1.5 text-center text-gray-500 font-semibold uppercase tracking-wide w-20 hidden md:table-cell">Espec.</th>
-                                <th className="px-3 py-1.5 text-center text-gray-500 font-semibold uppercase tracking-wide w-16 hidden md:table-cell">Und.</th>
-                                <th className="px-3 py-1.5 text-right text-gray-500 font-semibold uppercase tracking-wide w-24">Preço</th>
+                                <th className="px-3 py-1.5 text-left text-gray-900 font-semibold uppercase tracking-wide w-16">Cód.</th>
+                                <th className="px-3 py-1.5 text-left text-gray-900 font-semibold uppercase tracking-wide">Produto</th>
+                                <th className="px-3 py-1.5 text-center text-gray-900 font-semibold uppercase tracking-wide w-20 hidden md:table-cell">Espec.</th>
+                                <th className="px-3 py-1.5 text-center text-gray-900 font-semibold uppercase tracking-wide w-16 hidden md:table-cell">Und.</th>
+                                <th className="px-3 py-1.5 text-right text-gray-900 font-semibold uppercase tracking-wide w-24">Preço</th>
                               </tr>
                             </thead>
                             <tbody>
