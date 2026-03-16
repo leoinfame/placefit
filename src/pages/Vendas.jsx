@@ -223,7 +223,10 @@ export default function Vendas() {
        console.log("Venda criada:", pedidoCriado.id);
 
        // Buscar produtos completos para criar pedidos de compra
-       const allProds = await base44.entities.Product.list();
+       const [allProds, allUsers] = await Promise.all([
+         base44.entities.Product.list(),
+         base44.entities.User.list()
+       ]);
 
        // Criar pedidos de compra agrupados por fabricante
        const porFabricante = {};
@@ -234,16 +237,31 @@ export default function Vendas() {
            return;
          }
 
-         const fabId = produto.fabricante_id;
+         let fabId = produto.fabricante_id;
+         let fabNome = produto.fabricante_nome;
+
+         // Se produto vem de SupplierProduct (revendedor), precisa se referir ao fabricante do produto
+         if (!fabId && produto.origem === 'nacional' && user.tipo_usuario !== 'fabricante') {
+           // Produto importado, buscar origem
+           console.warn("Produto sem fabricante definido:", produto.nome);
+           return;
+         }
+
          if (!fabId) {
            console.warn("Produto sem fabricante:", produto.nome);
            return;
          }
 
+         // Enriquecer nome do fabricante se estiver vazio
+         if (!fabNome) {
+           const fab = allUsers.find(u => u.id === fabId);
+           fabNome = fab?.empresa || fab?.full_name || 'Sem Nome';
+         }
+
          if (!porFabricante[fabId]) {
            porFabricante[fabId] = {
              fabricante_id: fabId,
-             fabricante_nome: produto.fabricante_nome || 'Sem Nome',
+             fabricante_nome: fabNome,
              itens: []
            };
          }
