@@ -692,18 +692,22 @@ precisas sobre políticas, procedimentos, FAQ, etc.
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3 bg-white/80 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-4 bg-white/80 backdrop-blur-sm">
             <TabsTrigger value="fabricantes">
               <Bot className="w-4 h-4 mr-2" />
-              Agentes dos Fabricantes
+              Agentes
             </TabsTrigger>
             <TabsTrigger value="chat" disabled={!selectedFabricante}>
               <MessageSquare className="w-4 h-4 mr-2" />
-              Chat do Agente
+              Chat
             </TabsTrigger>
             <TabsTrigger value="training" disabled={!selectedFabricante}>
               <BookOpen className="w-4 h-4 mr-2" />
               Treinamento
+            </TabsTrigger>
+            <TabsTrigger value="whatsapp">
+              <span className="mr-2">📱</span>
+              WhatsApp
             </TabsTrigger>
           </TabsList>
 

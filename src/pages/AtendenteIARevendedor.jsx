@@ -514,7 +514,7 @@ precisas sobre políticas, procedimentos, FAQ, etc.
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2 bg-white/80 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-3 bg-white/80 backdrop-blur-sm">
             <TabsTrigger value="chat">
               <MessageSquare className="w-4 h-4 mr-2" />
               Chat do Assistente
@@ -522,6 +522,10 @@ precisas sobre políticas, procedimentos, FAQ, etc.
             <TabsTrigger value="training">
               <BookOpen className="w-4 h-4 mr-2" />
               Treinamento
+            </TabsTrigger>
+            <TabsTrigger value="whatsapp">
+              <span className="mr-2">📱</span>
+              WhatsApp
             </TabsTrigger>
           </TabsList>
 
