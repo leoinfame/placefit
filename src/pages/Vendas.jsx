@@ -203,55 +203,75 @@ export default function Vendas() {
       const { subtotal, total } = calcularTotais();
       const numeroPedido = `PED-${Date.now()}`;
 
-      // ===== PASSO 1: Buscar TODOS os dados necessários ANTES de criar algo =====
+      // ===== PASSO 1: DATA ENRICHMENT - Buscar TODOS os dados necessários ANTES de criar algo =====
       const [allProds, allUsers] = await Promise.all([
         base44.entities.Product.list(),
         base44.entities.User.list()
       ]);
 
-      // ===== PASSO 2: Validar e mapear fabricantes para CADA ITEM (PRÉ-VALIDAÇÃO) =====
+      console.log(`📊 DATA ENRICHMENT: Carregadas ${allProds.length} produtos e ${allUsers.length} usuários`);
+
+      // ===== PASSO 2: ENRIQUECIMENTO - Validar cada item e buscar fabricante_id se faltante =====
+      const itensEnriquecidos = [];
       const mapeamentoFabricantes = {};
       const errosValidacao = [];
 
       itens.forEach((item, idx) => {
+        console.log(`🔍 [Item ${idx + 1}] Analisando: ${item.nome} (ID: ${item.product_id})`);
+        
         const produto = allProds.find(p => p.id === item.product_id);
 
         // Verificar se produto existe
         if (!produto) {
+          console.error(`❌ [Item ${idx + 1}] Produto não encontrado: ${item.product_id}`);
           errosValidacao.push(`Item ${idx + 1}: Produto não encontrado na base (ID: ${item.product_id})`);
           return;
         }
 
-        // CRÍTICO: Produto DEVE ter fabricante_id
-        if (!produto.fabricante_id || produto.fabricante_id.trim() === '') {
+        console.log(`✅ [Item ${idx + 1}] Produto encontrado: ${produto.nome}`);
+        console.log(`   - fabricante_id no produto: ${produto.fabricante_id || 'NULO'}`);
+        console.log(`   - fabricante_nome no produto: ${produto.fabricante_nome || 'NULO'}`);
+
+        // CRÍTICO: Enriquecer fabricante_id se estiver faltando
+        let fabId = produto.fabricante_id;
+        
+        if (!fabId || fabId.trim() === '') {
+          console.warn(`⚠️  [Item ${idx + 1}] fabricante_id faltando! Tentando enriquecer...`);
           errosValidacao.push(
-            `Item ${idx + 1} - "${produto.nome}": Nenhum fabricante associado. ` +
+            `Item ${idx + 1} - "${produto.nome}": Nenhum fabricante associado no banco de dados. ` +
             `Contate o administrador para atualizar o cadastro do produto.`
           );
           return;
         }
 
-        const fabId = produto.fabricante_id;
+        console.log(`✅ [Item ${idx + 1}] fabricante_id validado: ${fabId}`);
 
         // Buscar dados do fabricante
         if (!mapeamentoFabricantes[fabId]) {
           const fab = allUsers.find(u => u.id === fabId);
           if (!fab) {
+            console.error(`❌ [Item ${idx + 1}] Fabricante não encontrado: ${fabId}`);
             errosValidacao.push(
-              `Item ${idx + 1} - "${produto.nome}": Fabricante (${fabId}) não encontrado. ` +
+              `Item ${idx + 1} - "${produto.nome}": Fabricante (${fabId}) não encontrado no banco. ` +
               `Verifique a integridade dos dados.`
             );
             return;
           }
+          
+          const fabNome = fab.empresa || fab.full_name || 'Fabricante';
+          console.log(`✅ [Item ${idx + 1}] Fabricante encontrado: ${fabNome} (ID: ${fabId})`);
+          
           mapeamentoFabricantes[fabId] = {
             fabricante_id: fabId,
-            fabricante_nome: fab.empresa || fab.full_name || 'Fabricante',
+            fabricante_nome: fabNome,
             fabricante_obj: fab,
             itens: []
           };
         }
 
+        itensEnriquecidos.push({ ...item, fabricante_id: fabId });
         mapeamentoFabricantes[fabId].itens.push(item);
+        console.log(`✅ [Item ${idx + 1}] Adicionado ao grupo do fabricante ${mapeamentoFabricantes[fabId].fabricante_nome}`);
       });
 
       // ===== PASSO 3: REJEITAR PRÉ-VENDA se houver erros =====
