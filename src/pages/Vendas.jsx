@@ -199,81 +199,100 @@ export default function Vendas() {
     }
 
     try {
-      const cliente = clientes.find(c => c.id === selectedCliente);
-      const { subtotal, total } = calcularTotais();
-      
-      const numeroPedido = `PED-${Date.now()}`;
+       const cliente = clientes.find(c => c.id === selectedCliente);
+       const { subtotal, total } = calcularTotais();
 
-      const pedidoCriado = await base44.entities.Pedido.create({
-        fornecedor_id: user.id,
-        cliente_id: selectedCliente,
-        cliente_nome: cliente.nome,
-        numero_pedido: numeroPedido,
-        data_pedido: new Date().toISOString().split('T')[0],
-        tipo: 'venda',
-        itens: itens,
-        subtotal: subtotal,
-        frete: parseFloat(frete || 0),
-        desconto: parseFloat(desconto || 0),
-        total: total,
-        status: "pendente",
-        observacoes: observacoes
-      });
+       const numeroPedido = `PED-${Date.now()}`;
 
-      // Buscar produtos completos para criar pedidos de compra
-      const allProds = await base44.entities.Product.list();
-      
-      // Criar pedidos de compra agrupados por fabricante
-      const porFabricante = {};
-      itens.forEach(item => {
-        const produto = allProds.find(p => p.id === item.product_id);
-        const fabId = produto?.fabricante_id || 'sem_fabricante';
-        if (!porFabricante[fabId]) {
-          porFabricante[fabId] = {
-            fabricante_id: fabId,
-            fabricante_nome: produto?.fabricante_nome || 'Sem Fabricante',
-            itens: []
-          };
-        }
-        porFabricante[fabId].itens.push(item);
-      });
+       const pedidoCriado = await base44.entities.Pedido.create({
+         fornecedor_id: user.id,
+         cliente_id: selectedCliente,
+         cliente_nome: cliente.nome,
+         numero_pedido: numeroPedido,
+         data_pedido: new Date().toISOString().split('T')[0],
+         tipo: 'venda',
+         itens: itens,
+         subtotal: subtotal,
+         frete: parseFloat(frete || 0),
+         desconto: parseFloat(desconto || 0),
+         total: total,
+         status: "pendente",
+         observacoes: observacoes
+       });
 
-      // Salvar PedidosCompra para cada fabricante
-      for (const [fabId, dados] of Object.entries(porFabricante)) {
-        if (fabId !== 'sem_fabricante') {
-          const totalFab = dados.itens.reduce((sum, item) => sum + item.subtotal, 0);
-          await base44.entities.PedidoCompra.create({
-            revendedor_id: user.id,
-            revendedor_nome: user.empresa || user.full_name,
-            fabricante_id: fabId,
-            fabricante_nome: dados.fabricante_nome,
-            venda_id: pedidoCriado.id,
-            numero_pedido: `PC-${Date.now()}-${fabId.substring(0, 8)}`,
-            data_pedido: new Date().toISOString().split('T')[0],
-            itens: dados.itens,
-            total: totalFab,
-            status: "pendente",
-            observacoes: observacoes
-          });
-        }
-      }
+       console.log("Venda criada:", pedidoCriado.id);
 
-      toast({
-        title: "Pedido criado!",
-        description: `Pedido ${numeroPedido} foi criado com sucesso. Pedidos de compra gerados automaticamente.`,
-      });
+       // Buscar produtos completos para criar pedidos de compra
+       const allProds = await base44.entities.Product.list();
 
-      resetForm();
-      setActiveTab("lista");
-      loadData();
-    } catch (error) {
-      console.error("Erro ao criar pedido:", error);
-      toast({
-        title: "Erro",
-        description: "Erro ao criar pedido. Tente novamente.",
-        variant: "destructive"
-      });
-    }
+       // Criar pedidos de compra agrupados por fabricante
+       const porFabricante = {};
+       itens.forEach(item => {
+         const produto = allProds.find(p => p.id === item.product_id);
+         if (!produto) {
+           console.warn("Produto não encontrado:", item.product_id);
+           return;
+         }
+
+         const fabId = produto.fabricante_id;
+         if (!fabId) {
+           console.warn("Produto sem fabricante:", produto.nome);
+           return;
+         }
+
+         if (!porFabricante[fabId]) {
+           porFabricante[fabId] = {
+             fabricante_id: fabId,
+             fabricante_nome: produto.fabricante_nome || 'Sem Nome',
+             itens: []
+           };
+         }
+         porFabricante[fabId].itens.push(item);
+       });
+
+       console.log("Pedidos por fabricante:", Object.keys(porFabricante));
+
+       // Salvar PedidosCompra para cada fabricante
+       let pedidosCriados = 0;
+       for (const [fabId, dados] of Object.entries(porFabricante)) {
+         try {
+           const totalFab = dados.itens.reduce((sum, item) => sum + item.subtotal, 0);
+           const novoPedido = await base44.entities.PedidoCompra.create({
+             revendedor_id: user.id,
+             revendedor_nome: user.empresa || user.full_name,
+             fabricante_id: fabId,
+             fabricante_nome: dados.fabricante_nome,
+             venda_id: pedidoCriado.id,
+             numero_pedido: `PC-${Date.now()}-${fabId.substring(0, 8)}`,
+             data_pedido: new Date().toISOString().split('T')[0],
+             itens: dados.itens,
+             total: totalFab,
+             status: "pendente",
+             observacoes: observacoes
+           });
+           console.log("PedidoCompra criado:", novoPedido.id);
+           pedidosCriados++;
+         } catch (err) {
+           console.error("Erro ao criar PedidoCompra para", fabId, err);
+         }
+       }
+
+       toast({
+         title: "Pedido criado!",
+         description: `Pedido ${numeroPedido} foi criado com sucesso. ${pedidosCriados} pedido(s) de compra gerado(s).`,
+       });
+
+       resetForm();
+       setActiveTab("lista");
+       await loadData();
+     } catch (error) {
+       console.error("Erro ao criar pedido:", error);
+       toast({
+         title: "Erro",
+         description: "Erro ao criar pedido. Tente novamente.",
+         variant: "destructive"
+       });
+     }
   };
 
   const resetForm = () => {
