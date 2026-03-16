@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
+import { useLogoColors } from "@/components/export/useLogoColors";
 import {
   Download,
   FileText,
