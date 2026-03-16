@@ -427,19 +427,24 @@ export default function Layout({ children, currentPageName }) {
           badge: unreadNotifications > 0 ? unreadNotifications : null
         },
         {
-          title: "Catálogo",
-          url: createPageUrl("Catalogo"),
-          icon: Package,
-        },
-        {
           title: "Fabricantes",
           url: createPageUrl("FabricantesRevendedor"),
           icon: Store,
         },
         {
-          title: "Meus Produtos",
+          title: "Produtos",
           url: createPageUrl("MyProducts"),
-          icon: ShoppingCart,
+          icon: Package,
+        },
+        {
+          title: "  • Catálogo",
+          url: createPageUrl("Catalogo"),
+          icon: Package,
+        },
+        {
+          title: "  • Sua Tabela",
+          url: createPageUrl("Export"),
+          icon: Download,
         },
         {
           title: "Meus Clientes",
@@ -460,11 +465,6 @@ export default function Layout({ children, currentPageName }) {
           title: "Financeiro",
           url: createPageUrl("Financeiro"),
           icon: ShoppingCart,
-        },
-        {
-          title: "Sua Tabela",
-          url: createPageUrl("Export"),
-          icon: Download,
         },
         {
           title: "Atendente IA",
