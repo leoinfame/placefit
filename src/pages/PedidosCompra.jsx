@@ -145,9 +145,10 @@ export default function PedidosCompra() {
   };
 
   const filteredVendas = vendas.filter(v =>
-    !searchTerm ||
-    v.numero_pedido?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    v.cliente_nome?.toLowerCase().includes(searchTerm.toLowerCase())
+   !searchTerm ||
+   v.numero_pedido?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+   v.fabricante_nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+   v.revendedor_nome?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
