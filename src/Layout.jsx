@@ -372,29 +372,29 @@ export default function Layout({ children, currentPageName }) {
           badge: unreadNotifications > 0 ? unreadNotifications : null
         },
         {
-          title: "Catálogo",
-          url: createPageUrl("Catalogo"),
-          icon: Package,
-        },
-        {
           title: "Fabricantes",
           url: createPageUrl("FabricantesParaFabricantes"),
           icon: Store,
         },
         {
-          title: "Meus Produtos",
+          title: "Produtos",
           url: createPageUrl("FabricanteProdutos"),
           icon: Package,
+        },
+        {
+          title: "  • Catálogo",
+          url: createPageUrl("Catalogo"),
+          icon: Package,
+        },
+        {
+          title: "  • Sua Tabela",
+          url: createPageUrl("Export"),
+          icon: Download,
         },
         {
           title: "Pedidos",
           url: createPageUrl("PedidosCompraFabricante"),
           icon: ShoppingCart,
-        },
-        {
-          title: "Sua Tabela",
-          url: createPageUrl("Export"),
-          icon: Download,
         },
         {
           title: "Orçamentos",
