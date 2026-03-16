@@ -35,6 +35,7 @@ export default function Export() {
   const [exporting, setExporting] = useState(false);
   const [previewData, setPreviewData] = useState([]);
   const { toast } = useToast();
+  const colors = useLogoColors(user?.logomarca);
 
   const generatePreview = (productsData, supplierProductsData) => {
     const availableProducts = supplierProductsData.filter(sp => sp.preco > 0);
