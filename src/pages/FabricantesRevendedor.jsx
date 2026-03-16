@@ -226,12 +226,12 @@ export default function FabricantesRevendedor() {
     .cover { display: flex; align-items: center; gap: 20px; padding: 20px 24px; background: linear-gradient(135deg, ${c.primaryDark} 0%, ${c.primary} 50%, ${c.secondary} 100%); border-radius: 10px; margin-bottom: 20px; }
     .cover-logo { width: 72px; height: 72px; object-fit: contain; background: #fff; border-radius: 8px; padding: 6px; flex-shrink: 0; }
     .cover-logo-placeholder { width: 72px; height: 72px; background: rgba(255,255,255,0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
-    .cover-title { font-size: 22px; font-weight: 800; color: #ffffff; line-height: 1.2; }
-    .cover-subtitle { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.8); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; margin-top: 2px; }
-    .cover-contact { font-size: 10px; color: rgba(255,255,255,0.85); display: inline-block; margin-right: 16px; margin-top: 4px; }
+    .cover-title { font-size: 22px; font-weight: 800; color: #1e293b !important; line-height: 1.2; }
+    .cover-subtitle { font-size: 11px; font-weight: 600; color: #1e293b !important; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; margin-top: 2px; }
+    .cover-contact { font-size: 10px; color: #1e293b !important; display: inline-block; margin-right: 16px; margin-top: 4px; }
     .cover-right { text-align: right; flex-shrink: 0; }
-    .cover-doc-title { font-size: 13px; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 1px; }
-    .cover-date { font-size: 10px; color: rgba(255,255,255,0.8); margin-top: 4px; }
+    .cover-doc-title { font-size: 13px; font-weight: 800; color: #1e293b !important; text-transform: uppercase; letter-spacing: 1px; }
+    .cover-date { font-size: 10px; color: #1e293b !important; margin-top: 4px; }
     .stats-bar { display: flex; gap: 12px; margin-bottom: 20px; }
     .stat-card { flex: 1; background: #f8fafc; border: 1px solid ${c.lightBorder}; border-radius: 6px; padding: 10px 14px; text-align: center; }
     .stat-num { font-size: 20px; font-weight: 800; color: ${c.primaryDark}; }

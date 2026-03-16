@@ -270,14 +270,14 @@ export default function Export() {
     .cover-logo { width: 72px; height: 72px; object-fit: contain; background: #fff; border-radius: 8px; padding: 6px; flex-shrink: 0; }
     .cover-logo-placeholder { width: 72px; height: 72px; background: rgba(255,255,255,0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
     .cover-body { flex: 1; }
-    .cover-title { font-size: 22px; font-weight: 800; color: ${c.textOnPrimary}; letter-spacing: -0.5px; line-height: 1.2; }
-    .cover-subtitle { font-size: 11px; font-weight: 600; color: ${c.light}; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; margin-top: 2px; }
+    .cover-title { font-size: 22px; font-weight: 800; color: #1e293b !important; letter-spacing: -0.5px; line-height: 1.2; }
+    .cover-subtitle { font-size: 11px; font-weight: 600; color: #1e293b !important; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; margin-top: 2px; }
     .cover-contacts { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 8px; }
-    .cover-contact { font-size: 10px; color: ${c.light}; display: flex; align-items: center; gap: 4px; }
+    .cover-contact { font-size: 10px; color: #1e293b !important; display: flex; align-items: center; gap: 4px; }
     .cover-right { text-align: right; flex-shrink: 0; }
     .cover-doc-title { font-size: 13px; font-weight: 800; color: ${c.textOnPrimary}; text-transform: uppercase; letter-spacing: 1px; }
-    .cover-date { font-size: 10px; color: ${c.light}; margin-top: 4px; }
-    .cover-badge { margin-top: 8px; display: inline-block; background: rgba(255,255,255,0.15); color: #e2e8f0; font-size: 9px; padding: 3px 8px; border-radius: 20px; font-weight: 600; letter-spacing: 0.5px; }
+    .cover-date { font-size: 10px; color: #1e293b !important; margin-top: 4px; }
+    .cover-badge { margin-top: 8px; display: inline-block; background: rgba(255,255,255,0.15); color: #1e293b !important; font-size: 9px; padding: 3px 8px; border-radius: 20px; font-weight: 600; letter-spacing: 0.5px; }
 
     /* STATS BAR */
     .stats-bar { display: flex; gap: 12px; margin-bottom: 20px; }
