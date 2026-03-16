@@ -408,9 +408,15 @@ export default function Export() {
     });
   };
 
+  const getPublicLink = () => {
+    const isFab = user?.tipo_usuario === 'fabricante';
+    return isFab
+      ? `${window.location.origin}/PublicTableFabricante?fabricante=${user.id}`
+      : `${window.location.origin}/PublicTable?supplier=${user.id}`;
+  };
+
   const copyPublicLink = () => {
-    const link = `${window.location.origin}/PublicTable?supplier=${user.id}`;
-    navigator.clipboard.writeText(link);
+    navigator.clipboard.writeText(getPublicLink());
     toast({
       title: "Link copiado!",
       description: "Link público da sua tabela copiado para a área de transferência.",
@@ -418,30 +424,26 @@ export default function Export() {
   };
 
   const openPublicLink = () => {
-    const link = `${window.location.origin}/PublicTable?supplier=${user.id}`;
-    window.open(link, '_blank');
+    window.open(getPublicLink(), '_blank');
   };
 
   const shareWhatsApp = () => {
-    const link = `${window.location.origin}/PublicTable?supplier=${user.id}`;
+    const link = getPublicLink();
     const text = `Confira nossa tabela de preços de equipamentos fitness: ${link}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   const shareFacebook = () => {
-    const link = `${window.location.origin}/PublicTable?supplier=${user.id}`;
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}`, '_blank');
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(getPublicLink())}`, '_blank');
   };
 
   const shareTelegram = () => {
-    const link = `${window.location.origin}/PublicTable?supplier=${user.id}`;
     const text = `Confira nossa tabela de preços de equipamentos fitness`;
-    window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`, '_blank');
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(getPublicLink())}&text=${encodeURIComponent(text)}`, '_blank');
   };
 
   const shareLinkedIn = () => {
-    const link = `${window.location.origin}/PublicTable?supplier=${user.id}`;
-    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(link)}`, '_blank');
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(getPublicLink())}`, '_blank');
   };
 
   if (loading) {
