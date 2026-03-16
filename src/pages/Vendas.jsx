@@ -350,7 +350,10 @@ export default function Vendas() {
 
   const handleGerarPedidosCompra = async (pedido) => {
     try {
-      const allProds = await base44.entities.Product.list();
+      const [allProds, allUsers] = await Promise.all([
+        base44.entities.Product.list(),
+        base44.entities.User.list()
+      ]);
 
       // Verificar se já existem PedidosCompra para esta venda
       const pedidosExistentes = await base44.entities.PedidoCompra.filter({ venda_id: pedido.id });
@@ -376,10 +379,16 @@ export default function Vendas() {
           return;
         }
 
+        let fabNome = produto.fabricante_nome;
+        if (!fabNome) {
+          const fab = allUsers.find(u => u.id === fabId);
+          fabNome = fab?.empresa || fab?.full_name || 'Sem Nome';
+        }
+
         if (!porFabricante[fabId]) {
           porFabricante[fabId] = {
             fabricante_id: fabId,
-            fabricante_nome: produto.fabricante_nome || 'Sem Nome',
+            fabricante_nome: fabNome,
             itens: []
           };
         }
