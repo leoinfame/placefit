@@ -27,7 +27,8 @@ export default function Dashboard() {
     myProducts: 0,
     activeProducts: 0,
     totalOrcamentos: 0,
-    totalVendas: 0
+    totalVendas: 0,
+    totalPedidosCompra: 0
   });
   const [loading, setLoading] = useState(true);
   const [recentActivity, setRecentActivity] = useState([]);
