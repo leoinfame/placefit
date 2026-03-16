@@ -51,12 +51,12 @@ export default function PedidosCompra() {
   const { toast } = useToast();
 
   const { data: vendas = [] } = useQuery({
-    queryKey: ['vendas-pedidos-compra'],
+    queryKey: ['vendas-pedidos-compra', user?.id],
     queryFn: async () => {
-      const all = await base44.entities.Pedido.list('-created_date');
-      return all.filter(p => p.tipo === 'venda' && p.fornecedor_id === user?.id);
+      const all = await base44.entities.Pedido.filter({ fornecedor_id: user.id, tipo: 'venda' }, '-created_date');
+      return all;
     },
-    enabled: !!user,
+    enabled: !!user?.id,
   });
 
   const { data: pedidosCompra = [] } = useQuery({
