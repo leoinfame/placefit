@@ -216,8 +216,8 @@ export default function PedidosCompra() {
                           </div>
                         )}
                         <div>
-                          <p className="text-xs font-semibold text-green-700 uppercase tracking-wide">Revendedor</p>
-                          <p className="font-bold text-gray-900 text-sm">{user?.empresa || user?.full_name}</p>
+                          <p className="text-xs font-semibold text-green-700 uppercase tracking-wide">Revendedor (Emissor)</p>
+                          <p className="font-bold text-gray-900 text-sm">{selectedVenda.revendedor_nome || user?.empresa || user?.full_name}</p>
                           <p className="text-xs text-gray-500">{user?.whatsapp || user?.email || ""}</p>
                         </div>
                       </div>
