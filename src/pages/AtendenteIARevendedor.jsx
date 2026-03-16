@@ -788,9 +788,9 @@ precisas sobre políticas, procedimentos, FAQ, etc.
           </TabsContent>
 
           <TabsContent value="whatsapp" className="space-y-4">
-           <WhatsAppSetup userId={user?.id} userType="revendedor" />
+            <WhatsAppSetup userId={user?.id} userType="revendedor" />
           </TabsContent>
-          </Tabs>
+        </Tabs>
 
         {/* Dialog de Conhecimento */}
         <Dialog open={showDialog} onOpenChange={(open) => {
