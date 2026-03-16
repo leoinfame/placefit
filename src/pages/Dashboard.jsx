@@ -133,9 +133,13 @@ export default function Dashboard() {
 
       if (currentUser.role === 'user' && !currentUser.tipo_usuario) {
         // REVENDEDOR
+        console.log(`🔍 DASHBOARD: Carregando dados para revendedor (ID: ${currentUser.id})`);
+        
         const mySupplierProducts = await base44.entities.SupplierProduct.filter({ supplier_id: currentUser.id });
         myProductsCount = mySupplierProducts.length;
         activeProductsCount = mySupplierProducts.filter(sp => sp.disponivel && sp.preco > 0).length;
+
+        console.log(`   ✅ Produtos do revendedor: ${myProductsCount}`);
 
         // Buscar orçamentos e vendas
         const orcamentos = await base44.entities.Pedido.filter({ 
@@ -147,10 +151,27 @@ export default function Dashboard() {
           tipo: 'venda'
         });
 
-        // Buscar pedidos de compra
-        const pedidosCompra = await base44.entities.PedidoCompra.filter({ 
-          revendedor_id: currentUser.id
-        });
+        console.log(`   ✅ Orçamentos: ${orcamentos.length}`);
+        console.log(`   ✅ Vendas: ${vendas.length}`);
+
+        // Buscar pedidos de compra - VALIDAR CAMPO EXATO
+        let pedidosCompra = [];
+        try {
+          pedidosCompra = await base44.entities.PedidoCompra.filter({ 
+            revendedor_id: currentUser.id
+          });
+          console.log(`   ✅ Pedidos de Compra (revendedor_id): ${pedidosCompra.length}`);
+        } catch (err) {
+          console.warn(`   ⚠️  Erro ao buscar PedidosCompra com revendedor_id: ${err?.message}`);
+          // Tentar busca alternativa
+          try {
+            const todos = await base44.entities.PedidoCompra.list();
+            pedidosCompra = todos.filter(pc => pc.revendedor_id === currentUser.id);
+            console.log(`   ✅ PedidosCompra (via list + filter): ${pedidosCompra.length}`);
+          } catch (err2) {
+            console.error(`   ❌ Erro ao buscar PedidosCompra:`, err2?.message);
+          }
+        }
 
         totalOrcamentos = orcamentos.length;
         totalVendas = vendas.length;
