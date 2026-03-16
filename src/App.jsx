@@ -8,6 +8,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import PublicTableFabricante from './pages/PublicTableFabricante';
+import AdminTools from './pages/AdminTools';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -60,6 +61,7 @@ const AuthenticatedApp = () => {
         />
       ))}
       <Route path="/PublicTableFabricante" element={<PublicTableFabricante />} />
+      <Route path="/AdminTools" element={<AdminTools />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
