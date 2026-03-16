@@ -541,7 +541,7 @@ export default function Export() {
                   return (
                     <div className="space-y-4">
                       {/* Header da empresa */}
-                      <div className="rounded-xl overflow-hidden bg-gradient-to-r from-slate-900 to-blue-900">
+                      <div className="rounded-xl overflow-hidden" style={{background: colors ? `linear-gradient(135deg, ${colors.primaryDark} 0%, ${colors.primary} 60%, ${colors.secondary} 100%)` : 'linear-gradient(135deg,#0f172a,#1e3a5f,#1e40af)'}}>
                         <div className="flex items-center gap-4 p-4">
                           {user?.logomarca ? (
                             <img src={user.logomarca} alt="Logo" className="w-14 h-14 object-contain bg-white rounded-lg p-1 flex-shrink-0" />
@@ -549,16 +549,16 @@ export default function Export() {
                             <div className="w-14 h-14 bg-white/20 rounded-lg flex items-center justify-center text-2xl flex-shrink-0">🏋️</div>
                           )}
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs font-semibold text-blue-300 uppercase tracking-widest mb-0.5">PlaceFit</p>
-                            <h2 className="text-base font-bold text-white truncate">{user?.empresa || user?.full_name}</h2>
+                            <p className="text-xs font-semibold uppercase tracking-widest mb-0.5" style={{color: colors ? colors.light : '#93c5fd'}}>PlaceFit</p>
+                            <h2 className="text-base font-bold truncate" style={{color: colors ? colors.textOnPrimary : '#ffffff'}}>{user?.empresa || user?.full_name}</h2>
                             <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
-                              {user?.whatsapp && <span className="text-xs text-slate-300">📱 {user.whatsapp}</span>}
-                              {user?.email && <span className="text-xs text-slate-300">✉ {user.email}</span>}
+                              {user?.whatsapp && <span className="text-xs" style={{color: colors ? colors.light : '#cbd5e1'}}>📱 {user.whatsapp}</span>}
+                              {user?.email && <span className="text-xs" style={{color: colors ? colors.light : '#cbd5e1'}}>✉ {user.email}</span>}
                             </div>
                           </div>
                           <div className="text-right flex-shrink-0">
-                            <p className="text-xs font-bold text-white uppercase tracking-wider">Tabela de<br/>Preços</p>
-                            <p className="text-xs text-blue-300 mt-1">{new Date().toLocaleDateString('pt-BR')}</p>
+                            <p className="text-xs font-bold uppercase tracking-wider" style={{color: colors ? colors.textOnPrimary : '#ffffff'}}>Tabela de<br/>Preços</p>
+                            <p className="text-xs mt-1" style={{color: colors ? colors.light : '#93c5fd'}}>{new Date().toLocaleDateString('pt-BR')}</p>
                           </div>
                         </div>
                       </div>
