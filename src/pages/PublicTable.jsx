@@ -219,7 +219,7 @@ export default function PublicTable() {
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead>
-                    <tr className="bg-gradient-to-r from-blue-600 to-green-600 text-white">
+                    <tr style={{background: colors ? `linear-gradient(90deg, ${colors.primaryDark} 0%, ${colors.primary} 60%, ${colors.secondary} 100%)` : 'linear-gradient(90deg,#1e3a5f,#1e40af)', color: colors ? colors.textOnPrimary : '#ffffff'}}>
                       <th className="border border-gray-300 px-4 py-3 text-left font-semibold">Código</th>
                       <th className="border border-gray-300 px-4 py-3 text-left font-semibold">Produto</th>
                       <th className="border border-gray-300 px-4 py-3 text-left font-semibold">Categoria</th>
