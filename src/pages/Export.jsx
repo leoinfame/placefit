@@ -190,6 +190,195 @@ export default function Export() {
     setExporting(false);
   };
 
+  const buildPDFHTML = () => {
+    const nomeEmpresa = user?.empresa || user?.full_name || 'Fornecedor';
+    const dataGeracao = new Date().toLocaleDateString('pt-BR');
+
+    // Agrupar por categoria
+    const categorias = {};
+    previewData.forEach(item => {
+      const cat = item.categoria || 'Outros';
+      if (!categorias[cat]) categorias[cat] = [];
+      categorias[cat].push(item);
+    });
+
+    const categoryIcons = {
+      'Cardiovascular': '🏃',
+      'Musculação': '💪',
+      'Funcional': '🤸',
+      'Acessórios': '🎯',
+      'Vestuário': '👕',
+      'Nutrição': '🥗',
+      'Outros': '📦',
+    };
+
+    const categoriasBlocos = Object.entries(categorias).map(([cat, itens]) => {
+      const icon = categoryIcons[cat] || '📦';
+      const linhas = itens.map((item, idx) => `
+        <tr style="background:${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
+          <td style="padding:7px 10px;font-size:10px;color:#64748b;font-family:monospace;white-space:nowrap;">${item.cod || '—'}</td>
+          <td style="padding:7px 10px;font-size:11px;font-weight:600;color:#1e293b;">${item.nome}</td>
+          <td style="padding:7px 10px;font-size:10px;color:#475569;text-align:center;">${item.peso || item.dimensoes || '—'}</td>
+          <td style="padding:7px 10px;font-size:10px;color:#475569;text-align:center;">${item.und || 'peça'}</td>
+          <td style="padding:7px 10px;font-size:11px;font-weight:700;color:#16a34a;text-align:right;white-space:nowrap;">${item.precoFormatado}</td>
+        </tr>`).join('');
+
+      return `
+        <div style="margin-bottom:28px;page-break-inside:avoid;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:0;padding:9px 14px;background:linear-gradient(90deg,#1e3a5f 0%,#1e40af 100%);border-radius:6px 6px 0 0;">
+            <span style="font-size:14px;">${icon}</span>
+            <span style="font-size:12px;font-weight:700;color:#ffffff;letter-spacing:1.5px;text-transform:uppercase;">${cat}</span>
+            <span style="margin-left:auto;font-size:10px;color:#93c5fd;font-weight:500;">${itens.length} produto${itens.length !== 1 ? 's' : ''}</span>
+          </div>
+          <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-top:none;">
+            <thead>
+              <tr style="background:#f1f5f9;">
+                <th style="padding:7px 10px;font-size:9px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e2e8f0;white-space:nowrap;width:80px;">Código</th>
+                <th style="padding:7px 10px;font-size:9px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e2e8f0;">Produto</th>
+                <th style="padding:7px 10px;font-size:9px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e2e8f0;text-align:center;width:90px;">Especificação</th>
+                <th style="padding:7px 10px;font-size:9px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e2e8f0;text-align:center;width:70px;">Unidade</th>
+                <th style="padding:7px 10px;font-size:9px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e2e8f0;text-align:right;width:90px;">Preço</th>
+              </tr>
+            </thead>
+            <tbody>${linhas}</tbody>
+          </table>
+        </div>`;
+    }).join('');
+
+    const totalProdutos = previewData.length;
+    const totalCategorias = Object.keys(categorias).length;
+
+    return `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Tabela de Preços — ${nomeEmpresa}</title>
+  <style>
+    @page { size: A4; margin: 0; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Arial', sans-serif; color: #1e293b; background: #fff; }
+    .page-wrapper { padding: 28px 32px 24px 32px; }
+
+    /* CAPA/HEADER */
+    .cover { display: flex; align-items: center; gap: 20px; padding: 20px 24px; background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #1e40af 100%); border-radius: 10px; margin-bottom: 20px; }
+    .cover-logo { width: 72px; height: 72px; object-fit: contain; background: #fff; border-radius: 8px; padding: 6px; flex-shrink: 0; }
+    .cover-logo-placeholder { width: 72px; height: 72px; background: rgba(255,255,255,0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
+    .cover-body { flex: 1; }
+    .cover-title { font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px; line-height: 1.2; }
+    .cover-subtitle { font-size: 11px; font-weight: 600; color: #93c5fd; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; margin-top: 2px; }
+    .cover-contacts { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 8px; }
+    .cover-contact { font-size: 10px; color: #cbd5e1; display: flex; align-items: center; gap: 4px; }
+    .cover-right { text-align: right; flex-shrink: 0; }
+    .cover-doc-title { font-size: 13px; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 1px; }
+    .cover-date { font-size: 10px; color: #93c5fd; margin-top: 4px; }
+    .cover-badge { margin-top: 8px; display: inline-block; background: rgba(255,255,255,0.15); color: #e2e8f0; font-size: 9px; padding: 3px 8px; border-radius: 20px; font-weight: 600; letter-spacing: 0.5px; }
+
+    /* STATS BAR */
+    .stats-bar { display: flex; gap: 12px; margin-bottom: 20px; }
+    .stat-card { flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 14px; text-align: center; }
+    .stat-num { font-size: 20px; font-weight: 800; color: #1e40af; }
+    .stat-label { font-size: 9px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+
+    /* CONTENT */
+    .section-divider { border: none; border-top: 1px solid #e2e8f0; margin: 18px 0; }
+
+    /* FOOTER */
+    .footer { margin-top: 28px; border-top: 2px solid #1e40af; padding-top: 16px; }
+    .footer-title { font-size: 11px; font-weight: 800; color: #1e40af; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .footer-grid { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+    .footer-item { flex: 1; min-width: 120px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px; }
+    .footer-item-label { font-size: 8px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+    .footer-item-value { font-size: 10px; color: #1e293b; font-weight: 500; }
+    .footer-disclaimer { font-size: 9px; color: #64748b; line-height: 1.5; background: #fefce8; border: 1px solid #fde68a; border-radius: 6px; padding: 8px 12px; }
+    .footer-bottom { margin-top: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .footer-brand { font-size: 9px; color: #94a3b8; }
+
+    @media print {
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .page-wrapper { padding: 20px 24px; }
+      .cover { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrapper">
+
+  <!-- CAPA -->
+  <div class="cover">
+    ${user?.logomarca
+      ? `<img src="${user.logomarca}" alt="Logo" class="cover-logo">`
+      : `<div class="cover-logo-placeholder">🏋️</div>`}
+    <div class="cover-body">
+      <div class="cover-subtitle">PlaceFit — Equipamentos Fitness</div>
+      <div class="cover-title">${nomeEmpresa}</div>
+      <div class="cover-contacts">
+        ${user?.whatsapp ? `<span class="cover-contact">📱 ${user.whatsapp}</span>` : ''}
+        ${user?.email ? `<span class="cover-contact">✉ ${user.email}</span>` : ''}
+        ${user?.endereco ? `<span class="cover-contact">📍 ${user.endereco}</span>` : ''}
+        ${user?.site ? `<span class="cover-contact">🌐 ${user.site}</span>` : ''}
+      </div>
+    </div>
+    <div class="cover-right">
+      <div class="cover-doc-title">Tabela de<br>Preços Oficial</div>
+      <div class="cover-date">📅 ${dataGeracao}</div>
+      <div class="cover-badge">PlaceFit · Documento Oficial</div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="stat-num">${totalProdutos}</div>
+      <div class="stat-label">Produtos</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">${totalCategorias}</div>
+      <div class="stat-label">Categorias</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">${dataGeracao}</div>
+      <div class="stat-label">Atualizado em</div>
+    </div>
+  </div>
+
+  <!-- CATEGORIAS E PRODUTOS -->
+  ${categoriasBlocos}
+
+  <!-- RODAPÉ COMERCIAL -->
+  <div class="footer">
+    <div class="footer-title">📋 Informações Comerciais</div>
+    <div class="footer-grid">
+      <div class="footer-item">
+        <div class="footer-item-label">Condições de Pagamento</div>
+        <div class="footer-item-value">À vista, cartão, boleto ou transferência bancária</div>
+      </div>
+      <div class="footer-item">
+        <div class="footer-item-label">Prazo de Produção</div>
+        <div class="footer-item-value">Consultar disponibilidade no momento do pedido</div>
+      </div>
+      <div class="footer-item">
+        <div class="footer-item-label">Frete</div>
+        <div class="footer-item-value">Calculado conforme destino e volume do pedido</div>
+      </div>
+      <div class="footer-item">
+        <div class="footer-item-label">Validade da Tabela</div>
+        <div class="footer-item-value">Válida na data de geração: ${dataGeracao}</div>
+      </div>
+    </div>
+    <div class="footer-disclaimer">
+      ⚠️ <strong>Aviso:</strong> Esta tabela de preços pode sofrer alterações sem aviso prévio. Consulte disponibilidade e prazo de entrega antes de confirmar o pedido. Os preços praticados são os vigentes no momento da emissão do pedido de compra. Para mais informações, entre em contato com nossa equipe comercial.
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-brand">Gerado por PlaceFit — Plataforma de Revendedores de Equipamentos Fitness</div>
+      <div class="footer-brand">${nomeEmpresa} · ${dataGeracao}</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>`;
+  };
+
   const generatePDF = async () => {
     setExporting(true);
     try {
@@ -203,154 +392,10 @@ export default function Export() {
         return;
       }
 
-      // Gerar HTML diretamente
-      const htmlContent = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="UTF-8">
-          <title>Tabela de Preços - ${user?.empresa || user?.full_name}</title>
-          <style>
-            @page { 
-              margin: 1.5cm 1cm 2cm 1cm;
-              size: A4;
-            }
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body {
-              background: white;
-              font-family: Arial, sans-serif;
-              color: #000;
-            }
-            .header {
-              text-align: center;
-              margin-bottom: 8px;
-              padding: 0;
-            }
-            .logo {
-              max-width: 80px;
-              max-height: 50px;
-              margin-bottom: 4px;
-            }
-            .company-name {
-              font-size: 14px;
-              font-weight: bold;
-              margin-bottom: 2px;
-            }
-            .company-info {
-              font-size: 9px;
-              line-height: 1.3;
-              margin-bottom: 4px;
-            }
-            .title {
-              font-size: 12px;
-              font-weight: bold;
-              text-align: center;
-              margin: 6px 0 2px 0;
-              text-transform: uppercase;
-            }
-            .date {
-              text-align: center;
-              font-size: 9px;
-              color: #666;
-              margin-bottom: 8px;
-            }
-            table {
-              width: 100%;
-              border-collapse: collapse;
-              margin-top: 0;
-              page-break-inside: avoid;
-            }
-            thead {
-              display: table-header-group;
-              page-break-after: avoid;
-            }
-            tbody {
-              display: table-row-group;
-            }
-            th, td {
-              border: 0.5px solid #999;
-              padding: 4px 6px;
-              text-align: left;
-              font-size: 10px;
-            }
-            th {
-              background-color: #e8e8e8;
-              font-weight: bold;
-              height: 20px;
-            }
-            tr {
-              page-break-inside: avoid;
-            }
-            tr:nth-child(even) {
-              background-color: #f9f9f9;
-            }
-            .price {
-              text-align: right;
-              font-weight: bold;
-            }
-            @media print {
-              body { 
-                margin: 0;
-                padding: 0;
-              }
-              table {
-                page-break-inside: auto;
-              }
-              tr {
-                page-break-inside: avoid;
-                page-break-after: auto;
-              }
-              thead {
-                display: table-header-group;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            ${user?.logomarca ? `<img src="${user.logomarca}" alt="Logo" class="logo">` : ''}
-            <div class="company-name">${user?.empresa || user?.full_name}</div>
-            <div class="company-info">
-              ${user?.whatsapp ? `Tel: ${user.whatsapp} ` : ''}
-              ${user?.email ? `| ${user.email}` : ''}
-            </div>
-            ${user?.endereco ? `<div class="company-info">${user.endereco}</div>` : ''}
-          </div>
-
-          <div class="title">Tabela de Preços</div>
-          <div class="date">Gerado em ${new Date().toLocaleDateString('pt-BR')}</div>
-
-          <table>
-            <thead>
-              <tr>
-                <th>Produto</th>
-                <th style="text-align: right; width: 100px;">Preço</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${previewData.map(item => `
-                <tr>
-                  <td>${item.nome}</td>
-                  <td class="price">${item.preco}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </body>
-        </html>
-      `;
-
-      // Criar novo documento para impressão
       const printWindow = window.open('', '_blank');
-      printWindow.document.write(htmlContent);
+      printWindow.document.write(buildPDFHTML());
       printWindow.document.close();
-
-      // Aguardar carregamento e imprimir
-      printWindow.onload = () => {
-        setTimeout(() => {
-          printWindow.print();
-        }, 500);
-      };
+      printWindow.onload = () => setTimeout(() => printWindow.print(), 600);
 
       toast({
         title: "PDF gerado!",
