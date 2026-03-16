@@ -305,7 +305,7 @@ export default function PedidosCompra() {
       <div className="max-w-5xl mx-auto space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Pedidos de Compra</h1>
-          <p className="text-gray-500 text-sm mt-1">Selecione uma venda para visualizar os pedidos por fabricante.</p>
+          <p className="text-gray-500 text-sm mt-1">Pedidos gerados a partir de suas vendas.</p>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
