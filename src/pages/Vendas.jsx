@@ -230,29 +230,23 @@ export default function Vendas() {
 
        // Criar pedidos de compra agrupados por fabricante
        const porFabricante = {};
+       const problemasItens = [];
+
        itens.forEach(item => {
          const produto = allProds.find(p => p.id === item.product_id);
          if (!produto) {
-           console.warn("Produto não encontrado:", item.product_id);
+           problemasItens.push(`Produto ${item.product_id} não encontrado`);
            return;
          }
 
-         let fabId = produto.fabricante_id;
-         let fabNome = produto.fabricante_nome;
-
-         // Se produto vem de SupplierProduct (revendedor), precisa se referir ao fabricante do produto
-         if (!fabId && produto.origem === 'nacional' && user.tipo_usuario !== 'fabricante') {
-           // Produto importado, buscar origem
-           console.warn("Produto sem fabricante definido:", produto.nome);
-           return;
-         }
-
+         const fabId = produto.fabricante_id;
          if (!fabId) {
-           console.warn("Produto sem fabricante:", produto.nome);
+           problemasItens.push(`Produto ${produto.nome} sem fabricante cadastrado`);
            return;
          }
 
          // Enriquecer nome do fabricante se estiver vazio
+         let fabNome = produto.fabricante_nome;
          if (!fabNome) {
            const fab = allUsers.find(u => u.id === fabId);
            fabNome = fab?.empresa || fab?.full_name || 'Sem Nome';
@@ -267,6 +261,16 @@ export default function Vendas() {
          }
          porFabricante[fabId].itens.push(item);
        });
+
+       // Se nenhum pedido foi agrupado, mostrar erro
+       if (Object.keys(porFabricante).length === 0) {
+         toast({
+           title: "Erro ao criar Pedidos de Compra",
+           description: problemasItens.length > 0 ? problemasItens.join('. ') : "Nenhum produto com fabricante foi encontrado.",
+           variant: "destructive"
+         });
+         return;
+       }
 
        console.log("Pedidos por fabricante:", Object.keys(porFabricante));
 
