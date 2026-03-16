@@ -251,7 +251,6 @@ export default function FabricantesRevendedor() {
   <div class="cover">
     ${fabricante.logomarca ? `<img src="${fabricante.logomarca}" alt="Logo" class="cover-logo">` : `<div class="cover-logo-placeholder">🏭</div>`}
     <div style="flex:1;">
-      <div class="cover-subtitle">PlaceFit — Fabricante de Equipamentos Fitness</div>
       <div class="cover-title">${nomeEmpresa}</div>
       <div style="margin-top:6px;">
         ${fabricante.whatsapp ? `<span class="cover-contact">📱 ${fabricante.whatsapp}</span>` : ''}
