@@ -485,10 +485,8 @@ export default function Vendas() {
       console.log(`   Venda ID: ${pedido.id} (type: ${typeof pedido.id})`);
       console.log(`   Venda número: ${pedido.numero_pedido}`);
       
-      const [allProds, allUsers] = await Promise.all([
-        base44.entities.Product.list(),
-        base44.entities.User.list()
-      ]);
+      // ✅ BYPASS: Não consultar User (RLS protegido), usar apenas dados já no Product
+      const allProds = await base44.entities.Product.list();
 
       // Verificar se já existem PedidosCompra para esta venda
       const pedidosExistentes = await base44.entities.PedidoCompra.filter({ venda_id: pedido.id });
@@ -519,11 +517,8 @@ export default function Vendas() {
           return;
         }
 
-        let fabNome = produto.fabricante_nome;
-        if (!fabNome) {
-          const fab = allUsers.find(u => u.id === fabId);
-          fabNome = fab?.empresa || fab?.full_name || 'Sem Nome';
-        }
+        // ✅ USAR DADOS DO PRODUTO (sem consultar User protegido)
+        const fabNome = produto.fabricante_nome || `Fabricante ${fabId.substring(0, 8)}`;
 
         if (!porFabricante[fabId]) {
           porFabricante[fabId] = {
