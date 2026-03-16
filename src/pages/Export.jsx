@@ -581,11 +581,11 @@ export default function Export() {
                             <tbody>
                               {itens.map((item, i) => (
                                 <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-50"}>
-                                  <td className="px-3 py-2 font-mono text-gray-400">{item.cod || '—'}</td>
-                                  <td className="px-3 py-2 font-semibold text-gray-800">{item.nome}</td>
-                                  <td className="px-3 py-2 text-center text-gray-500 hidden md:table-cell">{item.peso || item.dimensoes || '—'}</td>
-                                  <td className="px-3 py-2 text-center text-gray-500 hidden md:table-cell">{item.und || 'peça'}</td>
-                                  <td className="px-3 py-2 text-right font-bold text-green-700">{item.precoFormatado}</td>
+                                  <td className="px-3 py-2 font-mono text-gray-400 whitespace-nowrap overflow-hidden max-w-[64px]" style={{textOverflow:'ellipsis'}}>{item.cod || '—'}</td>
+                                  <td className="px-3 py-2 font-semibold text-gray-800 whitespace-nowrap overflow-hidden max-w-[200px]" style={{textOverflow:'ellipsis'}}>{item.nome}</td>
+                                  <td className="px-3 py-2 text-center text-gray-500 hidden md:table-cell whitespace-nowrap">{item.peso || item.dimensoes || '—'}</td>
+                                  <td className="px-3 py-2 text-center text-gray-500 hidden md:table-cell whitespace-nowrap">{item.und || 'peça'}</td>
+                                  <td className="px-3 py-2 text-right font-bold text-green-700 whitespace-nowrap">{item.precoFormatado}</td>
                                 </tr>
                               ))}
                             </tbody>
