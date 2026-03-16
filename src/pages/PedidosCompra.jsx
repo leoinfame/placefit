@@ -69,11 +69,30 @@ export default function PedidosCompra() {
     try {
       const me = await base44.auth.me();
       setUser(me);
-      const [allVendas, products, allUsers] = await Promise.all([
+      const [vendas, products, allUsers] = await Promise.all([
         base44.entities.Pedido.filter({ fornecedor_id: me.id, tipo: "venda" }, "-created_date"),
         base44.entities.Product.list(),
         base44.entities.User.list(),
       ]);
+      
+      // Para revendedores, buscar PedidoCompra; para fabricantes, apenas Pedido
+      let allVendas = vendas;
+      if (me.role === 'user' && !me.tipo_usuario) {
+        // Revendedor: buscar PedidoCompra e convertê-los para o formato de Pedido
+        const pedidosCompra = await base44.entities.PedidoCompra.filter({ revendedor_id: me.id }, "-created_date");
+        allVendas = pedidosCompra.map(pc => ({
+          id: pc.id,
+          numero_pedido: pc.numero_pedido,
+          cliente_nome: pc.fabricante_nome,
+          data_pedido: pc.data_pedido,
+          status: pc.status,
+          total: pc.total,
+          itens: pc.itens,
+          _isPedidoCompra: true,
+          fabricante_id: pc.fabricante_id
+        }));
+      }
+      
       setVendas(allVendas);
       setAllProducts(products);
       setFabricantes(allUsers.filter(u => u.tipo_usuario === "fabricante"));
