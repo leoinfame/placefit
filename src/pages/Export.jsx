@@ -395,7 +395,7 @@ export default function Export() {
       const printWindow = window.open('', '_blank');
       printWindow.document.write(buildPDFHTML());
       printWindow.document.close();
-      printWindow.onload = () => setTimeout(() => printWindow.print(), 600);
+      setTimeout(() => printWindow.print(), 800);
 
       toast({
         title: "PDF gerado!",
