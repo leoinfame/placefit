@@ -98,6 +98,49 @@ export default function FabricantesRevendedor() {
     setLoading(false);
   };
 
+  const extractLogoColors = (logoUrl) => {
+    return new Promise((resolve) => {
+      if (!logoUrl) { resolve(null); return; }
+      const img = new window.Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width; canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+          const colorMap = {};
+          for (let i = 0; i < data.length; i += 16) {
+            const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
+            if (a < 128) continue;
+            const brightness = (r + g + b) / 3;
+            if (brightness > 240 || brightness < 20) continue;
+            const key = `${Math.round(r/20)*20},${Math.round(g/20)*20},${Math.round(b/20)*20}`;
+            colorMap[key] = (colorMap[key] || 0) + 1;
+          }
+          const sorted = Object.entries(colorMap).sort((a, b) => b[1] - a[1]);
+          if (!sorted.length) { resolve(null); return; }
+          const [r1, g1, b1] = sorted[0][0].split(',').map(Number);
+          const toHex = (r, g, b) => `#${[r,g,b].map(v => v.toString(16).padStart(2,'0')).join('')}`;
+          const darken = (r, g, b, f=0.6) => toHex(Math.round(r*f), Math.round(g*f), Math.round(b*f));
+          const lighten = (r, g, b, f=0.9) => toHex(Math.round(255-(255-r)*f), Math.round(255-(255-g)*f), Math.round(255-(255-b)*f));
+          resolve({
+            primary: toHex(r1, g1, b1),
+            primaryDark: darken(r1, g1, b1),
+            secondary: toHex(r1, g1, b1),
+            light: lighten(r1, g1, b1),
+            lightBorder: lighten(r1, g1, b1, 0.6),
+            textOnPrimary: '#ffffff',
+            textAccent: darken(r1, g1, b1, 0.7),
+          });
+        } catch { resolve(null); }
+      };
+      img.onerror = () => resolve(null);
+      img.src = logoUrl;
+    });
+  };
+
   const downloadFabricanteTable = async (fabricante) => {
     setDownloadingTable(fabricante.id);
     try {
@@ -107,169 +150,161 @@ export default function FabricantesRevendedor() {
       );
 
       if (fabricanteProducts.length === 0) {
-        toast({
-          title: "Sem produtos",
-          description: "Este fabricante não possui produtos aprovados.",
-        });
+        toast({ title: "Sem produtos", description: "Este fabricante não possui produtos aprovados." });
         setDownloadingTable(null);
         return;
       }
 
-      // Importar jsPDF dinamicamente
-      const { jsPDF } = await import('jspdf');
-      const doc = new jsPDF('p', 'mm', 'a4');
-      
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const pageHeight = doc.internal.pageSize.getHeight();
-      const margin = 15;
-      let yPosition = margin;
-
-      // Logo e cabeçalho
-      if (fabricante.logomarca) {
-        try {
-          doc.addImage(fabricante.logomarca, 'PNG', margin, yPosition, 30, 30);
-          yPosition += 35;
-        } catch (e) {
-          console.log("Erro ao adicionar logo, continuando sem logo");
-        }
-      }
-
-      // Nome da empresa
-      doc.setFontSize(18);
-      doc.setFont(undefined, 'bold');
-      doc.text(fabricante.empresa || fabricante.full_name, margin, yPosition);
-      yPosition += 8;
-
-      // Informações de contato
-      doc.setFontSize(9);
-      doc.setFont(undefined, 'normal');
-      if (fabricante.endereco) {
-        doc.text(fabricante.endereco, margin, yPosition);
-        yPosition += 5;
-      }
-      if (fabricante.whatsapp) {
-        doc.text(`WhatsApp: ${fabricante.whatsapp}`, margin, yPosition);
-        yPosition += 5;
-      }
-      if (fabricante.site) {
-        doc.text(`Site: ${fabricante.site}`, margin, yPosition);
-        yPosition += 5;
-      }
-
-      yPosition += 5;
-      
-      // Linha separadora
-      doc.setLineWidth(0.5);
-      doc.line(margin, yPosition, pageWidth - margin, yPosition);
-      yPosition += 8;
-
-      // Título da tabela
-      doc.setFontSize(14);
-      doc.setFont(undefined, 'bold');
-      doc.text('Tabela de Produtos', margin, yPosition);
-      yPosition += 10;
-
-      // Cabeçalho da tabela
-      doc.setFontSize(8);
-      doc.setFont(undefined, 'bold');
-      doc.setFillColor(240, 240, 240);
-      doc.rect(margin, yPosition - 5, pageWidth - 2 * margin, 7, 'F');
-      
-      const colWidths = {
-        cod: 22,
-        nome: 60,
-        categoria: 25,
-        und: 15,
-        peso: 18,
-        dim: 25,
-        preco: 20
+      // Extrair cores da logo
+      const logoColors = await extractLogoColors(fabricante.logomarca);
+      const c = logoColors || {
+        primary: '#1e3a5f', primaryDark: '#0f172a', secondary: '#1e40af',
+        light: '#eff6ff', lightBorder: '#bfdbfe', textOnPrimary: '#ffffff', textAccent: '#1e40af'
       };
 
-      let xPos = margin + 2;
-      doc.text('Código', xPos, yPosition);
-      xPos += colWidths.cod;
-      doc.text('Nome do Produto', xPos, yPosition);
-      xPos += colWidths.nome;
-      doc.text('Categoria', xPos, yPosition);
-      xPos += colWidths.categoria;
-      doc.text('Und', xPos, yPosition);
-      xPos += colWidths.und;
-      doc.text('Peso (kg)', xPos, yPosition);
-      xPos += colWidths.peso;
-      doc.text('Dimensões', xPos, yPosition);
-      xPos += colWidths.dim;
-      doc.text('Preço (R$)', xPos, yPosition);
-      
-      yPosition += 8;
+      const nomeEmpresa = fabricante.empresa || fabricante.full_name;
+      const dataGeracao = new Date().toLocaleDateString('pt-BR');
 
-      // Produtos
-      doc.setFont(undefined, 'normal');
-      doc.setFontSize(7);
-
-      fabricanteProducts.forEach((product, index) => {
-        // Verificar se precisa de nova página
-        if (yPosition > pageHeight - 20) {
-          doc.addPage();
-          yPosition = margin;
-        }
-
-        // Linha alternada
-        if (index % 2 === 0) {
-          doc.setFillColor(250, 250, 250);
-          doc.rect(margin, yPosition - 4, pageWidth - 2 * margin, 6, 'F');
-        }
-
-        xPos = margin + 2;
-        doc.text(product.cod || '', xPos, yPosition);
-        xPos += colWidths.cod;
-        
-        const nomeTruncado = (product.nome || '').length > 40 
-          ? product.nome.substring(0, 37) + '...' 
-          : product.nome || '';
-        doc.text(nomeTruncado, xPos, yPosition);
-        xPos += colWidths.nome;
-        
-        doc.text(product.categoria || '', xPos, yPosition);
-        xPos += colWidths.categoria;
-        doc.text(product.und || '', xPos, yPosition);
-        xPos += colWidths.und;
-        doc.text(product.peso ? product.peso.toString() : '', xPos, yPosition);
-        xPos += colWidths.peso;
-        doc.text(product.dimensoes || '', xPos, yPosition);
-        xPos += colWidths.dim;
-        doc.text(product.preco_fabricante ? `R$ ${product.preco_fabricante.toFixed(2)}` : '', xPos, yPosition);
-        
-        yPosition += 6;
+      // Agrupar por categoria
+      const categorias = {};
+      fabricanteProducts.forEach(p => {
+        const cat = p.categoria || 'Outros';
+        if (!categorias[cat]) categorias[cat] = [];
+        categorias[cat].push(p);
       });
 
-      // Rodapé
-      const totalPages = doc.internal.pages.length - 1;
-      for (let i = 1; i <= totalPages; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.setFont(undefined, 'normal');
-        doc.text(
-          `Página ${i} de ${totalPages} - Gerado em ${new Date().toLocaleDateString('pt-BR')}`,
-          pageWidth / 2,
-          pageHeight - 10,
-          { align: 'center' }
-        );
+      const categoryIcons = {
+        'Cardiovascular': '🏃', 'Musculação': '💪', 'Funcional': '🤸',
+        'Acessórios': '🎯', 'Anilhas': '🏋️', 'Halteres': '🏋️',
+        'Barras': '📊', 'Suportes': '🔧', 'Caneleiras': '🦵',
+        'Tornozeleiras': '🦵', 'Cabos': '🔗', 'Complemento': '➕', 'Outros': '📦',
+      };
+
+      const categoriasBlocos = Object.entries(categorias).map(([cat, itens]) => {
+        const icon = categoryIcons[cat] || '📦';
+        const linhas = itens.map((item, idx) => `
+          <tr style="background:${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
+            <td style="padding:7px 10px;font-size:10px;color:#1e293b;font-family:monospace;white-space:nowrap;">${item.cod || '—'}</td>
+            <td style="padding:7px 10px;font-size:11px;font-weight:600;color:#1e293b;">${item.nome}</td>
+            <td style="padding:7px 10px;font-size:10px;color:#1e293b;text-align:center;">${item.peso ? item.peso + 'kg' : item.dimensoes || '—'}</td>
+            <td style="padding:7px 10px;font-size:10px;color:#1e293b;text-align:center;">${item.und || 'peça'}</td>
+            <td style="padding:7px 10px;font-size:11px;font-weight:700;color:#16a34a;text-align:right;white-space:nowrap;">${item.preco_fabricante ? 'R$ ' + parseFloat(item.preco_fabricante).toFixed(2) : '—'}</td>
+          </tr>`).join('');
+
+        return `
+          <div style="margin-bottom:28px;page-break-inside:avoid;">
+            <div style="display:flex;align-items:center;gap:8px;padding:9px 14px;background:linear-gradient(90deg,${c.primaryDark} 0%,${c.primary} 100%);border-radius:6px 6px 0 0;">
+              <span style="font-size:14px;">${icon}</span>
+              <span style="font-size:12px;font-weight:700;color:#ffffff;letter-spacing:1.5px;text-transform:uppercase;">${cat}</span>
+              <span style="margin-left:auto;font-size:10px;color:#ffffff;font-weight:500;opacity:0.85;">${itens.length} produto${itens.length !== 1 ? 's' : ''}</span>
+            </div>
+            <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-top:none;">
+              <thead>
+                <tr style="background:#f1f5f9;">
+                  <th style="padding:7px 10px;font-size:9px;font-weight:700;color:#1e293b;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e2e8f0;width:80px;">Código</th>
+                  <th style="padding:7px 10px;font-size:9px;font-weight:700;color:#1e293b;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e2e8f0;">Produto</th>
+                  <th style="padding:7px 10px;font-size:9px;font-weight:700;color:#1e293b;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e2e8f0;text-align:center;width:90px;">Especificação</th>
+                  <th style="padding:7px 10px;font-size:9px;font-weight:700;color:#1e293b;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e2e8f0;text-align:center;width:70px;">Unidade</th>
+                  <th style="padding:7px 10px;font-size:9px;font-weight:700;color:#1e293b;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e2e8f0;text-align:right;width:90px;">Preço</th>
+                </tr>
+              </thead>
+              <tbody>${linhas}</tbody>
+            </table>
+          </div>`;
+      }).join('');
+
+      const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Tabela de Preços — ${nomeEmpresa}</title>
+  <style>
+    @page { size: A4; margin: 0; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; color: #1e293b; background: #fff; }
+    .page-wrapper { padding: 28px 32px 24px 32px; }
+    .cover { display: flex; align-items: center; gap: 20px; padding: 20px 24px; background: linear-gradient(135deg, ${c.primaryDark} 0%, ${c.primary} 50%, ${c.secondary} 100%); border-radius: 10px; margin-bottom: 20px; }
+    .cover-logo { width: 72px; height: 72px; object-fit: contain; background: #fff; border-radius: 8px; padding: 6px; flex-shrink: 0; }
+    .cover-logo-placeholder { width: 72px; height: 72px; background: rgba(255,255,255,0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
+    .cover-title { font-size: 22px; font-weight: 800; color: #ffffff; line-height: 1.2; }
+    .cover-subtitle { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.8); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; margin-top: 2px; }
+    .cover-contact { font-size: 10px; color: rgba(255,255,255,0.85); display: inline-block; margin-right: 16px; margin-top: 4px; }
+    .cover-right { text-align: right; flex-shrink: 0; }
+    .cover-doc-title { font-size: 13px; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 1px; }
+    .cover-date { font-size: 10px; color: rgba(255,255,255,0.8); margin-top: 4px; }
+    .stats-bar { display: flex; gap: 12px; margin-bottom: 20px; }
+    .stat-card { flex: 1; background: #f8fafc; border: 1px solid ${c.lightBorder}; border-radius: 6px; padding: 10px 14px; text-align: center; }
+    .stat-num { font-size: 20px; font-weight: 800; color: ${c.primaryDark}; }
+    .stat-label { font-size: 9px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+    .footer { margin-top: 28px; border-top: 2px solid ${c.primary}; padding-top: 16px; }
+    .footer-grid { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+    .footer-item { flex: 1; min-width: 120px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px; }
+    .footer-item-label { font-size: 8px; font-weight: 700; color: #1e293b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+    .footer-item-value { font-size: 10px; color: #1e293b; font-weight: 500; }
+    .footer-disclaimer { font-size: 9px; color: #78350f; line-height: 1.5; background: #fefce8; border: 1px solid #fde68a; border-radius: 6px; padding: 8px 12px; }
+    .footer-brand { font-size: 9px; color: #94a3b8; }
+    @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+  </style>
+</head>
+<body>
+<div class="page-wrapper">
+  <div class="cover">
+    ${fabricante.logomarca ? `<img src="${fabricante.logomarca}" alt="Logo" class="cover-logo">` : `<div class="cover-logo-placeholder">🏭</div>`}
+    <div style="flex:1;">
+      <div class="cover-subtitle">PlaceFit — Fabricante de Equipamentos Fitness</div>
+      <div class="cover-title">${nomeEmpresa}</div>
+      <div style="margin-top:6px;">
+        ${fabricante.whatsapp ? `<span class="cover-contact">📱 ${fabricante.whatsapp}</span>` : ''}
+        ${fabricante.email ? `<span class="cover-contact">✉ ${fabricante.email}</span>` : ''}
+        ${fabricante.endereco ? `<span class="cover-contact">📍 ${fabricante.endereco}</span>` : ''}
+        ${fabricante.site ? `<span class="cover-contact">🌐 ${fabricante.site}</span>` : ''}
+      </div>
+    </div>
+    <div class="cover-right">
+      <div class="cover-doc-title">Tabela de<br>Preços Oficial</div>
+      <div class="cover-date">📅 ${dataGeracao}</div>
+    </div>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat-card"><div class="stat-num">${fabricanteProducts.length}</div><div class="stat-label">Produtos</div></div>
+    <div class="stat-card"><div class="stat-num">${Object.keys(categorias).length}</div><div class="stat-label">Categorias</div></div>
+    <div class="stat-card"><div class="stat-num">${dataGeracao}</div><div class="stat-label">Atualizado em</div></div>
+  </div>
+
+  ${categoriasBlocos}
+
+  <div class="footer">
+    <div class="footer-grid">
+      <div class="footer-item"><div class="footer-item-label">Condições de Pagamento</div><div class="footer-item-value">À vista, cartão, boleto ou transferência bancária</div></div>
+      <div class="footer-item"><div class="footer-item-label">Prazo de Produção</div><div class="footer-item-value">Consultar disponibilidade no momento do pedido</div></div>
+      <div class="footer-item"><div class="footer-item-label">Frete</div><div class="footer-item-value">Calculado conforme destino e volume do pedido</div></div>
+      <div class="footer-item"><div class="footer-item-label">Validade da Tabela</div><div class="footer-item-value">Válida na data de geração: ${dataGeracao}</div></div>
+    </div>
+    <div class="footer-disclaimer">⚠️ <strong>Aviso:</strong> Esta tabela pode sofrer alterações sem aviso prévio. Consulte disponibilidade antes de confirmar o pedido.</div>
+    <div style="margin-top:12px;display:flex;justify-content:space-between;">
+      <div class="footer-brand">Gerado por PlaceFit — Plataforma de Fabricantes de Equipamentos Fitness</div>
+      <div class="footer-brand">${nomeEmpresa} · ${dataGeracao}</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>`;
+
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(html);
+        printWindow.document.close();
+        setTimeout(() => printWindow.print(), 800);
       }
 
-      // Salvar PDF
-      doc.save(`tabela_${fabricante.empresa || fabricante.full_name}_${new Date().toISOString().split('T')[0]}.pdf`);
-
       toast({
-        title: "Download concluído!",
-        description: `Tabela de ${fabricante.empresa || fabricante.full_name} baixada com sucesso.`,
+        title: "Tabela gerada!",
+        description: `Tabela de ${nomeEmpresa} aberta para impressão/PDF.`,
       });
     } catch (error) {
       console.error("Erro ao baixar tabela:", error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível baixar a tabela.",
-        variant: "destructive",
-      });
+      toast({ title: "Erro", description: "Não foi possível gerar a tabela.", variant: "destructive" });
     }
     setDownloadingTable(null);
   };
