@@ -129,6 +129,7 @@ export default function Dashboard() {
       let activeProductsCount = 0;
       let totalOrcamentos = 0;
       let totalVendas = 0;
+      let totalPedidosCompra = 0;
 
       if (currentUser.role === 'user' && !currentUser.tipo_usuario) {
         // REVENDEDOR
@@ -146,8 +147,14 @@ export default function Dashboard() {
           tipo: 'venda'
         });
 
+        // Buscar pedidos de compra
+        const pedidosCompra = await base44.entities.PedidoCompra.filter({ 
+          revendedor_id: currentUser.id
+        });
+
         totalOrcamentos = orcamentos.length;
         totalVendas = vendas.length;
+        totalPedidosCompra = pedidosCompra.length;
       } else if (currentUser.tipo_usuario === 'fabricante') {
         // FABRICANTE
         const myProducts = await base44.entities.Product.filter({ 
