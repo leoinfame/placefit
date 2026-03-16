@@ -360,13 +360,13 @@ export default function PedidosCompra() {
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <span className="font-mono font-bold text-gray-900">{venda.numero_pedido}</span>
-                          <Badge className={STATUS_COLORS[venda.status] || "bg-gray-100 text-gray-700"}>
-                            {STATUS_LABELS[venda.status] || venda.status}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-gray-600"><strong>Cliente:</strong> {venda.cliente_nome} · <strong>Data:</strong> {fmtDate(venda.data_pedido)}</p>
-                        <p className="text-xs text-gray-400 mt-1">{grupos.length} pedido(s) de compra · {(venda.itens || []).length} produto(s)</p>
+                            <span className="font-mono font-bold text-gray-900">{venda.numero_pedido}</span>
+                            <Badge className={STATUS_COLORS[venda.status] || "bg-gray-100 text-gray-700"}>
+                              {STATUS_LABELS[venda.status] || venda.status}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-600"><strong>Fabricante:</strong> {venda.fabricante_nome} · <strong>Data:</strong> {fmtDate(venda.data_pedido)}</p>
+                          <p className="text-xs text-gray-400 mt-1">{(venda.itens || []).length} produto(s)</p>
                       </div>
                       <div className="flex items-center gap-3 flex-shrink-0">
                         <p className="text-xl font-bold text-green-700">{fmtBRL(venda.total)}</p>
