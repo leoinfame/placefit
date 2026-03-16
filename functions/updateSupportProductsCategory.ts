@@ -26,14 +26,17 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Atualizar cada produto
-    const updatePromises = productsToUpdate.map(product => 
-      base44.asServiceRole.entities.Product.update(product.id, {
-        categoria: 'Suportes'
-      })
-    );
-
-    await Promise.all(updatePromises);
+    // Atualizar produtos em lotes de 10
+    const batchSize = 10;
+    for (let i = 0; i < productsToUpdate.length; i += batchSize) {
+      const batch = productsToUpdate.slice(i, i + batchSize);
+      const updatePromises = batch.map(product => 
+        base44.asServiceRole.entities.Product.update(product.id, {
+          categoria: 'Suportes'
+        })
+      );
+      await Promise.all(updatePromises);
+    }
 
     return Response.json({
       success: true,
