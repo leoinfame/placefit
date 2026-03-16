@@ -204,7 +204,7 @@ export default function Vendas() {
       
       const numeroPedido = `PED-${Date.now()}`;
 
-      await base44.entities.Pedido.create({
+      const pedidoCriado = await base44.entities.Pedido.create({
         fornecedor_id: user.id,
         cliente_id: selectedCliente,
         cliente_nome: cliente.nome,
@@ -220,9 +220,44 @@ export default function Vendas() {
         observacoes: observacoes
       });
 
+      // Criar pedidos de compra agrupados por fabricante
+      const porFabricante = {};
+      itens.forEach(item => {
+        const produto = productsData.find(p => p.id === item.product_id);
+        const fabId = produto?.fabricante_id || 'sem_fabricante';
+        if (!porFabricante[fabId]) {
+          porFabricante[fabId] = {
+            fabricante_id: fabId,
+            fabricante_nome: produto?.fabricante_nome || 'Sem Fabricante',
+            itens: []
+          };
+        }
+        porFabricante[fabId].itens.push(item);
+      });
+
+      // Salvar PedidosCompra para cada fabricante
+      for (const [fabId, dados] of Object.entries(porFabricante)) {
+        if (fabId !== 'sem_fabricante') {
+          const totalFab = dados.itens.reduce((sum, item) => sum + item.subtotal, 0);
+          await base44.entities.PedidoCompra.create({
+            revendedor_id: user.id,
+            revendedor_nome: user.empresa || user.full_name,
+            fabricante_id: fabId,
+            fabricante_nome: dados.fabricante_nome,
+            venda_id: pedidoCriado.id,
+            numero_pedido: `PC-${Date.now()}-${fabId.substring(0, 8)}`,
+            data_pedido: new Date().toISOString().split('T')[0],
+            itens: dados.itens,
+            total: totalFab,
+            status: "pendente",
+            observacoes: observacoes
+          });
+        }
+      }
+
       toast({
         title: "Pedido criado!",
-        description: `Pedido ${numeroPedido} foi criado com sucesso.`,
+        description: `Pedido ${numeroPedido} foi criado com sucesso. Pedidos de compra gerados automaticamente.`,
       });
 
       resetForm();
