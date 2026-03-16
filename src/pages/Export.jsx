@@ -195,6 +195,10 @@ export default function Export() {
   const buildPDFHTML = () => {
     const nomeEmpresa = user?.empresa || user?.full_name || 'Fornecedor';
     const dataGeracao = new Date().toLocaleDateString('pt-BR');
+    const c = colors || {
+      primary: '#1e3a5f', primaryDark: '#0f172a', secondary: '#1e40af',
+      light: '#eff6ff', lightBorder: '#bfdbfe', textOnPrimary: '#ffffff', textAccent: '#1e40af'
+    };
 
     // Agrupar por categoria
     const categorias = {};
