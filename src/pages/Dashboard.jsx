@@ -446,7 +446,7 @@ export default function Dashboard() {
         )}
 
         {(user?.role === 'user' || user?.tipo_usuario === 'fabricante') && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className={`grid gap-4 ${user?.role === 'user' && !user?.tipo_usuario ? 'grid-cols-1 sm:grid-cols-4' : 'grid-cols-1 sm:grid-cols-3'}`}>
             <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 border">
               <CardContent className="p-4 text-center">
                 <Package className="w-8 h-8 text-blue-600 mx-auto mb-2" />
@@ -467,9 +467,19 @@ export default function Dashboard() {
               <CardContent className="p-4 text-center">
                 <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2" />
                 <div className="text-2xl font-bold text-green-900">{stats.totalVendas}</div>
-                <p className="text-sm text-green-700">Pedidos</p>
+                <p className="text-sm text-green-700">Vendas</p>
               </CardContent>
             </Card>
+
+            {user?.role === 'user' && !user?.tipo_usuario && (
+              <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 border">
+                <CardContent className="p-4 text-center">
+                  <ShoppingCart className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+                  <div className="text-2xl font-bold text-purple-900">{stats.totalPedidosCompra}</div>
+                  <p className="text-sm text-purple-700">Pedidos Compra</p>
+                </CardContent>
+              </Card>
+            )}
           </div>
         )}
 
