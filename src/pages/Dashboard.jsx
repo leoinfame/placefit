@@ -129,10 +129,33 @@ export default function Dashboard() {
       let totalOrcamentos = 0;
       let totalVendas = 0;
 
-      if (currentUser.role === 'user' || currentUser.tipo_usuario === 'fabricante') {
+      if (currentUser.role === 'user' && !currentUser.tipo_usuario) {
+        // REVENDEDOR
         const mySupplierProducts = await base44.entities.SupplierProduct.filter({ supplier_id: currentUser.id });
         myProductsCount = mySupplierProducts.length;
         activeProductsCount = mySupplierProducts.filter(sp => sp.disponivel && sp.preco > 0).length;
+
+        // Buscar orçamentos e vendas
+        const orcamentos = await base44.entities.Pedido.filter({ 
+          fornecedor_id: currentUser.id,
+          tipo: 'orcamento'
+        });
+        const vendas = await base44.entities.Pedido.filter({ 
+          fornecedor_id: currentUser.id,
+          tipo: 'venda'
+        });
+
+        totalOrcamentos = orcamentos.length;
+        totalVendas = vendas.length;
+      } else if (currentUser.tipo_usuario === 'fabricante') {
+        // FABRICANTE
+        const myProducts = await base44.entities.Product.filter({ 
+          fabricante_id: currentUser.id,
+          ativo: true,
+          aprovado_produto: true
+        });
+        myProductsCount = myProducts.length;
+        activeProductsCount = myProducts.filter(p => p.preco_fabricante > 0).length;
 
         // Buscar orçamentos e vendas
         const orcamentos = await base44.entities.Pedido.filter({ 
