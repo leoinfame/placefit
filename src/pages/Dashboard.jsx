@@ -185,7 +185,8 @@ export default function Dashboard() {
         myProducts: myProductsCount,
         activeProducts: activeProductsCount,
         totalOrcamentos: totalOrcamentos,
-        totalVendas: totalVendas
+        totalVendas: totalVendas,
+        totalPedidosCompra: totalPedidosCompra
       });
 
       // Simular atividade recente
