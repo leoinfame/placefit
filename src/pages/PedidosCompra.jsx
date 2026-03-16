@@ -347,8 +347,8 @@ export default function PedidosCompra() {
         {filteredVendas.length === 0 ? (
           <Card><CardContent className="py-16 text-center">
             <ShoppingCart className="w-14 h-14 text-gray-300 mx-auto mb-3" />
-            <h3 className="text-lg font-semibold text-gray-700">Nenhuma venda encontrada</h3>
-            <p className="text-sm text-gray-400 mt-1">As vendas criadas na página "Vendas" aparecerão aqui.</p>
+            <h3 className="text-lg font-semibold text-gray-700">Nenhum pedido de compra encontrado</h3>
+            <p className="text-sm text-gray-400 mt-1">Crie uma venda em "Vendas" e gere os pedidos de compra.</p>
           </CardContent></Card>
         ) : (
           <div className="space-y-3">
