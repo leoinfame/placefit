@@ -69,28 +69,28 @@ export default function PedidosCompra() {
     try {
       const me = await base44.auth.me();
       setUser(me);
-      const [products, allUsers] = await Promise.all([
-        base44.entities.Product.list(),
-        base44.entities.User.list(),
-      ]);
+      // ✅ NÃO CONSULTAR USER (RLS protegido)
+      const products = await base44.entities.Product.list();
       
-      // Lógica diferenciada por role
+      // Busca PedidoCompra baseado em role (sem User.list())
       let allVendas = [];
       
       if (me.role === 'user' && !me.tipo_usuario) {
-        // REVENDEDOR: busca PedidoCompra direto
+        // REVENDEDOR: busca PedidoCompra onde revendedor_id === me.id (SEM FILTRO DE STATUS)
         allVendas = await base44.entities.PedidoCompra.filter({ revendedor_id: me.id }, "-created_date");
       } else if (me.role === 'user' && me.tipo_usuario === 'fabricante') {
-        // FABRICANTE: busca PedidoCompra onde é o receptor
+        // FABRICANTE: busca PedidoCompra onde fabricante_id === me.id (SEM FILTRO DE STATUS)
         allVendas = await base44.entities.PedidoCompra.filter({ fabricante_id: me.id }, "-created_date");
       } else if (me.role === 'admin') {
-        // ADMIN: busca todos
+        // ADMIN: busca TODOS os PedidoCompra (SEM FILTRO DE STATUS)
         allVendas = await base44.entities.PedidoCompra.list();
       }
       
+      console.log(`✅ [PedidosCompra] Carregados ${allVendas.length} pedidos de compra para ${me.role}`);
+      
       setVendas(allVendas);
       setAllProducts(products);
-      setFabricantes(allUsers.filter(u => u.tipo_usuario === "fabricante"));
+      setFabricantes([]);  // Não usar User.list(), usar dados do PedidoCompra.fabricante_nome
     } catch (err) {
       console.error("Erro ao carregar pedidos:", err);
     }
