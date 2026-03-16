@@ -126,6 +126,7 @@ export default function PublicTable() {
           .no-print { display: none !important; }
           .print-full { page-break-inside: avoid; }
         }
+        table th { color: #1e293b !important; }
       `}</style>
 
       <div className="max-w-5xl mx-auto space-y-6">
