@@ -266,31 +266,31 @@ export default function Export() {
     .page-wrapper { padding: 28px 32px 24px 32px; }
 
     /* CAPA/HEADER */
-    .cover { display: flex; align-items: center; gap: 20px; padding: 20px 24px; background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #1e40af 100%); border-radius: 10px; margin-bottom: 20px; }
+    .cover { display: flex; align-items: center; gap: 20px; padding: 20px 24px; background: linear-gradient(135deg, ${c.primaryDark} 0%, ${c.primary} 50%, ${c.secondary} 100%); border-radius: 10px; margin-bottom: 20px; }
     .cover-logo { width: 72px; height: 72px; object-fit: contain; background: #fff; border-radius: 8px; padding: 6px; flex-shrink: 0; }
     .cover-logo-placeholder { width: 72px; height: 72px; background: rgba(255,255,255,0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
     .cover-body { flex: 1; }
-    .cover-title { font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px; line-height: 1.2; }
-    .cover-subtitle { font-size: 11px; font-weight: 600; color: #93c5fd; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; margin-top: 2px; }
+    .cover-title { font-size: 22px; font-weight: 800; color: ${c.textOnPrimary}; letter-spacing: -0.5px; line-height: 1.2; }
+    .cover-subtitle { font-size: 11px; font-weight: 600; color: ${c.light}; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; margin-top: 2px; }
     .cover-contacts { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 8px; }
-    .cover-contact { font-size: 10px; color: #cbd5e1; display: flex; align-items: center; gap: 4px; }
+    .cover-contact { font-size: 10px; color: ${c.light}; display: flex; align-items: center; gap: 4px; }
     .cover-right { text-align: right; flex-shrink: 0; }
-    .cover-doc-title { font-size: 13px; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 1px; }
-    .cover-date { font-size: 10px; color: #93c5fd; margin-top: 4px; }
+    .cover-doc-title { font-size: 13px; font-weight: 800; color: ${c.textOnPrimary}; text-transform: uppercase; letter-spacing: 1px; }
+    .cover-date { font-size: 10px; color: ${c.light}; margin-top: 4px; }
     .cover-badge { margin-top: 8px; display: inline-block; background: rgba(255,255,255,0.15); color: #e2e8f0; font-size: 9px; padding: 3px 8px; border-radius: 20px; font-weight: 600; letter-spacing: 0.5px; }
 
     /* STATS BAR */
     .stats-bar { display: flex; gap: 12px; margin-bottom: 20px; }
-    .stat-card { flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 14px; text-align: center; }
-    .stat-num { font-size: 20px; font-weight: 800; color: #1e40af; }
+    .stat-card { flex: 1; background: #f8fafc; border: 1px solid ${c.lightBorder}; border-radius: 6px; padding: 10px 14px; text-align: center; }
+    .stat-num { font-size: 20px; font-weight: 800; color: ${c.textAccent}; }
     .stat-label { font-size: 9px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
 
     /* CONTENT */
     .section-divider { border: none; border-top: 1px solid #e2e8f0; margin: 18px 0; }
 
     /* FOOTER */
-    .footer { margin-top: 28px; border-top: 2px solid #1e40af; padding-top: 16px; }
-    .footer-title { font-size: 11px; font-weight: 800; color: #1e40af; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .footer { margin-top: 28px; border-top: 2px solid ${c.primary}; padding-top: 16px; }
+    .footer-title { font-size: 11px; font-weight: 800; color: ${c.textAccent}; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
     .footer-grid { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
     .footer-item { flex: 1; min-width: 120px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px; }
     .footer-item-label { font-size: 8px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
