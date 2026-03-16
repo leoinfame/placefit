@@ -69,35 +69,30 @@ export default function PedidosCompra() {
     try {
       const me = await base44.auth.me();
       setUser(me);
-      const [vendas, products, allUsers] = await Promise.all([
-        base44.entities.Pedido.filter({ fornecedor_id: me.id, tipo: "venda" }, "-created_date"),
+      const [products, allUsers] = await Promise.all([
         base44.entities.Product.list(),
         base44.entities.User.list(),
       ]);
       
-      // Para revendedores, buscar PedidoCompra; para fabricantes, apenas Pedido
-      let allVendas = vendas;
+      // Lógica diferenciada por role
+      let allVendas = [];
+      
       if (me.role === 'user' && !me.tipo_usuario) {
-        // Revendedor: buscar PedidoCompra e convertê-los para o formato de Pedido
-        const pedidosCompra = await base44.entities.PedidoCompra.filter({ revendedor_id: me.id }, "-created_date");
-        allVendas = pedidosCompra.map(pc => ({
-          id: pc.id,
-          numero_pedido: pc.numero_pedido,
-          cliente_nome: pc.fabricante_nome,
-          data_pedido: pc.data_pedido,
-          status: pc.status,
-          total: pc.total,
-          itens: pc.itens,
-          _isPedidoCompra: true,
-          fabricante_id: pc.fabricante_id
-        }));
+        // REVENDEDOR: busca PedidoCompra direto
+        allVendas = await base44.entities.PedidoCompra.filter({ revendedor_id: me.id }, "-created_date");
+      } else if (me.role === 'user' && me.tipo_usuario === 'fabricante') {
+        // FABRICANTE: busca PedidoCompra onde é o receptor
+        allVendas = await base44.entities.PedidoCompra.filter({ fabricante_id: me.id }, "-created_date");
+      } else if (me.role === 'admin') {
+        // ADMIN: busca todos
+        allVendas = await base44.entities.PedidoCompra.list();
       }
       
       setVendas(allVendas);
       setAllProducts(products);
       setFabricantes(allUsers.filter(u => u.tipo_usuario === "fabricante"));
     } catch (err) {
-      console.error(err);
+      console.error("Erro ao carregar pedidos:", err);
     }
     setLoading(false);
   };
