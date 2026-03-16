@@ -10,8 +10,21 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Apenas administradores podem executar esta ação' }, { status: 403 });
     }
 
-    // Buscar todos os produtos
-    const allProducts = await base44.asServiceRole.entities.Product.list();
+    let allProducts = [];
+    let offset = 0;
+    const limit = 100;
+    let hasMore = true;
+
+    // Buscar todos os produtos paginados
+    while (hasMore) {
+      const batch = await base44.asServiceRole.entities.Product.list();
+      if (!batch || batch.length === 0) {
+        hasMore = false;
+      } else {
+        allProducts = allProducts.concat(batch);
+        offset += limit;
+      }
+    }
     
     // Filtrar produtos que começam com 'Suporte'
     const productsToUpdate = allProducts.filter(p => 
@@ -26,23 +39,26 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Atualizar produtos em lotes de 10
-    const batchSize = 10;
-    for (let i = 0; i < productsToUpdate.length; i += batchSize) {
-      const batch = productsToUpdate.slice(i, i + batchSize);
-      const updatePromises = batch.map(product => 
-        base44.asServiceRole.entities.Product.update(product.id, {
+    // Atualizar cada produto com delay para evitar rate limit
+    let updated = 0;
+    for (const product of productsToUpdate) {
+      try {
+        await base44.asServiceRole.entities.Product.update(product.id, {
           categoria: 'Suportes'
-        })
-      );
-      await Promise.all(updatePromises);
+        });
+        updated++;
+        // Pequeno delay entre atualizações
+        await new Promise(resolve => setTimeout(resolve, 100));
+      } catch (err) {
+        console.error(`Erro ao atualizar ${product.id}:`, err);
+      }
     }
 
     return Response.json({
       success: true,
-      message: `${productsToUpdate.length} produto(s) atualizado(s) com sucesso`,
-      updated: productsToUpdate.length,
-      products: productsToUpdate.map(p => ({ id: p.id, nome: p.nome }))
+      message: `${updated} de ${productsToUpdate.length} produto(s) atualizado(s)`,
+      updated: updated,
+      total: productsToUpdate.length
     });
 
   } catch (error) {
