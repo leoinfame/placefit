@@ -370,16 +370,18 @@ export default function Vendas() {
       }
 
       const porFabricante = {};
+      const problemasItens = [];
+
       (pedido.itens || []).forEach(item => {
         const produto = allProds.find(p => p.id === item.product_id);
         if (!produto) {
-          console.warn("Produto não encontrado:", item.product_id);
+          problemasItens.push(`Produto ${item.product_id} não encontrado`);
           return;
         }
 
         const fabId = produto.fabricante_id;
         if (!fabId) {
-          console.warn("Produto sem fabricante:", produto.nome);
+          problemasItens.push(`Produto ${produto.nome} sem fabricante cadastrado`);
           return;
         }
 
@@ -398,6 +400,15 @@ export default function Vendas() {
         }
         porFabricante[fabId].itens.push(item);
       });
+
+      if (Object.keys(porFabricante).length === 0) {
+        toast({
+          title: "Erro ao criar Pedidos de Compra",
+          description: problemasItens.length > 0 ? problemasItens.join('. ') : "Nenhum produto com fabricante foi encontrado.",
+          variant: "destructive"
+        });
+        return;
+      }
 
       let pedidosCriados = 0;
       for (const [fabId, dados] of Object.entries(porFabricante)) {
