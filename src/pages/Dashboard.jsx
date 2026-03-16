@@ -445,8 +445,8 @@ export default function Dashboard() {
           </div>
         )}
 
-        {(user?.role === 'user' || user?.tipo_usuario === 'fabricante') && (
-          <div className={`grid gap-4 ${user?.role === 'user' && !user?.tipo_usuario ? 'grid-cols-1 sm:grid-cols-4' : 'grid-cols-1 sm:grid-cols-3'}`}>
+        {(user?.role === 'user') && (
+          <div className={`grid gap-4 ${!user?.tipo_usuario ? 'grid-cols-1 sm:grid-cols-4' : 'grid-cols-1 sm:grid-cols-3'}`}>
             <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 border">
               <CardContent className="p-4 text-center">
                 <Package className="w-8 h-8 text-blue-600 mx-auto mb-2" />
