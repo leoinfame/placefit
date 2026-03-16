@@ -354,6 +354,7 @@ export default function Vendas() {
         title: "✓ Pedidos de Compra Gerados!",
         description: `${pedidosCriados} pedido(s) foi(foram) criado(s) com sucesso. Visualize em "Pedidos de Compra".`,
       });
+      loadData();
     } catch (error) {
       console.error("Erro ao gerar pedidos de compra:", error);
       toast({
