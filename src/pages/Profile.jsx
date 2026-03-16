@@ -446,7 +446,7 @@ export default function Profile() {
                         maxLength={15}
                       />
                     </div>
-                    
+
                     <div>
                       <Label htmlFor="site">Website</Label>
                       <Input
@@ -461,8 +461,41 @@ export default function Profile() {
                       </p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+
+                  <div>
+                    <Label htmlFor="condicoes_pagamento">Condições de Pagamento</Label>
+                    <Textarea
+                      id="condicoes_pagamento"
+                      value={formData.condicoes_pagamento}
+                      onChange={(e) => setFormData({ ...formData, condicoes_pagamento: e.target.value })}
+                      placeholder="Ex: À vista, cartão, boleto ou transferência bancária"
+                      rows={2}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="prazo_producao">Prazo de Produção</Label>
+                    <Textarea
+                      id="prazo_producao"
+                      value={formData.prazo_producao}
+                      onChange={(e) => setFormData({ ...formData, prazo_producao: e.target.value })}
+                      placeholder="Ex: Consultar disponibilidade no momento do pedido"
+                      rows={2}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="informacoes_frete">Informações de Frete</Label>
+                    <Textarea
+                      id="informacoes_frete"
+                      value={formData.informacoes_frete}
+                      onChange={(e) => setFormData({ ...formData, informacoes_frete: e.target.value })}
+                      placeholder="Ex: Calculado conforme destino e volume do pedido"
+                      rows={2}
+                    />
+                  </div>
+                  </CardContent>
+                  </Card>
             </div>
 
             {/* Logomarca */}
