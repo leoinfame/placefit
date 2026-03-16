@@ -481,6 +481,10 @@ export default function Vendas() {
 
   const handleGerarPedidosCompra = async (pedido) => {
     try {
+      console.log(`\n🚀 [handleGerarPedidosCompra] INICIANDO...`);
+      console.log(`   Venda ID: ${pedido.id} (type: ${typeof pedido.id})`);
+      console.log(`   Venda número: ${pedido.numero_pedido}`);
+      
       const [allProds, allUsers] = await Promise.all([
         base44.entities.Product.list(),
         base44.entities.User.list()
@@ -498,16 +502,19 @@ export default function Vendas() {
 
       const porFabricante = {};
       const problemasItens = [];
+      const fabricantesIds = [];
 
-      (pedido.itens || []).forEach(item => {
+      (pedido.itens || []).forEach((item, idx) => {
         const produto = allProds.find(p => p.id === item.product_id);
         if (!produto) {
+          console.warn(`   ⚠️ Item ${idx + 1}: Produto ${item.product_id} não encontrado`);
           problemasItens.push(`Produto ${item.product_id} não encontrado`);
           return;
         }
 
         const fabId = produto.fabricante_id;
         if (!fabId) {
+          console.warn(`   ⚠️ Item ${idx + 1}: Produto ${produto.nome} sem fabricante`);
           problemasItens.push(`Produto ${produto.nome} sem fabricante cadastrado`);
           return;
         }
@@ -524,10 +531,18 @@ export default function Vendas() {
             fabricante_nome: fabNome,
             itens: []
           };
+          fabricantesIds.push(fabId);
         }
         porFabricante[fabId].itens.push(item);
+        
+        console.log(`   ✅ Item ${idx + 1} agrupado para ${fabNome}`);
       });
 
+      console.log(`\n📋 RESUMO PRÉ-CRIAÇÃO:`);
+      console.log(`   Fabricantes únicos encontrados: ${fabricantesIds.length}`);
+      console.log(`   Fabricantes IDs: ${fabricantesIds.join(', ')}`);
+      console.log(`   Problemas em itens: ${problemasItens.length}`);
+      
       if (Object.keys(porFabricante).length === 0) {
         toast({
           title: "Erro ao criar Pedidos de Compra",
@@ -538,57 +553,94 @@ export default function Vendas() {
       }
 
       let pedidosCriados = 0;
+      const errosPCs = [];
+
       for (const [fabId, dados] of Object.entries(porFabricante)) {
         try {
-          console.log(`📦 [handleGerarPedidosCompra] Criando PC para ${dados.fabricante_nome} (ID: ${fabId})`);
-
           const totalFab = dados.itens.reduce((sum, item) => sum + item.subtotal, 0);
+          
+          // ✅ VERIFICAÇÃO DE UUID vs STRING
+          console.log(`\n🔍 [TIPO DE DADOS] Para fabricante ${dados.fabricante_nome}:`);
+          console.log(`   - user.id: "${user.id}" (type: ${typeof user.id}) - REVENDEDOR`);
+          console.log(`   - fabricante_id: "${fabId}" (type: ${typeof fabId}) - FABRICANTE`);
+          console.log(`   - pedido.id: "${pedido.id}" (type: ${typeof pedido.id}) - VENDA (venda_id)`);
+          
+          // Detectar se tem UUID format (36 chars com hífens)
+          const isUUID = (str) => typeof str === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+          console.log(`   - user.id é UUID? ${isUUID(user.id)}`);
+          console.log(`   - fabricante_id é UUID? ${isUUID(fabId)}`);
+          console.log(`   - pedido.id é UUID? ${isUUID(pedido.id)}`);
+          
           const payloadPC = {
-            revendedor_id: user.id,
+            revendedor_id: user.id,  // String ou UUID
             revendedor_nome: user.empresa || user.full_name,
-            fabricante_id: fabId,
+            fabricante_id: fabId,    // String ou UUID
             fabricante_nome: dados.fabricante_nome,
-            venda_id: pedido.id,
-            numero_pedido: `PC-${Date.now()}-${fabId.substring(0, 8)}`,
+            venda_id: pedido.id,     // ⚠️ CRÍTICO: precisa corresponder ao tipo da coluna
+            numero_pedido: `PC-${Date.now()}-${Math.random().toString(36).substr(2, 8).toUpperCase()}`,
             data_pedido: new Date().toISOString().split('T')[0],
             itens: dados.itens,
             total: totalFab,
             status: "pendente",
-            observacoes: pedido.observacoes
+            observacoes: pedido.observacoes || ""
           };
 
-          console.log(`   Payload:`, payloadPC);
+          console.log(`\n📦 PAYLOAD COMPLETO PARA ${dados.fabricante_nome}:`);
+          console.log(JSON.stringify(payloadPC, null, 2));
 
+          console.log(`   🚀 Enviando para base44.entities.PedidoCompra.create()...`);
           const novoPC = await base44.entities.PedidoCompra.create(payloadPC);
-          console.log(`✅ PC criado com sucesso (ID: ${novoPC.id})`);
+          
+          console.log(`✅ PC CRIADO COM SUCESSO!`);
+          console.log(`   ID retornado: ${novoPC.id}`);
+          console.log(`   venda_id no retorno: ${novoPC.venda_id}`);
+          
           pedidosCriados++;
         } catch (err) {
-          console.error(`❌ Erro ao criar PedidoCompra para ${dados.fabricante_nome}:`, err);
-          console.error(`   JSON do erro:`, JSON.stringify({
+          console.error(`\n❌ ERRO CRÍTICO ao criar PC para ${dados.fabricante_nome}`);
+          console.error(`   Nome do erro: ${err?.name}`);
+          console.error(`   Mensagem: ${err?.message}`);
+          console.error(`   Status HTTP: ${err?.status}`);
+          console.error(`   Código PostgreSQL: ${err?.code}`);
+          console.error(`   Response completa:`, err?.response);
+          
+          const erroCompleto = JSON.stringify({
             name: err?.name,
             message: err?.message,
+            status: err?.status,
             code: err?.code,
-            status: err?.status
-          }, null, 2));
-
-          alert(`❌ Erro ao criar PC para ${dados.fabricante_nome}:\n${JSON.stringify({
-            message: err?.message,
-            code: err?.code,
-            status: err?.status
-          }, null, 2)}`);
+            response: err?.response?.data || err?.response || 'sem response'
+          }, null, 2);
+          
+          console.error(`\n📋 JSON DO ERRO:\n${erroCompleto}`);
+          
+          alert(`ERRO TÉCNICO AO CRIAR PC:\n\n${erroCompleto}`);
+          
+          errosPCs.push({
+            fabricante: dados.fabricante_nome,
+            erro: err?.message
+          });
         }
       }
 
+      console.log(`\n\n✅ RESUMO FINAL:`);
+      console.log(`   PCs criados: ${pedidosCriados}/${fabricantesIds.length}`);
+      console.log(`   Erros: ${errosPCs.length}`);
+      if (errosPCs.length > 0) {
+        console.error(`   Erros detalhados:`, errosPCs);
+      }
+
       toast({
-        title: "✓ Pedidos de Compra Gerados!",
+        title: pedidosCriados > 0 ? "✓ Pedidos de Compra Gerados!" : "❌ Nenhum Pedido Criado",
         description: `${pedidosCriados} pedido(s) foi(foram) criado(s) com sucesso. Visualize em "Pedidos de Compra".`,
+        variant: pedidosCriados > 0 ? "default" : "destructive"
       });
       await loadData();
     } catch (error) {
-      console.error("Erro ao gerar pedidos de compra:", error);
+      console.error("❌ ERRO EXTERNO ao gerar pedidos de compra:", error);
       toast({
-        title: "Erro",
-        description: "Erro ao gerar pedidos de compra.",
+        title: "Erro Crítico",
+        description: `Erro: ${error?.message || 'desconhecido'}`,
         variant: "destructive"
       });
     }
