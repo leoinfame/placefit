@@ -220,13 +220,13 @@ export default function PublicTable() {
                 <table className="w-full border-collapse">
                   <thead>
                     <tr style={{background: colors ? `linear-gradient(90deg, ${colors.primaryDark} 0%, ${colors.primary} 60%, ${colors.secondary} 100%)` : 'linear-gradient(90deg,#1e3a5f,#1e40af)'}}>
-                      <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-white">Código</th>
-                      <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-white">Produto</th>
-                      <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-white">Categoria</th>
-                      <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-white">Unidade</th>
-                      <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-white">Peso</th>
-                      <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-white">Dimensões</th>
-                      <th className="border border-gray-300 px-4 py-3 text-right font-semibold text-white">Preço</th>
+                      <th className="border border-gray-300 px-4 py-3 text-left font-semibold" style={{color: '#1e293b'}}>Código</th>
+                      <th className="border border-gray-300 px-4 py-3 text-left font-semibold" style={{color: '#1e293b'}}>Produto</th>
+                      <th className="border border-gray-300 px-4 py-3 text-left font-semibold" style={{color: '#1e293b'}}>Categoria</th>
+                      <th className="border border-gray-300 px-4 py-3 text-center font-semibold" style={{color: '#1e293b'}}>Unidade</th>
+                      <th className="border border-gray-300 px-4 py-3 text-center font-semibold" style={{color: '#1e293b'}}>Peso</th>
+                      <th className="border border-gray-300 px-4 py-3 text-center font-semibold" style={{color: '#1e293b'}}>Dimensões</th>
+                      <th className="border border-gray-300 px-4 py-3 text-right font-semibold" style={{color: '#1e293b'}}>Preço</th>
                     </tr>
                   </thead>
                   <tbody>
