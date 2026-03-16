@@ -262,13 +262,13 @@ export default function Layout({ children, currentPageName }) {
           icon: Bell,
         },
         {
-          title: "Catálogo",
-          url: createPageUrl("Catalogo"),
+          title: "Produtos",
+          url: createPageUrl("Products"),
           icon: Package,
         },
         {
-          title: "Produtos",
-          url: createPageUrl("Products"),
+          title: "  • Catálogo",
+          url: createPageUrl("Catalogo"),
           icon: Package,
         },
         {
