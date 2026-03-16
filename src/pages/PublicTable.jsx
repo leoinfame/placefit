@@ -126,7 +126,6 @@ export default function PublicTable() {
           .no-print { display: none !important; }
           .print-full { page-break-inside: avoid; }
         }
-        table th { color: #1e293b !important; }
       `}</style>
 
       <div className="max-w-5xl mx-auto space-y-6">
@@ -221,13 +220,13 @@ export default function PublicTable() {
                 <table className="w-full border-collapse">
                   <thead>
                     <tr style={{background: colors ? `linear-gradient(90deg, ${colors.primaryDark} 0%, ${colors.primary} 60%, ${colors.secondary} 100%)` : 'linear-gradient(90deg,#1e3a5f,#1e40af)'}}>
-                      <th className="border border-gray-300 px-4 py-3 text-left font-semibold">Código</th>
-                      <th className="border border-gray-300 px-4 py-3 text-left font-semibold">Produto</th>
-                      <th className="border border-gray-300 px-4 py-3 text-left font-semibold">Categoria</th>
-                      <th className="border border-gray-300 px-4 py-3 text-center font-semibold">Unidade</th>
-                      <th className="border border-gray-300 px-4 py-3 text-center font-semibold">Peso</th>
-                      <th className="border border-gray-300 px-4 py-3 text-center font-semibold">Dimensões</th>
-                      <th className="border border-gray-300 px-4 py-3 text-right font-semibold">Preço</th>
+                      <th className="border border-gray-300 px-4 py-3 text-left font-semibold" style={{color: '#1e293b !important'}}>Código</th>
+                      <th className="border border-gray-300 px-4 py-3 text-left font-semibold" style={{color: '#1e293b !important'}}>Produto</th>
+                      <th className="border border-gray-300 px-4 py-3 text-left font-semibold" style={{color: '#1e293b !important'}}>Categoria</th>
+                      <th className="border border-gray-300 px-4 py-3 text-center font-semibold" style={{color: '#1e293b !important'}}>Unidade</th>
+                      <th className="border border-gray-300 px-4 py-3 text-center font-semibold" style={{color: '#1e293b !important'}}>Peso</th>
+                      <th className="border border-gray-300 px-4 py-3 text-center font-semibold" style={{color: '#1e293b !important'}}>Dimensões</th>
+                      <th className="border border-gray-300 px-4 py-3 text-right font-semibold" style={{color: '#1e293b !important'}}>Preço</th>
                     </tr>
                   </thead>
                   <tbody>
