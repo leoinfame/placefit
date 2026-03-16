@@ -315,8 +315,7 @@ export default function Export() {
       ? `<img src="${user.logomarca}" alt="Logo" class="cover-logo">`
       : `<div class="cover-logo-placeholder">🏋️</div>`}
     <div class="cover-body">
-      <div class="cover-subtitle">PlaceFit — Equipamentos Fitness</div>
-      <div class="cover-title">${nomeEmpresa}</div>
+    <div class="cover-title">${nomeEmpresa}</div>
       <div class="cover-contacts">
         ${user?.whatsapp ? `<span class="cover-contact">📱 ${user.whatsapp}</span>` : ''}
         ${user?.email ? `<span class="cover-contact">✉ ${user.email}</span>` : ''}
@@ -327,7 +326,7 @@ export default function Export() {
     <div class="cover-right">
       <div class="cover-doc-title">Tabela de<br>Preços Oficial</div>
       <div class="cover-date">📅 ${dataGeracao}</div>
-      <div class="cover-badge">PlaceFit · Documento Oficial</div>
+
     </div>
   </div>
 
@@ -375,7 +374,7 @@ export default function Export() {
       ⚠️ <strong>Aviso:</strong> Esta tabela de preços pode sofrer alterações sem aviso prévio. Consulte disponibilidade e prazo de entrega antes de confirmar o pedido. Os preços praticados são os vigentes no momento da emissão do pedido de compra. Para mais informações, entre em contato com nossa equipe comercial.
     </div>
     <div class="footer-bottom">
-      <div class="footer-brand">Gerado por PlaceFit — Plataforma de Revendedores de Equipamentos Fitness</div>
+      <div class="footer-brand">Documento gerado automaticamente</div>
       <div class="footer-brand">${nomeEmpresa} · ${dataGeracao}</div>
     </div>
   </div>
@@ -565,7 +564,6 @@ export default function Export() {
                         )}
                         <div style={{flex: 1, minWidth: 0}}>
                           <p style={{fontSize: '9px', fontWeight: 600, color: colors ? colors.textOnPrimary : '#ffffff', letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '4px'}}>{user?.empresa || user?.full_name}</p>
-                          <p style={{fontSize: '9px', fontWeight: 600, color: colors ? colors.light : '#93c5fd', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '4px'}}>PlaceFit</p>
                           <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px 12px', marginTop: '4px'}}>
                             {user?.whatsapp && <span style={{fontSize: '8px', color: colors ? colors.light : '#cbd5e1'}}>📱 {user.whatsapp}</span>}
                             {user?.email && <span style={{fontSize: '8px', color: colors ? colors.light : '#cbd5e1'}}>✉ {user.email}</span>}
