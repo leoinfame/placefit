@@ -312,17 +312,33 @@ export default function Vendas() {
 
       console.log(`✅ VENDA CRIADA: ${numeroPedido} (ID: ${pedidoCriado.id})`);
 
-      // ===== PASSO 5: CRIAR PEDIDOS DE COMPRA EM LOTE =====
+      // ===== PASSO 5: CRIAR PEDIDOS DE COMPRA EM LOTE COM DEBUG ROBUSTO =====
       const resultadosPC = [];
       let pcSucesso = 0;
       let pcErro = 0;
 
+      console.log(`\n🔄 INICIANDO CRIAÇÃO DE PEDIDOS DE COMPRA...`);
+      console.log(`   Total de fabricantes únicos: ${Object.keys(mapeamentoFabricantes).length}`);
+
       for (const [fabId, dados] of Object.entries(mapeamentoFabricantes)) {
+        console.log(`\n📦 Processando Fabricante: ${dados.fabricante_nome} (ID: ${fabId})`);
+        console.log(`   Itens neste PC: ${dados.itens.length}`);
+
         try {
           const totalFab = dados.itens.reduce((sum, item) => sum + (item.subtotal || 0), 0);
           const numPCUnico = `PC-${Date.now()}-${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
 
-          const novoPedido = await base44.entities.PedidoCompra.create({
+          console.log(`   📋 Montando payload de PedidoCompra...`);
+          console.log(`      - revendedor_id: ${user.id}`);
+          console.log(`      - revendedor_nome: ${user.empresa || user.full_name}`);
+          console.log(`      - fabricante_id: ${fabId}`);
+          console.log(`      - fabricante_nome: ${dados.fabricante_nome}`);
+          console.log(`      - venda_id: ${pedidoCriado.id}`);
+          console.log(`      - numero_pedido: ${numPCUnico}`);
+          console.log(`      - total: R$ ${totalFab.toFixed(2)}`);
+          console.log(`      - itens count: ${dados.itens.length}`);
+
+          const payloadPC = {
             revendedor_id: user.id,
             revendedor_nome: user.empresa || user.full_name,
             fabricante_id: fabId,
@@ -334,9 +350,16 @@ export default function Vendas() {
             total: totalFab,
             status: "pendente",
             observacoes: observacoes
-          });
+          };
 
-          console.log(`✅ PC CRIADO: ${numPCUnico} → Fabricante: ${dados.fabricante_nome} (ID: ${novoPedido.id})`);
+          console.log(`   🚀 Enviando para banco de dados...`);
+          const novoPedido = await base44.entities.PedidoCompra.create(payloadPC);
+
+          console.log(`✅ PC CRIADO COM SUCESSO!`);
+          console.log(`   - ID: ${novoPedido.id}`);
+          console.log(`   - Número: ${numPCUnico}`);
+          console.log(`   - Vínculo venda_id: ${novoPedido.venda_id}`);
+          
           resultadosPC.push({
             status: 'sucesso',
             fabricante: dados.fabricante_nome,
@@ -345,11 +368,29 @@ export default function Vendas() {
           });
           pcSucesso++;
         } catch (err) {
-          console.error(`❌ ERRO AO CRIAR PC para ${dados.fabricante_nome}:`, err);
+          console.error(`❌ ERRO AO CRIAR PC PARA ${dados.fabricante_nome}:`);
+          console.error(`   Tipo de erro: ${err?.name || 'desconhecido'}`);
+          console.error(`   Mensagem: ${err?.message || 'sem mensagem'}`);
+          console.error(`   Código: ${err?.code || 'sem código'}`);
+          console.error(`   Stack: ${err?.stack}`);
+          console.error(`   Resposta completa:`, err);
+          
+          // Tentar extrair erro específico do RLS ou constraint
+          let erroDetalhado = err?.message || 'Erro desconhecido';
+          if (err?.message?.includes('RLS')) {
+            erroDetalhado = `Erro de permissão (RLS): ${err.message}`;
+          } else if (err?.message?.includes('foreign key')) {
+            erroDetalhado = `Erro de chave estrangeira: ${err.message}`;
+          } else if (err?.message?.includes('not null')) {
+            erroDetalhado = `Campo obrigatório faltando: ${err.message}`;
+          }
+
+          alert(`⚠️ ERRO AO CRIAR PC PARA ${dados.fabricante_nome}:\n${erroDetalhado}`);
+          
           resultadosPC.push({
             status: 'erro',
             fabricante: dados.fabricante_nome,
-            erro: err?.message || 'Erro desconhecido'
+            erro: erroDetalhado
           });
           pcErro++;
         }
