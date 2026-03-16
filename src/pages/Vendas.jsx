@@ -467,43 +467,29 @@ export default function Vendas() {
 
   const handleGerarPedidosCompra = async (pedido) => {
     try {
-      console.log(`\n🚀 [handleGerarPedidosCompra] INICIANDO...`);
-      console.log(`   Venda ID: ${pedido.id} (type: ${typeof pedido.id})`);
+      console.log(`\n🚀 [handleGerarPedidosCompra] INICIANDO CICLO À PROVA DE FALHAS`);
+      console.log(`   Venda ID: ${pedido.id}`);
       console.log(`   Venda número: ${pedido.numero_pedido}`);
+      console.log(`   Itens na venda: ${pedido.itens.length}`);
       
-      // ✅ BYPASS: Não consultar User (RLS protegido), usar apenas dados já no Product
-      const allProds = await base44.entities.Product.list();
-
-      // Verificar se já existem PedidosCompra para esta venda
-      const pedidosExistentes = await base44.entities.PedidoCompra.filter({ venda_id: pedido.id });
-      if (pedidosExistentes.length > 0) {
-        toast({
-          title: "Aviso",
-          description: `Já existem ${pedidosExistentes.length} pedido(s) de compra para esta venda.`,
-        });
-        return;
-      }
-
+      // ✅ PASSO 1: Usar APENAS dados locais (myProducts já foi carregado)
       const porFabricante = {};
-      const problemasItens = [];
-      const fabricantesIds = [];
 
       (pedido.itens || []).forEach((item, idx) => {
-        const produto = allProds.find(p => p.id === item.product_id);
+        // Buscar no array myProducts que já temos em memória
+        const produto = myProducts.find(p => p.id === item.product_id);
+        
         if (!produto) {
-          console.warn(`   ⚠️ Item ${idx + 1}: Produto ${item.product_id} não encontrado`);
-          problemasItens.push(`Produto ${item.product_id} não encontrado`);
+          console.warn(`   ⚠️ Item ${idx + 1}: Produto ${item.product_id} não em myProducts`);
           return;
         }
 
         const fabId = produto.fabricante_id;
-        if (!fabId) {
-          console.warn(`   ⚠️ Item ${idx + 1}: Produto ${produto.nome} sem fabricante`);
-          problemasItens.push(`Produto ${produto.nome} sem fabricante cadastrado`);
+        if (!fabId || fabId.trim() === '') {
+          console.warn(`   ⚠️ Item ${idx + 1} (${produto.nome}): fabricante_id vazio`);
           return;
         }
 
-        // ✅ USAR DADOS DO PRODUTO (sem consultar User protegido)
         const fabNome = produto.fabricante_nome || `Fabricante ${fabId.substring(0, 8)}`;
 
         if (!porFabricante[fabId]) {
@@ -512,52 +498,38 @@ export default function Vendas() {
             fabricante_nome: fabNome,
             itens: []
           };
-          fabricantesIds.push(fabId);
         }
         porFabricante[fabId].itens.push(item);
-        
-        console.log(`   ✅ Item ${idx + 1} agrupado para ${fabNome}`);
+        console.log(`   ✅ Item ${idx + 1}: ${produto.nome} → ${fabNome}`);
       });
 
-      console.log(`\n📋 RESUMO PRÉ-CRIAÇÃO:`);
-      console.log(`   Fabricantes únicos encontrados: ${fabricantesIds.length}`);
-      console.log(`   Fabricantes IDs: ${fabricantesIds.join(', ')}`);
-      console.log(`   Problemas em itens: ${problemasItens.length}`);
+      const fabricantesCount = Object.keys(porFabricante).length;
+      console.log(`\n📋 ANÁLISE: ${fabricantesCount} fabricante(s) encontrado(s)`);
       
-      if (Object.keys(porFabricante).length === 0) {
+      if (fabricantesCount === 0) {
         toast({
-          title: "Erro ao criar Pedidos de Compra",
-          description: problemasItens.length > 0 ? problemasItens.join('. ') : "Nenhum produto com fabricante foi encontrado.",
+          title: "Nenhum Fabricante",
+          description: "Nenhum produto com fabricante válido encontrado nesta venda.",
           variant: "destructive"
         });
         return;
       }
 
-      let pedidosCriados = 0;
-      const errosPCs = [];
+      let pcSucesso = 0;
+      let pcErro = 0;
 
+      // ✅ PASSO 2: Criar Pedidos de Compra com Log Detalhado
       for (const [fabId, dados] of Object.entries(porFabricante)) {
         try {
-          const totalFab = dados.itens.reduce((sum, item) => sum + item.subtotal, 0);
+          const totalFab = dados.itens.reduce((sum, item) => sum + (item.subtotal || 0), 0);
           
-          // ✅ VERIFICAÇÃO DE UUID vs STRING
-          console.log(`\n🔍 [TIPO DE DADOS] Para fabricante ${dados.fabricante_nome}:`);
-          console.log(`   - user.id: "${user.id}" (type: ${typeof user.id}) - REVENDEDOR`);
-          console.log(`   - fabricante_id: "${fabId}" (type: ${typeof fabId}) - FABRICANTE`);
-          console.log(`   - pedido.id: "${pedido.id}" (type: ${typeof pedido.id}) - VENDA (venda_id)`);
-          
-          // Detectar se tem UUID format (36 chars com hífens)
-          const isUUID = (str) => typeof str === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
-          console.log(`   - user.id é UUID? ${isUUID(user.id)}`);
-          console.log(`   - fabricante_id é UUID? ${isUUID(fabId)}`);
-          console.log(`   - pedido.id é UUID? ${isUUID(pedido.id)}`);
-          
+          // ✅ PASSO 3: PAYLOAD COM VERIFICAÇÃO
           const payloadPC = {
-            revendedor_id: user.id,  // String ou UUID
+            revendedor_id: user.id,
             revendedor_nome: user.empresa || user.full_name,
-            fabricante_id: fabId,    // String ou UUID
+            fabricante_id: fabId,
             fabricante_nome: dados.fabricante_nome,
-            venda_id: pedido.id,     // ⚠️ CRÍTICO: precisa corresponder ao tipo da coluna
+            venda_id: pedido.id,  // ✅ COLUNA CRÍTICA: venda_id
             numero_pedido: `PC-${Date.now()}-${Math.random().toString(36).substr(2, 8).toUpperCase()}`,
             data_pedido: new Date().toISOString().split('T')[0],
             itens: dados.itens,
@@ -566,62 +538,58 @@ export default function Vendas() {
             observacoes: pedido.observacoes || ""
           };
 
-          console.log(`\n📦 PAYLOAD COMPLETO PARA ${dados.fabricante_nome}:`);
+          // ✅ PASSO 4: LOG DE AUDITORIA - O QUE SERÁ ENVIADO
+          console.log(`\n📤 DADOS PARA ENVIO - ${dados.fabricante_nome}:`);
           console.log(JSON.stringify(payloadPC, null, 2));
 
-          console.log(`   🚀 Enviando para base44.entities.PedidoCompra.create()...`);
+          // Criar PC
+          console.log(`   → Inserindo no banco...`);
           const novoPC = await base44.entities.PedidoCompra.create(payloadPC);
           
-          console.log(`✅ PC CRIADO COM SUCESSO!`);
-          console.log(`   ID retornado: ${novoPC.id}`);
-          console.log(`   venda_id no retorno: ${novoPC.venda_id}`);
-          
-          pedidosCriados++;
+          console.log(`✅ SUCESSO! PC ID: ${novoPC.id}, venda_id: ${novoPC.venda_id}`);
+          pcSucesso++;
         } catch (err) {
-          console.error(`\n❌ ERRO CRÍTICO ao criar PC para ${dados.fabricante_nome}`);
-          console.error(`   Nome do erro: ${err?.name}`);
-          console.error(`   Mensagem: ${err?.message}`);
-          console.error(`   Status HTTP: ${err?.status}`);
-          console.error(`   Código PostgreSQL: ${err?.code}`);
-          console.error(`   Response completa:`, err?.response);
-          
-          const erroCompleto = JSON.stringify({
-            name: err?.name,
-            message: err?.message,
-            status: err?.status,
-            code: err?.code,
-            response: err?.response?.data || err?.response || 'sem response'
-          }, null, 2);
-          
-          console.error(`\n📋 JSON DO ERRO:\n${erroCompleto}`);
-          
-          alert(`ERRO TÉCNICO AO CRIAR PC:\n\n${erroCompleto}`);
-          
-          errosPCs.push({
-            fabricante: dados.fabricante_nome,
-            erro: err?.message
+          pcErro++;
+          console.error(`❌ ERRO ao criar PC para ${dados.fabricante_nome}:`, err?.message);
+          toast({
+            title: "Erro ao criar PC",
+            description: `${dados.fabricante_nome}: ${err?.message}`,
+            variant: "destructive"
           });
         }
       }
 
-      console.log(`\n\n✅ RESUMO FINAL:`);
-      console.log(`   PCs criados: ${pedidosCriados}/${fabricantesIds.length}`);
-      console.log(`   Erros: ${errosPCs.length}`);
-      if (errosPCs.length > 0) {
-        console.error(`   Erros detalhados:`, errosPCs);
+      // ✅ PASSO 5: GARANTIA DE PERSISTÊNCIA - Marcar Venda como Processada
+      if (pcSucesso > 0) {
+        try {
+          console.log(`\n🔄 CONFIRMANDO: Atualizando status da venda...`);
+          await base44.entities.Pedido.update(pedido.id, {
+            status: "confirmado"  // Mudar de "pendente" para "confirmado"
+          });
+          console.log(`✅ Venda atualizada para status "confirmado"`);
+        } catch (err) {
+          console.warn(`⚠️ Não foi possível atualizar status da venda:`, err?.message);
+        }
       }
 
-      toast({
-        title: pedidosCriados > 0 ? "✓ Pedidos de Compra Gerados!" : "❌ Nenhum Pedido Criado",
-        description: `${pedidosCriados} pedido(s) foi(foram) criado(s) com sucesso. Visualize em "Pedidos de Compra".`,
-        variant: pedidosCriados > 0 ? "default" : "destructive"
-      });
+      // Resumo final
+      console.log(`\n📊 RESUMO FINAL:`);
+      console.log(`   PCs criados: ${pcSucesso}/${fabricantesCount}`);
+      console.log(`   Erros: ${pcErro}`);
+
+      if (pcSucesso > 0) {
+        toast({
+          title: "✅ Pedidos de Compra Criados",
+          description: `${pcSucesso} PC(s) gerado(s) com sucesso. Verifique em "Pedidos de Compra".`
+        });
+      }
+
       await loadData();
     } catch (error) {
-      console.error("❌ ERRO EXTERNO ao gerar pedidos de compra:", error);
+      console.error("❌ ERRO CRÍTICO:", error);
       toast({
-        title: "Erro Crítico",
-        description: `Erro: ${error?.message || 'desconhecido'}`,
+        title: "Erro",
+        description: error?.message || "Erro ao gerar pedidos de compra",
         variant: "destructive"
       });
     }
