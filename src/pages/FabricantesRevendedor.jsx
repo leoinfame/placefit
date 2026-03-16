@@ -291,22 +291,28 @@ export default function FabricantesRevendedor() {
 </body>
 </html>`;
 
-      const printWindow = window.open('', '_blank');
-      if (printWindow) {
-        printWindow.document.write(html);
-        printWindow.document.close();
-        setTimeout(() => printWindow.print(), 800);
-      }
+      try {
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+          printWindow.document.write(html);
+          printWindow.document.close();
+          setTimeout(() => printWindow.print(), 800);
+        }
 
-      toast({
-        title: "Tabela gerada!",
-        description: `Tabela de ${nomeEmpresa} aberta para impressão/PDF.`,
-      });
+        toast({
+          title: "Tabela gerada!",
+          description: `Tabela de ${nomeEmpresa} aberta para impressão/PDF.`,
+        });
+      } catch (printError) {
+        console.error("Erro ao imprimir:", printError);
+        toast({ title: "Erro", description: "Erro ao gerar tabela para impressão.", variant: "destructive" });
+      }
     } catch (error) {
       console.error("Erro ao baixar tabela:", error);
       toast({ title: "Erro", description: "Não foi possível gerar a tabela.", variant: "destructive" });
+    } finally {
+      setDownloadingTable(null);
     }
-    setDownloadingTable(null);
   };
 
   const openChat = (fabricante) => {
