@@ -221,29 +221,29 @@ export default function Export() {
     const categoriasBlocos = Object.entries(categorias).map(([cat, itens]) => {
       const icon = categoryIcons[cat] || '📦';
       const linhas = itens.map((item, idx) => `
-        <tr style="background:${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
-          <td style="padding:7px 10px;font-size:10px;color:#64748b;font-family:monospace;white-space:nowrap;">${item.cod || '—'}</td>
-          <td style="padding:7px 10px;font-size:11px;font-weight:600;color:#1e293b;">${item.nome}</td>
-          <td style="padding:7px 10px;font-size:10px;color:#475569;text-align:center;">${item.peso || item.dimensoes || '—'}</td>
-          <td style="padding:7px 10px;font-size:10px;color:#475569;text-align:center;">${item.und || 'peça'}</td>
-          <td style="padding:7px 10px;font-size:11px;font-weight:700;color:#16a34a;text-align:right;white-space:nowrap;">${item.precoFormatado}</td>
+        <tr style="background:${idx % 2 === 0 ? '#ffffff' : '#fafafa'};">
+          <td style="padding:4px 6px;font-size:8px;color:#64748b;font-family:monospace;white-space:nowrap;">${item.cod || '—'}</td>
+          <td style="padding:4px 6px;font-size:9px;font-weight:600;color:#1e293b;">${item.nome}</td>
+          <td style="padding:4px 6px;font-size:8px;color:#475569;text-align:center;">${item.peso || item.dimensoes || '—'}</td>
+          <td style="padding:4px 6px;font-size:8px;color:#475569;text-align:center;">${item.und || 'peça'}</td>
+          <td style="padding:4px 6px;font-size:9px;font-weight:700;color:#16a34a;text-align:right;white-space:nowrap;">${item.precoFormatado}</td>
         </tr>`).join('');
 
       return `
-        <div style="margin-bottom:28px;page-break-inside:avoid;">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:0;padding:9px 14px;background:linear-gradient(90deg,${c.primaryDark} 0%,${c.primary} 100%);border-radius:6px 6px 0 0;">
-            <span style="font-size:14px;">${icon}</span>
-            <span style="font-size:12px;font-weight:700;color:${c.textOnPrimary};letter-spacing:1.5px;text-transform:uppercase;">${cat}</span>
-            <span style="margin-left:auto;font-size:10px;color:${c.light};font-weight:500;">${itens.length} produto${itens.length !== 1 ? 's' : ''}</span>
+        <div style="margin-bottom:10px;page-break-inside:avoid;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:0;padding:6px 10px;background:transparent;border:1px solid #e2e8f0;border-bottom:none;border-radius:4px 4px 0 0;">
+            <span style="font-size:11px;">${icon}</span>
+            <span style="font-size:10px;font-weight:700;color:#1e293b;letter-spacing:1px;text-transform:uppercase;">${cat}</span>
+            <span style="margin-left:auto;font-size:8px;color:#64748b;font-weight:500;">${itens.length} item${itens.length !== 1 ? 's' : ''}</span>
           </div>
-          <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-top:none;">
+          <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-top:none;font-size:9px;">
             <thead>
               <tr style="background:transparent;">
-                <th style="padding:7px 10px;font-size:9px;font-weight:700;color:#1e293b !important;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e2e8f0;white-space:nowrap;width:80px;">Código</th>
-                <th style="padding:7px 10px;font-size:9px;font-weight:700;color:#1e293b !important;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e2e8f0;">Produto</th>
-                <th style="padding:7px 10px;font-size:9px;font-weight:700;color:#1e293b !important;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e2e8f0;text-align:center;width:90px;">Especificação</th>
-                <th style="padding:7px 10px;font-size:9px;font-weight:700;color:#1e293b !important;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e2e8f0;text-align:center;width:70px;">Unidade</th>
-                <th style="padding:7px 10px;font-size:9px;font-weight:700;color:#1e293b !important;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e2e8f0;text-align:right;width:90px;">Preço</th>
+                <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#1e293b !important;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;white-space:nowrap;width:70px;">Código</th>
+                <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#1e293b !important;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;">Produto</th>
+                <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#1e293b !important;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;text-align:center;width:60px;">Espec.</th>
+                <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#1e293b !important;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;text-align:center;width:50px;">Und.</th>
+                <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#1e293b !important;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;text-align:right;width:70px;">Preço</th>
               </tr>
             </thead>
             <tbody>${linhas}</tbody>
@@ -260,44 +260,44 @@ export default function Export() {
   <meta charset="UTF-8">
   <title>Tabela de Preços — ${nomeEmpresa}</title>
   <style>
-    @page { size: A4; margin: 0; }
+    @page { size: A4; margin: 8mm; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Arial', sans-serif; color: #1e293b; background: #fff; }
-    .page-wrapper { padding: 28px 32px 24px 32px; }
+    .page-wrapper { padding: 12px 16px; }
 
     /* CAPA/HEADER */
-    .cover { display: flex; align-items: center; gap: 20px; padding: 20px 24px; background: linear-gradient(135deg, ${c.primaryDark} 0%, ${c.primary} 50%, ${c.secondary} 100%); border-radius: 10px; margin-bottom: 20px; }
-    .cover-logo { width: 72px; height: 72px; object-fit: contain; background: #fff; border-radius: 8px; padding: 6px; flex-shrink: 0; }
-    .cover-logo-placeholder { width: 72px; height: 72px; background: rgba(255,255,255,0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
+    .cover { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: linear-gradient(135deg, ${c.primaryDark} 0%, ${c.primary} 50%, ${c.secondary} 100%); border-radius: 8px; margin-bottom: 12px; }
+    .cover-logo { width: 56px; height: 56px; object-fit: contain; background: #fff; border-radius: 6px; padding: 4px; flex-shrink: 0; }
+    .cover-logo-placeholder { width: 56px; height: 56px; background: rgba(255,255,255,0.15); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
     .cover-body { flex: 1; }
-    .cover-title { font-size: 22px; font-weight: 800; color: #1e293b !important; letter-spacing: -0.5px; line-height: 1.2; }
-    .cover-subtitle { font-size: 11px; font-weight: 600; color: #1e293b !important; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; margin-top: 2px; }
-    .cover-contacts { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 8px; }
-    .cover-contact { font-size: 10px; color: #1e293b !important; display: flex; align-items: center; gap: 4px; }
+    .cover-title { font-size: 18px; font-weight: 800; color: #1e293b !important; letter-spacing: -0.5px; line-height: 1.1; }
+    .cover-subtitle { font-size: 9px; font-weight: 600; color: #1e293b !important; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px; margin-top: 0px; }
+    .cover-contacts { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 4px; }
+    .cover-contact { font-size: 8px; color: #1e293b !important; display: flex; align-items: center; gap: 3px; }
     .cover-right { text-align: right; flex-shrink: 0; }
-    .cover-doc-title { font-size: 13px; font-weight: 800; color: ${c.textOnPrimary}; text-transform: uppercase; letter-spacing: 1px; }
-    .cover-date { font-size: 10px; color: #1e293b !important; margin-top: 4px; }
-    .cover-badge { margin-top: 8px; display: inline-block; background: rgba(255,255,255,0.15); color: #1e293b !important; font-size: 9px; padding: 3px 8px; border-radius: 20px; font-weight: 600; letter-spacing: 0.5px; }
+    .cover-doc-title { font-size: 11px; font-weight: 800; color: #1e293b !important; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.1; }
+    .cover-date { font-size: 8px; color: #1e293b !important; margin-top: 2px; }
+    .cover-badge { margin-top: 4px; display: none; }
 
     /* STATS BAR */
-    .stats-bar { display: flex; gap: 12px; margin-bottom: 20px; }
-    .stat-card { flex: 1; background: #f8fafc; border: 1px solid ${c.lightBorder}; border-radius: 6px; padding: 10px 14px; text-align: center; }
-    .stat-num { font-size: 20px; font-weight: 800; color: ${c.textAccent}; }
-    .stat-label { font-size: 9px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+    .stats-bar { display: flex; gap: 8px; margin-bottom: 12px; }
+    .stat-card { flex: 1; background: transparent; border: 1px solid #e2e8f0; border-radius: 4px; padding: 6px 8px; text-align: center; }
+    .stat-num { font-size: 16px; font-weight: 800; color: ${c.textAccent}; }
+    .stat-label { font-size: 7px; color: #64748b; text-transform: uppercase; letter-spacing: 0.3px; font-weight: 600; }
 
     /* CONTENT */
-    .section-divider { border: none; border-top: 1px solid #e2e8f0; margin: 18px 0; }
+    .section-divider { border: none; border-top: 1px solid #e2e8f0; margin: 8px 0; }
 
     /* FOOTER */
-    .footer { margin-top: 28px; border-top: 2px solid ${c.primary}; padding-top: 16px; }
-    .footer-title { font-size: 11px; font-weight: 800; color: ${c.textAccent}; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
-    .footer-grid { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
-    .footer-item { flex: 1; min-width: 120px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px; }
-    .footer-item-label { font-size: 8px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
-    .footer-item-value { font-size: 10px; color: #1e293b; font-weight: 500; }
-    .footer-disclaimer { font-size: 9px; color: #64748b; line-height: 1.5; background: #fefce8; border: 1px solid #fde68a; border-radius: 6px; padding: 8px 12px; }
-    .footer-bottom { margin-top: 12px; display: flex; justify-content: space-between; align-items: center; }
-    .footer-brand { font-size: 9px; color: #94a3b8; }
+    .footer { margin-top: 12px; border-top: 1px solid #e2e8f0; padding-top: 8px; }
+    .footer-title { font-size: 9px; font-weight: 800; color: #1e293b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .footer-grid { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+    .footer-item { flex: 1; min-width: 80px; background: transparent; border: 1px solid #e2e8f0; border-radius: 4px; padding: 5px 8px; }
+    .footer-item-label { font-size: 7px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 1px; }
+    .footer-item-value { font-size: 8px; color: #1e293b; font-weight: 500; }
+    .footer-disclaimer { font-size: 8px; color: #64748b; line-height: 1.4; background: transparent; border: 1px solid #e2e8f0; border-radius: 4px; padding: 6px 8px; }
+    .footer-bottom { margin-top: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .footer-brand { font-size: 7px; color: #94a3b8; }
 
     @media print {
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
