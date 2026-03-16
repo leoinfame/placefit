@@ -540,68 +540,77 @@ export default function Export() {
                 </Button>
               </CardHeader>
               <CardContent className="overflow-x-auto">
-                {previewData.length > 0 ? (
-                  <div className="space-y-4">
-                    {/* Cabeçalho da Empresa */}
-                    <div className="text-center p-3 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border">
-                      {user?.logomarca && (
-                        <div className="w-16 h-16 mx-auto mb-2 rounded-lg overflow-hidden bg-white p-1">
-                          <img
-                            src={user.logomarca}
-                            alt="Logo"
-                            className="w-full h-full object-contain"
-                          />
+                {previewData.length > 0 ? (() => {
+                  const categorias = {};
+                  previewData.forEach(item => {
+                    const cat = item.categoria || 'Outros';
+                    if (!categorias[cat]) categorias[cat] = [];
+                    categorias[cat].push(item);
+                  });
+                  return (
+                    <div className="space-y-4">
+                      {/* Header da empresa */}
+                      <div className="rounded-xl overflow-hidden bg-gradient-to-r from-slate-900 to-blue-900">
+                        <div className="flex items-center gap-4 p-4">
+                          {user?.logomarca ? (
+                            <img src={user.logomarca} alt="Logo" className="w-14 h-14 object-contain bg-white rounded-lg p-1 flex-shrink-0" />
+                          ) : (
+                            <div className="w-14 h-14 bg-white/20 rounded-lg flex items-center justify-center text-2xl flex-shrink-0">🏋️</div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-blue-300 uppercase tracking-widest mb-0.5">PlaceFit</p>
+                            <h2 className="text-base font-bold text-white truncate">{user?.empresa || user?.full_name}</h2>
+                            <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
+                              {user?.whatsapp && <span className="text-xs text-slate-300">📱 {user.whatsapp}</span>}
+                              {user?.email && <span className="text-xs text-slate-300">✉ {user.email}</span>}
+                            </div>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <p className="text-xs font-bold text-white uppercase tracking-wider">Tabela de<br/>Preços</p>
+                            <p className="text-xs text-blue-300 mt-1">{new Date().toLocaleDateString('pt-BR')}</p>
+                          </div>
                         </div>
-                      )}
-                      <h2 className="text-lg font-bold text-gray-900 mb-1">
-                        {user?.empresa || user?.full_name}
-                      </h2>
-                      <div className="text-xs text-gray-600 space-y-0.5">
-                        {user?.whatsapp && (
-                          <div className="flex items-center justify-center gap-1">
-                            <Phone className="w-3 h-3" />
-                            <span>{user.whatsapp}</span>
-                          </div>
-                        )}
-                        {user?.email && (
-                          <div className="flex items-center justify-center gap-1">
-                            <Mail className="w-3 h-3" />
-                            <span>{user.email}</span>
-                          </div>
-                        )}
                       </div>
-                      <Separator className="my-2" />
-                      <p className="font-semibold text-gray-800 text-sm">TABELA DE PREÇOS</p>
-                      <p className="text-xs text-gray-500">
-                        Atualizada em {new Date().toLocaleDateString('pt-BR')}
-                      </p>
-                    </div>
 
-                    {/* Tabela */}
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm border-collapse border border-gray-200">
-                        <thead>
-                          <tr className="bg-gradient-to-r from-blue-500 to-green-500 text-white">
-                            <th className="border border-gray-300 px-3 py-2 text-left">Produto</th>
-                            <th className="border border-gray-300 px-3 py-2 text-right">Preço</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {previewData.map((item, index) => (
-                            <tr key={index} className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}>
-                              <td className="border border-gray-300 px-3 py-2 font-medium">
-                                {item.nome}
-                              </td>
-                              <td className="border border-gray-300 px-3 py-2 text-right font-bold text-green-700">
-                                {item.preco}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                      {/* Produtos por categoria */}
+                      {Object.entries(categorias).map(([cat, itens]) => (
+                        <div key={cat} className="rounded-lg overflow-hidden border border-gray-200">
+                          <div className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-blue-900 to-blue-700">
+                            <span className="text-xs font-bold text-white uppercase tracking-widest">{cat}</span>
+                            <span className="text-xs text-blue-300">{itens.length} produto{itens.length !== 1 ? 's' : ''}</span>
+                          </div>
+                          <table className="w-full text-xs">
+                            <thead>
+                              <tr className="bg-slate-50 border-b border-gray-200">
+                                <th className="px-3 py-1.5 text-left text-gray-500 font-semibold uppercase tracking-wide w-16">Cód.</th>
+                                <th className="px-3 py-1.5 text-left text-gray-500 font-semibold uppercase tracking-wide">Produto</th>
+                                <th className="px-3 py-1.5 text-center text-gray-500 font-semibold uppercase tracking-wide w-20 hidden md:table-cell">Espec.</th>
+                                <th className="px-3 py-1.5 text-center text-gray-500 font-semibold uppercase tracking-wide w-16 hidden md:table-cell">Und.</th>
+                                <th className="px-3 py-1.5 text-right text-gray-500 font-semibold uppercase tracking-wide w-24">Preço</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {itens.map((item, i) => (
+                                <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+                                  <td className="px-3 py-2 font-mono text-gray-400">{item.cod || '—'}</td>
+                                  <td className="px-3 py-2 font-semibold text-gray-800">{item.nome}</td>
+                                  <td className="px-3 py-2 text-center text-gray-500 hidden md:table-cell">{item.peso || item.dimensoes || '—'}</td>
+                                  <td className="px-3 py-2 text-center text-gray-500 hidden md:table-cell">{item.und || 'peça'}</td>
+                                  <td className="px-3 py-2 text-right font-bold text-green-700">{item.precoFormatado}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ))}
+
+                      {/* Rodapé */}
+                      <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+                        ⚠️ Tabela sujeita a alterações sem aviso prévio. Consulte disponibilidade antes do pedido.
+                      </div>
                     </div>
-                  </div>
-                ) : (
+                  );
+                })() : (
                   <div className="text-center py-12">
                     <Table className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">Tabela Vazia</h3>
