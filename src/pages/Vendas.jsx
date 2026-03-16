@@ -199,122 +199,185 @@ export default function Vendas() {
     }
 
     try {
-       const cliente = clientes.find(c => c.id === selectedCliente);
-       const { subtotal, total } = calcularTotais();
+      const cliente = clientes.find(c => c.id === selectedCliente);
+      const { subtotal, total } = calcularTotais();
+      const numeroPedido = `PED-${Date.now()}`;
 
-       const numeroPedido = `PED-${Date.now()}`;
+      // ===== PASSO 1: Buscar TODOS os dados necessários ANTES de criar algo =====
+      const [allProds, allUsers] = await Promise.all([
+        base44.entities.Product.list(),
+        base44.entities.User.list()
+      ]);
 
-       const pedidoCriado = await base44.entities.Pedido.create({
-         fornecedor_id: user.id,
-         cliente_id: selectedCliente,
-         cliente_nome: cliente.nome,
-         numero_pedido: numeroPedido,
-         data_pedido: new Date().toISOString().split('T')[0],
-         tipo: 'venda',
-         itens: itens,
-         subtotal: subtotal,
-         frete: parseFloat(frete || 0),
-         desconto: parseFloat(desconto || 0),
-         total: total,
-         status: "pendente",
-         observacoes: observacoes
-       });
+      // ===== PASSO 2: Validar e mapear fabricantes para CADA ITEM (PRÉ-VALIDAÇÃO) =====
+      const mapeamentoFabricantes = {};
+      const errosValidacao = [];
 
-       console.log("Venda criada:", pedidoCriado.id);
+      itens.forEach((item, idx) => {
+        const produto = allProds.find(p => p.id === item.product_id);
 
-       // Buscar produtos completos para criar pedidos de compra
-       const [allProds, allUsers] = await Promise.all([
-         base44.entities.Product.list(),
-         base44.entities.User.list()
-       ]);
+        // Verificar se produto existe
+        if (!produto) {
+          errosValidacao.push(`Item ${idx + 1}: Produto não encontrado na base (ID: ${item.product_id})`);
+          return;
+        }
 
-       // Criar pedidos de compra agrupados por fabricante
-       const porFabricante = {};
-       const problemasItens = [];
+        // CRÍTICO: Produto DEVE ter fabricante_id
+        if (!produto.fabricante_id || produto.fabricante_id.trim() === '') {
+          errosValidacao.push(
+            `Item ${idx + 1} - "${produto.nome}": Nenhum fabricante associado. ` +
+            `Contate o administrador para atualizar o cadastro do produto.`
+          );
+          return;
+        }
 
-       itens.forEach(item => {
-         const produto = allProds.find(p => p.id === item.product_id);
-         if (!produto) {
-           problemasItens.push(`Produto ${item.product_id} não encontrado`);
-           return;
-         }
+        const fabId = produto.fabricante_id;
 
-         const fabId = produto.fabricante_id;
-         if (!fabId) {
-           problemasItens.push(`Produto ${produto.nome} sem fabricante cadastrado`);
-           return;
-         }
+        // Buscar dados do fabricante
+        if (!mapeamentoFabricantes[fabId]) {
+          const fab = allUsers.find(u => u.id === fabId);
+          if (!fab) {
+            errosValidacao.push(
+              `Item ${idx + 1} - "${produto.nome}": Fabricante (${fabId}) não encontrado. ` +
+              `Verifique a integridade dos dados.`
+            );
+            return;
+          }
+          mapeamentoFabricantes[fabId] = {
+            fabricante_id: fabId,
+            fabricante_nome: fab.empresa || fab.full_name || 'Fabricante',
+            fabricante_obj: fab,
+            itens: []
+          };
+        }
 
-         // Enriquecer nome do fabricante se estiver vazio
-         let fabNome = produto.fabricante_nome;
-         if (!fabNome) {
-           const fab = allUsers.find(u => u.id === fabId);
-           fabNome = fab?.empresa || fab?.full_name || 'Sem Nome';
-         }
+        mapeamentoFabricantes[fabId].itens.push(item);
+      });
 
-         if (!porFabricante[fabId]) {
-           porFabricante[fabId] = {
-             fabricante_id: fabId,
-             fabricante_nome: fabNome,
-             itens: []
-           };
-         }
-         porFabricante[fabId].itens.push(item);
-       });
+      // ===== PASSO 3: REJEITAR PRÉ-VENDA se houver erros =====
+      if (errosValidacao.length > 0) {
+        toast({
+          title: "❌ Validação Falhou - Venda Não Criada",
+          description: errosValidacao.join('\n\n'),
+          variant: "destructive"
+        });
+        return; // INTERROMPE ANTES DE CRIAR A VENDA
+      }
 
-       // Se nenhum pedido foi agrupado, mostrar erro
-       if (Object.keys(porFabricante).length === 0) {
-         toast({
-           title: "Erro ao criar Pedidos de Compra",
-           description: problemasItens.length > 0 ? problemasItens.join('. ') : "Nenhum produto com fabricante foi encontrado.",
-           variant: "destructive"
-         });
-         return;
-       }
+      if (Object.keys(mapeamentoFabricantes).length === 0) {
+        toast({
+          title: "❌ Erro de Validação",
+          description: "Nenhum produto com fabricante válido encontrado.",
+          variant: "destructive"
+        });
+        return;
+      }
 
-       console.log("Pedidos por fabricante:", Object.keys(porFabricante));
+      // ===== PASSO 4: ATOMICITY - Criar Venda (Ponto de não retorno) =====
+      const pedidoCriado = await base44.entities.Pedido.create({
+        fornecedor_id: user.id,
+        cliente_id: selectedCliente,
+        cliente_nome: cliente.nome,
+        numero_pedido: numeroPedido,
+        data_pedido: new Date().toISOString().split('T')[0],
+        tipo: 'venda',
+        itens: itens,
+        subtotal: subtotal,
+        frete: parseFloat(frete || 0),
+        desconto: parseFloat(desconto || 0),
+        total: total,
+        status: "pendente",
+        observacoes: observacoes
+      });
 
-       // Salvar PedidosCompra para cada fabricante
-       let pedidosCriados = 0;
-       for (const [fabId, dados] of Object.entries(porFabricante)) {
-         try {
-           const totalFab = dados.itens.reduce((sum, item) => sum + item.subtotal, 0);
-           const novoPedido = await base44.entities.PedidoCompra.create({
-             revendedor_id: user.id,
-             revendedor_nome: user.empresa || user.full_name,
-             fabricante_id: fabId,
-             fabricante_nome: dados.fabricante_nome,
-             venda_id: pedidoCriado.id,
-             numero_pedido: `PC-${Date.now()}-${fabId.substring(0, 8)}`,
-             data_pedido: new Date().toISOString().split('T')[0],
-             itens: dados.itens,
-             total: totalFab,
-             status: "pendente",
-             observacoes: observacoes
-           });
-           console.log("PedidoCompra criado:", novoPedido.id);
-           pedidosCriados++;
-         } catch (err) {
-           console.error("Erro ao criar PedidoCompra para", fabId, err);
-         }
-       }
+      console.log(`✅ VENDA CRIADA: ${numeroPedido} (ID: ${pedidoCriado.id})`);
 
-       toast({
-         title: "Pedido criado!",
-         description: `Pedido ${numeroPedido} foi criado com sucesso. ${pedidosCriados} pedido(s) de compra gerado(s).`,
-       });
+      // ===== PASSO 5: CRIAR PEDIDOS DE COMPRA EM LOTE =====
+      const resultadosPC = [];
+      let pcSucesso = 0;
+      let pcErro = 0;
 
-       resetForm();
-       setActiveTab("lista");
-       await loadData();
-     } catch (error) {
-       console.error("Erro ao criar pedido:", error);
-       toast({
-         title: "Erro",
-         description: "Erro ao criar pedido. Tente novamente.",
-         variant: "destructive"
-       });
-     }
+      for (const [fabId, dados] of Object.entries(mapeamentoFabricantes)) {
+        try {
+          const totalFab = dados.itens.reduce((sum, item) => sum + (item.subtotal || 0), 0);
+          const numPCUnico = `PC-${Date.now()}-${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
+
+          const novoPedido = await base44.entities.PedidoCompra.create({
+            revendedor_id: user.id,
+            revendedor_nome: user.empresa || user.full_name,
+            fabricante_id: fabId,
+            fabricante_nome: dados.fabricante_nome,
+            venda_id: pedidoCriado.id,  // ✅ VÍNCULO CRÍTICO
+            numero_pedido: numPCUnico,
+            data_pedido: new Date().toISOString().split('T')[0],
+            itens: dados.itens,
+            total: totalFab,
+            status: "pendente",
+            observacoes: observacoes
+          });
+
+          console.log(`✅ PC CRIADO: ${numPCUnico} → Fabricante: ${dados.fabricante_nome} (ID: ${novoPedido.id})`);
+          resultadosPC.push({
+            status: 'sucesso',
+            fabricante: dados.fabricante_nome,
+            pedidoId: novoPedido.id,
+            numero: numPCUnico
+          });
+          pcSucesso++;
+        } catch (err) {
+          console.error(`❌ ERRO AO CRIAR PC para ${dados.fabricante_nome}:`, err);
+          resultadosPC.push({
+            status: 'erro',
+            fabricante: dados.fabricante_nome,
+            erro: err?.message || 'Erro desconhecido'
+          });
+          pcErro++;
+        }
+      }
+
+      // ===== PASSO 6: RELATÓRIO FINAL =====
+      const totalFabricantes = Object.keys(mapeamentoFabricantes).length;
+
+      if (pcErro === 0 && pcSucesso === totalFabricantes) {
+        // SUCESSO TOTAL
+        toast({
+          title: "✅ SUCESSO TOTAL",
+          description: `Venda ${numeroPedido} criada com ${pcSucesso} pedido(s) de compra associado(s).`
+        });
+        console.log(`✅ CICLO COMPLETO: Venda + ${pcSucesso} PCs criadas com sucesso`);
+      } else if (pcSucesso > 0 && pcErro > 0) {
+        // SUCESSO PARCIAL
+        const erroDetalhes = resultadosPC
+          .filter(r => r.status === 'erro')
+          .map(r => `${r.fabricante}: ${r.erro}`)
+          .join('; ');
+        toast({
+          title: "⚠️ SUCESSO PARCIAL",
+          description: `Venda criada (${numeroPedido}), mas ${pcErro} PC(s) falharam: ${erroDetalhes}`,
+          variant: "destructive"
+        });
+        console.warn(`⚠️ SUCESSO PARCIAL: ${pcSucesso} PCs OK, ${pcErro} PCs FALHARAM`);
+      } else {
+        // FALHA CRÍTICA
+        toast({
+          title: "❌ FALHA CRÍTICA",
+          description: `Venda criada (${numeroPedido}), mas NENHUM pedido de compra foi registrado. Contate o suporte.`,
+          variant: "destructive"
+        });
+        console.error(`❌ FALHA CRÍTICA: Venda criada mas ${totalFabricantes} PC(s) não foram registradas`);
+      }
+
+      resetForm();
+      setActiveTab("lista");
+      await loadData();
+    } catch (error) {
+      console.error("❌ ERRO CRÍTICO ao criar venda:", error);
+      toast({
+        title: "❌ Erro Crítico",
+        description: `${error?.message || 'Erro desconhecido ao criar pedido'}. Verifique o console para detalhes.`,
+        variant: "destructive"
+      });
+    }
   };
 
   const resetForm = () => {
