@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
+import AIResponseFormatter from "@/components/AIResponseFormatter";
 
 export default function FabricantesRevendedor() {
   const [user, setUser] = useState(null);
