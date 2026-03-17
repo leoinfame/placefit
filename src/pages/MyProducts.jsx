@@ -1147,23 +1147,43 @@ export default function MyProducts() {
                       {selectedProducts.length} produto(s) selecionado(s)
                     </p>
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={handleBulkActivate}
-                      disabled={applyingBulk || selectedProducts.length === 0}
-                      variant="outline"
-                      className="border-green-200 text-green-700 hover:bg-green-50"
-                    >
-                      <Power className="w-4 h-4 mr-2" />
-                      Ativar Selecionados
-                    </Button>
-                    <Button
-                      onClick={handleSelectAll}
-                      variant="outline"
-                    >
-                      <CheckSquare className="w-4 h-4 mr-2" />
-                      {selectedProducts.length === getMyProductsFiltered().length ? 'Desmarcar' : 'Selecionar'} Todos
-                    </Button>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={handleBulkActivate}
+                        disabled={applyingBulk || selectedProducts.length === 0}
+                        variant="outline"
+                        className="border-green-200 text-green-700 hover:bg-green-50"
+                      >
+                        <Power className="w-4 h-4 mr-2" />
+                        Ativar Selecionados
+                      </Button>
+                      <Button
+                        onClick={handleSelectAll}
+                        variant="outline"
+                      >
+                        <CheckSquare className="w-4 h-4 mr-2" />
+                        {selectedProducts.length === getMyProductsFiltered().length ? 'Desmarcar' : 'Selecionar'} Todos
+                      </Button>
+                    </div>
+                    <div className="flex gap-2 items-center">
+                      <Select value={bulkCategory} onValueChange={setBulkCategory}>
+                        <SelectTrigger className="bg-white w-48 text-sm h-9">
+                          <SelectValue placeholder="Mudar categoria..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        onClick={handleBulkChangeCategory}
+                        disabled={applyingBulk || selectedProducts.length === 0 || !bulkCategory}
+                        variant="outline"
+                        className="border-blue-200 text-blue-700 hover:bg-blue-50 h-9 text-sm"
+                      >
+                        Aplicar Categoria
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </CardContent>
