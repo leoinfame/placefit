@@ -133,10 +133,18 @@ export default function PedidosCompra() {
         console.warn("Não foi possível carregar nomes de fabricantes:", e.message);
       }
 
-      // Enriquecer PCs com nome do fabricante quando estiver null
+      // Enriquecer PCs com dados completos do fabricante
       const pcsEnriquecidos = pcsData.map(pc => {
-        if (!pc.fabricante_nome && pc.fabricante_id && fabricantesMap[pc.fabricante_id]) {
-          return { ...pc, fabricante_nome: fabricantesMap[pc.fabricante_id].nome };
+        const fab = pc.fabricante_id ? fabricantesMap[pc.fabricante_id] : null;
+        if (fab) {
+          return {
+            ...pc,
+            fabricante_nome: pc.fabricante_nome || fab.nome,
+            fabricante_logomarca: fab.logomarca,
+            fabricante_whatsapp: fab.whatsapp,
+            fabricante_email: fab.email,
+            fabricante_cnpj: fab.cnpj,
+          };
         }
         return pc;
       });
