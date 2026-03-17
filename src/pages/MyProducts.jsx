@@ -35,7 +35,7 @@ export default function MyProducts() {
   const [user, setUser] = useState(null);
   const [products, setProducts] = useState([]);
   const [supplierProducts, setSupplierProducts] = useState([]);
-  // legacy states removed - now using catalogSearch/mySearch etc.
+
   const [loading, setLoading] = useState(true);
   const [fabricantes, setFabricantes] = useState([]);
   const [allFabricantes, setAllFabricantes] = useState([]);
