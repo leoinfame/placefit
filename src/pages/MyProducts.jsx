@@ -190,24 +190,22 @@ export default function MyProducts() {
   const getFilteredProducts = () => {
     let filtered = products;
     
-    if (searchTerm) {
-      filtered = filtered.filter(product =>
-        product.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.cod.toLowerCase().includes(searchTerm.toLowerCase())
+    if (catalogSearch) {
+      const s = catalogSearch.toLowerCase();
+      filtered = filtered.filter(p =>
+        p.nome?.toLowerCase().includes(s) ||
+        p.cod?.toLowerCase().includes(s) ||
+        p.categoria?.toLowerCase().includes(s)
       );
     }
-    
-    if (selectedCategory !== "all") {
-      filtered = filtered.filter(product => product.categoria === selectedCategory);
+    if (catalogCategory !== "all") filtered = filtered.filter(p => p.categoria === catalogCategory);
+    if (catalogFabricante !== "all") {
+      if (catalogFabricante === "admin") filtered = filtered.filter(p => !p.fabricante_id);
+      else filtered = filtered.filter(p => p.fabricante_id === catalogFabricante);
     }
-    
-    if (selectedFabricante !== "all") {
-      if (selectedFabricante === "admin") {
-        filtered = filtered.filter(product => !product.fabricante_id);
-      } else {
-        filtered = filtered.filter(product => product.fabricante_id === selectedFabricante);
-      }
-    }
+    if (catalogOrigin !== "all") filtered = filtered.filter(p => (p.origem || "nacional") === catalogOrigin);
+    if (catalogPriceMin !== "") filtered = filtered.filter(p => (p.preco_fabricante || 0) >= parseFloat(catalogPriceMin));
+    if (catalogPriceMax !== "") filtered = filtered.filter(p => (p.preco_fabricante || 0) <= parseFloat(catalogPriceMax));
     
     return filtered;
   };
@@ -220,12 +218,37 @@ export default function MyProducts() {
   const getMyProductsFiltered = () => {
     let filtered = getMyProducts();
 
-    if (selectedFabricanteMyProducts !== "all") {
-      if (selectedFabricanteMyProducts === "admin") {
-        filtered = filtered.filter(product => !product.fabricante_id);
-      } else {
-        filtered = filtered.filter(product => product.fabricante_id === selectedFabricanteMyProducts);
-      }
+    if (mySearch) {
+      const s = mySearch.toLowerCase();
+      filtered = filtered.filter(p =>
+        p.nome?.toLowerCase().includes(s) ||
+        p.cod?.toLowerCase().includes(s) ||
+        p.categoria?.toLowerCase().includes(s)
+      );
+    }
+    if (myCategory !== "all") filtered = filtered.filter(p => p.categoria === myCategory);
+    if (myFabricante !== "all") {
+      if (myFabricante === "admin") filtered = filtered.filter(p => !p.fabricante_id);
+      else filtered = filtered.filter(p => p.fabricante_id === myFabricante);
+    }
+    if (myStatus !== "all") {
+      filtered = filtered.filter(p => {
+        const sp = supplierProducts.find(s => s.product_id === p.id);
+        const ativo = sp?.disponivel !== false;
+        return myStatus === "active" ? ativo : !ativo;
+      });
+    }
+    if (myPriceMin !== "") {
+      filtered = filtered.filter(p => {
+        const sp = supplierProducts.find(s => s.product_id === p.id);
+        return (sp?.preco || 0) >= parseFloat(myPriceMin);
+      });
+    }
+    if (myPriceMax !== "") {
+      filtered = filtered.filter(p => {
+        const sp = supplierProducts.find(s => s.product_id === p.id);
+        return (sp?.preco || 0) <= parseFloat(myPriceMax);
+      });
     }
 
     return filtered;
