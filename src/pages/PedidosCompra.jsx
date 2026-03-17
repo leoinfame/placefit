@@ -269,9 +269,13 @@ export default function PedidosCompra() {
                   <div className="flex flex-col md:flex-row md:items-center gap-3">
                     {/* Fabricante */}
                     <div className="flex items-center gap-3 flex-1">
-                      <div className="w-10 h-10 rounded border bg-blue-100 flex items-center justify-center flex-shrink-0">
-                        <Building2 className="w-5 h-5 text-blue-600" />
-                      </div>
+                      {pc.fabricante_logomarca ? (
+                        <img src={pc.fabricante_logomarca} alt="logo" className="w-10 h-10 object-contain rounded border bg-white p-0.5 flex-shrink-0" />
+                      ) : (
+                        <div className="w-10 h-10 rounded border bg-blue-100 flex items-center justify-center flex-shrink-0">
+                          <Building2 className="w-5 h-5 text-blue-600" />
+                        </div>
+                      )}
                       <div>
                         <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Fabricante (Receptor)</p>
                         <p className="font-bold text-gray-900 text-sm">{pc.fabricante_nome || "—"}</p>
