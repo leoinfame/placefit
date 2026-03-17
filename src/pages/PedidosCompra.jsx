@@ -124,10 +124,27 @@ export default function PedidosCompra() {
         pcsData = todosPCs;
       }
 
-      console.log(`✅ [PedidosCompra] ${vendasData.length} vendas, ${pcsData.length} PCs carregados`);
+      // ✅ Buscar nomes dos fabricantes via backend (service role, sem RLS)
+      let fabricantesMap = {};
+      try {
+        const res = await getFabricanteNames({});
+        (res.data?.fabricantes || []).forEach(f => { fabricantesMap[f.id] = f; });
+      } catch (e) {
+        console.warn("Não foi possível carregar nomes de fabricantes:", e.message);
+      }
+
+      // Enriquecer PCs com nome do fabricante quando estiver null
+      const pcsEnriquecidos = pcsData.map(pc => {
+        if (!pc.fabricante_nome && pc.fabricante_id && fabricantesMap[pc.fabricante_id]) {
+          return { ...pc, fabricante_nome: fabricantesMap[pc.fabricante_id].nome };
+        }
+        return pc;
+      });
+
+      console.log(`✅ [PedidosCompra] ${vendasData.length} vendas, ${pcsEnriquecidos.length} PCs carregados`);
 
       setVendas(vendasData.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
-      setPedidosCompra(pcsData);
+      setPedidosCompra(pcsEnriquecidos);
     } catch (err) {
       console.error("Erro ao carregar dados:", err);
     }
