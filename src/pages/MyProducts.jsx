@@ -35,10 +35,7 @@ export default function MyProducts() {
   const [user, setUser] = useState(null);
   const [products, setProducts] = useState([]);
   const [supplierProducts, setSupplierProducts] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedFabricante, setSelectedFabricante] = useState("all");
-  const [selectedFabricanteMyProducts, setSelectedFabricanteMyProducts] = useState("all");
+  // legacy states removed - now using catalogSearch/mySearch etc.
   const [loading, setLoading] = useState(true);
   const [fabricantes, setFabricantes] = useState([]);
   const [allFabricantes, setAllFabricantes] = useState([]);
