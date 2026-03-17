@@ -53,6 +53,22 @@ export default function MyProducts() {
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [selectedCatalogProducts, setSelectedCatalogProducts] = useState([]);
   const [bulkPercentage, setBulkPercentage] = useState("");
+  // Filtros avançados - Catálogo
+  const [catalogSearch, setCatalogSearch] = useState("");
+  const [catalogCategory, setCatalogCategory] = useState("all");
+  const [catalogFabricante, setCatalogFabricante] = useState("all");
+  const [catalogOrigin, setCatalogOrigin] = useState("all");
+  const [catalogPriceMin, setCatalogPriceMin] = useState("");
+  const [catalogPriceMax, setCatalogPriceMax] = useState("");
+  // Filtros avançados - Meus Produtos
+  const [mySearch, setMySearch] = useState("");
+  const [myCategory, setMyCategory] = useState("all");
+  const [myFabricante, setMyFabricante] = useState("all");
+  const [myStatus, setMyStatus] = useState("all"); // all | active | inactive
+  const [myPriceMin, setMyPriceMin] = useState("");
+  const [myPriceMax, setMyPriceMax] = useState("");
+  // Bulk categoria
+  const [bulkCategory, setBulkCategory] = useState("");
   const [applyingBulk, setApplyingBulk] = useState(false);
   const [fabricantesChina, setFabricantesChina] = useState([]);
   const [showPreOrdem, setShowPreOrdem] = useState(false);
