@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { getFabricanteNames } from "@/functions/getFabricanteNames";
 import {
   ShoppingCart, Package, Search, Eye, FileText, MessageCircle,
-  ChevronRight, ArrowLeft, Building2, User, Hash, ExternalLink
+  ChevronRight, ArrowLeft, Building2, User, Hash
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
