@@ -123,7 +123,6 @@ export default function Dashboard() {
       }
 
       const products = await base44.entities.Product.list();
-      const suppliers = await base44.entities.User.filter({ role: 'user' });
 
       let myProductsCount = 0;
       let activeProductsCount = 0;
