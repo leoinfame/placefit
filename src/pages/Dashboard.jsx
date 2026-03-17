@@ -201,7 +201,7 @@ export default function Dashboard() {
 
       setStats({
         totalProducts: products.length,
-        totalSuppliers: suppliers.length,
+        totalSuppliers: 0,
         myProducts: myProductsCount,
         activeProducts: activeProductsCount,
         totalOrcamentos: totalOrcamentos,
