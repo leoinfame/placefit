@@ -293,6 +293,28 @@ export default function MyProducts() {
     }
   };
 
+  const handleBulkChangeCategory = async () => {
+    if (!bulkCategory) {
+      toast({ title: "Erro", description: "Selecione uma categoria.", variant: "destructive" });
+      return;
+    }
+    if (selectedProducts.length === 0) {
+      toast({ title: "Erro", description: "Selecione pelo menos um produto.", variant: "destructive" });
+      return;
+    }
+    setApplyingBulk(true);
+    let successCount = 0;
+    for (const productId of selectedProducts) {
+      await base44.entities.Product.update(productId, { categoria: bulkCategory });
+      successCount++;
+    }
+    toast({ title: "Categoria atualizada!", description: `${successCount} produto(s) atualizados para "${bulkCategory}".` });
+    setSelectedProducts([]);
+    setBulkCategory("");
+    await loadData();
+    setApplyingBulk(false);
+  };
+
   const handleSelectProduct = (productId) => {
     if (selectedProducts.includes(productId)) {
       setSelectedProducts(selectedProducts.filter(id => id !== productId));
