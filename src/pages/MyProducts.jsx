@@ -1169,23 +1169,63 @@ export default function MyProducts() {
               </CardContent>
             </Card>
 
-            {/* Filtro de Fabricante */}
-            <div className="flex gap-4">
-              <Select value={selectedFabricanteMyProducts} onValueChange={setSelectedFabricanteMyProducts}>
-                <SelectTrigger className="w-full md:w-48 bg-white/80">
-                  <SelectValue placeholder="Fabricante" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os Fabricantes</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  {allFabricantes.map(fab => (
-                    <SelectItem key={fab.id} value={fab.id}>
-                      {fab.empresa || fab.full_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Filtros Meus Produtos */}
+            <Card className="bg-white/80 border border-gray-100 shadow-sm">
+              <CardContent className="p-4 space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="relative md:col-span-2">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Buscar por nome, código ou categoria..."
+                      value={mySearch}
+                      onChange={(e) => setMySearch(e.target.value)}
+                      className="pl-10 bg-white"
+                    />
+                  </div>
+                  <Select value={myCategory} onValueChange={setMyCategory}>
+                    <SelectTrigger className="bg-white"><SelectValue placeholder="Categoria" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas as categorias</SelectItem>
+                      {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <Select value={myFabricante} onValueChange={setMyFabricante}>
+                    <SelectTrigger className="bg-white"><SelectValue placeholder="Fabricante" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os Fabricantes</SelectItem>
+                      <SelectItem value="admin">PlaceFit (Admin)</SelectItem>
+                      {allFabricantes.map(f => <SelectItem key={f.id} value={f.id}>{f.empresa || f.full_name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={myStatus} onValueChange={setMyStatus}>
+                    <SelectTrigger className="bg-white"><SelectValue placeholder="Status" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os status</SelectItem>
+                      <SelectItem value="active">Ativos</SelectItem>
+                      <SelectItem value="inactive">Inativos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-xs text-gray-400">R$</span>
+                    <Input placeholder="Preço mín" value={myPriceMin} onChange={e => setMyPriceMin(e.target.value)} type="number" className="pl-8 bg-white" />
+                  </div>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-xs text-gray-400">R$</span>
+                    <Input placeholder="Preço máx" value={myPriceMax} onChange={e => setMyPriceMax(e.target.value)} type="number" className="pl-8 bg-white" />
+                  </div>
+                </div>
+                {(mySearch || myCategory !== "all" || myFabricante !== "all" || myStatus !== "all" || myPriceMin || myPriceMax) && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-500">{getMyProductsFiltered().length} produto(s) encontrado(s)</span>
+                    <Button variant="ghost" size="sm" className="text-xs text-gray-500 h-7" onClick={() => { setMySearch(""); setMyCategory("all"); setMyFabricante("all"); setMyStatus("all"); setMyPriceMin(""); setMyPriceMax(""); }}>
+                      Limpar filtros
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Tabela de Meus Produtos - Desktop */}
             <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hidden md:block">
