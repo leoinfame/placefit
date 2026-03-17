@@ -863,47 +863,63 @@ export default function MyProducts() {
               </Card>
             )}
 
-            {/* Filtros */}
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="Buscar produtos..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 bg-white/80 border-gray-200"
-                  />
+            {/* Filtros Catálogo */}
+            <Card className="bg-white/80 border border-gray-100 shadow-sm">
+              <CardContent className="p-4 space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="relative md:col-span-2">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Buscar por nome, código ou categoria..."
+                      value={catalogSearch}
+                      onChange={(e) => setCatalogSearch(e.target.value)}
+                      className="pl-10 bg-white"
+                    />
+                  </div>
+                  <Select value={catalogCategory} onValueChange={setCatalogCategory}>
+                    <SelectTrigger className="bg-white"><SelectValue placeholder="Categoria" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas as categorias</SelectItem>
+                      {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
                 </div>
-              </div>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-full md:w-48 bg-white/80">
-                  <SelectValue placeholder="Todas as categorias" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as categorias</SelectItem>
-                  {categories.map(category => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={selectedFabricante} onValueChange={setSelectedFabricante}>
-                <SelectTrigger className="w-full md:w-48 bg-white/80">
-                  <SelectValue placeholder="Fabricante" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os Fabricantes</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  {fabricantes.map(fab => (
-                    <SelectItem key={fab.id} value={fab.id}>
-                      {fab.empresa || fab.full_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <Select value={catalogFabricante} onValueChange={setCatalogFabricante}>
+                    <SelectTrigger className="bg-white"><SelectValue placeholder="Fabricante" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os Fabricantes</SelectItem>
+                      <SelectItem value="admin">PlaceFit (Admin)</SelectItem>
+                      {fabricantes.map(f => <SelectItem key={f.id} value={f.id}>{f.empresa || f.full_name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={catalogOrigin} onValueChange={setCatalogOrigin}>
+                    <SelectTrigger className="bg-white"><SelectValue placeholder="Origem" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas as origens</SelectItem>
+                      <SelectItem value="nacional">Nacional</SelectItem>
+                      <SelectItem value="china">China</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-xs text-gray-400">R$</span>
+                    <Input placeholder="Preço mín" value={catalogPriceMin} onChange={e => setCatalogPriceMin(e.target.value)} type="number" className="pl-8 bg-white" />
+                  </div>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-xs text-gray-400">R$</span>
+                    <Input placeholder="Preço máx" value={catalogPriceMax} onChange={e => setCatalogPriceMax(e.target.value)} type="number" className="pl-8 bg-white" />
+                  </div>
+                </div>
+                {(catalogSearch || catalogCategory !== "all" || catalogFabricante !== "all" || catalogOrigin !== "all" || catalogPriceMin || catalogPriceMax) && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-500">{getFilteredProducts().length} produto(s) encontrado(s)</span>
+                    <Button variant="ghost" size="sm" className="text-xs text-gray-500 h-7" onClick={() => { setCatalogSearch(""); setCatalogCategory("all"); setCatalogFabricante("all"); setCatalogOrigin("all"); setCatalogPriceMin(""); setCatalogPriceMax(""); }}>
+                      Limpar filtros
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Tabela de Produtos - Desktop */}
             <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hidden md:block">
