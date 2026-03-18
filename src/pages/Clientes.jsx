@@ -644,20 +644,23 @@ export default function Clientes() {
             </div>
             ) : (
             <>
-            {user?.role === 'admin' ? (
+            {user?.role === 'admin' ? (() => {
+              // eslint-disable-next-line react-hooks/rules-of-hooks
+              const { sorted: sortedClientes, sortKey: clSortKey, sortDir: clSortDir, requestSort: requestClSort } = useSort(filteredClientes, "full_name");
+              return (
               <div className="overflow-x-auto">
                  <Table>
                    <TableHeader>
                      <TableRow>
-                       <TableHead>Nome</TableHead>
-                       <TableHead>E-mail</TableHead>
+                       <SortableTableHead sortKey="full_name" currentKey={clSortKey} currentDir={clSortDir} onSort={requestClSort}>Nome</SortableTableHead>
+                       <SortableTableHead sortKey="email" currentKey={clSortKey} currentDir={clSortDir} onSort={requestClSort}>E-mail</SortableTableHead>
                        <TableHead>WhatsApp</TableHead>
-                       <TableHead>Data de Cadastro</TableHead>
-                       <TableHead>Última Visita</TableHead>
+                       <SortableTableHead sortKey="created_date" currentKey={clSortKey} currentDir={clSortDir} onSort={requestClSort}>Data de Cadastro</SortableTableHead>
+                       <SortableTableHead sortKey="ultima_visita_marketplace" currentKey={clSortKey} currentDir={clSortDir} onSort={requestClSort}>Última Visita</SortableTableHead>
                      </TableRow>
                    </TableHeader>
                    <TableBody>
-                     {filteredClientes.map((cliente) => (
+                     {sortedClientes.map((cliente) => (
                        <TableRow key={cliente.id} className="hover:bg-blue-50">
                          <TableCell className="font-medium">
                            {cliente.full_name || 'Não informado'}
