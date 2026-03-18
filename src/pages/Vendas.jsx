@@ -41,6 +41,9 @@ export default function Vendas() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingPedido, setEditingPedido] = useState(null);
   const [submittingEdit, setSubmittingEdit] = useState(false);
+  const [showFreteDialog, setShowFreteDialog] = useState(false);
+  const [freteForm, setFreteForm] = useState({ cidade: "", estado: "", peso_total: "", valor_ofertado: "", observacoes: "" });
+  const [submittingFrete, setSubmittingFrete] = useState(false);
 
   // Novo Pedido
   const [selectedCliente, setSelectedCliente] = useState("");
