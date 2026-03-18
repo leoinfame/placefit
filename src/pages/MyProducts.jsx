@@ -1328,7 +1328,7 @@ export default function MyProducts() {
                        </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {getMyProductsFiltered().map((product, index) => {
+                      {applyMySort(getMyProductsFiltered()).map((product, index) => {
                         const isEditing = editingRow === product.id;
                         return (
                           <TableRow 
