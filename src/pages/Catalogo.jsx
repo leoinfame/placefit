@@ -222,6 +222,22 @@ export default function Catalogo() {
           </div>
 
           ${miniFooter}
+          ${idx === categoriasOrdenadas.length - 1 ? `
+          <!-- RODAPÉ COMERCIAL — apenas na última categoria -->
+          <div class="footer">
+            <div class="footer-title">📋 Informações do Catálogo</div>
+            <div class="footer-grid">
+              <div class="footer-item"><div class="footer-item-label">Empresa</div><div class="footer-item-value">${user?.empresa || user?.full_name}</div></div>
+              <div class="footer-item"><div class="footer-item-label">Contato</div><div class="footer-item-value">${user?.whatsapp || user?.email || '—'}</div></div>
+              <div class="footer-item"><div class="footer-item-label">Total de Produtos</div><div class="footer-item-value">${filteredProducts.length} item(s) em ${totalCategorias} categoria(s)</div></div>
+              <div class="footer-item"><div class="footer-item-label">Data de Emissão</div><div class="footer-item-value">${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</div></div>
+            </div>
+            <div class="footer-disclaimer">⚠️ <strong>Aviso:</strong> Este catálogo pode sofrer alterações sem aviso prévio. Disponibilidade, especificações e imagens são meramente ilustrativas. Consulte nossa equipe comercial antes de efetuar qualquer pedido.</div>
+            <div class="footer-bottom">
+              <div>Documento gerado automaticamente via PlaceFit</div>
+              <div class="footer-bottom-brand">${user?.empresa || user?.full_name} · ${new Date().toLocaleDateString('pt-BR')}</div>
+            </div>
+          </div>` : ''}
         </div>`;
     }).join('');
 
