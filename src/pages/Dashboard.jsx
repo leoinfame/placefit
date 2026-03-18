@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import OnboardingTour from "@/components/OnboardingTour";
+import ServicosPremiuSection from "@/components/dashboard/ServicosPremiuSection";
 import { 
   Package, 
   Users, 
