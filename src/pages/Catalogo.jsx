@@ -217,7 +217,7 @@ export default function Catalogo() {
     .product-image-wrap {
       width: 100%;
       height: 130px;
-      background: ${colors.light};
+      background: #ffffff;
       display: flex;
       align-items: center;
       justify-content: center;
