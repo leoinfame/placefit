@@ -805,7 +805,6 @@ export default function Products() {
 
   const categoryStats = getCategoryStats();
   const generalStats = getGeneralStats();
-  const { sorted: sortedProducts, sortKey: prodSortKey, sortDir: prodSortDir, requestSort: requestProdSort } = useSort(filteredProducts, "nome");
 
   return (
     <div className="p-4 md:p-8 min-h-screen">
