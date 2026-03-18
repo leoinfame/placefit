@@ -1048,14 +1048,22 @@ export default function Clientes() {
                </div>
 
                <div className="md:col-span-2">
-                 <Label htmlFor="cep">CEP</Label>
-                 <Input
-                   id="cep"
-                   value={formData.cep}
-                   onChange={(e) => setFormData({ ...formData, cep: e.target.value })}
-                   placeholder="00000-000"
-                 />
-               </div>
+                  <Label htmlFor="cep">CEP</Label>
+                  <div className="relative">
+                    <Input
+                      id="cep"
+                      value={formData.cep}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setFormData({ ...formData, cep: val });
+                        if (val.replace(/\D/g, '').length === 8) buscarCEP(val);
+                      }}
+                      placeholder="00000-000"
+                      maxLength={9}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">Digite o CEP para preencher endereço automaticamente</p>
+                </div>
 
                <div className="md:col-span-2">
                  <Label htmlFor="observacoes">Observações</Label>
