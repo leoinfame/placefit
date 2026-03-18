@@ -629,180 +629,227 @@ export default function Clientes() {
           </div>
         )}
 
-        {/* Filtro */}
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Buscar por nome, e-mail ou telefone..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-white/80 border-gray-200"
-              />
-            </div>
+        {/* Busca e Filtros */}
+        <div className="flex flex-col md:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Buscar por nome, e-mail, CPF/CNPJ, cidade ou telefone..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-white border-gray-200 h-10"
+            />
+            {searchTerm && (
+              <button onClick={() => setSearchTerm("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
+          {user?.role !== 'admin' && (
+            <>
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-full md:w-36 bg-white border-gray-200 h-10">
+                  <Filter className="w-3.5 h-3.5 mr-1.5 text-gray-400" />
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos</SelectItem>
+                  <SelectItem value="ativo">Ativos</SelectItem>
+                  <SelectItem value="inativo">Inativos</SelectItem>
+                </SelectContent>
+              </Select>
+              {estadosDisponiveis.length > 0 && (
+                <Select value={filterEstado} onValueChange={setFilterEstado}>
+                  <SelectTrigger className="w-full md:w-36 bg-white border-gray-200 h-10">
+                    <MapPin className="w-3.5 h-3.5 mr-1.5 text-gray-400" />
+                    <SelectValue placeholder="Estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos os estados</SelectItem>
+                    {estadosDisponiveis.map(uf => (
+                      <SelectItem key={uf} value={uf}>{uf}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </>
+          )}
         </div>
 
+        {/* Indicadores de filtro ativo */}
+        {(searchTerm || filterStatus !== "todos" || filterEstado !== "todos") && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm text-gray-500">{filteredClientes.length} resultado(s)</span>
+            {searchTerm && <Badge variant="secondary" className="gap-1">{searchTerm} <button onClick={() => setSearchTerm("")}><X className="w-3 h-3" /></button></Badge>}
+            {filterStatus !== "todos" && <Badge variant="secondary" className="gap-1">{filterStatus === "ativo" ? "Ativos" : "Inativos"} <button onClick={() => setFilterStatus("todos")}><X className="w-3 h-3" /></button></Badge>}
+            {filterEstado !== "todos" && <Badge variant="secondary" className="gap-1">{filterEstado} <button onClick={() => setFilterEstado("todos")}><X className="w-3 h-3" /></button></Badge>}
+            <button onClick={() => { setSearchTerm(""); setFilterStatus("todos"); setFilterEstado("todos"); }} className="text-xs text-blue-600 hover:underline">Limpar filtros</button>
+          </div>
+        )}
+
         {/* Tabela de Clientes */}
-        <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="w-5 h-5" />
-            {user?.role === 'admin' ? 'Lista de Clientes' : 'Meus Clientes'} ({filteredClientes.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+        <Card className="bg-white border border-gray-200 shadow-sm">
+          <CardHeader className="pb-3 border-b border-gray-100">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Users className="w-4 h-4 text-blue-600" />
+                {user?.role === 'admin' ? 'Lista de Clientes' : 'Meus Clientes'}
+                <Badge variant="secondary" className="ml-1">{filteredClientes.length}</Badge>
+              </CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
           {filteredClientes.length === 0 ? (
-            <div className="text-center py-12">
-              <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum cliente encontrado</h3>
-              <p className="text-gray-600 mb-4">
-                {user?.role === 'admin' 
-                  ? 'Os clientes aparecerão aqui quando acessarem o marketplace.'
-                  : 'Você ainda não possui clientes cadastrados.'}
+            <div className="text-center py-16">
+              <Users className="w-14 h-14 text-gray-200 mx-auto mb-3" />
+              <h3 className="text-base font-semibold text-gray-700 mb-1">Nenhum cliente encontrado</h3>
+              <p className="text-sm text-gray-500 mb-4">
+                {searchTerm || filterStatus !== "todos" || filterEstado !== "todos"
+                  ? "Tente ajustar os filtros de busca."
+                  : user?.role === 'admin'
+                    ? 'Os clientes aparecerão aqui quando acessarem o marketplace.'
+                    : 'Você ainda não possui clientes cadastrados.'}
               </p>
-              {user?.role !== 'admin' && (
+              {user?.role !== 'admin' && !searchTerm && (
                 <div className="flex gap-2 justify-center">
-                  <Button
-                    onClick={() => setShowDialog(true)}
-                    className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Cadastrar Cliente
+                  <Button onClick={() => setShowDialog(true)} className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700">
+                    <Plus className="w-4 h-4 mr-2" />Cadastrar Cliente
                   </Button>
-                  <Button
-                    onClick={() => setActiveTab("importar")}
-                    variant="outline"
-                  >
-                    <Upload className="w-4 h-4 mr-2" />
-                    Importar CSV
+                  <Button onClick={() => setActiveTab("importar")} variant="outline">
+                    <Upload className="w-4 h-4 mr-2" />Importar CSV
                   </Button>
                 </div>
               )}
             </div>
-            ) : (
-            <>
-            {user?.role === 'admin' ? (
-              <div className="overflow-x-auto">
-                 <Table>
-                   <TableHeader>
-                     <TableRow>
-                       <SortableTableHead sortKey="full_name" currentKey={clSortKey} currentDir={clSortDir} onSort={requestClSort}>Nome</SortableTableHead>
-                       <SortableTableHead sortKey="email" currentKey={clSortKey} currentDir={clSortDir} onSort={requestClSort}>E-mail</SortableTableHead>
-                       <TableHead>WhatsApp</TableHead>
-                       <SortableTableHead sortKey="created_date" currentKey={clSortKey} currentDir={clSortDir} onSort={requestClSort}>Data de Cadastro</SortableTableHead>
-                       <SortableTableHead sortKey="ultima_visita_marketplace" currentKey={clSortKey} currentDir={clSortDir} onSort={requestClSort}>Última Visita</SortableTableHead>
-                     </TableRow>
-                   </TableHeader>
-                   <TableBody>
-                     {sortedClientes.map((cliente) => (
-                       <TableRow key={cliente.id} className="hover:bg-blue-50">
-                         <TableCell className="font-medium">
-                           {cliente.full_name || 'Não informado'}
-                         </TableCell>
-                         <TableCell>
-                           <div className="flex items-center gap-2">
-                             <Mail className="w-4 h-4 text-gray-400" />
-                             <span className="text-sm">{cliente.email || 'Não informado'}</span>
-                           </div>
-                         </TableCell>
-                         <TableCell>
-                           <div className="flex items-center gap-2">
-                             <Phone className="w-4 h-4 text-gray-400" />
-                             <span className="text-sm">{cliente.whatsapp || 'Não informado'}</span>
-                           </div>
-                         </TableCell>
-                         <TableCell>
-                           <div className="flex items-center gap-2 text-sm text-gray-600">
-                             <Calendar className="w-4 h-4" />
-                             {formatDate(cliente.created_date)}
-                           </div>
-                         </TableCell>
-                         <TableCell>
-                           <div className="flex items-center gap-2 text-sm">
-                             <Eye className="w-4 h-4 text-gray-400" />
-                             {cliente.ultima_visita_marketplace ? (
-                               <span className="text-gray-600">
-                                 {formatDate(cliente.ultima_visita_marketplace)}
-                               </span>
-                             ) : (
-                               <Badge variant="secondary" className="text-xs">
-                                 Nunca acessou
-                               </Badge>
-                             )}
-                           </div>
-                         </TableCell>
-                       </TableRow>
-                     ))}
-                   </TableBody>
-                 </Table>
-               </div>
-             ) : (
-               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                 {filteredClientes.map((cliente) => (
-                   <Card key={cliente.id} className="hover:shadow-lg transition-shadow">
-                     <CardContent className="p-4">
-                       <div className="flex items-start justify-between mb-3">
-                         <div className="flex-1">
-                           <h3 className="font-semibold text-gray-900">{cliente.nome}</h3>
-                           {cliente.cpf_cnpj && (
-                             <p className="text-sm text-gray-600">{cliente.cpf_cnpj}</p>
-                           )}
-                         </div>
-                         <Badge className={cliente.ativo ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}>
-                           {cliente.ativo ? "Ativo" : "Inativo"}
-                         </Badge>
-                       </div>
-
-                       <div className="space-y-2 text-sm text-gray-600">
-                         {cliente.email && (
-                           <div className="flex items-center gap-2">
-                             <Mail className="w-4 h-4" />
-                             <span className="truncate">{cliente.email}</span>
-                           </div>
-                         )}
-                         {cliente.telefone && (
-                           <div className="flex items-center gap-2">
-                             <Phone className="w-4 h-4" />
-                             <span>{cliente.telefone}</span>
-                           </div>
-                         )}
-                         {cliente.cidade && (
-                           <div className="flex items-center gap-2">
-                             <MapPin className="w-4 h-4" />
-                             <span>{cliente.cidade}{cliente.estado ? ` - ${cliente.estado}` : ''}</span>
-                           </div>
-                         )}
-                       </div>
-
-                       <div className="flex gap-2 mt-4">
-                         <Button
-                           variant="outline"
-                           size="sm"
-                           onClick={() => handleEdit(cliente)}
-                           className="flex-1"
-                         >
-                           <Edit3 className="w-4 h-4 mr-2" />
-                           Editar
-                         </Button>
-                         <Button
-                           variant="outline"
-                           size="sm"
-                           onClick={() => handleDeleteCliente(cliente)}
-                           className="text-red-600 hover:bg-red-50"
-                         >
-                           <Trash2 className="w-4 h-4" />
-                         </Button>
-                       </div>
-                     </CardContent>
-                   </Card>
-                 ))}
-               </div>
-             )}
-            </>
-            )}
-            </CardContent>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50 hover:bg-gray-50">
+                    {user?.role === 'admin' ? (
+                      <>
+                        <SortableTableHead sortKey="full_name" currentKey={clSortKey} currentDir={clSortDir} onSort={requestClSort}>Nome</SortableTableHead>
+                        <SortableTableHead sortKey="email" currentKey={clSortKey} currentDir={clSortDir} onSort={requestClSort}>E-mail</SortableTableHead>
+                        <TableHead>WhatsApp</TableHead>
+                        <SortableTableHead sortKey="created_date" currentKey={clSortKey} currentDir={clSortDir} onSort={requestClSort}>Cadastro</SortableTableHead>
+                        <SortableTableHead sortKey="ultima_visita_marketplace" currentKey={clSortKey} currentDir={clSortDir} onSort={requestClSort}>Última Visita</SortableTableHead>
+                      </>
+                    ) : (
+                      <>
+                        <SortableTableHead sortKey="nome" currentKey={clSortKey} currentDir={clSortDir} onSort={requestClSort}>Cliente</SortableTableHead>
+                        <TableHead>Contato</TableHead>
+                        <SortableTableHead sortKey="cidade" currentKey={clSortKey} currentDir={clSortDir} onSort={requestClSort}>Localização</SortableTableHead>
+                        <TableHead>CPF / CNPJ</TableHead>
+                        <SortableTableHead sortKey="created_date" currentKey={clSortKey} currentDir={clSortDir} onSort={requestClSort}>Cadastro</SortableTableHead>
+                        <TableHead className="text-center">Status</TableHead>
+                        <TableHead className="text-right">Ações</TableHead>
+                      </>
+                    )}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sortedClientes.map((cliente) => (
+                    <TableRow key={cliente.id} className="hover:bg-blue-50/40 border-b border-gray-50">
+                      {user?.role === 'admin' ? (
+                        <>
+                          <TableCell className="font-semibold text-gray-900">{cliente.full_name || '—'}</TableCell>
+                          <TableCell className="text-sm text-gray-600">{cliente.email || '—'}</TableCell>
+                          <TableCell className="text-sm text-gray-600">{cliente.whatsapp || '—'}</TableCell>
+                          <TableCell className="text-sm text-gray-500">{formatDate(cliente.created_date)}</TableCell>
+                          <TableCell>
+                            {cliente.ultima_visita_marketplace
+                              ? <span className="text-sm text-gray-600">{formatDate(cliente.ultima_visita_marketplace)}</span>
+                              : <Badge variant="secondary" className="text-xs">Nunca acessou</Badge>}
+                          </TableCell>
+                        </>
+                      ) : (
+                        <>
+                          {/* Cliente */}
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                <span className="text-blue-700 font-bold text-sm">{(cliente.nome || '?')[0].toUpperCase()}</span>
+                              </div>
+                              <div>
+                                <div className="font-semibold text-gray-900 text-sm">{cliente.nome}</div>
+                                {cliente.observacoes && <div className="text-xs text-gray-400 truncate max-w-[180px]">{cliente.observacoes}</div>}
+                              </div>
+                            </div>
+                          </TableCell>
+                          {/* Contato */}
+                          <TableCell>
+                            <div className="space-y-0.5">
+                              {cliente.email && <div className="flex items-center gap-1.5 text-xs text-gray-600"><Mail className="w-3 h-3 text-gray-400" />{cliente.email}</div>}
+                              {cliente.telefone && <div className="flex items-center gap-1.5 text-xs text-gray-600"><Phone className="w-3 h-3 text-gray-400" />{cliente.telefone}</div>}
+                              {!cliente.email && !cliente.telefone && <span className="text-xs text-gray-400">—</span>}
+                            </div>
+                          </TableCell>
+                          {/* Localização */}
+                          <TableCell>
+                            {(cliente.cidade || cliente.estado) ? (
+                              <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                                <MapPin className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                                <span>{[cliente.cidade, cliente.estado].filter(Boolean).join(' - ')}</span>
+                              </div>
+                            ) : <span className="text-xs text-gray-400">—</span>}
+                          </TableCell>
+                          {/* CPF/CNPJ */}
+                          <TableCell className="text-xs text-gray-600 font-mono">{cliente.cpf_cnpj || '—'}</TableCell>
+                          {/* Cadastro */}
+                          <TableCell className="text-xs text-gray-500 whitespace-nowrap">{formatDate(cliente.created_date)}</TableCell>
+                          {/* Status */}
+                          <TableCell className="text-center">
+                            <Badge className={cliente.ativo !== false ? "bg-green-100 text-green-700 border-green-200" : "bg-gray-100 text-gray-500 border-gray-200"}>
+                              {cliente.ativo !== false ? "Ativo" : "Inativo"}
+                            </Badge>
+                          </TableCell>
+                          {/* Ações */}
+                          <TableCell className="text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <MoreHorizontal className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-44">
+                                <DropdownMenuItem onClick={() => handleEdit(cliente)} className="gap-2">
+                                  <Edit3 className="w-4 h-4" />Editar dados
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={async () => {
+                                    await base44.entities.Cliente.update(cliente.id, { ativo: cliente.ativo === false ? true : false });
+                                    loadData();
+                                  }}
+                                  className="gap-2"
+                                >
+                                  {cliente.ativo !== false ? <><UserX className="w-4 h-4" />Marcar inativo</> : <><UserCheck className="w-4 h-4" />Marcar ativo</>}
+                                </DropdownMenuItem>
+                                {cliente.email && (
+                                  <DropdownMenuItem onClick={() => window.open(`mailto:${cliente.email}`)} className="gap-2">
+                                    <Mail className="w-4 h-4" />Enviar e-mail
+                                  </DropdownMenuItem>
+                                )}
+                                {cliente.telefone && (
+                                  <DropdownMenuItem onClick={() => window.open(`https://wa.me/55${cliente.telefone.replace(/\D/g,'')}`)} className="gap-2">
+                                    <Phone className="w-4 h-4" />WhatsApp
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => handleDeleteCliente(cliente)} className="gap-2 text-red-600 focus:text-red-600">
+                                  <Trash2 className="w-4 h-4" />Excluir
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </>
+                      )}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+          </CardContent>
         </Card>
           </TabsContent>
 
