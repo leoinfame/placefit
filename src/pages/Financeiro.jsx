@@ -469,6 +469,7 @@ export default function Financeiro() {
                       <TableHead className="text-white font-semibold text-right">Total</TableHead>
                       <TableHead className="text-white font-semibold text-right">Custo</TableHead>
                       <TableHead className="text-white font-semibold text-right">Lucro</TableHead>
+                      <TableHead className="text-white font-semibold text-center">Resumo</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
