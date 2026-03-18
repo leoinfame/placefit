@@ -462,6 +462,23 @@ export default function Frete() {
                             <Button
                               variant="ghost"
                               size="sm"
+                              onClick={() => {
+                                const texto = `🚚 *Oferta de Frete*\n📍 Destino: ${offer.cidade}/${offer.estado}\n⚖️ Peso: ${offer.peso_total} kg\n💰 Valor: R$ ${offer.valor_ofertado.toFixed(2)}\n${offer.observacoes ? `📝 ${offer.observacoes}` : ''}\n\nInteressados entre em contato!`;
+                                if (navigator.share) {
+                                  navigator.share({ title: 'Oferta de Frete', text: texto });
+                                } else {
+                                  navigator.clipboard.writeText(texto);
+                                  toast({ title: "Copiado!", description: "Texto da oferta copiado para a área de transferência." });
+                                }
+                              }}
+                              className="h-8 px-2 hover:bg-green-50 hover:text-green-700"
+                              title="Compartilhar oferta"
+                            >
+                              <Share2 className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={() => handleEdit(offer)}
                               className="h-8 px-2 hover:bg-blue-50 hover:text-blue-700"
                               title="Editar"
