@@ -425,115 +425,25 @@ export default function Catalogo() {
     }
     .cover-validity strong { color: #1e293b; }
 
-    /* ===== PÁGINAS DE CONTEÚDO ===== */
-    .content-page {
-      background: #f1f5f9;
-      padding: 14mm 14mm 10mm;
-    }
-
-    /* ===== STICKY HEADER (repetido por página) ===== */
-    .page-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 14px;
-      padding-bottom: 10px;
-      border-bottom: 2px solid ${colors.lightBorder};
-    }
-    .page-header-logo { display: flex; align-items: center; gap: 8px; }
-    .page-header-logo img { max-width: 40px; max-height: 28px; object-fit: contain; }
-    .page-header-company { font-size: 8.5pt; font-weight: 700; color: ${colors.primary}; }
-    .page-header-right { font-size: 7pt; color: #94a3b8; text-align: right; }
-
-    /* ===== SEPARADOR DE CATEGORIA ===== */
-    .category-section { margin-bottom: 20px; }
-    .category-header {
-      display: flex;
-      align-items: center;
-      border-radius: 8px 8px 0 0;
-      padding: 10px 16px;
-      margin-bottom: 0;
-      gap: 12px;
-    }
-    .cat-left { display: flex; align-items: center; gap: 12px; }
-    .cat-number {
-      font-size: 20pt;
-      font-weight: 900;
-      opacity: 0.3;
-      line-height: 1;
-      font-variant-numeric: tabular-nums;
-    }
-    .cat-name { font-size: 12pt; font-weight: 800; letter-spacing: -0.3px; line-height: 1.1; }
-    .cat-sub { font-size: 7.5pt; opacity: 0.75; margin-top: 1px; }
-    .cat-divider { flex: 1; height: 1px; border-top: 1px dashed; margin-left: 8px; }
-
-    /* ===== GRID DE PRODUTOS ===== */
-    .products-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-      background: #e2e8f0;
-      border: 1px solid #e2e8f0;
-      border-top: none;
-      border-radius: 0 0 8px 8px;
-      padding: 8px;
-    }
+    /* ===== PÁGINAS DE CATEGORIA ===== */
+    .cat-page { background: #f8fafc; min-height: 297mm; position: relative; }
     .product-card {
       background: #fff;
       border-radius: 6px;
       overflow: hidden;
+      break-inside: avoid;
       page-break-inside: avoid;
-      position: relative;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-    }
-    .card-accent-line {
-      height: 3px;
-      width: 100%;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     }
 
-    /* IMAGE */
-    .product-image-wrap {
-      width: 100%;
-      height: 100px;
-      background: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-bottom: 1px solid #f1f5f9;
+    /* ===== MINI FOOTER (rodapé leve em cada página) ===== */
+    .mini-footer {
+      margin-top: 12px;
+      padding-top: 7px;
+      border-top: 1px solid #e2e8f0;
+      font-size: 7pt;
+      color: #64748b;
     }
-    .product-image-wrap img {
-      max-width: 100%;
-      max-height: 96px;
-      object-fit: contain;
-      display: block;
-    }
-    .no-image {
-      font-size: 18pt;
-      color: #e2e8f0;
-    }
-
-    /* CARD BODY */
-    .product-body { padding: 8px 8px 6px; }
-    .product-name {
-      font-weight: 700;
-      font-size: 7.5pt;
-      color: #0f172a;
-      margin-bottom: 5px;
-      line-height: 1.3;
-      min-height: 2.6em;
-    }
-    .product-info { font-size: 6.5pt; }
-    .product-info div {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 2px 0;
-      border-bottom: 1px solid #f8fafc;
-    }
-    .product-info div:last-child { border-bottom: none; }
-    .product-info .label { color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
-    .product-info .value { color: #1e293b; font-weight: 600; }
-    .product-info .mono { font-family: monospace; font-size: 7pt; }
 
     /* ===== RODAPÉ COMERCIAL ===== */
     .footer { margin-top: 18px; border-top: 1px solid #e2e8f0; padding-top: 12px; }
