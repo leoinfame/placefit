@@ -737,9 +737,9 @@ export default function Clientes() {
                     ) : (
                       <>
                         <SortableTableHead sortKey="nome" currentKey={clSortKey} currentDir={clSortDir} onSort={requestClSort}>Cliente</SortableTableHead>
-                        <TableHead>Contato</TableHead>
+                        <TableHead>E-mail</TableHead>
+                        <TableHead>Telefone / WhatsApp</TableHead>
                         <SortableTableHead sortKey="cidade" currentKey={clSortKey} currentDir={clSortDir} onSort={requestClSort}>Localização</SortableTableHead>
-                        <TableHead>CPF / CNPJ</TableHead>
                         <SortableTableHead sortKey="created_date" currentKey={clSortKey} currentDir={clSortDir} onSort={requestClSort}>Cadastro</SortableTableHead>
                         <TableHead className="text-center">Status</TableHead>
                         <TableHead className="text-right">Ações</TableHead>
