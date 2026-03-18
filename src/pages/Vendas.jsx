@@ -1044,6 +1044,11 @@ export default function Vendas() {
                         <p className="text-sm text-gray-600">
                           Desconto: <span className="font-semibold">R$ {parseFloat(desconto || 0).toFixed(2)}</span>
                         </p>
+                        {calcPesoTotal(itens) > 0 && (
+                          <p className="text-sm text-gray-600">
+                            Peso Total: <span className="font-semibold">{calcPesoTotal(itens).toFixed(2)} kg</span>
+                          </p>
+                        )}
                         <p className="text-xl font-bold text-blue-600">
                           Total: R$ {currentTotal.toFixed(2)}
                         </p>
