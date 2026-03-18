@@ -32,6 +32,7 @@ export default function Usuarios() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterRole, setFilterRole] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [editingUser, setEditingUser] = useState(null); // { id, field, value }
 
   const { toast } = useToast();
 
