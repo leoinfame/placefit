@@ -111,15 +111,26 @@ export default function Clientes() {
     let filtered = clientes;
     
     if (searchTerm) {
+      const q = searchTerm.toLowerCase();
       filtered = filtered.filter(cliente =>
-        (cliente.full_name?.toLowerCase() || cliente.nome?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-        (cliente.email?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-        (cliente.whatsapp?.toLowerCase() || cliente.telefone?.toLowerCase() || '').includes(searchTerm)
+        (cliente.full_name?.toLowerCase() || cliente.nome?.toLowerCase() || '').includes(q) ||
+        (cliente.email?.toLowerCase() || '').includes(q) ||
+        (cliente.cpf_cnpj?.toLowerCase() || '').includes(q) ||
+        (cliente.cidade?.toLowerCase() || '').includes(q) ||
+        (cliente.whatsapp?.toLowerCase() || cliente.telefone?.toLowerCase() || '').includes(q)
       );
+    }
+    if (filterStatus !== "todos") {
+      filtered = filtered.filter(c => filterStatus === "ativo" ? c.ativo !== false : c.ativo === false);
+    }
+    if (filterEstado !== "todos") {
+      filtered = filtered.filter(c => c.estado === filterEstado);
     }
     
     setFilteredClientes(filtered);
   };
+
+  const estadosDisponiveis = [...new Set(clientes.map(c => c.estado).filter(Boolean))].sort();
 
   const formatDate = (dateString) => {
     if (!dateString) return 'Nunca';
