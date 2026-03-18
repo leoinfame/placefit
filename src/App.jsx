@@ -10,6 +10,8 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import PublicTableFabricante from './pages/PublicTableFabricante';
 import AdminTools from './pages/AdminTools';
 import CatalogoWhatsApp from './pages/CatalogoWhatsApp';
+import AdminServicos from './pages/AdminServicos';
+import Servicos from './pages/Servicos';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
