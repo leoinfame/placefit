@@ -33,9 +33,10 @@ export default function Financeiro() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      const [allPedidos, productsData] = await Promise.all([
+      const [allPedidos, productsData, allPCs] = await Promise.all([
         base44.entities.Pedido.list('-created_date'),
-        base44.entities.Product.list()
+        base44.entities.Product.list(),
+        base44.entities.PedidoCompra.filter({ revendedor_id: currentUser.id })
       ]);
 
       const vendasData = allPedidos.filter(
