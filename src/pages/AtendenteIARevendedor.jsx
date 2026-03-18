@@ -33,6 +33,7 @@ export default function AtendenteIARevendedor() {
   const [myProducts, setMyProducts] = useState([]);
   const [knowledge, setKnowledge] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [temPlanoIA, setTemPlanoIA] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
