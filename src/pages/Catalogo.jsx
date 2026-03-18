@@ -512,21 +512,66 @@ export default function Catalogo() {
     </div>
   </div>
 
-  <!-- CONTEÚDO -->
-  <div class="content-page">
-    <div class="page-header">
-      <div class="page-header-logo">
-        ${user?.logomarca ? `<img src="${user.logomarca}" alt="Logo" crossorigin="anonymous"/>` : ''}
-        <div class="page-header-company">${user?.empresa || user?.full_name}</div>
+  <!-- PÁGINA DE ÍNDICE -->
+  <div style="page-break-after:always;background:#f8fafc;min-height:297mm;padding:14mm 14mm 10mm;display:flex;flex-direction:column;">
+
+    <!-- Header mini -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:10px;border-bottom:2px solid ${colors.lightBorder};">
+      <div style="display:flex;align-items:center;gap:10px;">
+        ${user?.logomarca?`<img src="${user.logomarca}" alt="" crossorigin="anonymous" style="max-width:40px;max-height:28px;object-fit:contain;"/>`:''}
+        <span style="font-size:9pt;font-weight:700;color:${colors.primary};">${user?.empresa||user?.full_name}</span>
       </div>
-      <div class="page-header-right">
-        Catálogo de Produtos &nbsp;·&nbsp; ${filteredProducts.length} itens em ${totalCategorias} categorias
+      <span style="font-size:7pt;color:#94a3b8;">Catálogo de Produtos · Índice</span>
+    </div>
+
+    <div style="font-size:9pt;font-weight:800;color:#1e293b;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;">📑 Índice de Categorias</div>
+
+    <!-- Grade de categorias no índice -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:1;">
+      ${categoriasOrdenadas.map((cat, idx) => {
+        const accent = accentPalette[idx % accentPalette.length];
+        const txtA = textOn(accent);
+        return `<div style="display:flex;align-items:center;gap:0;border-radius:8px;overflow:hidden;border:1px solid #e2e8f0;">
+          <div style="width:48px;background:${accent};display:flex;align-items:center;justify-content:center;align-self:stretch;">
+            <span style="font-size:11pt;font-weight:900;color:rgba(255,255,255,0.5);">${String(idx+1).padStart(2,'0')}</span>
+          </div>
+          <div style="flex:1;padding:10px 12px;background:#fff;">
+            <div style="font-size:9pt;font-weight:700;color:#1e293b;">${cat}</div>
+            <div style="font-size:7pt;color:#64748b;margin-top:2px;">${categorias[cat].length} produto${categorias[cat].length>1?'s':''}</div>
+          </div>
+          <div style="width:4px;background:${accent};align-self:stretch;"></div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <!-- Sumário de totais -->
+    <div style="display:flex;gap:10px;margin-top:20px;">
+      <div style="flex:1;background:#fff;border:1px solid #e2e8f0;border-left:3px solid ${colors.primary};border-radius:6px;padding:10px 14px;">
+        <div style="font-size:7pt;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;">Total de Produtos</div>
+        <div style="font-size:18pt;font-weight:900;color:${colors.primary};line-height:1.1;">${filteredProducts.length}</div>
+      </div>
+      <div style="flex:1;background:#fff;border:1px solid #e2e8f0;border-left:3px solid ${colors.secondary};border-radius:6px;padding:10px 14px;">
+        <div style="font-size:7pt;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;">Categorias</div>
+        <div style="font-size:18pt;font-weight:900;color:${colors.secondary};line-height:1.1;">${totalCategorias}</div>
+      </div>
+      <div style="flex:2;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;">
+        <div style="font-size:7pt;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Empresa</div>
+        <div style="font-size:8pt;font-weight:600;color:#1e293b;">${user?.empresa||user?.full_name}</div>
+        ${user?.whatsapp?`<div style="font-size:7.5pt;color:#64748b;">📱 ${user.whatsapp}</div>`:''}
+        ${user?.site?`<div style="font-size:7.5pt;color:#64748b;">🌐 ${user.site}</div>`:''}
       </div>
     </div>
 
-    ${buildCategorySections()}
+    <div style="margin-top:10px;font-size:7pt;color:#94a3b8;text-align:center;">
+      Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')} via PlaceFit
+    </div>
+  </div>
 
-    <!-- RODAPÉ COMERCIAL (igual à tabela de preços) -->
+  <!-- SEÇÕES POR CATEGORIA (cada uma em nova página) -->
+  ${buildCategorySections()}
+
+  <!-- ÚLTIMA PÁGINA: RODAPÉ COMERCIAL -->
+  <div style="page-break-before:always;background:#f8fafc;padding:14mm 14mm 10mm;min-height:297mm;display:flex;flex-direction:column;justify-content:flex-end;">
     <div class="footer">
       <div class="footer-title">📋 Informações do Catálogo</div>
       <div class="footer-grid">
