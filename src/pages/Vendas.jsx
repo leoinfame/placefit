@@ -927,6 +927,15 @@ export default function Vendas() {
                             <Button
                               variant="outline"
                               size="sm"
+                              onClick={() => handlePublicarFrete(pedido)}
+                              className="text-orange-600 hover:bg-orange-50"
+                              title="Publicar oferta de frete"
+                            >
+                              <Truck className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
                               onClick={() => handleDeletePedido(pedido)}
                               className="text-red-600 hover:bg-red-50"
                               title="Excluir"
