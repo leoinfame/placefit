@@ -96,9 +96,16 @@ function extractColorsFromLogo(logoUrl) {
  * @param {array}  clientes - lista de clientes para buscar dados completos
  * @param {string} tipo - "orcamento" | "venda"
  */
-export async function generateProfessionalPDF(pedido, user, clientes, tipo = "venda") {
+export async function generateProfessionalPDF(pedido, user, clientes, tipo = "venda", products = []) {
   const cliente = clientes.find(c => c.id === pedido.cliente_id) || { nome: pedido.cliente_nome };
   const colors = await extractColorsFromLogo(user?.logomarca);
+
+  // Calcular peso total
+  const pesoTotal = (pedido.itens || []).reduce((sum, item) => {
+    const prod = products.find(p => p.id === item.product_id);
+    const peso = prod?.peso ? parseFloat(prod.peso) : 0;
+    return sum + peso * (item.quantidade || 1);
+  }, 0);
 
   const tipoLabel = tipo === "orcamento" ? "ORÇAMENTO" : "PEDIDO DE VENDA";
   const numero = pedido.numero_pedido;
