@@ -489,7 +489,19 @@ export default function Financeiro() {
                         <TableCell className="text-right font-bold text-green-700">
                           R$ {venda.lucro_total.toFixed(2)}
                         </TableCell>
-                      </TableRow>
+                        <TableCell className="text-center">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => gerarResumoVenda(venda)}
+                            className="gap-1 text-blue-700 border-blue-200 hover:bg-blue-50"
+                            title="Gerar resumo financeiro desta venda"
+                          >
+                            <Receipt className="w-3 h-3" />
+                            PDF
+                          </Button>
+                        </TableCell>
+                        </TableRow>
                     ))}
                   </TableBody>
                 </Table>
