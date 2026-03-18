@@ -53,6 +53,7 @@ export default function Clientes() {
     ativo: true
   });
   const { toast } = useToast();
+  const { sorted: sortedClientes, sortKey: clSortKey, sortDir: clSortDir, requestSort: requestClSort } = useSort(filteredClientes, "full_name");
 
   useEffect(() => {
     loadData();
