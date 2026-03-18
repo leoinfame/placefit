@@ -35,6 +35,8 @@ export default function Clientes() {
   const [clientes, setClientes] = useState([]);
   const [filteredClientes, setFilteredClientes] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("todos");
+  const [filterEstado, setFilterEstado] = useState("todos");
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
