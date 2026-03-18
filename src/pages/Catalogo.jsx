@@ -147,9 +147,10 @@ export default function Catalogo() {
       '#0c4a6e','#78350f','#be123c','#155e75','#166534',
     ];
 
-    const hexToRgb = h => { const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16); return {r,g,b}; };
+    const hexToRgb = h => { try { const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16); return {r,g,b}; } catch(e){ return {r:30,g:64,b:175}; } };
     const lumOf = h => { const {r,g,b}=hexToRgb(h); return 0.299*r+0.587*g+0.114*b; };
-    const textOn = h => lumOf(h) > 140 ? '#1e293b' : '#ffffff';
+    // Limiar mais conservador: só usa texto escuro em fundos realmente claros (>160)
+    const textOn = h => lumOf(h) > 160 ? '#1e293b' : '#ffffff';
 
     const miniFooter = `
       <div class="mini-footer">
