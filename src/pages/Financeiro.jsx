@@ -546,6 +546,15 @@ export default function Financeiro() {
                         <span className="ml-1 text-green-600 font-bold">R$ {venda.lucro_total.toFixed(2)}</span>
                       </div>
                     </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => gerarResumoVenda(venda)}
+                      className="w-full mt-2 gap-1 text-blue-700 border-blue-200 hover:bg-blue-50 text-xs"
+                    >
+                      <Receipt className="w-3 h-3" />
+                      Resumo Financeiro PDF
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
