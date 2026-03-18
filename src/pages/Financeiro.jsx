@@ -99,6 +99,131 @@ export default function Financeiro() {
     };
   }, { totalVendas: 0, totalFrete: 0, totalLucro: 0, totalCusto: 0 });
 
+  const gerarResumoVenda = (venda) => {
+    const pcs = pedidosCompra.filter(pc => pc.venda_id === venda.id);
+    const fmtBRL = (v) => `R$ ${parseFloat(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    const fmtDate = (d) => d ? new Date(d).toLocaleDateString('pt-BR') : '-';
+
+    const fornecedoresSection = pcs.length === 0
+      ? `<p style="color:#888;font-style:italic;text-align:center;padding:16px 0">Nenhum pedido de compra gerado para esta venda.</p>`
+      : pcs.map(pc => {
+          const itensRows = (pc.itens || []).map(item => `
+            <tr>
+              <td>${item.cod || '-'}</td>
+              <td>${item.nome}</td>
+              <td style="text-align:center">${item.quantidade}</td>
+              <td style="text-align:right">${fmtBRL(item.preco_unitario)}</td>
+              <td style="text-align:right"><strong>${fmtBRL(item.subtotal)}</strong></td>
+            </tr>`).join('');
+          return `
+            <div style="margin-bottom:20px;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden">
+              <div style="background:#f8fafc;padding:10px 14px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:8px">
+                <span style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.05em">Fornecedor</span>
+                <span style="font-weight:700;color:#1e293b">${pc.fabricante_nome || '—'}</span>
+                <span style="margin-left:auto;font-size:11px;color:#64748b">PC: <strong>${pc.numero_pedido || ''}</strong></span>
+              </div>
+              <table style="width:100%;border-collapse:collapse;font-size:11px">
+                <thead>
+                  <tr style="background:#f1f5f9">
+                    <th style="padding:7px 10px;text-align:left;color:#475569">Código</th>
+                    <th style="padding:7px 10px;text-align:left;color:#475569">Produto</th>
+                    <th style="padding:7px 10px;text-align:center;color:#475569">Qtd</th>
+                    <th style="padding:7px 10px;text-align:right;color:#475569">Unit.</th>
+                    <th style="padding:7px 10px;text-align:right;color:#475569">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>${itensRows}</tbody>
+              </table>
+              <div style="background:#1e40af;color:#fff;padding:8px 10px;text-align:right;font-size:12px;font-weight:700">
+                Total pago a este fornecedor: ${fmtBRL(pc.total)}
+              </div>
+            </div>`;
+        }).join('');
+
+    const totalFornecedores = pcs.reduce((s, pc) => s + (pc.total || 0), 0);
+
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+<title>Resumo Financeiro — ${venda.numero_pedido}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; font-size: 12px; color: #1e293b; padding: 32px; background: #fff; }
+  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid #1e40af; }
+  .title { font-size: 18px; font-weight: 800; color: #1e40af; }
+  .subtitle { font-size: 11px; color: #64748b; margin-top: 3px; }
+  .meta { text-align: right; font-size: 11px; color: #64748b; line-height: 1.6; }
+  .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: #64748b; margin: 20px 0 8px; }
+  .summary-box { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; margin-bottom: 24px; }
+  .summary-item { padding: 10px 14px; border-bottom: 1px solid #f1f5f9; }
+  .summary-item:nth-child(odd) { border-right: 1px solid #e2e8f0; }
+  .summary-label { font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: .04em; }
+  .summary-value { font-size: 14px; font-weight: 700; margin-top: 2px; }
+  .green { color: #16a34a; }
+  .blue { color: #1e40af; }
+  .red { color: #dc2626; }
+  .totals-bar { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; margin-top: 16px; }
+  .totals-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 12px; }
+  .totals-row.highlight { font-size: 14px; font-weight: 800; border-top: 2px solid #1e40af; margin-top: 8px; padding-top: 10px; }
+  .footer { margin-top: 32px; text-align: center; font-size: 10px; color: #94a3b8; border-top: 1px solid #f1f5f9; padding-top: 12px; }
+</style>
+</head><body>
+  <div class="header">
+    <div>
+      <div class="title">RESUMO FINANCEIRO DA VENDA</div>
+      <div class="subtitle">${user?.empresa || user?.full_name || ''}</div>
+    </div>
+    <div class="meta">
+      Pedido: <strong>${venda.numero_pedido}</strong><br>
+      Data: <strong>${fmtDate(venda.data_pedido)}</strong><br>
+      Cliente: <strong>${venda.cliente_nome || '—'}</strong><br>
+      Status: <strong>${(venda.status || '').replace('_', ' ')}</strong>
+    </div>
+  </div>
+
+  <div class="section-title">Resumo da Venda</div>
+  <div class="summary-box">
+    <div class="summary-item">
+      <div class="summary-label">Total Faturado ao Cliente</div>
+      <div class="summary-value blue">${fmtBRL(venda.total)}</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">Frete Cobrado</div>
+      <div class="summary-value">${fmtBRL(venda.frete)}</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">Total Pago a Fornecedores</div>
+      <div class="summary-value red">${fmtBRL(totalFornecedores)}</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">Lucro Estimado</div>
+      <div class="summary-value green">${fmtBRL(venda.lucro_total || 0)}</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">Nº de Fornecedores</div>
+      <div class="summary-value">${pcs.length}</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">Itens Vendidos</div>
+      <div class="summary-value">${(venda.itens || []).reduce((s, i) => s + i.quantidade, 0)} un.</div>
+    </div>
+  </div>
+
+  <div class="section-title">Pedidos de Compra por Fornecedor</div>
+  ${fornecedoresSection}
+
+  <div class="totals-bar">
+    <div class="totals-row"><span>Total Faturado (venda):</span><span class="blue" style="font-weight:700">${fmtBRL(venda.total)}</span></div>
+    <div class="totals-row"><span>Total Pago a Fornecedores:</span><span class="red" style="font-weight:700">− ${fmtBRL(totalFornecedores)}</span></div>
+    <div class="totals-row highlight"><span>LUCRO ESTIMADO:</span><span class="green">${fmtBRL(venda.lucro_total || 0)}</span></div>
+  </div>
+
+  <div class="footer">Gerado pelo sistema PlaceFit · ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</div>
+</body></html>`;
+
+    const w = window.open('', '_blank');
+    if (w) { w.document.write(html); w.document.close(); setTimeout(() => w.print(), 500); }
+    toast({ title: "Resumo gerado!", description: `Pedido ${venda.numero_pedido}` });
+  };
+
   const gerarRelatorio = () => {
     const htmlContent = `
 <!DOCTYPE html>
