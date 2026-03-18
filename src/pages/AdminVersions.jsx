@@ -40,7 +40,90 @@ export default function AdminVersions() {
     destaque: false
   });
   const [currentChange, setCurrentChange] = useState("");
+  const [updatingHistory, setUpdatingHistory] = useState(false);
   const { toast } = useToast();
+
+  const RECENT_UPDATES = [
+    {
+      versao: "2.14.0",
+      data_lancamento: "2026-03-18",
+      tipo: "improvement",
+      titulo: "Ordenação de Tabelas e Correções de Build",
+      descricao: "Correção de bugs de build relacionados a hooks duplicados e resíduos de IIFE no código. Estabilidade geral melhorada.",
+      mudancas: [
+        "Removida declaração duplicada do hook useSort na página Products que causava erro de build",
+        "Corrigida sintaxe inválida (resíduo de IIFE) na página Clientes",
+        "Limpeza de código morto e comentários redundantes em múltiplas páginas"
+      ],
+      status: "lançado",
+      destaque: false
+    },
+    {
+      versao: "2.13.0",
+      data_lancamento: "2026-03-17",
+      tipo: "feature",
+      titulo: "Filtros Avançados e Ordenação nas Tabelas",
+      descricao: "Implementação de um sistema unificado de filtros e ordenação bidirecional nas principais páginas de gestão.",
+      mudancas: [
+        "Criado hook reutilizável useSort para ordenação bidirecional (asc/desc) em tabelas",
+        "Criado componente SortableTableHead com ícones de direção de ordenação",
+        "Integrada ordenação na página Products (Catálogo Mestre): colunas Nome, Categoria, Origem, Status",
+        "Integrada ordenação na página Clientes: colunas Nome, E-mail, Data de Cadastro, Última Visita",
+        "Painel de filtros unificado no Catálogo e Meus Produtos: busca por texto, fabricante, status e faixa de preço",
+        "Adicionado botão 'Limpar Filtros' em todas as páginas com filtros ativos"
+      ],
+      status: "lançado",
+      destaque: true
+    },
+    {
+      versao: "2.12.0",
+      data_lancamento: "2026-03-16",
+      tipo: "feature",
+      titulo: "Ações em Lote para Produtos",
+      descricao: "Nova funcionalidade de seleção múltipla e ações em lote na seção Meus Produtos, permitindo atualizar categorias de vários produtos simultaneamente.",
+      mudancas: [
+        "Adicionada seleção múltipla (checkbox) na tabela de Meus Produtos",
+        "Painel de ações em lote: atualização de categoria para múltiplos produtos selecionados",
+        "Botão 'Selecionar Todos' e 'Limpar Seleção' para controle rápido",
+        "Contador visual de produtos selecionados no painel de ações",
+        "Ações em lote também disponíveis no Catálogo Mestre (Admin): Aprovar Selecionados e Deletar Selecionados"
+      ],
+      status: "lançado",
+      destaque: false
+    }
+  ];
+
+  const handleUpdateHistory = async () => {
+    setUpdatingHistory(true);
+    try {
+      const existingVersions = await base44.entities.AppVersion.list();
+      const existingVersionNumbers = existingVersions.map(v => v.versao);
+
+      let created = 0;
+      for (const update of RECENT_UPDATES) {
+        if (!existingVersionNumbers.includes(update.versao)) {
+          await base44.entities.AppVersion.create(update);
+          created++;
+        }
+      }
+
+      await loadVersions();
+      toast({
+        title: created > 0 ? `${created} versão(ões) adicionada(s)!` : "Histórico já atualizado",
+        description: created > 0
+          ? "As atualizações recentes foram inseridas no histórico."
+          : "Todas as versões recentes já estavam cadastradas.",
+      });
+    } catch (error) {
+      console.error("Erro ao atualizar histórico:", error);
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar histórico. Tente novamente.",
+        variant: "destructive"
+      });
+    }
+    setUpdatingHistory(false);
+  };
 
   useEffect(() => {
     loadUser();
