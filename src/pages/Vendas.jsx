@@ -907,18 +907,11 @@ export default function Vendas() {
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
                     <Label htmlFor="cliente">Cliente *</Label>
-                    <Select value={selectedCliente} onValueChange={setSelectedCliente}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione um cliente" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {clientes.map(cliente => (
-                          <SelectItem key={cliente.id} value={cliente.id}>
-                            {cliente.nome}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <ClienteAutoComplete
+                      clientes={clientes}
+                      value={selectedCliente}
+                      onSelect={setSelectedCliente}
+                    />
                   </div>
 
                   <div className="border-t pt-4">
