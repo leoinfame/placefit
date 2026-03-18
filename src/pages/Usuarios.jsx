@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Users, Search, Building, Trash2, UserCog } from "lucide-react";
+import { adminUpdateUser } from "@/functions/adminUpdateUser";
+import { Users, Search, Building, Trash2, UserCog, Pencil, X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
