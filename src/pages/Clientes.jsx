@@ -65,7 +65,7 @@ export default function Clientes() {
 
   useEffect(() => {
     filterClientes();
-  }, [clientes, searchTerm]);
+  }, [clientes, searchTerm, filterStatus, filterEstado]);
 
   const loadData = async () => {
     try {
