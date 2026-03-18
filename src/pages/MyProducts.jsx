@@ -742,6 +742,48 @@ export default function MyProducts() {
     setImporting(false);
   };
 
+  const toggleCatalogSort = (key) => {
+    setCatalogSort(prev => prev.key === key ? { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' });
+  };
+
+  const toggleMySort = (key) => {
+    setMySort(prev => prev.key === key ? { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' });
+  };
+
+  const SortIcon = ({ sortState, col }) => {
+    if (sortState.key !== col) return <ChevronsUpDown className="w-3 h-3 ml-1 inline opacity-60" />;
+    return sortState.dir === 'asc' ? <ChevronUp className="w-3 h-3 ml-1 inline" /> : <ChevronDown className="w-3 h-3 ml-1 inline" />;
+  };
+
+  const applyCatalogSort = (list) => {
+    if (!catalogSort.key) return list;
+    return [...list].sort((a, b) => {
+      let va, vb;
+      if (catalogSort.key === 'nome') { va = a.nome || ''; vb = b.nome || ''; }
+      else if (catalogSort.key === 'categoria') { va = a.categoria || ''; vb = b.categoria || ''; }
+      else if (catalogSort.key === 'fabricante') { va = a.fabricante_nome || ''; vb = b.fabricante_nome || ''; }
+      else if (catalogSort.key === 'preco') { va = parseFloat(a.preco_fabricante) || 0; vb = parseFloat(b.preco_fabricante) || 0; }
+      if (typeof va === 'string') return catalogSort.dir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+      return catalogSort.dir === 'asc' ? va - vb : vb - va;
+    });
+  };
+
+  const applyMySort = (list) => {
+    if (!mySort.key) return list;
+    return [...list].sort((a, b) => {
+      let va, vb;
+      if (mySort.key === 'nome') { va = a.nome || ''; vb = b.nome || ''; }
+      else if (mySort.key === 'fabricante') { va = a.fabricante_nome || ''; vb = b.fabricante_nome || ''; }
+      else if (mySort.key === 'custo') { va = parseFloat(a.preco_fabricante) || 0; vb = parseFloat(b.preco_fabricante) || 0; }
+      else if (mySort.key === 'venda') {
+        va = parseFloat(editingPrices[a.id]?.preco) || 0;
+        vb = parseFloat(editingPrices[b.id]?.preco) || 0;
+      }
+      if (typeof va === 'string') return mySort.dir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+      return mySort.dir === 'asc' ? va - vb : vb - va;
+    });
+  };
+
   if (loading) {
     return (
       <div className="p-8">
