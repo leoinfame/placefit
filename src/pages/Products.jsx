@@ -1002,16 +1002,16 @@ export default function Products() {
                           />
                         </TableHead>
                         <TableHead className="text-white font-semibold w-12 px-2 text-xs">Foto</TableHead>
-                        <TableHead className="text-white font-semibold px-2 text-xs">Nome</TableHead>
-                        <TableHead className="text-white font-semibold px-2 text-xs">Cat.</TableHead>
-                        <TableHead className="text-white font-semibold px-2 text-xs">Origem</TableHead>
-                        <TableHead className="text-white font-semibold px-2 text-xs">Status</TableHead>
+                        <SortableTableHead sortKey="nome" currentKey={prodSortKey} currentDir={prodSortDir} onSort={requestProdSort} className="text-white font-semibold px-2 text-xs">Nome</SortableTableHead>
+                        <SortableTableHead sortKey="categoria" currentKey={prodSortKey} currentDir={prodSortDir} onSort={requestProdSort} className="text-white font-semibold px-2 text-xs">Cat.</SortableTableHead>
+                        <SortableTableHead sortKey="fabricante_nome" currentKey={prodSortKey} currentDir={prodSortDir} onSort={requestProdSort} className="text-white font-semibold px-2 text-xs">Origem</SortableTableHead>
+                        <SortableTableHead sortKey="aprovado_produto" currentKey={prodSortKey} currentDir={prodSortDir} onSort={requestProdSort} className="text-white font-semibold px-2 text-xs">Status</SortableTableHead>
                         <TableHead className="text-white font-semibold text-center px-2 text-xs">Aprovar</TableHead>
                         <TableHead className="text-white font-semibold text-center px-2 text-xs">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody className="divide-y divide-gray-200">
-                      {filteredProducts.map((product, index) => (
+                      {sortedProducts.map((product, index) => (
                         <TableRow 
                           key={product.id} 
                           className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} ${selectedProducts.includes(product.id) ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''} hover:bg-blue-50 transition-colors`}
