@@ -670,16 +670,11 @@ export default function Orcamentos() {
             <div className="space-y-4">
               <div>
                 <Label>Cliente *</Label>
-                <Select value={newOrcamento.cliente_id} onValueChange={(val) => setNewOrcamento({...newOrcamento, cliente_id: val})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o cliente" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clientes.map(c => (
-                      <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <ClienteAutoComplete
+                  clientes={clientes}
+                  value={newOrcamento.cliente_id}
+                  onSelect={(id) => setNewOrcamento({...newOrcamento, cliente_id: id})}
+                />
               </div>
 
               <div>
