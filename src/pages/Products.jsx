@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { Plus, Search, Edit3, Trash2, Package, ImageIcon, Upload, Download, FileSpreadsheet, AlertCircle, CheckCircle, Clock, User } from "lucide-react";
+import { useSort } from "@/hooks/useSort";
+import SortableTableHead from "@/components/ui/SortableTableHead";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
