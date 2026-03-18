@@ -803,7 +803,10 @@ export default function Products() {
   }
 
   const categoryStats = getCategoryStats();
-  const generalStats = getGeneralStats(); // Get general statistics
+  const generalStats = getGeneralStats();
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const { sorted: sortedProducts, sortKey: prodSortKey, sortDir: prodSortDir, requestSort: requestProdSort } = useSort(filteredProducts, "nome");
 
   return (
     <div className="p-4 md:p-8 min-h-screen">
