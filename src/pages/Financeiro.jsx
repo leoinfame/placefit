@@ -19,6 +19,7 @@ export default function Financeiro() {
   const [user, setUser] = useState(null);
   const [vendas, setVendas] = useState([]);
   const [produtos, setProdutos] = useState([]);
+  const [pedidosCompra, setPedidosCompra] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
