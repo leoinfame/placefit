@@ -384,7 +384,15 @@ export default function Orcamentos() {
   };
 
   const generatePDF = async (orcamento) => {
-    await generateProfessionalPDF(orcamento, user, clientes, 'orcamento');
+    await generateProfessionalPDF(orcamento, user, clientes, 'orcamento', products);
+  };
+
+  const calcPesoTotal = (itens) => {
+    return itens.reduce((sum, item) => {
+      const prod = products.find(p => p.id === item.product_id);
+      const peso = prod?.peso ? parseFloat(prod.peso) : 0;
+      return sum + peso * (item.quantidade || 1);
+    }, 0);
   };
 
   if (loading) {
