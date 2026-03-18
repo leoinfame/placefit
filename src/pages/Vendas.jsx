@@ -670,10 +670,18 @@ export default function Vendas() {
     setSubmittingEdit(false);
   };
 
+  const calcPesoTotal = (itensLista) => {
+    return itensLista.reduce((sum, item) => {
+      const prod = myProducts.find(p => p.id === item.product_id);
+      const peso = prod?.peso ? parseFloat(prod.peso) : 0;
+      return sum + peso * (item.quantidade || 1);
+    }, 0);
+  };
+
   const generatePDF = async (pedido) => {
     setGeneratingPDF(true);
     try {
-      await generateProfessionalPDF(pedido, user, clientes, 'venda');
+      await generateProfessionalPDF(pedido, user, clientes, 'venda', myProducts);
       toast({ title: "PDF gerado!", description: "Abrindo janela de impressão/PDF." });
     } catch (error) {
       console.error("Erro ao gerar PDF:", error);
