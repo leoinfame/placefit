@@ -672,7 +672,17 @@ export default function Orcamentos() {
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label>Cliente *</Label>
+                <div className="flex items-center justify-between mb-1">
+                  <Label>Cliente *</Label>
+                  <Link
+                    to={createPageUrl("Clientes")}
+                    target="_blank"
+                    className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    <UserPlus className="w-3.5 h-3.5" />
+                    Novo cliente
+                  </Link>
+                </div>
                 <ClienteAutoComplete
                   clientes={clientes}
                   value={newOrcamento.cliente_id}
