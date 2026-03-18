@@ -42,6 +42,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import ProductAutoComplete from "@/components/ProductAutoComplete";
+import ClienteAutoComplete from "@/components/ClienteAutoComplete";
 import { generateProfessionalPDF } from "@/components/ProfessionalPDF";
 
 export default function Orcamentos() {
