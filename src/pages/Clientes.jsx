@@ -498,6 +498,29 @@ export default function Clientes() {
     }
   };
 
+  const buscarCEP = async (cep) => {
+    const cepLimpo = cep.replace(/\D/g, '');
+    if (cepLimpo.length !== 8) return;
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+      const data = await res.json();
+      if (data.erro) {
+        toast({ title: "CEP não encontrado", description: "Verifique o CEP digitado.", variant: "destructive" });
+        return;
+      }
+      setFormData(prev => ({
+        ...prev,
+        endereco: `${data.logradouro || ''}${data.bairro ? ', ' + data.bairro : ''}`,
+        cidade: data.localidade || prev.cidade,
+        estado: data.uf || prev.estado,
+        cep: cep
+      }));
+      toast({ title: "CEP encontrado!", description: `${data.logradouro}, ${data.localidade}/${data.uf}` });
+    } catch {
+      toast({ title: "Erro ao buscar CEP", description: "Tente novamente.", variant: "destructive" });
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-8">
