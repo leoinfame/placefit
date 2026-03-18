@@ -84,6 +84,11 @@ export default function AtendenteIARevendedor() {
 
       setMyProducts(productsWithPrices);
 
+      // Verificar assinatura do plano atendente_ia
+      const assinaturas = await base44.entities.AssinaturaUsuario.filter({ usuario_id: currentUser.id, plano_slug: 'atendente_ia' });
+      const ativa = assinaturas.some(a => a.status === 'ativo' || a.status === 'trial');
+      setTemPlanoIA(ativa);
+
       // Carregar conhecimentos do revendedor
       const knowledgeData = await base44.entities.AIKnowledge.filter({
         supplier_id: currentUser.id
