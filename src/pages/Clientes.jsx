@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Users, Search, Mail, Phone, Calendar, Eye, Download, Upload, FileSpreadsheet, CheckCircle, AlertCircle, Plus, Edit3, Trash2, MapPin, X, Loader2 } from "lucide-react";
+import { Users, Search, Mail, Phone, Calendar, Eye, Download, Upload, FileSpreadsheet, CheckCircle, AlertCircle, Plus, Edit3, Trash2, MapPin, X, Loader2, Filter, ChevronDown, MoreHorizontal, Building2, UserCheck, UserX } from "lucide-react";
 import { useSort } from "@/hooks/useSort";
 import SortableTableHead from "@/components/ui/SortableTableHead";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
