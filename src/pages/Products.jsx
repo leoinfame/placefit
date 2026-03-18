@@ -805,7 +805,6 @@ export default function Products() {
 
   const categoryStats = getCategoryStats();
   const generalStats = getGeneralStats();
-  // useSort já declarado no topo do componente (linha ~72)
 
   return (
     <div className="p-4 md:p-8 min-h-screen">
