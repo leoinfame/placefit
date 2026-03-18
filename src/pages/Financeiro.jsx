@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Calendar, FileText, Download, DollarSign, TrendingUp, Package } from "lucide-react";
+import { Calendar, FileText, Download, DollarSign, TrendingUp, Package, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
