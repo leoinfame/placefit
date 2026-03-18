@@ -1311,10 +1311,18 @@ export default function MyProducts() {
                              className="w-4 h-4 cursor-pointer"
                            />
                          </TableHead>
-                         <TableHead className="text-white font-semibold">Produto</TableHead>
-                         <TableHead className="text-white font-semibold w-40">Fabricante</TableHead>
-                         <TableHead className="text-white font-semibold w-32">Preço Custo</TableHead>
-                         <TableHead className="text-white font-semibold w-32">Preço Venda (R$)</TableHead>
+                         <TableHead className="text-white font-semibold cursor-pointer select-none hover:bg-white/10" onClick={() => toggleMySort('nome')}>
+                           Produto <SortIcon sortState={mySort} col="nome" />
+                         </TableHead>
+                         <TableHead className="text-white font-semibold w-40 cursor-pointer select-none hover:bg-white/10" onClick={() => toggleMySort('fabricante')}>
+                           Fabricante <SortIcon sortState={mySort} col="fabricante" />
+                         </TableHead>
+                         <TableHead className="text-white font-semibold w-32 cursor-pointer select-none hover:bg-white/10" onClick={() => toggleMySort('custo')}>
+                           Preço Custo <SortIcon sortState={mySort} col="custo" />
+                         </TableHead>
+                         <TableHead className="text-white font-semibold w-32 cursor-pointer select-none hover:bg-white/10" onClick={() => toggleMySort('venda')}>
+                           Preço Venda (R$) <SortIcon sortState={mySort} col="venda" />
+                         </TableHead>
                          <TableHead className="text-white font-semibold text-center w-28">Disponível</TableHead>
                          <TableHead className="text-white font-semibold text-center w-32">Ações</TableHead>
                        </TableRow>
