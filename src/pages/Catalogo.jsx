@@ -493,16 +493,16 @@ export default function Catalogo() {
     .product-info .value { color: #1e293b; font-weight: 600; }
     .product-info .mono { font-family: monospace; font-size: 7pt; }
 
-    /* ===== FOOTER ===== */
-    .page-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 12px;
-      font-size: 7pt;
-      color: #94a3b8;
-    }
-    .page-footer span { color: ${colors.primary}; font-weight: 600; }
+    /* ===== RODAPÉ COMERCIAL ===== */
+    .footer { margin-top: 18px; border-top: 1px solid #e2e8f0; padding-top: 12px; }
+    .footer-title { font-size: 9px; font-weight: 800; color: #1e293b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .footer-grid { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+    .footer-item { flex: 1; min-width: 80px; background: #fff; border: 1px solid #e2e8f0; border-radius: 4px; padding: 6px 9px; }
+    .footer-item-label { font-size: 7px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 2px; }
+    .footer-item-value { font-size: 8px; color: #1e293b; font-weight: 500; }
+    .footer-disclaimer { font-size: 8px; color: #64748b; line-height: 1.5; background: #fff; border: 1px solid #e2e8f0; border-radius: 4px; padding: 7px 10px; margin-bottom: 8px; }
+    .footer-bottom { display: flex; justify-content: space-between; align-items: center; font-size: 7px; color: #94a3b8; }
+    .footer-bottom-brand { font-weight: 700; color: ${colors.primary}; }
 
     @media print {
       body { print-color-adjust: exact; -webkit-print-color-adjust: exact; background: #f1f5f9; }
