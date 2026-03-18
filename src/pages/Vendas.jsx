@@ -1343,6 +1343,11 @@ export default function Vendas() {
                   <p className="text-gray-600">
                     Desconto: <span className="font-semibold">R$ {viewingPedido.desconto.toFixed(2)}</span>
                   </p>
+                  {calcPesoTotal(viewingPedido.itens) > 0 && (
+                    <p className="text-gray-600">
+                      Peso Total: <span className="font-semibold">{calcPesoTotal(viewingPedido.itens).toFixed(2)} kg</span>
+                    </p>
+                  )}
                   <p className="text-xl font-bold text-blue-600">
                     Total: R$ {viewingPedido.total.toFixed(2)}
                   </p>
