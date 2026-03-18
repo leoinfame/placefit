@@ -1321,6 +1321,79 @@ export default function Vendas() {
           </DialogContent>
         </Dialog>
 
+        {/* Dialog Publicar Oferta de Frete */}
+        <Dialog open={showFreteDialog} onOpenChange={setShowFreteDialog}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Truck className="w-5 h-5 text-orange-600" />
+                Publicar Oferta de Frete
+              </DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmitFrete} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Cidade de Destino *</Label>
+                  <Input
+                    value={freteForm.cidade}
+                    onChange={(e) => setFreteForm({ ...freteForm, cidade: e.target.value })}
+                    placeholder="Ex: São Paulo"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label>Estado *</Label>
+                  <Select value={freteForm.estado} onValueChange={(v) => setFreteForm({ ...freteForm, estado: v })}>
+                    <SelectTrigger><SelectValue placeholder="UF" /></SelectTrigger>
+                    <SelectContent>
+                      {["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"].map(uf => (
+                        <SelectItem key={uf} value={uf}>{uf}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Peso Total (kg) *</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={freteForm.peso_total}
+                    onChange={(e) => setFreteForm({ ...freteForm, peso_total: e.target.value })}
+                    placeholder="0.00"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label>Valor do Frete (R$) *</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={freteForm.valor_ofertado}
+                    onChange={(e) => setFreteForm({ ...freteForm, valor_ofertado: e.target.value })}
+                    placeholder="0.00"
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <Label>Observações</Label>
+                <Textarea
+                  value={freteForm.observacoes}
+                  onChange={(e) => setFreteForm({ ...freteForm, observacoes: e.target.value })}
+                  rows={2}
+                />
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <Button type="button" variant="outline" onClick={() => setShowFreteDialog(false)}>Cancelar</Button>
+                <Button type="submit" disabled={submittingFrete} className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white">
+                  {submittingFrete ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Truck className="w-4 h-4 mr-2" />}
+                  Publicar no Frete
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+
         {/* Dialog de Visualização */}
         <Dialog open={showDialog} onOpenChange={setShowDialog}>
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
