@@ -70,6 +70,8 @@ export default function MyProducts() {
   const [fabricantesChina, setFabricantesChina] = useState([]);
   const [showPreOrdem, setShowPreOrdem] = useState(false);
   const [preOrdemItems, setPreOrdemItems] = useState([]);
+  const [catalogSort, setCatalogSort] = useState({ key: null, dir: 'asc' });
+  const [mySort, setMySort] = useState({ key: null, dir: 'asc' });
   const { toast } = useToast();
 
   useEffect(() => {
