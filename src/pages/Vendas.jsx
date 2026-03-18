@@ -673,6 +673,40 @@ export default function Vendas() {
     setSubmittingEdit(false);
   };
 
+  const handlePublicarFrete = (pedido) => {
+    const cliente = clientes.find(c => c.id === pedido.cliente_id);
+    const pesoTotal = calcPesoTotal(pedido.itens);
+    setFreteForm({
+      cidade: cliente?.cidade || "",
+      estado: cliente?.estado || "",
+      peso_total: pesoTotal > 0 ? pesoTotal.toFixed(2) : "",
+      valor_ofertado: pedido.frete > 0 ? pedido.frete.toFixed(2) : "",
+      observacoes: `Pedido ${pedido.numero_pedido}`
+    });
+    setShowFreteDialog(true);
+  };
+
+  const handleSubmitFrete = async (e) => {
+    e.preventDefault();
+    setSubmittingFrete(true);
+    try {
+      await base44.entities.FreightOffer.create({
+        supplier_id: user.id,
+        cidade: freteForm.cidade,
+        estado: freteForm.estado,
+        peso_total: parseFloat(freteForm.peso_total),
+        valor_ofertado: parseFloat(freteForm.valor_ofertado),
+        observacoes: freteForm.observacoes,
+        ativo: true
+      });
+      toast({ title: "Oferta publicada!", description: "A oferta de frete foi publicada com sucesso." });
+      setShowFreteDialog(false);
+    } catch (error) {
+      toast({ title: "Erro", description: "Erro ao publicar oferta de frete.", variant: "destructive" });
+    }
+    setSubmittingFrete(false);
+  };
+
   const calcPesoTotal = (itensLista) => {
     return itensLista.reduce((sum, item) => {
       const prod = myProducts.find(p => p.id === item.product_id);
