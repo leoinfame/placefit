@@ -574,9 +574,34 @@ export default function Catalogo() {
 
     ${buildCategorySections()}
 
-    <div class="page-footer">
-      <span>PlaceFit</span> &nbsp;·&nbsp; Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
-      <span>${filteredProducts.length} produto(s) · ${totalCategorias} categoria(s)</span>
+    <!-- RODAPÉ COMERCIAL (igual à tabela de preços) -->
+    <div class="footer">
+      <div class="footer-title">📋 Informações do Catálogo</div>
+      <div class="footer-grid">
+        <div class="footer-item">
+          <div class="footer-item-label">Empresa</div>
+          <div class="footer-item-value">${user?.empresa || user?.full_name}</div>
+        </div>
+        <div class="footer-item">
+          <div class="footer-item-label">Contato</div>
+          <div class="footer-item-value">${user?.whatsapp || user?.email || '—'}</div>
+        </div>
+        <div class="footer-item">
+          <div class="footer-item-label">Total de Produtos</div>
+          <div class="footer-item-value">${filteredProducts.length} produto(s) em ${totalCategorias} categoria(s)</div>
+        </div>
+        <div class="footer-item">
+          <div class="footer-item-label">Data de Emissão</div>
+          <div class="footer-item-value">${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</div>
+        </div>
+      </div>
+      <div class="footer-disclaimer">
+        ⚠️ <strong>Aviso:</strong> Este catálogo de produtos pode sofrer alterações sem aviso prévio. Disponibilidade, especificações técnicas e imagens são meramente ilustrativas. Para informações atualizadas sobre preços e estoque, consulte nossa equipe comercial antes de efetuar qualquer pedido.
+      </div>
+      <div class="footer-bottom">
+        <div class="footer-brand">Documento gerado automaticamente via PlaceFit</div>
+        <div class="footer-bottom-brand">${user?.empresa || user?.full_name} · ${new Date().toLocaleDateString('pt-BR')}</div>
+      </div>
     </div>
   </div>
 
