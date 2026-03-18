@@ -647,7 +647,6 @@ export default function Clientes() {
             <>
             {user?.role === 'admin' ? (
               <div className="overflow-x-auto">
-
                  <Table>
                    <TableHeader>
                      <TableRow>
