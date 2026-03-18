@@ -435,10 +435,8 @@ export default function Clientes() {
   };
 
   const buscarDadosCNPJ = async (cnpj) => {
-    // Limpar formatação do CNPJ
     const cnpjLimpo = cnpj.replace(/[^\d]/g, '');
     
-    // Validar se tem 14 dígitos
     if (cnpjLimpo.length !== 14) {
       toast({
         title: "CNPJ inválido",
@@ -450,27 +448,8 @@ export default function Clientes() {
 
     setSearchingCNPJ(true);
     try {
-      // Usar InvokeLLM para consultar dados do CNPJ via web search
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Busque informações da empresa com CNPJ ${cnpjLimpo} no Brasil. Retorne um JSON com os seguintes campos: nome (ou fantasia), email, telefone, endereço (rua e número), bairro, cidade, estado (UF) e CEP. Se não encontrar algum campo, deixe vazio.`,
-        add_context_from_internet: true,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            nome: { type: "string" },
-            email: { type: "string" },
-            telefone: { type: "string" },
-            logradouro: { type: "string" },
-            numero: { type: "string" },
-            bairro: { type: "string" },
-            municipio: { type: "string" },
-            uf: { type: "string" },
-            cep: { type: "string" }
-          }
-        }
-      });
-
-      if (!result || !result.nome) {
+      const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpjLimpo}`);
+      if (!res.ok) {
         toast({
           title: "CNPJ não encontrado",
           description: "Não foi possível encontrar dados para este CNPJ.",
@@ -478,22 +457,27 @@ export default function Clientes() {
         });
         return;
       }
+      const data = await res.json();
 
-      // Preencher formulário com dados retornados
+      const nome = data.nome_fantasia || data.razao_social || '';
+      const telefone = data.ddd_telefone_1 ? `(${data.ddd_telefone_1}) ${data.telefone_1 || ''}`.trim() : '';
+      const endereco = [data.logradouro, data.numero, data.complemento, data.bairro].filter(Boolean).join(', ');
+      const cep = data.cep ? data.cep.replace(/[^\d]/g, '') : '';
+
       setFormData(prev => ({
         ...prev,
-        nome: result.nome || prev.nome,
-        email: result.email || prev.email,
-        telefone: result.telefone || prev.telefone,
-        endereco: `${result.logradouro || ''}, ${result.numero || ''} - ${result.bairro || ''}`.trim(),
-        cidade: result.municipio || prev.cidade,
-        estado: result.uf || prev.estado,
-        cep: result.cep || prev.cep
+        nome: nome || prev.nome,
+        email: data.email || prev.email,
+        telefone: telefone || prev.telefone,
+        endereco: endereco || prev.endereco,
+        cidade: data.municipio || prev.cidade,
+        estado: data.uf || prev.estado,
+        cep: cep || prev.cep
       }));
 
       toast({
         title: "Dados encontrados!",
-        description: "Os campos foram preenchidos automaticamente com base no CNPJ.",
+        description: `${nome} - ${data.municipio}/${data.uf}`,
       });
 
     } catch (error) {
