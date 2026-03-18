@@ -131,213 +131,338 @@ export default function Catalogo() {
     setExportingPDF(true);
     const colors = await extractColorsFromLogo(user?.logomarca);
 
+    // Agrupar produtos por categoria, mantendo ordem alfabética de categoria
+    const categorias = {};
+    filteredProducts.forEach(p => {
+      const cat = p.categoria || 'Outros';
+      if (!categorias[cat]) categorias[cat] = [];
+      categorias[cat].push(p);
+    });
+    const categoriasOrdenadas = Object.keys(categorias).sort();
+    const totalCategorias = categoriasOrdenadas.length;
+
+    // Paleta de acentos para separadores de categoria (ciclica)
+    const accentPalette = [
+      colors.primary, colors.secondary, colors.primaryDark,
+      '#7c3aed','#0891b2','#b45309','#be123c','#166534','#1d4ed8','#9333ea',
+    ];
+
+    const buildCategorySections = () => categoriasOrdenadas.map((cat, idx) => {
+      const prods = categorias[cat];
+      const accent = accentPalette[idx % accentPalette.length];
+      // luminance simples para texto no accent
+      const hexToRgb = h => { const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16); return {r,g,b}; };
+      const {r,g,b} = hexToRgb(accent);
+      const lum = 0.299*r+0.587*g+0.114*b;
+      const textOnAccent = lum > 140 ? '#1e293b' : '#ffffff';
+
+      const cards = prods.map(product => `
+        <div class="product-card">
+          <div class="card-accent-line" style="background:${accent}"></div>
+          <div class="product-image-wrap">
+            ${product.foto
+              ? `<img src="${product.foto}" alt="${product.nome}" crossorigin="anonymous"/>`
+              : `<div class="no-image">📦</div>`
+            }
+          </div>
+          <div class="product-body">
+            <div class="product-name">${product.nome}</div>
+            <div class="product-info">
+              <div><span class="label">Cód.</span><span class="value mono">${product.cod}</span></div>
+              ${product.peso ? `<div><span class="label">Peso</span><span class="value">${product.peso} kg</span></div>` : ''}
+              ${product.dimensoes ? `<div><span class="label">Dim.</span><span class="value">${product.dimensoes} cm</span></div>` : ''}
+              <div><span class="label">Und.</span><span class="value">${product.und}</span></div>
+            </div>
+          </div>
+        </div>`).join('');
+
+      return `
+        <div class="category-section">
+          <div class="category-header" style="background:${accent};color:${textOnAccent}">
+            <div class="cat-left">
+              <div class="cat-number">${String(idx+1).padStart(2,'0')}</div>
+              <div>
+                <div class="cat-name">${cat}</div>
+                <div class="cat-sub">${prods.length} produto${prods.length > 1 ? 's' : ''}</div>
+              </div>
+            </div>
+            <div class="cat-divider" style="border-color:${textOnAccent}40"></div>
+          </div>
+          <div class="products-grid">${cards}</div>
+        </div>`;
+    }).join('');
+
     const printContent = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <title>Catálogo - ${user?.empresa || user?.full_name}</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
-    @page { size: A4; margin: 12mm; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,600;0,700;0,800;0,900;1,400&display=swap');
+    @page { size: A4; margin: 0; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Inter', Arial, sans-serif; font-size: 9pt; color: #1e293b; background: #fff; }
+    body { font-family: 'Inter', Arial, sans-serif; font-size: 9pt; color: #1e293b; background: #f1f5f9; }
 
-    /* HEADER */
-    .header {
-      background: linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryDark} 100%);
-      color: ${colors.textOnPrimary};
+    /* ===== CAPA ===== */
+    .cover {
+      width: 100%;
+      min-height: 297mm;
+      background: linear-gradient(150deg, ${colors.primary} 0%, ${colors.primaryDark} 60%, #0f172a 100%);
       display: flex;
-      align-items: stretch;
-      min-height: 72px;
-      margin-bottom: 0;
-    }
-    .header-logo {
-      background: rgba(255,255,255,0.12);
-      padding: 12px 18px;
-      display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-width: 100px;
-      border-right: 1px solid rgba(255,255,255,0.15);
+      page-break-after: always;
+      position: relative;
+      overflow: hidden;
     }
-    .header-logo img {
-      max-width: 75px;
-      max-height: 55px;
-      object-fit: contain;
+    .cover::before {
+      content: '';
+      position: absolute;
+      top: -80px; right: -80px;
+      width: 350px; height: 350px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.04);
     }
-    .header-info {
-      flex: 1;
-      padding: 12px 18px;
+    .cover::after {
+      content: '';
+      position: absolute;
+      bottom: -100px; left: -60px;
+      width: 280px; height: 280px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.03);
+    }
+    .cover-accent {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, ${colors.secondary}, ${colors.primary}88);
+    }
+    .cover-logo-wrap {
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 20px;
+      padding: 24px 36px;
+      margin-bottom: 32px;
+      backdrop-filter: blur(4px);
+    }
+    .cover-logo-wrap img { max-width: 140px; max-height: 90px; object-fit: contain; }
+    .cover-company {
+      font-size: 28pt;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: -1px;
+      text-align: center;
+      margin-bottom: 8px;
+      line-height: 1.1;
+    }
+    .cover-tag {
+      font-size: 10pt;
+      font-weight: 600;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: ${colors.secondary};
+      margin-bottom: 40px;
+    }
+    .cover-badge {
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 50px;
+      padding: 8px 24px;
+      font-size: 9pt;
+      color: rgba(255,255,255,0.85);
+      font-weight: 500;
+    }
+    .cover-stats {
+      position: absolute;
+      bottom: 40px;
       display: flex;
-      flex-direction: column;
-      justify-content: center;
+      gap: 40px;
     }
-    .header-info h1 {
-      font-size: 16pt;
-      font-weight: 800;
-      letter-spacing: -0.3px;
-      margin-bottom: 3px;
+    .cover-stat {
+      text-align: center;
+      color: rgba(255,255,255,0.7);
     }
-    .header-info p {
-      font-size: 8pt;
-      opacity: 0.85;
-      line-height: 1.6;
-    }
-    .header-right {
-      background: rgba(0,0,0,0.2);
-      padding: 12px 18px;
+    .cover-stat strong { display: block; font-size: 20pt; font-weight: 800; color: #fff; line-height: 1; }
+    .cover-stat small { font-size: 7pt; letter-spacing: 1.5px; text-transform: uppercase; }
+    .cover-contact {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(0,0,0,0.3);
+      padding: 10px 30px;
       display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: flex-end;
-      min-width: 140px;
-      border-left: 1px solid rgba(255,255,255,0.15);
-      font-size: 8pt;
-      opacity: 0.9;
+      gap: 24px;
+      font-size: 7.5pt;
+      color: rgba(255,255,255,0.6);
     }
-    .header-right strong { font-size: 10pt; display: block; margin-bottom: 2px; }
+    .cover-contact span { display: flex; align-items: center; gap: 4px; }
 
-    .status-bar { background: ${colors.secondary}; height: 3px; margin-bottom: 16px; }
+    /* ===== PÁGINAS DE CONTEÚDO ===== */
+    .content-page {
+      background: #f1f5f9;
+      padding: 14mm 14mm 10mm;
+    }
 
-    /* GRID */
-    .products-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
+    /* ===== STICKY HEADER (repetido por página) ===== */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid ${colors.lightBorder};
+    }
+    .page-header-logo { display: flex; align-items: center; gap: 8px; }
+    .page-header-logo img { max-width: 40px; max-height: 28px; object-fit: contain; }
+    .page-header-company { font-size: 8.5pt; font-weight: 700; color: ${colors.primary}; }
+    .page-header-right { font-size: 7pt; color: #94a3b8; text-align: right; }
+
+    /* ===== SEPARADOR DE CATEGORIA ===== */
+    .category-section { margin-bottom: 20px; }
+    .category-header {
+      display: flex;
+      align-items: center;
+      border-radius: 8px 8px 0 0;
+      padding: 10px 16px;
+      margin-bottom: 0;
       gap: 12px;
     }
+    .cat-left { display: flex; align-items: center; gap: 12px; }
+    .cat-number {
+      font-size: 20pt;
+      font-weight: 900;
+      opacity: 0.3;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .cat-name { font-size: 12pt; font-weight: 800; letter-spacing: -0.3px; line-height: 1.1; }
+    .cat-sub { font-size: 7.5pt; opacity: 0.75; margin-top: 1px; }
+    .cat-divider { flex: 1; height: 1px; border-top: 1px dashed; margin-left: 8px; }
+
+    /* ===== GRID DE PRODUTOS ===== */
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      background: #e2e8f0;
+      border: 1px solid #e2e8f0;
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      padding: 8px;
+    }
     .product-card {
-      border: 1px solid ${colors.lightBorder};
-      border-radius: 8px;
+      background: #fff;
+      border-radius: 6px;
       overflow: hidden;
       page-break-inside: avoid;
-      background: #fff;
+      position: relative;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .card-accent-line {
+      height: 3px;
+      width: 100%;
     }
 
-    /* IMAGE CONTAINER — contain para não cortar */
+    /* IMAGE */
     .product-image-wrap {
       width: 100%;
-      height: 130px;
-      background: #ffffff;
+      height: 100px;
+      background: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-bottom: 1px solid ${colors.lightBorder};
+      border-bottom: 1px solid #f1f5f9;
     }
     .product-image-wrap img {
       max-width: 100%;
-      max-height: 100%;
+      max-height: 96px;
       object-fit: contain;
       display: block;
     }
     .no-image {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #cbd5e1;
-      font-size: 22pt;
+      font-size: 18pt;
+      color: #e2e8f0;
     }
 
     /* CARD BODY */
-    .product-body { padding: 10px; }
+    .product-body { padding: 8px 8px 6px; }
     .product-name {
       font-weight: 700;
-      font-size: 8.5pt;
+      font-size: 7.5pt;
       color: #0f172a;
       margin-bottom: 5px;
-      line-height: 1.35;
+      line-height: 1.3;
+      min-height: 2.6em;
     }
-    .product-category {
-      display: inline-block;
-      background: ${colors.light};
-      color: ${colors.primary};
-      border: 1px solid ${colors.lightBorder};
-      padding: 2px 7px;
-      border-radius: 4px;
-      font-size: 7pt;
-      font-weight: 600;
-      margin-bottom: 7px;
-    }
-    .product-info { font-size: 7.5pt; }
+    .product-info { font-size: 6.5pt; }
     .product-info div {
       display: flex;
       justify-content: space-between;
-      padding: 3px 0;
-      border-bottom: 1px solid ${colors.light};
+      align-items: center;
+      padding: 2px 0;
+      border-bottom: 1px solid #f8fafc;
     }
     .product-info div:last-child { border-bottom: none; }
-    .product-info .label { color: #64748b; font-weight: 600; }
-    .product-info .value { color: #1e293b; font-weight: 500; }
+    .product-info .label { color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+    .product-info .value { color: #1e293b; font-weight: 600; }
+    .product-info .mono { font-family: monospace; font-size: 7pt; }
 
-    /* FOOTER */
-    .footer {
-      margin-top: 20px;
-      padding-top: 10px;
-      border-top: 2px solid ${colors.lightBorder};
+    /* ===== FOOTER ===== */
+    .page-footer {
       display: flex;
       justify-content: space-between;
-      font-size: 7.5pt;
+      align-items: center;
+      margin-top: 12px;
+      font-size: 7pt;
       color: #94a3b8;
-      background: ${colors.light};
-      padding: 8px 12px;
-      border-radius: 0 0 6px 6px;
     }
-    .footer span { color: ${colors.primary}; font-weight: 600; }
+    .page-footer span { color: ${colors.primary}; font-weight: 600; }
 
     @media print {
-      body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-      .page { max-width: 100%; }
+      body { print-color-adjust: exact; -webkit-print-color-adjust: exact; background: #f1f5f9; }
+      .cover { page-break-after: always; }
     }
   </style>
 </head>
 <body>
 
-  <div class="header">
-    ${user?.logomarca ? `<div class="header-logo"><img src="${user.logomarca}" alt="Logo" crossorigin="anonymous"/></div>` : ''}
-    <div class="header-info">
-      <h1>${user?.empresa || user?.full_name}</h1>
-      <p>
-        ${user?.cnpj ? `CNPJ: ${user.cnpj}` : ''}
-        ${user?.whatsapp ? ` &nbsp;|&nbsp; 📱 ${user.whatsapp}` : ''}
-        ${user?.site ? ` &nbsp;|&nbsp; 🌐 ${user.site}` : ''}
-        ${user?.endereco ? `<br>📍 ${user.endereco}` : ''}
-      </p>
+  <!-- CAPA -->
+  <div class="cover">
+    <div class="cover-accent"></div>
+    ${user?.logomarca ? `<div class="cover-logo-wrap"><img src="${user.logomarca}" alt="Logo" crossorigin="anonymous"/></div>` : ''}
+    <div class="cover-company">${user?.empresa || user?.full_name}</div>
+    <div class="cover-tag">Catálogo de Produtos</div>
+    <div class="cover-badge">📅 ${new Date().toLocaleDateString('pt-BR', {day:'2-digit',month:'long',year:'numeric'})}</div>
+    <div class="cover-stats">
+      <div class="cover-stat"><strong>${filteredProducts.length}</strong><small>Produtos</small></div>
+      <div class="cover-stat"><strong>${totalCategorias}</strong><small>Categorias</small></div>
     </div>
-    <div class="header-right">
-      <strong>CATÁLOGO</strong>
-      ${filteredProducts.length} produto(s)<br>
-      ${new Date().toLocaleDateString('pt-BR')}
+    <div class="cover-contact">
+      ${user?.cnpj ? `<span>🏢 CNPJ: ${user.cnpj}</span>` : ''}
+      ${user?.whatsapp ? `<span>📱 ${user.whatsapp}</span>` : ''}
+      ${user?.site ? `<span>🌐 ${user.site}</span>` : ''}
+      ${user?.endereco ? `<span>📍 ${user.endereco}</span>` : ''}
     </div>
   </div>
-  <div class="status-bar"></div>
 
-  <div class="products-grid">
-    ${filteredProducts.map(product => `
-      <div class="product-card">
-        <div class="product-image-wrap">
-          ${product.foto
-            ? `<img src="${product.foto}" alt="${product.nome}" crossorigin="anonymous"/>`
-            : `<div class="no-image">📦</div>`
-          }
-        </div>
-        <div class="product-body">
-          <div class="product-name">${product.nome}</div>
-          <div class="product-category">${product.categoria}</div>
-          <div class="product-info">
-            <div><span class="label">Código</span><span class="value">${product.cod}</span></div>
-            ${product.peso ? `<div><span class="label">Peso</span><span class="value">${product.peso} kg</span></div>` : ''}
-            ${product.dimensoes ? `<div><span class="label">Dimensões</span><span class="value">${product.dimensoes} cm</span></div>` : ''}
-            <div><span class="label">Unidade</span><span class="value">${product.und}</span></div>
-          </div>
-        </div>
+  <!-- CONTEÚDO -->
+  <div class="content-page">
+    <div class="page-header">
+      <div class="page-header-logo">
+        ${user?.logomarca ? `<img src="${user.logomarca}" alt="Logo" crossorigin="anonymous"/>` : ''}
+        <div class="page-header-company">${user?.empresa || user?.full_name}</div>
       </div>
-    `).join('')}
-  </div>
+      <div class="page-header-right">
+        Catálogo de Produtos &nbsp;·&nbsp; ${filteredProducts.length} itens em ${totalCategorias} categorias
+      </div>
+    </div>
 
-  <div class="footer">
-    <span>PlaceFit</span> &nbsp;·&nbsp; Catálogo gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
-    <span>${filteredProducts.length} produto(s)</span>
+    ${buildCategorySections()}
+
+    <div class="page-footer">
+      <span>PlaceFit</span> &nbsp;·&nbsp; Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
+      <span>${filteredProducts.length} produto(s) · ${totalCategorias} categoria(s)</span>
+    </div>
   </div>
 
 </body>
@@ -351,7 +476,7 @@ export default function Catalogo() {
         printWindow.print();
         setExportingPDF(false);
         toast({ title: "PDF gerado!", description: "Use a janela de impressão para salvar como PDF." });
-      }, 800);
+      }, 1000);
     };
   };
 
