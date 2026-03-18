@@ -512,22 +512,51 @@ export default function Catalogo() {
 </head>
 <body>
 
-  <!-- CAPA -->
+  <!-- CAPA SPLIT-SCREEN -->
   <div class="cover">
-    <div class="cover-accent"></div>
-    ${user?.logomarca ? `<div class="cover-logo-wrap"><img src="${user.logomarca}" alt="Logo" crossorigin="anonymous"/></div>` : ''}
-    <div class="cover-company">${user?.empresa || user?.full_name}</div>
-    <div class="cover-tag">Catálogo de Produtos</div>
-    <div class="cover-badge">📅 ${new Date().toLocaleDateString('pt-BR', {day:'2-digit',month:'long',year:'numeric'})}</div>
-    <div class="cover-stats">
-      <div class="cover-stat"><strong>${filteredProducts.length}</strong><small>Produtos</small></div>
-      <div class="cover-stat"><strong>${totalCategorias}</strong><small>Categorias</small></div>
+    <!-- Painel esquerdo escuro: logo + título do documento -->
+    <div class="cover-left">
+      <div class="cover-left-accent"></div>
+      ${user?.logomarca
+        ? `<div class="cover-logo-wrap"><img src="${user.logomarca}" alt="Logo" crossorigin="anonymous"/></div>`
+        : `<div class="cover-logo-placeholder">🏋️</div>`
+      }
+      <div class="cover-doc-label">Documento Oficial</div>
+      <div class="cover-doc-title">Catálogo<br>de Produtos</div>
+      <div class="cover-left-date">📅 ${new Date().toLocaleDateString('pt-BR', {day:'2-digit',month:'long',year:'numeric'})}</div>
     </div>
-    <div class="cover-contact">
-      ${user?.cnpj ? `<span>🏢 CNPJ: ${user.cnpj}</span>` : ''}
-      ${user?.whatsapp ? `<span>📱 ${user.whatsapp}</span>` : ''}
-      ${user?.site ? `<span>🌐 ${user.site}</span>` : ''}
-      ${user?.endereco ? `<span>📍 ${user.endereco}</span>` : ''}
+
+    <!-- Painel direito claro: dados da empresa -->
+    <div class="cover-right">
+      <div class="cover-company-name">${user?.empresa || user?.full_name}</div>
+      <div class="cover-company-sub">Informações da Empresa</div>
+
+      <div class="cover-info-grid">
+        ${user?.cnpj ? `<div class="cover-info-item"><div class="cover-info-label">CNPJ</div><div class="cover-info-value">${user.cnpj}</div></div>` : ''}
+        ${user?.whatsapp ? `<div class="cover-info-item"><div class="cover-info-label">WhatsApp / Tel.</div><div class="cover-info-value">📱 ${user.whatsapp}</div></div>` : ''}
+        ${user?.email ? `<div class="cover-info-item"><div class="cover-info-label">E-mail</div><div class="cover-info-value">✉ ${user.email}</div></div>` : ''}
+        ${user?.site ? `<div class="cover-info-item"><div class="cover-info-label">Site</div><div class="cover-info-value">🌐 ${user.site}</div></div>` : ''}
+        ${user?.endereco ? `<div class="cover-info-item full"><div class="cover-info-label">Endereço</div><div class="cover-info-value">📍 ${user.endereco}</div></div>` : ''}
+      </div>
+
+      <div class="cover-stats-row">
+        <div class="cover-stat-box">
+          <span class="cover-stat-num">${filteredProducts.length}</span>
+          <span class="cover-stat-lbl">Produtos</span>
+        </div>
+        <div class="cover-stat-box">
+          <span class="cover-stat-num">${totalCategorias}</span>
+          <span class="cover-stat-lbl">Categorias</span>
+        </div>
+        <div class="cover-stat-box">
+          <span class="cover-stat-num" style="font-size:13pt">${new Date().toLocaleDateString('pt-BR')}</span>
+          <span class="cover-stat-lbl">Emissão</span>
+        </div>
+      </div>
+
+      <div class="cover-validity">
+        <strong>Validade:</strong> Este catálogo é válido na data de geração. Produtos, especificações e disponibilidade podem sofrer alterações. Consulte sempre nossa equipe comercial.
+      </div>
     </div>
   </div>
 
