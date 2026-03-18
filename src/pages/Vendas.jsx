@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Plus, Search, Eye, Trash2, ShoppingCart, Package, FileText, Printer, User, Edit3, Save, Loader2, Zap } from "lucide-react";
+import { Plus, Search, Eye, Trash2, ShoppingCart, Package, FileText, Printer, User, Edit3, Save, Loader2, Zap, Truck, Share2 } from "lucide-react";
 import { generateProfessionalPDF } from "@/components/ProfessionalPDF";
 import ClienteAutoComplete from "@/components/ClienteAutoComplete";
 import { Button } from "@/components/ui/button";
