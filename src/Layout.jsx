@@ -357,6 +357,11 @@ export default function Layout({ children, currentPageName }) {
           icon: HelpCircle,
         },
         {
+          title: "Serviços",
+          url: createPageUrl("AdminServicos"),
+          icon: Crown,
+        },
+        {
           title: "Versões",
           url: createPageUrl("AdminVersions"),
           icon: Package,
