@@ -776,13 +776,17 @@ export default function Clientes() {
                               </div>
                             </div>
                           </TableCell>
-                          {/* Contato */}
+                          {/* E-mail */}
                           <TableCell>
-                            <div className="space-y-0.5">
-                              {cliente.email && <div className="flex items-center gap-1.5 text-xs text-gray-600"><Mail className="w-3 h-3 text-gray-400" />{cliente.email}</div>}
-                              {cliente.telefone && <div className="flex items-center gap-1.5 text-xs text-gray-600"><Phone className="w-3 h-3 text-gray-400" />{cliente.telefone}</div>}
-                              {!cliente.email && !cliente.telefone && <span className="text-xs text-gray-400">—</span>}
-                            </div>
+                            {cliente.email
+                              ? <div className="flex items-center gap-1.5 text-xs text-gray-600"><Mail className="w-3 h-3 text-gray-400" />{cliente.email}</div>
+                              : <span className="text-xs text-gray-400">—</span>}
+                          </TableCell>
+                          {/* Telefone / WhatsApp */}
+                          <TableCell>
+                            {cliente.telefone
+                              ? <div className="flex items-center gap-1.5 text-xs text-gray-600"><Phone className="w-3 h-3 text-gray-400" />{cliente.telefone}</div>
+                              : <span className="text-xs text-gray-400">—</span>}
                           </TableCell>
                           {/* Localização */}
                           <TableCell>
@@ -793,8 +797,6 @@ export default function Clientes() {
                               </div>
                             ) : <span className="text-xs text-gray-400">—</span>}
                           </TableCell>
-                          {/* CPF/CNPJ */}
-                          <TableCell className="text-xs text-gray-600 font-mono">{cliente.cpf_cnpj || '—'}</TableCell>
                           {/* Cadastro */}
                           <TableCell className="text-xs text-gray-500 whitespace-nowrap">{formatDate(cliente.created_date)}</TableCell>
                           {/* Status */}
