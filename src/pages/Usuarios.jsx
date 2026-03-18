@@ -131,6 +131,22 @@ export default function Usuarios() {
     }
   };
 
+  const handleEditField = (usuario, field) => {
+    setEditingUser({ id: usuario.id, field, value: usuario[field] || '' });
+  };
+
+  const handleSaveField = async () => {
+    if (!editingUser) return;
+    try {
+      await adminUpdateUser({ userId: editingUser.id, data: { [editingUser.field]: editingUser.value } });
+      setEditingUser(null);
+      loadData();
+      toast({ title: "Atualizado!", description: "Campo atualizado com sucesso." });
+    } catch (error) {
+      toast({ title: "Erro", description: "Erro ao atualizar campo.", variant: "destructive" });
+    }
+  };
+
   const handleDeleteUser = async (usuario) => {
     if (usuario.role === 'admin') {
       toast({
