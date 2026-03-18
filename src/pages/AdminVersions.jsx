@@ -304,13 +304,28 @@ export default function AdminVersions() {
             <h1 className="text-3xl font-bold text-gray-900">Versões e Atualizações</h1>
             <p className="text-gray-600">Histórico completo de mudanças do PlaceFit</p>
           </div>
-          <Button 
-            onClick={() => setShowDialog(true)}
-            className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white font-semibold"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Nova Versão
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={handleUpdateHistory}
+              disabled={updatingHistory}
+              variant="outline"
+              className="border-blue-300 text-blue-700 hover:bg-blue-50"
+            >
+              {updatingHistory ? (
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <RefreshCw className="w-4 h-4 mr-2" />
+              )}
+              Atualizar Histórico
+            </Button>
+            <Button 
+              onClick={() => setShowDialog(true)}
+              className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white font-semibold"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Nova Versão
+            </Button>
+          </div>
         </div>
 
         {/* Timeline de Versões */}
