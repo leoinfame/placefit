@@ -794,7 +794,24 @@ precisas sobre políticas, procedimentos, FAQ, etc.
           </TabsContent>
 
           <TabsContent value="whatsapp" className="space-y-4">
-            <WhatsAppSetup userId={user?.id} userType="revendedor" />
+            {temPlanoIA ? (
+              <WhatsAppSetup userId={user?.id} userType="revendedor" />
+            ) : (
+              <div className="text-center py-16 space-y-4">
+                <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto">
+                  <span className="text-4xl">🔒</span>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">Funcionalidade Premium</h3>
+                <p className="text-gray-600 max-w-md mx-auto">
+                  A conexão com WhatsApp está disponível apenas para assinantes do plano <strong>Atendente IA</strong>.
+                </p>
+                <a href="/Servicos">
+                  <button className="mt-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-lg hover:opacity-90 transition-opacity">
+                    👑 Ver Planos e Contratar
+                  </button>
+                </a>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
 
