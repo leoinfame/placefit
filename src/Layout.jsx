@@ -447,6 +447,11 @@ export default function Layout({ children, currentPageName }) {
           icon: Package,
         },
         {
+          title: "  • Catálogo WhatsApp",
+          url: createPageUrl("CatalogoWhatsApp"),
+          icon: Package,
+        },
+        {
           title: "  • Sua Tabela",
           url: createPageUrl("Export"),
           icon: Download,
