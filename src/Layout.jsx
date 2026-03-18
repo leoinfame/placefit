@@ -20,7 +20,8 @@ import {
   HelpCircle,
   Globe,
   Ship,
-  TrendingUp
+  TrendingUp,
+  Crown
 } from "lucide-react";
 import {
   Sidebar,
