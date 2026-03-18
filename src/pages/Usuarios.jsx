@@ -330,9 +330,43 @@ export default function Usuarios() {
                       className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50 transition-colors`}
                     >
                       <TableCell className="font-medium">
-                        {usuario.full_name || '-'}
+                        {editingUser?.id === usuario.id && editingUser?.field === 'full_name' ? (
+                          <div className="flex items-center gap-1">
+                            <Input
+                              value={editingUser.value}
+                              onChange={e => setEditingUser(p => ({ ...p, value: e.target.value }))}
+                              className="h-7 text-sm w-36"
+                              autoFocus
+                            />
+                            <Button size="icon" variant="ghost" className="h-7 w-7 text-green-600" onClick={handleSaveField}><Check className="w-3.5 h-3.5" /></Button>
+                            <Button size="icon" variant="ghost" className="h-7 w-7 text-gray-400" onClick={() => setEditingUser(null)}><X className="w-3.5 h-3.5" /></Button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1 group">
+                            <span>{usuario.full_name || '-'}</span>
+                            <Button size="icon" variant="ghost" className="h-6 w-6 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-blue-600" onClick={() => handleEditField(usuario, 'full_name')}><Pencil className="w-3 h-3" /></Button>
+                          </div>
+                        )}
                       </TableCell>
-                      <TableCell className="text-sm">{usuario.email}</TableCell>
+                      <TableCell className="text-sm">
+                        {editingUser?.id === usuario.id && editingUser?.field === 'email' ? (
+                          <div className="flex items-center gap-1">
+                            <Input
+                              value={editingUser.value}
+                              onChange={e => setEditingUser(p => ({ ...p, value: e.target.value }))}
+                              className="h-7 text-sm w-44"
+                              autoFocus
+                            />
+                            <Button size="icon" variant="ghost" className="h-7 w-7 text-green-600" onClick={handleSaveField}><Check className="w-3.5 h-3.5" /></Button>
+                            <Button size="icon" variant="ghost" className="h-7 w-7 text-gray-400" onClick={() => setEditingUser(null)}><X className="w-3.5 h-3.5" /></Button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1 group">
+                            <span>{usuario.email}</span>
+                            <Button size="icon" variant="ghost" className="h-6 w-6 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-blue-600" onClick={() => handleEditField(usuario, 'email')}><Pencil className="w-3 h-3" /></Button>
+                          </div>
+                        )}
+                      </TableCell>
                       <TableCell>{usuario.empresa || '-'}</TableCell>
                       <TableCell className="text-sm">
                         {usuario.whatsapp || '-'}
