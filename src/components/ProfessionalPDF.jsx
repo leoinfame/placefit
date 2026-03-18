@@ -553,6 +553,11 @@ export async function generateProfessionalPDF(pedido, user, clientes, tipo = "ve
         <label>Desconto</label>
         <span style="color:#dc2626">- ${fmtBRL(pedido.desconto)}</span>
       </div>` : ''}
+      ${pesoTotal > 0 ? `
+      <div class="total-row-item">
+        <label>Peso Total</label>
+        <span>${pesoTotal.toFixed(2).replace('.', ',')} kg</span>
+      </div>` : ''}
       <div class="total-row-item grand">
         <label>TOTAL</label>
         <span>${fmtBRL(pedido.total)}</span>
