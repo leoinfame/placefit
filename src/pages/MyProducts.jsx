@@ -795,7 +795,7 @@ export default function MyProducts() {
     );
   }
 
-  const filteredProducts = getFilteredProducts();
+  const filteredProducts = applyCatalogSort(getFilteredProducts());
   const myProducts = getMyProducts();
   const availableProducts = myProducts.filter(p => {
     const sp = supplierProducts.find(sp => sp.product_id === p.id);
