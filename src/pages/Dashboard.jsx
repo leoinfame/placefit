@@ -504,6 +504,11 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Serviços Premium - apenas para usuários não admin */}
+        {user?.role !== 'admin' && user?.aprovado && (
+          <ServicosPremiuSection user={user} />
+        )}
+
         {/* Atividade Recente */}
         <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
           <CardHeader>
