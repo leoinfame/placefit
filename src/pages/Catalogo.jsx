@@ -573,97 +573,88 @@ export default function Catalogo() {
           </Button>
         </div>
 
-        {/* Grid de Produtos */}
-        {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProducts.map((product) => (
-              <Card key={product.id} className="bg-white shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
-                <CardContent className="p-0">
-                  {/* Foto */}
-                  <div className="w-full h-48 bg-gray-100 relative">
-                    {product.foto ? (
-                      <img 
-                        src={product.foto} 
-                        alt={product.nome}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                          e.target.nextSibling.style.display = 'flex';
-                        }}
-                      />
-                    ) : null}
-                    <div 
-                      className="absolute inset-0 flex items-center justify-center text-gray-400" 
-                      style={product.foto ? {display: 'none'} : {}}
-                    >
-                      <ImageIcon className="w-16 h-16" />
-                    </div>
+        {/* Produtos por Categoria */}
+        {filteredProducts.length > 0 ? (() => {
+          const categorias = {};
+          filteredProducts.forEach(p => {
+            const cat = p.categoria || 'Outros';
+            if (!categorias[cat]) categorias[cat] = [];
+            categorias[cat].push(p);
+          });
+          const catColors = [
+            'from-blue-600 to-blue-700','from-emerald-600 to-emerald-700','from-violet-600 to-violet-700',
+            'from-orange-500 to-orange-600','from-cyan-600 to-cyan-700','from-rose-600 to-rose-700',
+            'from-teal-600 to-teal-700','from-amber-500 to-amber-600','from-indigo-600 to-indigo-700',
+            'from-fuchsia-600 to-fuchsia-700',
+          ];
+          return Object.keys(categorias).sort().map((cat, idx) => (
+            <div key={cat} className="space-y-4">
+              {/* Header da Categoria */}
+              <div className={`bg-gradient-to-r ${catColors[idx % catColors.length]} rounded-xl px-5 py-4 flex items-center justify-between shadow-md`}>
+                <div className="flex items-center gap-4">
+                  <span className="text-4xl font-black text-white/20 leading-none tabular-nums">
+                    {String(idx + 1).padStart(2, '0')}
+                  </span>
+                  <div>
+                    <h2 className="text-white font-bold text-xl leading-tight">{cat}</h2>
+                    <p className="text-white/70 text-xs mt-0.5">{categorias[cat].length} produto{categorias[cat].length > 1 ? 's' : ''}</p>
                   </div>
+                </div>
+                <Package className="w-8 h-8 text-white/30" />
+              </div>
 
-                  {/* Informações */}
-                  <div className="p-4 space-y-3">
-                    <div>
-                      <h3 className="font-bold text-lg text-gray-900 mb-1 line-clamp-2">
-                        {product.nome}
-                      </h3>
-                      <div className="flex flex-wrap gap-1.5">
-                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                          {product.categoria}
-                        </Badge>
-                        {product.origem === "china" && (
-                          <Badge className="bg-red-50 text-red-700 border border-red-200 text-[10px]">
-                            🇨🇳 Importado
-                          </Badge>
-                        )}
-                        {product.fabricante_china_nome && (
-                          <Badge className="bg-orange-50 text-orange-700 border border-orange-200 text-[10px]">
-                            {product.fabricante_china_nome}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600 font-medium">Código:</span>
-                        <span className="text-gray-900 font-semibold">{product.cod}</span>
-                      </div>
-                      
-                      {product.peso && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-600 font-medium">Peso:</span>
-                          <span className="text-gray-900">{product.peso} kg</span>
+              {/* Grid da Categoria */}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {categorias[cat].map((product) => (
+                  <Card key={product.id} className="bg-white shadow hover:shadow-lg transition-all duration-200 overflow-hidden group">
+                    <CardContent className="p-0">
+                      <div className="w-full h-40 bg-white flex items-center justify-center relative">
+                        {product.foto ? (
+                          <img
+                            src={product.foto}
+                            alt={product.nome}
+                            className="max-w-full max-h-full object-contain p-2"
+                            onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }}
+                          />
+                        ) : null}
+                        <div className="absolute inset-0 flex items-center justify-center text-gray-200" style={product.foto ? {display:'none'} : {}}>
+                          <ImageIcon className="w-12 h-12" />
                         </div>
-                      )}
-                      
-                      {product.dimensoes && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-600 font-medium">Dimensões:</span>
-                          <span className="text-gray-900">{product.dimensoes} cm</span>
-                        </div>
-                      )}
-
-                      <div className="flex justify-between">
-                        <span className="text-gray-600 font-medium">Unidade:</span>
-                        <span className="text-gray-900">{product.und}</span>
                       </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
+                      <div className="p-3 border-t border-gray-50">
+                        <h3 className="font-semibold text-xs text-gray-900 leading-snug line-clamp-2 mb-2 min-h-[2.5rem]">
+                          {product.nome}
+                        </h3>
+                        <div className="space-y-1 text-[11px]">
+                          <div className="flex justify-between">
+                            <span className="text-gray-400 uppercase tracking-wide text-[10px] font-semibold">Cód.</span>
+                            <span className="font-mono font-bold text-gray-700">{product.cod}</span>
+                          </div>
+                          {product.peso && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-400 uppercase tracking-wide text-[10px] font-semibold">Peso</span>
+                              <span className="text-gray-700">{product.peso} kg</span>
+                            </div>
+                          )}
+                          <div className="flex justify-between">
+                            <span className="text-gray-400 uppercase tracking-wide text-[10px] font-semibold">Und.</span>
+                            <span className="text-gray-700">{product.und}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          ));
+        })() : (
           <Card className="bg-white shadow-lg">
             <CardContent className="p-12 text-center">
               <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Nenhum produto encontrado
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum produto encontrado</h3>
               <p className="text-gray-600">
-                {searchTerm 
-                  ? "Tente ajustar os termos de busca." 
-                  : "Você ainda não possui produtos cadastrados."}
+                {searchTerm ? "Tente ajustar os termos de busca." : "Você ainda não possui produtos cadastrados."}
               </p>
             </CardContent>
           </Card>
