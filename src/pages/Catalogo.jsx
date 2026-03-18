@@ -141,10 +141,10 @@ export default function Catalogo() {
     const categoriasOrdenadas = Object.keys(categorias).sort();
     const totalCategorias = categoriasOrdenadas.length;
 
-    // Paleta de acentos para separadores de categoria (ciclica)
+    // Paleta de acentos com contraste garantido (todas escuras o suficiente para texto branco)
     const accentPalette = [
-      colors.primary, colors.secondary, colors.primaryDark,
-      '#7c3aed','#0891b2','#b45309','#be123c','#166534','#1d4ed8','#9333ea',
+      '#1e40af','#065f46','#7c2d12','#4c1d95','#164e63','#713f12','#881337','#14532d','#1e3a5f','#4a1d96',
+      '#0c4a6e','#78350f','#be123c','#155e75','#166534',
     ];
 
     const hexToRgb = h => { const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16); return {r,g,b}; };
