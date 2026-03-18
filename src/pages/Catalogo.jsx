@@ -151,16 +151,6 @@ export default function Catalogo() {
     const lumOf = h => { const {r,g,b}=hexToRgb(h); return 0.299*r+0.587*g+0.114*b; };
     const textOn = h => lumOf(h) > 140 ? '#1e293b' : '#ffffff';
 
-    // Mini índice de categorias para a primeira página de conteúdo
-    const indiceHtml = categoriasOrdenadas.map((cat, idx) => {
-      const accent = accentPalette[idx % accentPalette.length];
-      return `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid #f1f5f9;">
-        <span style="width:18px;height:18px;border-radius:4px;background:${accent};display:inline-block;flex-shrink:0;"></span>
-        <span style="font-size:7.5pt;font-weight:600;color:#1e293b;flex:1;">${cat}</span>
-        <span style="font-size:7pt;color:#94a3b8;">${categorias[cat].length} item${categorias[cat].length!==1?'s':''}</span>
-      </div>`;
-    }).join('');
-
     const miniFooter = `
       <div class="mini-footer">
         <span style="font-weight:700;color:${colors.primary};">${user?.empresa || user?.full_name}</span>
