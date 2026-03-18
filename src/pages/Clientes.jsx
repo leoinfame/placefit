@@ -645,10 +645,7 @@ export default function Clientes() {
             </div>
             ) : (
             <>
-            {user?.role === 'admin' ? (() => {
-              // eslint-disable-next-line react-hooks/rules-of-hooks
-              const { sorted: sortedClientes, sortKey: clSortKey, sortDir: clSortDir, requestSort: requestClSort } = useSort(filteredClientes, "full_name");
-              return (
+            {user?.role === 'admin' ? (
               <div className="overflow-x-auto">
                  <Table>
                    <TableHeader>
