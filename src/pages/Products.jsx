@@ -69,6 +69,7 @@ export default function Products() {
 
   const { toast } = useToast();
   const [units, setUnits] = useState([]);
+  const { sorted: sortedProducts, sortKey: prodSortKey, sortDir: prodSortDir, requestSort: requestProdSort } = useSort(filteredProducts, "nome");
 
   useEffect(() => {
     loadUser();
