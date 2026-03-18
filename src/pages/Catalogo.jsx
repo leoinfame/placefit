@@ -147,48 +147,90 @@ export default function Catalogo() {
       '#7c3aed','#0891b2','#b45309','#be123c','#166534','#1d4ed8','#9333ea',
     ];
 
+    const hexToRgb = h => { const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16); return {r,g,b}; };
+    const lumOf = h => { const {r,g,b}=hexToRgb(h); return 0.299*r+0.587*g+0.114*b; };
+    const textOn = h => lumOf(h) > 140 ? '#1e293b' : '#ffffff';
+
+    // Mini índice de categorias para a primeira página de conteúdo
+    const indiceHtml = categoriasOrdenadas.map((cat, idx) => {
+      const accent = accentPalette[idx % accentPalette.length];
+      return `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid #f1f5f9;">
+        <span style="width:18px;height:18px;border-radius:4px;background:${accent};display:inline-block;flex-shrink:0;"></span>
+        <span style="font-size:7.5pt;font-weight:600;color:#1e293b;flex:1;">${cat}</span>
+        <span style="font-size:7pt;color:#94a3b8;">${categorias[cat].length} item${categorias[cat].length!==1?'s':''}</span>
+      </div>`;
+    }).join('');
+
+    const miniFooter = `
+      <div class="mini-footer">
+        <span style="font-weight:700;color:${colors.primary};">${user?.empresa || user?.full_name}</span>
+        ${user?.whatsapp ? `&nbsp;·&nbsp;📱 ${user.whatsapp}` : ''}
+        ${user?.site ? `&nbsp;·&nbsp;🌐 ${user.site}` : ''}
+        <span style="float:right;color:#94a3b8;">PlaceFit · ${new Date().toLocaleDateString('pt-BR')}</span>
+      </div>`;
+
     const buildCategorySections = () => categoriasOrdenadas.map((cat, idx) => {
       const prods = categorias[cat];
       const accent = accentPalette[idx % accentPalette.length];
-      // luminance simples para texto no accent
-      const hexToRgb = h => { const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16); return {r,g,b}; };
-      const {r,g,b} = hexToRgb(accent);
-      const lum = 0.299*r+0.587*g+0.114*b;
-      const textOnAccent = lum > 140 ? '#1e293b' : '#ffffff';
+      const txtAcc = textOn(accent);
+
+      // Escolher colunas conforme quantidade de produtos — economia de papel
+      const cols = prods.length >= 10 ? 5 : prods.length >= 6 ? 4 : prods.length >= 3 ? 3 : prods.length === 2 ? 2 : 1;
+      // Altura da imagem: com mais colunas, reduzir altura para caber mais por página
+      const imgH = cols >= 5 ? '72px' : cols === 4 ? '88px' : '105px';
 
       const cards = prods.map(product => `
-        <div class="product-card">
-          <div class="card-accent-line" style="background:${accent}"></div>
-          <div class="product-image-wrap">
+        <div class="product-card" style="break-inside:avoid;">
+          <div style="height:3px;background:${accent};width:100%;"></div>
+          <div style="width:100%;height:${imgH};background:#fff;display:flex;align-items:center;justify-content:center;border-bottom:1px solid #f1f5f9;">
             ${product.foto
-              ? `<img src="${product.foto}" alt="${product.nome}" crossorigin="anonymous"/>`
-              : `<div class="no-image">📦</div>`
+              ? `<img src="${product.foto}" alt="" crossorigin="anonymous" style="max-width:100%;max-height:${imgH};object-fit:contain;display:block;"/>`
+              : `<span style="font-size:14pt;color:#e2e8f0;">📦</span>`
             }
           </div>
-          <div class="product-body">
-            <div class="product-name">${product.nome}</div>
-            <div class="product-info">
-              <div><span class="label">Cód.</span><span class="value mono">${product.cod}</span></div>
-              ${product.peso ? `<div><span class="label">Peso</span><span class="value">${product.peso} kg</span></div>` : ''}
-              ${product.dimensoes ? `<div><span class="label">Dim.</span><span class="value">${product.dimensoes} cm</span></div>` : ''}
-              <div><span class="label">Und.</span><span class="value">${product.und}</span></div>
-            </div>
+          <div style="padding:6px 7px 5px;">
+            <div style="font-weight:700;font-size:${cols>=5?'6.5pt':'7pt'};color:#0f172a;line-height:1.25;min-height:2.4em;margin-bottom:4px;overflow:hidden;">${product.nome}</div>
+            <div style="font-size:6pt;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:.03em;">Cód.&nbsp;<span style="color:#1e293b;font-weight:700;font-family:monospace;">${product.cod}</span></div>
+            ${product.peso||product.dimensoes ? `<div style="font-size:6pt;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:.03em;">${product.peso?`${product.peso}kg`:''}${product.peso&&product.dimensoes?' · ':''}${product.dimensoes?product.dimensoes+' cm':''}</div>` : ''}
+            <div style="font-size:6pt;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:.03em;">Und.&nbsp;<span style="color:#1e293b;font-weight:600;">${product.und}</span></div>
           </div>
         </div>`).join('');
 
+      const isFirst = idx === 0;
       return `
-        <div class="category-section">
-          <div class="category-header" style="background:${accent};color:${textOnAccent}">
-            <div class="cat-left">
-              <div class="cat-number">${String(idx+1).padStart(2,'0')}</div>
-              <div>
-                <div class="cat-name">${cat}</div>
-                <div class="cat-sub">${prods.length} produto${prods.length > 1 ? 's' : ''}</div>
-              </div>
+        <div class="cat-page" style="${isFirst?'':'page-break-before:always;'}padding:12mm 12mm 10mm;">
+
+          <!-- Mini header de página com logo + info -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid ${colors.lightBorder};">
+            <div style="display:flex;align-items:center;gap:8px;">
+              ${user?.logomarca?`<img src="${user.logomarca}" alt="" crossorigin="anonymous" style="max-width:36px;max-height:24px;object-fit:contain;"/>`:''}
+              <span style="font-size:8pt;font-weight:700;color:${colors.primary};">${user?.empresa||user?.full_name}</span>
             </div>
-            <div class="cat-divider" style="border-color:${textOnAccent}40"></div>
+            <span style="font-size:7pt;color:#94a3b8;">Catálogo de Produtos &nbsp;·&nbsp; ${filteredProducts.length} itens · ${totalCategorias} categorias</span>
           </div>
-          <div class="products-grid">${cards}</div>
+
+          <!-- Cabeçalho da Categoria — full-width banner -->
+          <div style="display:flex;align-items:stretch;border-radius:8px;overflow:hidden;margin-bottom:10px;background:${accent};">
+            <div style="background:rgba(0,0,0,0.18);padding:16px 20px;display:flex;flex-direction:column;justify-content:center;align-items:center;min-width:64px;">
+              <span style="font-size:22pt;font-weight:900;color:rgba(255,255,255,0.35);line-height:1;">${String(idx+1).padStart(2,'0')}</span>
+            </div>
+            <div style="flex:1;padding:12px 18px;display:flex;flex-direction:column;justify-content:center;">
+              <div style="font-size:14pt;font-weight:900;color:${txtAcc};letter-spacing:-0.3px;line-height:1.1;">${cat}</div>
+              <div style="font-size:7.5pt;color:${txtAcc};opacity:0.7;margin-top:2px;">${prods.length} produto${prods.length>1?'s':''} · grid ${cols} colunas</div>
+            </div>
+            <!-- mini índice lateral das outras categorias -->
+            <div style="background:rgba(0,0,0,0.12);padding:8px 12px;min-width:140px;display:flex;flex-direction:column;justify-content:center;gap:2px;border-left:1px solid rgba(255,255,255,0.1);">
+              ${categoriasOrdenadas.slice(0,6).map((c,i)=>`<span style="font-size:6pt;color:${i===idx?'rgba(255,255,255,0.95)':'rgba(255,255,255,0.4)'};font-weight:${i===idx?'700':'400'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${i===idx?'▶ ':''} ${c}</span>`).join('')}
+              ${categoriasOrdenadas.length>6?`<span style="font-size:6pt;color:rgba(255,255,255,0.35);">+${categoriasOrdenadas.length-6} mais...</span>`:''}
+            </div>
+          </div>
+
+          <!-- Grid de produtos -->
+          <div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:6px;">
+            ${cards}
+          </div>
+
+          ${miniFooter}
         </div>`;
     }).join('');
 
