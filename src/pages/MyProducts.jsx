@@ -978,10 +978,18 @@ export default function MyProducts() {
                           />
                         </TableHead>
                         <TableHead className="text-white font-semibold text-center w-24">Adicionar</TableHead>
-                        <TableHead className="text-white font-semibold">Nome</TableHead>
-                        <TableHead className="text-white font-semibold">Categoria</TableHead>
-                        <TableHead className="text-white font-semibold">Fabricante</TableHead>
-                        <TableHead className="text-white font-semibold text-right">Preço Sugerido</TableHead>
+                        <TableHead className="text-white font-semibold cursor-pointer select-none hover:bg-white/10" onClick={() => toggleCatalogSort('nome')}>
+                          Nome <SortIcon sortState={catalogSort} col="nome" />
+                        </TableHead>
+                        <TableHead className="text-white font-semibold cursor-pointer select-none hover:bg-white/10" onClick={() => toggleCatalogSort('categoria')}>
+                          Categoria <SortIcon sortState={catalogSort} col="categoria" />
+                        </TableHead>
+                        <TableHead className="text-white font-semibold cursor-pointer select-none hover:bg-white/10" onClick={() => toggleCatalogSort('fabricante')}>
+                          Fabricante <SortIcon sortState={catalogSort} col="fabricante" />
+                        </TableHead>
+                        <TableHead className="text-white font-semibold text-right cursor-pointer select-none hover:bg-white/10" onClick={() => toggleCatalogSort('preco')}>
+                          Preço Sugerido <SortIcon sortState={catalogSort} col="preco" />
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
