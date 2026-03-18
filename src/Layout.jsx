@@ -423,6 +423,11 @@ export default function Layout({ children, currentPageName }) {
           icon: Users,
         },
         {
+          title: "Serviços Premium",
+          url: createPageUrl("Servicos"),
+          icon: Crown,
+        },
+        {
           title: "Suporte",
           url: createPageUrl("Suporte"),
           icon: HelpCircle,
