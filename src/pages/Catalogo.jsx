@@ -203,99 +203,185 @@ export default function Catalogo() {
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Inter', Arial, sans-serif; font-size: 9pt; color: #1e293b; background: #f1f5f9; }
 
-    /* ===== CAPA ===== */
+    /* ===== CAPA SPLIT-SCREEN ===== */
     .cover {
       width: 100%;
       min-height: 297mm;
-      background: linear-gradient(150deg, ${colors.primary} 0%, ${colors.primaryDark} 60%, #0f172a 100%);
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+      flex-direction: row;
       page-break-after: always;
       position: relative;
       overflow: hidden;
     }
-    .cover::before {
+    /* Coluna esquerda — painel escuro com logo */
+    .cover-left {
+      width: 42%;
+      background: linear-gradient(175deg, ${colors.primaryDark} 0%, ${colors.primary} 55%, ${colors.secondary}cc 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    .cover-left::before {
       content: '';
       position: absolute;
-      top: -80px; right: -80px;
-      width: 350px; height: 350px;
+      top: -60px; left: -60px;
+      width: 260px; height: 260px;
       border-radius: 50%;
-      background: rgba(255,255,255,0.04);
+      background: rgba(255,255,255,0.05);
     }
-    .cover::after {
+    .cover-left::after {
       content: '';
       position: absolute;
-      bottom: -100px; left: -60px;
-      width: 280px; height: 280px;
+      bottom: -80px; right: -50px;
+      width: 220px; height: 220px;
       border-radius: 50%;
-      background: rgba(255,255,255,0.03);
-    }
-    .cover-accent {
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 5px;
-      background: linear-gradient(90deg, ${colors.secondary}, ${colors.primary}88);
+      background: rgba(0,0,0,0.15);
     }
     .cover-logo-wrap {
-      background: rgba(255,255,255,0.10);
-      border: 1px solid rgba(255,255,255,0.18);
-      border-radius: 20px;
-      padding: 24px 36px;
-      margin-bottom: 32px;
-      backdrop-filter: blur(4px);
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.22);
+      border-radius: 18px;
+      padding: 28px 32px;
+      margin-bottom: 28px;
+      position: relative;
+      z-index: 1;
     }
-    .cover-logo-wrap img { max-width: 140px; max-height: 90px; object-fit: contain; }
-    .cover-company {
-      font-size: 28pt;
-      font-weight: 900;
-      color: #fff;
-      letter-spacing: -1px;
-      text-align: center;
-      margin-bottom: 8px;
-      line-height: 1.1;
+    .cover-logo-wrap img { max-width: 130px; max-height: 100px; object-fit: contain; display: block; }
+    .cover-logo-placeholder {
+      width: 110px; height: 110px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 40pt; position: relative; z-index:1;
     }
-    .cover-tag {
-      font-size: 10pt;
-      font-weight: 600;
+    .cover-doc-label {
+      font-size: 7pt;
+      font-weight: 700;
       letter-spacing: 4px;
       text-transform: uppercase;
-      color: ${colors.secondary};
-      margin-bottom: 40px;
+      color: rgba(255,255,255,0.55);
+      margin-bottom: 6px;
+      position: relative; z-index:1;
     }
-    .cover-badge {
-      background: rgba(255,255,255,0.10);
-      border: 1px solid rgba(255,255,255,0.18);
-      border-radius: 50px;
-      padding: 8px 24px;
-      font-size: 9pt;
-      color: rgba(255,255,255,0.85);
-      font-weight: 500;
-    }
-    .cover-stats {
-      position: absolute;
-      bottom: 40px;
-      display: flex;
-      gap: 40px;
-    }
-    .cover-stat {
+    .cover-doc-title {
+      font-size: 17pt;
+      font-weight: 900;
+      color: #fff;
       text-align: center;
-      color: rgba(255,255,255,0.7);
+      line-height: 1.15;
+      position: relative; z-index:1;
     }
-    .cover-stat strong { display: block; font-size: 20pt; font-weight: 800; color: #fff; line-height: 1; }
-    .cover-stat small { font-size: 7pt; letter-spacing: 1.5px; text-transform: uppercase; }
-    .cover-contact {
+    .cover-left-date {
       position: absolute;
-      bottom: 0; left: 0; right: 0;
-      background: rgba(0,0,0,0.3);
-      padding: 10px 30px;
-      display: flex;
-      gap: 24px;
+      bottom: 20px;
       font-size: 7.5pt;
-      color: rgba(255,255,255,0.6);
+      color: rgba(255,255,255,0.45);
+      letter-spacing: 0.5px;
+      z-index: 1;
     }
-    .cover-contact span { display: flex; align-items: center; gap: 4px; }
+    .cover-left-accent {
+      position: absolute;
+      top: 0; right: 0;
+      width: 4px; height: 100%;
+      background: rgba(255,255,255,0.12);
+    }
+
+    /* Coluna direita — branco com dados */
+    .cover-right {
+      flex: 1;
+      background: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 48px 36px;
+    }
+    .cover-company-name {
+      font-size: 22pt;
+      font-weight: 900;
+      color: #0f172a;
+      letter-spacing: -0.8px;
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
+    .cover-company-sub {
+      font-size: 8pt;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: 600;
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid ${colors.lightBorder};
+    }
+    .cover-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    .cover-info-item {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+    .cover-info-item.full { grid-column: 1 / -1; }
+    .cover-info-label {
+      font-size: 6.5pt;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 3px;
+    }
+    .cover-info-value {
+      font-size: 9pt;
+      font-weight: 600;
+      color: #1e293b;
+    }
+    .cover-stats-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    .cover-stat-box {
+      flex: 1;
+      background: linear-gradient(135deg, ${colors.primary}18, ${colors.primary}08);
+      border: 1px solid ${colors.lightBorder};
+      border-radius: 10px;
+      padding: 14px 10px;
+      text-align: center;
+    }
+    .cover-stat-num {
+      font-size: 24pt;
+      font-weight: 900;
+      color: ${colors.primary};
+      line-height: 1;
+      display: block;
+    }
+    .cover-stat-lbl {
+      font-size: 7pt;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 3px;
+      display: block;
+    }
+    .cover-validity {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-left: 3px solid ${colors.secondary};
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 8pt;
+      color: #475569;
+    }
+    .cover-validity strong { color: #1e293b; }
 
     /* ===== PÁGINAS DE CONTEÚDO ===== */
     .content-page {
