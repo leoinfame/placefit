@@ -66,6 +66,7 @@ export default function Financeiro() {
 
       setVendas(vendasComLucro);
       setProdutos(productsData);
+      setPedidosCompra(allPCs);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
     }
