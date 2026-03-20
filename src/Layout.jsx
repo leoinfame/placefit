@@ -21,7 +21,8 @@ import {
   Globe,
   Ship,
   TrendingUp,
-  Crown
+  Crown,
+  Receipt
 } from "lucide-react";
 import {
   Sidebar,
@@ -423,6 +424,11 @@ export default function Layout({ children, currentPageName }) {
           icon: Users,
         },
         {
+          title: "Financeiro & Fiscal",
+          url: createPageUrl("FinanceiroFiscal"),
+          icon: Receipt,
+        },
+        {
           title: "Serviços Premium",
           url: createPageUrl("Servicos"),
           icon: Crown,
@@ -501,6 +507,11 @@ export default function Layout({ children, currentPageName }) {
           title: "Vendas",
           url: createPageUrl("Vendas"),
           icon: ShoppingCart,
+        },
+        {
+          title: "Financeiro & Fiscal",
+          url: createPageUrl("FinanceiroFiscal"),
+          icon: Receipt,
         },
         {
           title: "Serviços Premium",
