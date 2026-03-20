@@ -13,6 +13,10 @@ import CatalogoWhatsApp from './pages/CatalogoWhatsApp';
 import AdminServicos from './pages/AdminServicos';
 import Servicos from './pages/Servicos';
 import ConfigurarIA from './pages/ConfigurarIA';
+import FinanceiroFiscal from './pages/FinanceiroFiscal';
+import PedidosVenda from './pages/PedidosVenda';
+import ClientesFiscais from './pages/ClientesFiscais';
+import ConfiguracaoFiscal from './pages/ConfiguracaoFiscal';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -70,6 +74,10 @@ const AuthenticatedApp = () => {
       <Route path="/AdminServicos" element={<LayoutWrapper currentPageName="AdminServicos"><AdminServicos /></LayoutWrapper>} />
       <Route path="/Servicos" element={<LayoutWrapper currentPageName="Servicos"><Servicos /></LayoutWrapper>} />
       <Route path="/ConfigurarIA" element={<LayoutWrapper currentPageName="ConfigurarIA"><ConfigurarIA /></LayoutWrapper>} />
+      <Route path="/FinanceiroFiscal" element={<LayoutWrapper currentPageName="FinanceiroFiscal"><FinanceiroFiscal /></LayoutWrapper>} />
+      <Route path="/PedidosVenda" element={<LayoutWrapper currentPageName="PedidosVenda"><PedidosVenda /></LayoutWrapper>} />
+      <Route path="/ClientesFiscais" element={<LayoutWrapper currentPageName="ClientesFiscais"><ClientesFiscais /></LayoutWrapper>} />
+      <Route path="/ConfiguracaoFiscal" element={<LayoutWrapper currentPageName="ConfiguracaoFiscal"><ConfiguracaoFiscal /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
