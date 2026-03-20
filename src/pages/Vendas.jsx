@@ -726,40 +726,41 @@ export default function Vendas() {
   };
 
   const handleEmitirNFe = async (pedido) => {
-    // Validar configuração fiscal
-    if (!configFiscal) {
-      toast({
-        title: "Configuração Fiscal Necessária",
-        description: "Configure seus dados fiscais antes de emitir NF-e. Acesse Financeiro & Fiscal > Configurações.",
-        variant: "destructive"
-      });
-      return;
-    }
+    try {
+      // Validar configuração fiscal
+      if (!configFiscal) {
+        toast({
+          title: "Configuração Fiscal Necessária",
+          description: "Configure seus dados fiscais antes de emitir NF-e. Vá em Perfil > Dados Fiscais.",
+          variant: "destructive"
+        });
+        return;
+      }
 
-    if (!configFiscal.cnpj || !configFiscal.inscricao_estadual) {
-      toast({
-        title: "Dados Incompletos",
-        description: "CNPJ e Inscrição Estadual são obrigatórios para emitir NF-e.",
-        variant: "destructive"
-      });
-      return;
-    }
+      if (!configFiscal.cnpj || !configFiscal.inscricao_estadual) {
+        toast({
+          title: "Dados Incompletos",
+          description: "CNPJ e Inscrição Estadual são obrigatórios para emitir NF-e.",
+          variant: "destructive"
+        });
+        return;
+      }
 
-    const cliente = clientes.find(c => c.id === pedido.cliente_id);
-    if (!cliente) {
-      toast({
-        title: "Cliente Não Encontrado",
-        description: "Dados do cliente são necessários para emissão da NF-e.",
-        variant: "destructive"
-      });
-      return;
-    }
+      const cliente = clientes.find(c => c.id === pedido.cliente_id);
+      if (!cliente) {
+        toast({
+          title: "Cliente Não Encontrado",
+          description: "Dados do cliente são necessários para emissão da NF-e.",
+          variant: "destructive"
+        });
+        return;
+      }
 
-    // Buscar ClienteFiscal com dados completos
-    const clientesFiscais = await base44.entities.ClienteFiscal.filter({ user_id: user.id });
-    const clienteFiscal = clientesFiscais.find(cf => 
-      cf.cpf_cnpj === cliente.cpf_cnpj || cf.nome_razao_social === cliente.nome
-    );
+      // Buscar ClienteFiscal com dados completos
+      const clientesFiscais = await base44.entities.ClienteFiscal.filter({ user_id: user.id });
+      const clienteFiscal = clientesFiscais.find(cf => 
+        cf.cpf_cnpj === cliente.cpf_cnpj || cf.nome_razao_social === cliente.nome
+      );
 
     // Preparar dados da NF-e
     const nfePayload = {
@@ -816,8 +817,16 @@ export default function Vendas() {
       observacoes: `Pedido: ${pedido.numero_pedido}`
     };
 
-    setNfeData(nfePayload);
-    setShowNFeDialog(true);
+      setNfeData(nfePayload);
+      setShowNFeDialog(true);
+    } catch (error) {
+      console.error("Erro ao preparar NF-e:", error);
+      toast({
+        title: "Erro ao Preparar NF-e",
+        description: error?.message || "Erro desconhecido",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleConfirmarNFe = async () => {
