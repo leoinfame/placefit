@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Plus, Search, Eye, Trash2, ShoppingCart, Package, FileText, Printer, User, Edit3, Save, Loader2, Zap, Truck, Share2 } from "lucide-react";
+import { Plus, Search, Eye, Trash2, ShoppingCart, Package, FileText, Printer, User, Edit3, Save, Loader2, Zap, Truck, Share2, Receipt } from "lucide-react";
 import { generateProfessionalPDF } from "@/components/ProfessionalPDF";
 import ClienteAutoComplete from "@/components/ClienteAutoComplete";
 import { Button } from "@/components/ui/button";
@@ -44,6 +44,10 @@ export default function Vendas() {
   const [showFreteDialog, setShowFreteDialog] = useState(false);
   const [freteForm, setFreteForm] = useState({ cidade: "", estado: "", peso_total: "", valor_ofertado: "", observacoes: "" });
   const [submittingFrete, setSubmittingFrete] = useState(false);
+  const [showNFeDialog, setShowNFeDialog] = useState(false);
+  const [nfeData, setNfeData] = useState(null);
+  const [emittingNFe, setEmittingNFe] = useState(false);
+  const [configFiscal, setConfigFiscal] = useState(null);
 
   // Novo Pedido
   const [selectedCliente, setSelectedCliente] = useState("");
@@ -139,6 +143,12 @@ export default function Vendas() {
       setPedidos(pedidosData.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
       setClientes(clientesData);
       setMyProducts(myProductsList);
+
+      // Carregar configuração fiscal
+      const configs = await base44.entities.ConfiguracaoFiscal.filter({ user_id: currentUser.id });
+      if (configs && configs.length > 0) {
+        setConfigFiscal(configs[0]);
+      }
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
     }
@@ -715,6 +725,137 @@ export default function Vendas() {
     }, 0);
   };
 
+  const handleEmitirNFe = async (pedido) => {
+    // Validar configuração fiscal
+    if (!configFiscal) {
+      toast({
+        title: "Configuração Fiscal Necessária",
+        description: "Configure seus dados fiscais antes de emitir NF-e. Acesse Financeiro & Fiscal > Configurações.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!configFiscal.cnpj || !configFiscal.inscricao_estadual) {
+      toast({
+        title: "Dados Incompletos",
+        description: "CNPJ e Inscrição Estadual são obrigatórios para emitir NF-e.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const cliente = clientes.find(c => c.id === pedido.cliente_id);
+    if (!cliente) {
+      toast({
+        title: "Cliente Não Encontrado",
+        description: "Dados do cliente são necessários para emissão da NF-e.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Buscar ClienteFiscal com dados completos
+    const clientesFiscais = await base44.entities.ClienteFiscal.filter({ user_id: user.id });
+    const clienteFiscal = clientesFiscais.find(cf => 
+      cf.cpf_cnpj === cliente.cpf_cnpj || cf.nome_razao_social === cliente.nome
+    );
+
+    // Preparar dados da NF-e
+    const nfePayload = {
+      user_id: user.id,
+      pedido_id: pedido.id,
+      numero: configFiscal.proximo_numero?.toString() || "1",
+      serie: configFiscal.serie_nfe || "1",
+      data_emissao: new Date().toISOString(),
+      status: "Rascunho",
+      emitente: {
+        cnpj: configFiscal.cnpj,
+        razao_social: configFiscal.razao_social,
+        nome_fantasia: configFiscal.nome_fantasia || "",
+        inscricao_estadual: configFiscal.inscricao_estadual,
+        endereco: configFiscal.endereco,
+        numero: configFiscal.numero,
+        bairro: configFiscal.bairro,
+        cidade: configFiscal.cidade,
+        estado: configFiscal.estado,
+        cep: configFiscal.cep
+      },
+      destinatario: {
+        cpf_cnpj: clienteFiscal?.cpf_cnpj || cliente.cpf_cnpj || "",
+        nome: clienteFiscal?.nome_razao_social || cliente.nome,
+        endereco: clienteFiscal?.endereco || cliente.endereco || "",
+        numero: clienteFiscal?.numero || "",
+        bairro: clienteFiscal?.bairro || cliente.bairro || "",
+        cidade: clienteFiscal?.cidade || cliente.cidade || "",
+        estado: clienteFiscal?.estado || cliente.estado || "",
+        cep: clienteFiscal?.cep || cliente.cep || ""
+      },
+      itens: pedido.itens.map(item => {
+        const produto = myProducts.find(p => p.id === item.product_id);
+        return {
+          codigo: item.cod,
+          descricao: item.nome,
+          ncm: produto?.ncm || "00000000",
+          cfop: configFiscal.cfop_padrao || "5102",
+          unidade: produto?.und || "UN",
+          quantidade: item.quantidade,
+          valor_unitario: item.preco_unitario,
+          valor_total: item.subtotal,
+          icms_situacao_tributaria: configFiscal.regime_tributario === "Simples Nacional" ? "102" : "00",
+          icms_aliquota: 0,
+          icms_valor: 0
+        };
+      }),
+      valor_produtos: pedido.subtotal,
+      valor_frete: pedido.frete || 0,
+      valor_desconto: pedido.desconto || 0,
+      valor_total: pedido.total,
+      base_calculo_icms: 0,
+      valor_icms: 0,
+      observacoes: `Pedido: ${pedido.numero_pedido}`
+    };
+
+    setNfeData(nfePayload);
+    setShowNFeDialog(true);
+  };
+
+  const handleConfirmarNFe = async () => {
+    setEmittingNFe(true);
+    try {
+      // Criar a NF-e no banco
+      const notaCriada = await base44.entities.NotaFiscal.create(nfeData);
+
+      // Atualizar número sequencial
+      await base44.entities.ConfiguracaoFiscal.update(configFiscal.id, {
+        proximo_numero: (configFiscal.proximo_numero || 1) + 1
+      });
+
+      // Vincular NF-e ao pedido
+      await base44.entities.Pedido.update(nfeData.pedido_id, {
+        nfe_id: notaCriada.id,
+        status: "faturado"
+      });
+
+      toast({
+        title: "✅ NF-e Criada com Sucesso!",
+        description: `Nota Fiscal nº ${notaCriada.numero} - Série ${notaCriada.serie} criada. Status: ${notaCriada.status}`
+      });
+
+      setShowNFeDialog(false);
+      setNfeData(null);
+      loadData();
+    } catch (error) {
+      console.error("Erro ao emitir NF-e:", error);
+      toast({
+        title: "Erro ao Emitir NF-e",
+        description: error?.message || "Erro desconhecido",
+        variant: "destructive"
+      });
+    }
+    setEmittingNFe(false);
+  };
+
   const generatePDF = async (pedido) => {
     setGeneratingPDF(true);
     try {
@@ -897,6 +1038,17 @@ export default function Vendas() {
                             >
                               <Eye className="w-4 h-4" />
                             </Button>
+                            {(pedido.status === "confirmado" || pedido.status === "em_separacao") && !pedido.nfe_id && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEmitirNFe(pedido)}
+                                className="text-blue-600 hover:bg-blue-50"
+                                title="Emitir NF-e"
+                              >
+                                <Receipt className="w-4 h-4" />
+                              </Button>
+                            )}
                             <Button
                               variant="outline"
                               size="sm"
@@ -1312,6 +1464,158 @@ export default function Vendas() {
                       <>
                         <Save className="w-4 h-4 mr-2" />
                         Salvar Alterações
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog Emitir NF-e */}
+        <Dialog open={showNFeDialog} onOpenChange={setShowNFeDialog}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Receipt className="w-5 h-5 text-blue-600" />
+                Emitir Nota Fiscal Eletrônica (NF-e)
+              </DialogTitle>
+            </DialogHeader>
+
+            {nfeData && (
+              <div className="space-y-6">
+                {/* Dados da NF-e */}
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <div className="grid grid-cols-3 gap-3 text-sm">
+                    <div>
+                      <p className="text-gray-600">Número</p>
+                      <p className="font-bold text-blue-900">{nfeData.numero}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-600">Série</p>
+                      <p className="font-bold text-blue-900">{nfeData.serie}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-600">Data Emissão</p>
+                      <p className="font-bold text-blue-900">{new Date(nfeData.data_emissao).toLocaleDateString('pt-BR')}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Emitente */}
+                <div>
+                  <h4 className="font-semibold mb-2 text-gray-900">Emitente</h4>
+                  <div className="bg-gray-50 p-3 rounded-lg text-sm space-y-1">
+                    <p><strong>Razão Social:</strong> {nfeData.emitente.razao_social}</p>
+                    <p><strong>CNPJ:</strong> {nfeData.emitente.cnpj}</p>
+                    <p><strong>IE:</strong> {nfeData.emitente.inscricao_estadual}</p>
+                    <p><strong>Endereço:</strong> {nfeData.emitente.endereco}, {nfeData.emitente.numero} - {nfeData.emitente.bairro}</p>
+                    <p><strong>Cidade:</strong> {nfeData.emitente.cidade} - {nfeData.emitente.estado}</p>
+                  </div>
+                </div>
+
+                {/* Destinatário */}
+                <div>
+                  <h4 className="font-semibold mb-2 text-gray-900">Destinatário (Cliente)</h4>
+                  <div className="bg-gray-50 p-3 rounded-lg text-sm space-y-1">
+                    <p><strong>Nome:</strong> {nfeData.destinatario.nome}</p>
+                    <p><strong>CPF/CNPJ:</strong> {nfeData.destinatario.cpf_cnpj || "Não informado"}</p>
+                    {nfeData.destinatario.endereco && (
+                      <>
+                        <p><strong>Endereço:</strong> {nfeData.destinatario.endereco}, {nfeData.destinatario.numero}</p>
+                        <p><strong>Cidade:</strong> {nfeData.destinatario.cidade} - {nfeData.destinatario.estado}</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Produtos */}
+                <div>
+                  <h4 className="font-semibold mb-2 text-gray-900">Produtos</h4>
+                  <div className="border rounded-lg overflow-hidden">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-100">
+                        <tr>
+                          <th className="text-left p-2">Produto</th>
+                          <th className="text-center p-2">NCM</th>
+                          <th className="text-center p-2">CFOP</th>
+                          <th className="text-center p-2">Qtd</th>
+                          <th className="text-right p-2">Valor</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {nfeData.itens.map((item, idx) => (
+                          <tr key={idx} className="border-t">
+                            <td className="p-2">{item.descricao}</td>
+                            <td className="text-center p-2">{item.ncm}</td>
+                            <td className="text-center p-2">{item.cfop}</td>
+                            <td className="text-center p-2">{item.quantidade}</td>
+                            <td className="text-right p-2">R$ {item.valor_total.toFixed(2)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Totais */}
+                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span>Valor dos Produtos:</span>
+                      <span className="font-semibold">R$ {nfeData.valor_produtos.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Frete:</span>
+                      <span className="font-semibold">R$ {nfeData.valor_frete.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Desconto:</span>
+                      <span className="font-semibold text-red-600">- R$ {nfeData.valor_desconto.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between pt-2 border-t border-green-300">
+                      <span className="font-bold text-lg">Total da NF-e:</span>
+                      <span className="font-bold text-lg text-green-700">R$ {nfeData.valor_total.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Avisos */}
+                <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                  <p className="text-sm text-yellow-800">
+                    ⚠️ <strong>Atenção:</strong> Esta é uma versão simplificada de emissão de NF-e. 
+                    Para envio à SEFAZ, é necessário integração com sistema emissor de NF-e homologado.
+                  </p>
+                  <p className="text-sm text-yellow-800 mt-2">
+                    📋 Esta funcionalidade cria um <strong>rascunho da nota fiscal</strong> com todos os dados necessários 
+                    para posterior envio através de sistema homologado.
+                  </p>
+                </div>
+
+                {/* Botões */}
+                <div className="flex justify-end gap-3 pt-4 border-t">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowNFeDialog(false)}
+                    disabled={emittingNFe}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={handleConfirmarNFe}
+                    disabled={emittingNFe}
+                    className="bg-gradient-to-r from-blue-600 to-green-600"
+                  >
+                    {emittingNFe ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Criando NF-e...
+                      </>
+                    ) : (
+                      <>
+                        <Receipt className="w-4 h-4 mr-2" />
+                        Confirmar e Criar NF-e
                       </>
                     )}
                   </Button>
