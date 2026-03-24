@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { adminUpdateUser } from "@/functions/adminUpdateUser";
-import { Users, Search, Building, Trash2, UserCog, Pencil, X, Check } from "lucide-react";
+import { Users, Search, Building, Trash2, UserCog, Pencil, X, Check, UserPlus, Loader2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +39,9 @@ export default function Usuarios() {
   const [filterRole, setFilterRole] = useState("all");
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState(null); // { id, field, value }
+  const [showCadastroDialog, setShowCadastroDialog] = useState(false);
+  const [cadastroForm, setCadastroForm] = useState({ email: "", tipo: "fornecedor" });
+  const [submittingCadastro, setSubmittingCadastro] = useState(false);
 
   const { toast } = useToast();
 
@@ -147,6 +156,33 @@ export default function Usuarios() {
     }
   };
 
+  const handleCadastrarUsuario = async (e) => {
+    e.preventDefault();
+    setSubmittingCadastro(true);
+    try {
+      // Convidar usuário (role sempre 'user' para fabricante/revendedor/transportador)
+      await base44.users.inviteUser(cadastroForm.email, 'user');
+
+      // Tentar atualizar tipo_usuario assim que aparecer na lista
+      // (pode demorar - o admin pode ajustar na tabela se necessário)
+      toast({
+        title: "Convite enviado!",
+        description: `Convite enviado para ${cadastroForm.email} como ${cadastroForm.tipo}. Após o primeiro acesso, defina o tipo na tabela abaixo.`,
+      });
+
+      setCadastroForm({ email: "", tipo: "fornecedor" });
+      setShowCadastroDialog(false);
+      setTimeout(loadData, 2000);
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: error?.message || "Erro ao cadastrar usuário.",
+        variant: "destructive"
+      });
+    }
+    setSubmittingCadastro(false);
+  };
+
   const handleDeleteUser = async (usuario) => {
     if (usuario.role === 'admin') {
       toast({
@@ -231,9 +267,18 @@ export default function Usuarios() {
     <div className="p-4 md:p-8 min-h-screen">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gerenciar Usuários</h1>
-          <p className="text-gray-600">Visualize e gerencie todos os usuários da plataforma</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Gerenciar Usuários</h1>
+            <p className="text-gray-600">Visualize e gerencie todos os usuários da plataforma</p>
+          </div>
+          <Button
+            onClick={() => setShowCadastroDialog(true)}
+            className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+          >
+            <UserPlus className="w-4 h-4 mr-2" />
+            Cadastrar Usuário
+          </Button>
         </div>
 
         {/* Estatísticas */}
@@ -438,6 +483,67 @@ export default function Usuarios() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Dialog Cadastro */}
+      <Dialog open={showCadastroDialog} onOpenChange={setShowCadastroDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus className="w-5 h-5 text-blue-600" />
+              Cadastrar Novo Usuário
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleCadastrarUsuario} className="space-y-4 pt-2">
+            <div>
+              <Label htmlFor="email-cadastro">E-mail *</Label>
+              <Input
+                id="email-cadastro"
+                type="email"
+                placeholder="email@exemplo.com"
+                value={cadastroForm.email}
+                onChange={(e) => setCadastroForm({ ...cadastroForm, email: e.target.value })}
+                required
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="tipo-cadastro">Tipo de Usuário *</Label>
+              <Select
+                value={cadastroForm.tipo}
+                onValueChange={(v) => setCadastroForm({ ...cadastroForm, tipo: v })}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="fornecedor">Revendedor / Fornecedor</SelectItem>
+                  <SelectItem value="fabricante">Fabricante</SelectItem>
+                  <SelectItem value="transportador">Transportadora</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
+              ⚠️ Um convite será enviado ao e-mail. Após o primeiro acesso, ajuste o tipo do usuário na tabela se necessário.
+            </div>
+            <div className="flex justify-end gap-3 pt-2">
+              <Button type="button" variant="outline" onClick={() => setShowCadastroDialog(false)}>
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={submittingCadastro}
+                className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+              >
+                {submittingCadastro ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Enviando...</>
+                ) : (
+                  <><UserPlus className="w-4 h-4 mr-2" />Enviar Convite</>
+                )}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
