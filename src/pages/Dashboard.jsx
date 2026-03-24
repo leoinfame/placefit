@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { aplicarPreCadastro } from "@/functions/aplicarPreCadastro";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import OnboardingTour from "@/components/OnboardingTour";
@@ -44,6 +45,22 @@ export default function Dashboard() {
   const loadDashboardData = async () => {
     try {
       const currentUser = await base44.auth.me();
+
+      // Aplicar pré-cadastro do admin (se houver) no primeiro acesso
+      if (!localStorage.getItem(`precadastro_aplicado_${currentUser.id}`)) {
+        try {
+          const result = await aplicarPreCadastro({});
+          if (result?.data?.applied) {
+            localStorage.setItem(`precadastro_aplicado_${currentUser.id}`, 'true');
+            window.location.reload();
+            return;
+          } else {
+            localStorage.setItem(`precadastro_aplicado_${currentUser.id}`, 'true');
+          }
+        } catch (e) {
+          // Sem pré-cadastro, continua normalmente
+        }
+      }
       
       // Verificar se há dados de registro de fabricante no localStorage
       const fabricanteData = localStorage.getItem('fabricante_registration_data');
