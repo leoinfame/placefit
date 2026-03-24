@@ -356,7 +356,7 @@ export default function Usuarios() {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-500 hover:to-green-500">
+                  <TableRow>
                     <TableHead className="text-white font-semibold">Nome</TableHead>
                     <TableHead className="text-white font-semibold">E-mail</TableHead>
                     <TableHead className="text-white font-semibold">Empresa</TableHead>

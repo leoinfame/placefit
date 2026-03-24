@@ -1029,7 +1029,7 @@ export default function Products() {
                 <div className="w-full">
                   <Table className="w-full">
                     <TableHeader>
-                      <TableRow className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-500 hover:to-green-500">
+                      <TableRow>
                         <TableHead className="text-white font-semibold w-8 px-2">
                           <input
                             type="checkbox"
