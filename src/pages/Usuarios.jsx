@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { adminUpdateUser } from "@/functions/adminUpdateUser";
 import { Users, Search, Building, Trash2, UserCog, Pencil, X, Check, UserPlus, Loader2 } from "lucide-react";
@@ -26,7 +25,7 @@ export default function Usuarios() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterRole, setFilterRole] = useState("all");
   const [loading, setLoading] = useState(true);
-  const [editingUser, setEditingUser] = useState(null); // { id, field, value }
+  const [editingUser, setEditingUser] = useState(null);
   const [showCadastroDialog, setShowCadastroDialog] = useState(false);
   const [cadastroForm, setCadastroForm] = useState({
     email: "",
@@ -158,7 +157,6 @@ export default function Usuarios() {
     e.preventDefault();
     setSubmittingCadastro(true);
     try {
-      // Salvar pré-cadastro com dados
       await base44.entities.PreCadastro.create({
         email: cadastroForm.email.trim().toLowerCase(),
         nome: cadastroForm.nome,
@@ -172,7 +170,6 @@ export default function Usuarios() {
         aplicado: false
       });
 
-      // Enviar convite
       await base44.users.inviteUser(cadastroForm.email.trim(), 'user');
 
       toast({
@@ -276,7 +273,6 @@ export default function Usuarios() {
   return (
     <div className="p-4 md:p-8 min-h-screen">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Gerenciar Usuários</h1>
@@ -291,7 +287,6 @@ export default function Usuarios() {
           </Button>
         </div>
 
-        {/* Estatísticas */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 border">
             <CardContent className="p-4 text-center">
@@ -300,7 +295,6 @@ export default function Usuarios() {
               <p className="text-sm text-blue-700">Total</p>
             </CardContent>
           </Card>
-
           <Card className="bg-gradient-to-br from-red-50 to-red-100 border-red-200 border">
             <CardContent className="p-4 text-center">
               <UserCog className="w-8 h-8 text-red-600 mx-auto mb-2" />
@@ -308,7 +302,6 @@ export default function Usuarios() {
               <p className="text-sm text-red-700">Admins</p>
             </CardContent>
           </Card>
-
           <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200 border">
             <CardContent className="p-4 text-center">
               <Building className="w-8 h-8 text-green-600 mx-auto mb-2" />
@@ -316,7 +309,6 @@ export default function Usuarios() {
               <p className="text-sm text-green-700">Fornecedores</p>
             </CardContent>
           </Card>
-
           <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 border">
             <CardContent className="p-4 text-center">
               <Users className="w-8 h-8 text-purple-600 mx-auto mb-2" />
@@ -324,7 +316,6 @@ export default function Usuarios() {
               <p className="text-sm text-purple-700">Fabricantes</p>
             </CardContent>
           </Card>
-
           <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200 border">
             <CardContent className="p-4 text-center">
               <Users className="w-8 h-8 text-orange-600 mx-auto mb-2" />
@@ -334,7 +325,6 @@ export default function Usuarios() {
           </Card>
         </div>
 
-        {/* Filtros */}
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
@@ -361,7 +351,6 @@ export default function Usuarios() {
           </Select>
         </div>
 
-        {/* Tabela de Usuários */}
         <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
           <CardContent className="p-0">
             <div className="overflow-x-auto">
@@ -423,12 +412,8 @@ export default function Usuarios() {
                         )}
                       </TableCell>
                       <TableCell>{usuario.empresa || '-'}</TableCell>
-                      <TableCell className="text-sm">
-                        {usuario.whatsapp || '-'}
-                      </TableCell>
-                      <TableCell>
-                        {getUserTypeBadge(usuario)}
-                      </TableCell>
+                      <TableCell className="text-sm">{usuario.whatsapp || '-'}</TableCell>
+                      <TableCell>{getUserTypeBadge(usuario)}</TableCell>
                       <TableCell className="text-center">
                         {usuario.role !== 'admin' && (
                           <div className="flex items-center justify-center space-x-2">
@@ -442,9 +427,7 @@ export default function Usuarios() {
                           </div>
                         )}
                         {usuario.role === 'admin' && (
-                          <Badge className="bg-green-100 text-green-700">
-                            Ativo
-                          </Badge>
+                          <Badge className="bg-green-100 text-green-700">Ativo</Badge>
                         )}
                       </TableCell>
                       <TableCell>
@@ -494,7 +477,6 @@ export default function Usuarios() {
         </Card>
       </div>
 
-      {/* Dialog Cadastro */}
       <Dialog open={showCadastroDialog} onOpenChange={setShowCadastroDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -504,119 +486,119 @@ export default function Usuarios() {
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleCadastrarUsuario} className="space-y-4 pt-2">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="col-span-2">
-              <Label htmlFor="email-cadastro">E-mail *</Label>
-              <Input
-                id="email-cadastro"
-                type="email"
-                placeholder="email@exemplo.com"
-                value={cadastroForm.email}
-                onChange={(e) => setCadastroForm({ ...cadastroForm, email: e.target.value })}
-                required
-                className="mt-1"
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="col-span-2">
+                <Label htmlFor="email-cadastro">E-mail *</Label>
+                <Input
+                  id="email-cadastro"
+                  type="email"
+                  placeholder="email@exemplo.com"
+                  value={cadastroForm.email}
+                  onChange={(e) => setCadastroForm({ ...cadastroForm, email: e.target.value })}
+                  required
+                  className="mt-1"
+                />
+              </div>
+              <div className="col-span-2">
+                <Label>Tipo de Usuário *</Label>
+                <Select
+                  value={cadastroForm.tipo}
+                  onValueChange={(v) => setCadastroForm({ ...cadastroForm, tipo: v })}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="fornecedor">Revendedor / Fornecedor</SelectItem>
+                    <SelectItem value="fabricante">Fabricante</SelectItem>
+                    <SelectItem value="transportador">Transportadora</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Nome Completo</Label>
+                <Input
+                  placeholder="Nome"
+                  value={cadastroForm.nome}
+                  onChange={(e) => setCadastroForm({ ...cadastroForm, nome: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label>Empresa</Label>
+                <Input
+                  placeholder="Nome da empresa"
+                  value={cadastroForm.empresa}
+                  onChange={(e) => setCadastroForm({ ...cadastroForm, empresa: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label>WhatsApp</Label>
+                <Input
+                  placeholder="(00) 00000-0000"
+                  value={cadastroForm.whatsapp}
+                  onChange={(e) => setCadastroForm({ ...cadastroForm, whatsapp: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label>CNPJ</Label>
+                <Input
+                  placeholder="00.000.000/0001-00"
+                  value={cadastroForm.cnpj}
+                  onChange={(e) => setCadastroForm({ ...cadastroForm, cnpj: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label>Cidade</Label>
+                <Input
+                  placeholder="Cidade"
+                  value={cadastroForm.cidade}
+                  onChange={(e) => setCadastroForm({ ...cadastroForm, cidade: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label>Estado (UF)</Label>
+                <Select
+                  value={cadastroForm.estado}
+                  onValueChange={(v) => setCadastroForm({ ...cadastroForm, estado: v })}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="UF" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"].map(uf => (
+                      <SelectItem key={uf} value={uf}>{uf}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="col-span-2">
-              <Label>Tipo de Usuário *</Label>
-              <Select
-                value={cadastroForm.tipo}
-                onValueChange={(v) => setCadastroForm({ ...cadastroForm, tipo: v })}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+              💡 Os dados serão aplicados automaticamente quando o usuário fizer o primeiro login.
+            </div>
+            <div className="flex justify-end gap-3 pt-2">
+              <Button type="button" variant="outline" onClick={() => setShowCadastroDialog(false)}>
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={submittingCadastro}
+                className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
               >
-                <SelectTrigger className="mt-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="fornecedor">Revendedor / Fornecedor</SelectItem>
-                  <SelectItem value="fabricante">Fabricante</SelectItem>
-                  <SelectItem value="transportador">Transportadora</SelectItem>
-                </SelectContent>
-              </Select>
+                {submittingCadastro ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Salvando...</>
+                ) : (
+                  <><UserPlus className="w-4 h-4 mr-2" />Cadastrar e Convidar</>
+                )}
+              </Button>
             </div>
-            <div>
-              <Label>Nome Completo</Label>
-              <Input
-                placeholder="Nome"
-                value={cadastroForm.nome}
-                onChange={(e) => setCadastroForm({ ...cadastroForm, nome: e.target.value })}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label>Empresa</Label>
-              <Input
-                placeholder="Nome da empresa"
-                value={cadastroForm.empresa}
-                onChange={(e) => setCadastroForm({ ...cadastroForm, empresa: e.target.value })}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label>WhatsApp</Label>
-              <Input
-                placeholder="(00) 00000-0000"
-                value={cadastroForm.whatsapp}
-                onChange={(e) => setCadastroForm({ ...cadastroForm, whatsapp: e.target.value })}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label>CNPJ</Label>
-              <Input
-                placeholder="00.000.000/0001-00"
-                value={cadastroForm.cnpj}
-                onChange={(e) => setCadastroForm({ ...cadastroForm, cnpj: e.target.value })}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label>Cidade</Label>
-              <Input
-                placeholder="Cidade"
-                value={cadastroForm.cidade}
-                onChange={(e) => setCadastroForm({ ...cadastroForm, cidade: e.target.value })}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label>Estado (UF)</Label>
-              <Select
-                value={cadastroForm.estado}
-                onValueChange={(v) => setCadastroForm({ ...cadastroForm, estado: v })}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="UF" />
-                </SelectTrigger>
-                <SelectContent>
-                  {["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"].map(uf => (
-                    <SelectItem key={uf} value={uf}>{uf}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
-            💡 Os dados serão aplicados automaticamente quando o usuário fizer o primeiro login.
-          </div>
-          <div className="flex justify-end gap-3 pt-2">
-            <Button type="button" variant="outline" onClick={() => setShowCadastroDialog(false)}>
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              disabled={submittingCadastro}
-              className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
-            >
-              {submittingCadastro ? (
-                <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Salvando...</>
-              ) : (
-                <><UserPlus className="w-4 h-4 mr-2" />Cadastrar e Convidar</>
-              )}
-            </Button>
-          </div>
           </form>
-          </DialogContent>
-          </Dialog>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
