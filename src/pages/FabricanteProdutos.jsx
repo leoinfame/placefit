@@ -55,6 +55,10 @@ export default function FabricanteProdutos() {
   const [baseProducts, setBaseProducts] = useState([]);
   const [importing, setImporting] = useState(false);
   const [activeTab, setActiveTab] = useState("produtos");
+  const [selectedProducts, setSelectedProducts] = useState([]);
+  const [showBulkCategoryDialog, setShowBulkCategoryDialog] = useState(false);
+  const [bulkCategory, setBulkCategory] = useState("");
+  const [applyingBulkCategory, setApplyingBulkCategory] = useState(false);
 
   const { toast } = useToast();
   const [units, setUnits] = useState([]);
@@ -489,6 +493,43 @@ export default function FabricanteProdutos() {
     setEditingProduct(null);
   };
 
+  const handleSelectProduct = (productId) => {
+    setSelectedProducts(prev =>
+      prev.includes(productId) ? prev.filter(id => id !== productId) : [...prev, productId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedProducts.length === filteredProducts.length && filteredProducts.length > 0) {
+      setSelectedProducts([]);
+    } else {
+      setSelectedProducts(filteredProducts.map(p => p.id));
+    }
+  };
+
+  const handleBulkCategoryChange = async () => {
+    if (!bulkCategory) return;
+    setApplyingBulkCategory(true);
+    let updated = 0;
+    for (const productId of selectedProducts) {
+      try {
+        await base44.entities.Product.update(productId, { categoria: bulkCategory });
+        updated++;
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    await loadProducts();
+    setSelectedProducts([]);
+    setShowBulkCategoryDialog(false);
+    setBulkCategory("");
+    setApplyingBulkCategory(false);
+    toast({
+      title: "Categorias atualizadas!",
+      description: `${updated} produto(s) atualizados com sucesso.`,
+    });
+  };
+
   const getStatusBadge = (product) => {
     if (!product.aprovado_produto) {
       return <Badge className="bg-amber-100 text-amber-700"><Clock className="w-3 h-3 mr-1" />Aguardando Aprovação</Badge>;
@@ -652,6 +693,35 @@ export default function FabricanteProdutos() {
           </CardContent>
         </Card>
 
+        {/* Ações em Lote */}
+        {selectedProducts.length > 0 && (
+          <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-300 border-2">
+            <CardContent className="p-4">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <Badge className="bg-purple-600 text-white text-lg px-4 py-2">
+                    {selectedProducts.length} selecionado(s)
+                  </Badge>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    onClick={() => { setBulkCategory(""); setShowBulkCategoryDialog(true); }}
+                    size="sm"
+                    variant="outline"
+                    className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                  >
+                    <Package className="w-4 h-4 mr-2" />
+                    Trocar Categoria
+                  </Button>
+                  <Button onClick={() => setSelectedProducts([])} size="sm" variant="outline">
+                    Limpar Seleção
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Filtros */}
         <div className="flex flex-col sm:flex-row gap-3 md:gap-4 w-full">
           <div className="flex-1 w-full">
@@ -687,6 +757,14 @@ export default function FabricanteProdutos() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-500 hover:to-green-500">
+                    <TableHead className="text-white font-semibold w-8 px-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0}
+                        onChange={handleSelectAll}
+                        className="w-3 h-3 cursor-pointer"
+                      />
+                    </TableHead>
                     <TableHead className="text-white font-semibold">Foto</TableHead>
                     <TableHead className="text-white font-semibold">Código</TableHead>
                     <TableHead className="text-white font-semibold">Nome</TableHead>
@@ -700,8 +778,16 @@ export default function FabricanteProdutos() {
                   {filteredProducts.map((product, index) => (
                     <TableRow 
                       key={product.id} 
-                      className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50 transition-colors`}
+                      className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} ${selectedProducts.includes(product.id) ? 'bg-purple-50 border-l-4 border-l-purple-500' : ''} hover:bg-blue-50 transition-colors`}
                     >
+                      <TableCell className="px-2">
+                        <input
+                          type="checkbox"
+                          checked={selectedProducts.includes(product.id)}
+                          onChange={() => handleSelectProduct(product.id)}
+                          className="w-3 h-3 cursor-pointer"
+                        />
+                      </TableCell>
                       <TableCell>
                         <div className="w-12 h-12 bg-gray-100 rounded overflow-hidden">
                           {product.foto ? (
@@ -858,6 +944,46 @@ export default function FabricanteProdutos() {
             </div>
           )}
         </div>
+
+        {/* Dialog Trocar Categoria em Lote */}
+        <Dialog open={showBulkCategoryDialog} onOpenChange={setShowBulkCategoryDialog}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Package className="w-5 h-5 text-purple-600" />
+                Trocar Categoria em Lote
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 pt-2">
+              <p className="text-sm text-gray-600">
+                Selecione a nova categoria para os <strong>{selectedProducts.length}</strong> produto(s) selecionado(s).
+              </p>
+              <div>
+                <Label>Nova Categoria</Label>
+                <Select value={bulkCategory} onValueChange={setBulkCategory}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Selecione uma categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map(cat => (
+                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex justify-end gap-3">
+                <Button variant="outline" onClick={() => setShowBulkCategoryDialog(false)}>Cancelar</Button>
+                <Button
+                  onClick={handleBulkCategoryChange}
+                  disabled={!bulkCategory || applyingBulkCategory}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                >
+                  {applyingBulkCategory ? 'Aplicando...' : 'Aplicar'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Dialog de Produto */}
         <Dialog open={showDialog} onOpenChange={(open) => {
