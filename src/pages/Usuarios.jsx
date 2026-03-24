@@ -8,27 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 
 export default function Usuarios() {
@@ -40,7 +20,17 @@ export default function Usuarios() {
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState(null); // { id, field, value }
   const [showCadastroDialog, setShowCadastroDialog] = useState(false);
-  const [cadastroForm, setCadastroForm] = useState({ email: "", tipo: "fornecedor" });
+  const [cadastroForm, setCadastroForm] = useState({
+    email: "",
+    tipo: "fornecedor",
+    nome: "",
+    empresa: "",
+    whatsapp: "",
+    telefone: "",
+    cidade: "",
+    estado: "",
+    cnpj: ""
+  });
   const [submittingCadastro, setSubmittingCadastro] = useState(false);
 
   const { toast } = useToast();
@@ -160,17 +150,29 @@ export default function Usuarios() {
     e.preventDefault();
     setSubmittingCadastro(true);
     try {
-      // Convidar usuário (role sempre 'user' para fabricante/revendedor/transportador)
-      await base44.users.inviteUser(cadastroForm.email, 'user');
-
-      // Tentar atualizar tipo_usuario assim que aparecer na lista
-      // (pode demorar - o admin pode ajustar na tabela se necessário)
-      toast({
-        title: "Convite enviado!",
-        description: `Convite enviado para ${cadastroForm.email} como ${cadastroForm.tipo}. Após o primeiro acesso, defina o tipo na tabela abaixo.`,
+      // Salvar pré-cadastro com dados
+      await base44.entities.PreCadastro.create({
+        email: cadastroForm.email.trim().toLowerCase(),
+        nome: cadastroForm.nome,
+        empresa: cadastroForm.empresa,
+        whatsapp: cadastroForm.whatsapp,
+        telefone: cadastroForm.telefone,
+        cidade: cadastroForm.cidade,
+        estado: cadastroForm.estado,
+        cnpj: cadastroForm.cnpj,
+        tipo_usuario: cadastroForm.tipo,
+        aplicado: false
       });
 
-      setCadastroForm({ email: "", tipo: "fornecedor" });
+      // Enviar convite
+      await base44.users.inviteUser(cadastroForm.email.trim(), 'user');
+
+      toast({
+        title: "Usuário cadastrado!",
+        description: `Convite enviado para ${cadastroForm.email}. Os dados serão aplicados automaticamente no primeiro acesso.`,
+      });
+
+      setCadastroForm({ email: "", tipo: "fornecedor", nome: "", empresa: "", whatsapp: "", telefone: "", cidade: "", estado: "", cnpj: "" });
       setShowCadastroDialog(false);
       setTimeout(loadData, 2000);
     } catch (error) {
@@ -494,7 +496,8 @@ export default function Usuarios() {
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleCadastrarUsuario} className="space-y-4 pt-2">
-            <div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="col-span-2">
               <Label htmlFor="email-cadastro">E-mail *</Label>
               <Input
                 id="email-cadastro"
@@ -506,8 +509,8 @@ export default function Usuarios() {
                 className="mt-1"
               />
             </div>
-            <div>
-              <Label htmlFor="tipo-cadastro">Tipo de Usuário *</Label>
+            <div className="col-span-2">
+              <Label>Tipo de Usuário *</Label>
               <Select
                 value={cadastroForm.tipo}
                 onValueChange={(v) => setCadastroForm({ ...cadastroForm, tipo: v })}
@@ -522,28 +525,90 @@ export default function Usuarios() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
-              ⚠️ Um convite será enviado ao e-mail. Após o primeiro acesso, ajuste o tipo do usuário na tabela se necessário.
+            <div>
+              <Label>Nome Completo</Label>
+              <Input
+                placeholder="Nome"
+                value={cadastroForm.nome}
+                onChange={(e) => setCadastroForm({ ...cadastroForm, nome: e.target.value })}
+                className="mt-1"
+              />
             </div>
-            <div className="flex justify-end gap-3 pt-2">
-              <Button type="button" variant="outline" onClick={() => setShowCadastroDialog(false)}>
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                disabled={submittingCadastro}
-                className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+            <div>
+              <Label>Empresa</Label>
+              <Input
+                placeholder="Nome da empresa"
+                value={cadastroForm.empresa}
+                onChange={(e) => setCadastroForm({ ...cadastroForm, empresa: e.target.value })}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label>WhatsApp</Label>
+              <Input
+                placeholder="(00) 00000-0000"
+                value={cadastroForm.whatsapp}
+                onChange={(e) => setCadastroForm({ ...cadastroForm, whatsapp: e.target.value })}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label>CNPJ</Label>
+              <Input
+                placeholder="00.000.000/0001-00"
+                value={cadastroForm.cnpj}
+                onChange={(e) => setCadastroForm({ ...cadastroForm, cnpj: e.target.value })}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label>Cidade</Label>
+              <Input
+                placeholder="Cidade"
+                value={cadastroForm.cidade}
+                onChange={(e) => setCadastroForm({ ...cadastroForm, cidade: e.target.value })}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label>Estado (UF)</Label>
+              <Select
+                value={cadastroForm.estado}
+                onValueChange={(v) => setCadastroForm({ ...cadastroForm, estado: v })}
               >
-                {submittingCadastro ? (
-                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Enviando...</>
-                ) : (
-                  <><UserPlus className="w-4 h-4 mr-2" />Enviar Convite</>
-                )}
-              </Button>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="UF" />
+                </SelectTrigger>
+                <SelectContent>
+                  {["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"].map(uf => (
+                    <SelectItem key={uf} value={uf}>{uf}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+          </div>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+            💡 Os dados serão aplicados automaticamente quando o usuário fizer o primeiro login.
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <Button type="button" variant="outline" onClick={() => setShowCadastroDialog(false)}>
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              disabled={submittingCadastro}
+              className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+            >
+              {submittingCadastro ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Salvando...</>
+              ) : (
+                <><UserPlus className="w-4 h-4 mr-2" />Cadastrar e Convidar</>
+              )}
+            </Button>
+          </div>
           </form>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+          </Dialog>
     </div>
   );
 }
