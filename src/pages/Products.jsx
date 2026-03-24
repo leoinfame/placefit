@@ -50,6 +50,9 @@ export default function Products() {
   const [activeTab, setActiveTab] = useState("catalog");
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [exporting, setExporting] = useState(false);
+  const [showBulkCategoryDialog, setShowBulkCategoryDialog] = useState(false);
+  const [bulkCategory, setBulkCategory] = useState("");
+  const [applyingBulkCategory, setApplyingBulkCategory] = useState(false);
   const [importing, setImporting] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -479,7 +482,7 @@ export default function Products() {
         try {
           await base44.entities.Product.delete(productId);
           deleted++;
-          await new Promise(resolve => setTimeout(resolve, 300)); // Delay aumentado para 300ms
+          await new Promise(resolve => setTimeout(resolve, 300));
         } catch (error) {
           console.error(`Erro ao deletar produto ${productId}:`, error);
           errors++;
@@ -502,6 +505,33 @@ export default function Products() {
         });
       }
     }
+  };
+
+  const handleBulkCategoryChange = async () => {
+    if (!bulkCategory) {
+      toast({ title: "Selecione uma categoria", variant: "destructive" });
+      return;
+    }
+    setApplyingBulkCategory(true);
+    let updated = 0;
+    let errors = 0;
+    for (const productId of selectedProducts) {
+      try {
+        await base44.entities.Product.update(productId, { categoria: bulkCategory });
+        updated++;
+      } catch (error) {
+        errors++;
+      }
+    }
+    await loadProducts();
+    setSelectedProducts([]);
+    setShowBulkCategoryDialog(false);
+    setBulkCategory("");
+    setApplyingBulkCategory(false);
+    toast({
+      title: "Categorias atualizadas!",
+      description: `${updated} produto(s) atualizados${errors > 0 ? `. ${errors} erro(s).` : '.'}`,
+    });
   };
 
   // Helper to get manufacturer's name
@@ -911,6 +941,15 @@ export default function Products() {
                       >
                         <Trash2 className="w-4 h-4 mr-2" />
                         Deletar Selecionados
+                      </Button>
+                      <Button
+                        onClick={() => { setBulkCategory(""); setShowBulkCategoryDialog(true); }}
+                        size="sm"
+                        variant="outline"
+                        className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                      >
+                        <Package className="w-4 h-4 mr-2" />
+                        Trocar Categoria
                       </Button>
                       <Button
                         onClick={() => setSelectedProducts([])}
@@ -1427,6 +1466,46 @@ export default function Products() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Dialog Trocar Categoria em Lote */}
+        <Dialog open={showBulkCategoryDialog} onOpenChange={setShowBulkCategoryDialog}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Package className="w-5 h-5 text-purple-600" />
+                Trocar Categoria em Lote
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 pt-2">
+              <p className="text-sm text-gray-600">
+                Selecione a nova categoria para os <strong>{selectedProducts.length}</strong> produto(s) selecionado(s).
+              </p>
+              <div>
+                <Label>Nova Categoria</Label>
+                <Select value={bulkCategory} onValueChange={setBulkCategory}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Selecione uma categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map(cat => (
+                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex justify-end gap-3">
+                <Button variant="outline" onClick={() => setShowBulkCategoryDialog(false)}>Cancelar</Button>
+                <Button
+                  onClick={handleBulkCategoryChange}
+                  disabled={!bulkCategory || applyingBulkCategory}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                >
+                  {applyingBulkCategory ? 'Aplicando...' : 'Aplicar'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Dialog de Produto */}
         <Dialog open={showDialog} onOpenChange={(open) => {
