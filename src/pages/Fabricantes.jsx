@@ -1014,7 +1014,7 @@ export default function Fabricantes() {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-500 hover:to-blue-500">
+                  <TableRow>
                     <TableHead className="text-white font-semibold">Empresa</TableHead>
                     <TableHead className="text-white font-semibold">Responsavel</TableHead>
                     <TableHead className="text-white font-semibold">E-mail</TableHead>
@@ -2024,7 +2024,7 @@ export default function Fabricantes() {
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm border-collapse border border-gray-200">
                         <thead>
-                          <tr className="bg-gradient-to-r from-blue-500 to-green-500 text-white">
+                          <tr>
                             <th className="border border-gray-300 px-3 py-2 text-left">Codigo</th>
                             <th className="border border-gray-300 px-3 py-2 text-left">Produto</th>
                             <th className="border border-gray-300 px-3 py-2 text-left">Categoria</th>
