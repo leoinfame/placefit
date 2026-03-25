@@ -978,16 +978,16 @@ export default function MyProducts() {
                           />
                         </TableHead>
                         <TableHead className="text-center w-24">Adicionar</TableHead>
-                        <TableHead className="text-white font-semibold cursor-pointer select-none hover:bg-white/10" onClick={() => toggleCatalogSort('nome')}>
+                        <TableHead className="cursor-pointer select-none" onClick={() => toggleCatalogSort('nome')}>
                           Nome <SortIcon sortState={catalogSort} col="nome" />
                         </TableHead>
-                        <TableHead className="text-white font-semibold cursor-pointer select-none hover:bg-white/10" onClick={() => toggleCatalogSort('categoria')}>
+                        <TableHead className="cursor-pointer select-none" onClick={() => toggleCatalogSort('categoria')}>
                           Categoria <SortIcon sortState={catalogSort} col="categoria" />
                         </TableHead>
-                        <TableHead className="text-white font-semibold cursor-pointer select-none hover:bg-white/10" onClick={() => toggleCatalogSort('fabricante')}>
+                        <TableHead className="cursor-pointer select-none" onClick={() => toggleCatalogSort('fabricante')}>
                           Fabricante <SortIcon sortState={catalogSort} col="fabricante" />
                         </TableHead>
-                        <TableHead className="text-white font-semibold text-right cursor-pointer select-none hover:bg-white/10" onClick={() => toggleCatalogSort('preco')}>
+                        <TableHead className="text-right cursor-pointer select-none" onClick={() => toggleCatalogSort('preco')}>
                           Preço Sugerido <SortIcon sortState={catalogSort} col="preco" />
                         </TableHead>
                       </TableRow>
@@ -1314,17 +1314,17 @@ export default function MyProducts() {
                          <TableHead className="cursor-pointer select-none" onClick={() => toggleMySort('nome')}>
                            Produto <SortIcon sortState={mySort} col="nome" />
                          </TableHead>
-                         <TableHead className="text-white font-semibold w-40 cursor-pointer select-none hover:bg-white/10" onClick={() => toggleMySort('fabricante')}>
+                         <TableHead className="w-40 cursor-pointer select-none" onClick={() => toggleMySort('fabricante')}>
                            Fabricante <SortIcon sortState={mySort} col="fabricante" />
                          </TableHead>
-                         <TableHead className="text-white font-semibold w-32 cursor-pointer select-none hover:bg-white/10" onClick={() => toggleMySort('custo')}>
+                         <TableHead className="w-32 cursor-pointer select-none" onClick={() => toggleMySort('custo')}>
                            Preço Custo <SortIcon sortState={mySort} col="custo" />
                          </TableHead>
-                         <TableHead className="text-white font-semibold w-32 cursor-pointer select-none hover:bg-white/10" onClick={() => toggleMySort('venda')}>
+                         <TableHead className="w-32 cursor-pointer select-none" onClick={() => toggleMySort('venda')}>
                            Preço Venda (R$) <SortIcon sortState={mySort} col="venda" />
                          </TableHead>
-                         <TableHead className="text-white font-semibold text-center w-28">Disponível</TableHead>
-                         <TableHead className="text-white font-semibold text-center w-32">Ações</TableHead>
+                         <TableHead className="text-center w-28">Disponível</TableHead>
+                         <TableHead className="text-center w-32">Ações</TableHead>
                        </TableRow>
                     </TableHeader>
                     <TableBody>
