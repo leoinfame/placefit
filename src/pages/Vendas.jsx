@@ -1167,7 +1167,7 @@ export default function Vendas() {
                     {itens.length > 0 && (
                       <div className="border rounded-lg overflow-hidden">
                         <table className="w-full text-sm">
-                          <thead className="bg-gray-50">
+                         <thead>
                             <tr>
                               <th className="text-left p-3">Produto</th>
                               <th className="text-center p-3">Qtd</th>
@@ -1544,7 +1544,7 @@ export default function Vendas() {
                   <h4 className="font-semibold mb-2 text-gray-900">Produtos</h4>
                   <div className="border rounded-lg overflow-hidden">
                     <table className="w-full text-sm">
-                      <thead className="bg-gray-100">
+                      <thead>
                         <tr>
                           <th className="text-left p-2">Produto</th>
                           <th className="text-center p-2">NCM</th>
@@ -1741,7 +1741,7 @@ export default function Vendas() {
                   <h4 className="font-semibold mb-3">Itens do Pedido</h4>
                   <div className="border rounded-lg overflow-hidden">
                     <table className="w-full text-sm">
-                      <thead className="bg-gray-50">
+                     <thead>
                         <tr>
                           <th className="text-left p-3">Código</th>
                           <th className="text-left p-3">Produto</th>

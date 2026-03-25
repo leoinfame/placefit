@@ -709,7 +709,7 @@ export default function Clientes() {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-gray-50 hover:bg-gray-50">
+                  <TableRow>
                     {user?.role === 'admin' ? (
                       <>
                         <SortableTableHead sortKey="full_name" currentKey={clSortKey} currentDir={clSortDir} onSort={requestClSort}>Nome</SortableTableHead>

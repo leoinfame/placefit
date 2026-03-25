@@ -504,7 +504,7 @@ export default function Orcamentos() {
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-500 hover:to-green-500">
+                    <TableRow>
                       <TableHead className="text-white font-semibold">Número</TableHead>
                       <TableHead className="text-white font-semibold">Cliente</TableHead>
                       {user?.role === 'admin' && <TableHead className="text-white font-semibold">Fornecedor</TableHead>}
