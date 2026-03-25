@@ -380,7 +380,7 @@ export default function Frete() {
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-500 hover:to-green-500">
+                    <TableRow>
                       <TableHead className="text-white font-semibold">Status</TableHead>
                       <TableHead className="text-white font-semibold">Destino</TableHead>
                       <TableHead className="text-white font-semibold">Estado</TableHead>
