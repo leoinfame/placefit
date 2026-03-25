@@ -968,8 +968,8 @@ export default function MyProducts() {
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-500 hover:to-green-500">
-                        <TableHead className="text-white font-semibold text-center w-16">
+                      <TableRow>
+                        <TableHead className="text-center w-16">
                           <input
                             type="checkbox"
                             checked={selectedCatalogProducts.length === getFilteredProducts().filter(p => !isProductSelected(p.id)).length && getFilteredProducts().filter(p => !isProductSelected(p.id)).length > 0}
@@ -977,7 +977,7 @@ export default function MyProducts() {
                             className="w-4 h-4 cursor-pointer"
                           />
                         </TableHead>
-                        <TableHead className="text-white font-semibold text-center w-24">Adicionar</TableHead>
+                        <TableHead className="text-center w-24">Adicionar</TableHead>
                         <TableHead className="text-white font-semibold cursor-pointer select-none hover:bg-white/10" onClick={() => toggleCatalogSort('nome')}>
                           Nome <SortIcon sortState={catalogSort} col="nome" />
                         </TableHead>
@@ -1302,8 +1302,8 @@ export default function MyProducts() {
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-500 hover:to-green-500">
-                         <TableHead className="text-white font-semibold text-center w-16">
+                      <TableRow>
+                         <TableHead className="text-center w-16">
                            <input
                              type="checkbox"
                              checked={selectedProducts.length === getMyProductsFiltered().length && getMyProductsFiltered().length > 0}
@@ -1311,7 +1311,7 @@ export default function MyProducts() {
                              className="w-4 h-4 cursor-pointer"
                            />
                          </TableHead>
-                         <TableHead className="text-white font-semibold cursor-pointer select-none hover:bg-white/10" onClick={() => toggleMySort('nome')}>
+                         <TableHead className="cursor-pointer select-none" onClick={() => toggleMySort('nome')}>
                            Produto <SortIcon sortState={mySort} col="nome" />
                          </TableHead>
                          <TableHead className="text-white font-semibold w-40 cursor-pointer select-none hover:bg-white/10" onClick={() => toggleMySort('fabricante')}>
