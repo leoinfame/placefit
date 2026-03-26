@@ -1221,9 +1221,27 @@ export default function MyProducts() {
                     </p>
                   </div>
                   <div className="flex flex-col gap-2">
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      onClick={handleSelectAll}
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        onClick={handleBulkActivate}
+                        disabled={applyingBulk || selectedProducts.length === 0}
+                        variant="outline"
+                        className="border-green-200 text-green-700 hover:bg-green-50"
+                      >
+                        <Power className="w-4 h-4 mr-2" />
+                        Ativar Selecionados
+                      </Button>
+                      <Button
+                        onClick={handleBulkRemove}
+                        disabled={applyingBulk || selectedProducts.length === 0}
+                        variant="outline"
+                        className="border-red-200 text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Remover Selecionados
+                      </Button>
+                      <Button
+                        onClick={handleSelectAll}
                         variant="outline"
                       >
                         <CheckSquare className="w-4 h-4 mr-2" />
