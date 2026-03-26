@@ -430,6 +430,30 @@ export default function MyProducts() {
     setApplyingBulk(false);
   };
 
+  const handleBulkRemove = async () => {
+    if (selectedProducts.length === 0) {
+      toast({ title: "Erro", description: "Selecione pelo menos um produto.", variant: "destructive" });
+      return;
+    }
+    if (!window.confirm(`Remover ${selectedProducts.length} produto(s) da sua tabela?`)) return;
+
+    setApplyingBulk(true);
+    try {
+      for (const productId of selectedProducts) {
+        const supplierProduct = supplierProducts.find(sp => sp.product_id === productId);
+        if (supplierProduct) {
+          await base44.entities.SupplierProduct.delete(supplierProduct.id);
+        }
+      }
+      toast({ title: "Removido!", description: `${selectedProducts.length} produto(s) removidos da sua tabela.` });
+      setSelectedProducts([]);
+      await loadData();
+    } catch (error) {
+      toast({ title: "Erro", description: "Erro ao remover produtos.", variant: "destructive" });
+    }
+    setApplyingBulk(false);
+  };
+
   const handleSelectAllCatalog = () => {
     const filteredIds = getFilteredProducts().filter(p => !isProductSelected(p.id)).map(p => p.id);
     if (selectedCatalogProducts.length === filteredIds.length && filteredIds.length > 0) {
@@ -1206,6 +1230,15 @@ export default function MyProducts() {
                       >
                         <Power className="w-4 h-4 mr-2" />
                         Ativar Selecionados
+                      </Button>
+                      <Button
+                        onClick={handleBulkRemove}
+                        disabled={applyingBulk || selectedProducts.length === 0}
+                        variant="outline"
+                        className="border-red-200 text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Remover Selecionados
                       </Button>
                       <Button
                         onClick={handleSelectAll}
