@@ -1045,11 +1045,17 @@ export default function MyProducts() {
                               )}
                             </TableCell>
                             <TableCell className="text-center">
-                              <Switch
-                                checked={isProductSelected(product.id)}
-                                onCheckedChange={() => handleProductToggle(product)}
-                                disabled={!user?.aprovado}
-                              />
+                              {isProductSelected(product.id) ? (
+                                <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 border-green-300">
+                                  ✓ Na tabela
+                                </Badge>
+                              ) : (
+                                <Switch
+                                  checked={false}
+                                  onCheckedChange={() => handleProductToggle(product)}
+                                  disabled={!user?.aprovado}
+                                />
+                              )}
                             </TableCell>
                             <TableCell className="font-medium">{product.nome}</TableCell>
                             <TableCell>
@@ -1144,12 +1150,18 @@ export default function MyProducts() {
                             </p>
                           )}
                         </div>
-                          <Switch
-                            checked={isProductSelected(product.id)}
-                            onCheckedChange={() => handleProductToggle(product)}
-                            disabled={!user?.aprovado}
-                            className="flex-shrink-0"
-                          />
+                          {isProductSelected(product.id) ? (
+                            <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 border-green-300 flex-shrink-0">
+                              ✓ Na tabela
+                            </Badge>
+                          ) : (
+                            <Switch
+                              checked={false}
+                              onCheckedChange={() => handleProductToggle(product)}
+                              disabled={!user?.aprovado}
+                              className="flex-shrink-0"
+                            />
+                          )}
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-1.5 w-full">
