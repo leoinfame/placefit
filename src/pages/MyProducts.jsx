@@ -292,6 +292,22 @@ export default function MyProducts() {
     }
   };
 
+  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+  const retryUpdate = async (fn, retries = 3, delay = 500) => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        return await fn();
+      } catch (err) {
+        if (i < retries - 1) {
+          await sleep(delay * (i + 1));
+        } else {
+          throw err;
+        }
+      }
+    }
+  };
+
   const handleBulkChangeCategory = async () => {
     if (!bulkCategory) {
       toast({ title: "Erro", description: "Selecione uma categoria.", variant: "destructive" });
@@ -304,8 +320,9 @@ export default function MyProducts() {
     setApplyingBulk(true);
     let successCount = 0;
     for (const productId of selectedProducts) {
-      await base44.entities.Product.update(productId, { categoria: bulkCategory });
+      await retryUpdate(() => base44.entities.Product.update(productId, { categoria: bulkCategory }));
       successCount++;
+      await sleep(100);
     }
     toast({ title: "Categoria atualizada!", description: `${successCount} produto(s) atualizados para "${bulkCategory}".` });
     setSelectedProducts([]);
@@ -324,20 +341,11 @@ export default function MyProducts() {
 
   const handleBulkApplyPercentage = async () => {
     if (!bulkPercentage || parseFloat(bulkPercentage) <= 0) {
-      toast({
-        title: "Erro",
-        description: "Digite um percentual válido maior que 0.",
-        variant: "destructive"
-      });
+      toast({ title: "Erro", description: "Digite um percentual válido maior que 0.", variant: "destructive" });
       return;
     }
-
     if (selectedProducts.length === 0) {
-      toast({
-        title: "Erro",
-        description: "Selecione pelo menos um produto.",
-        variant: "destructive"
-      });
+      toast({ title: "Erro", description: "Selecione pelo menos um produto.", variant: "destructive" });
       return;
     }
 
@@ -346,87 +354,54 @@ export default function MyProducts() {
     let successCount = 0;
     let skippedCount = 0;
 
-    try {
-      for (const productId of selectedProducts) {
-        const product = products.find(p => p.id === productId);
-        const supplierProduct = supplierProducts.find(sp => sp.product_id === productId);
-        
-        if (!product || !supplierProduct) {
-          skippedCount++;
-          continue;
-        }
+    for (const productId of selectedProducts) {
+      const product = products.find(p => p.id === productId);
+      const supplierProduct = supplierProducts.find(sp => sp.product_id === productId);
 
-        // Verificar se tem preço de fabricante
-        if (!product.preco_fabricante || parseFloat(product.preco_fabricante) <= 0) {
-          skippedCount++;
-          continue;
-        }
-        
-        const precoCusto = parseFloat(product.preco_fabricante);
-        const novoPreco = precoCusto * (1 + percentage / 100);
-        
-        await base44.entities.SupplierProduct.update(supplierProduct.id, {
-          preco: novoPreco,
-          disponivel: true
-        });
-        successCount++;
+      if (!product || !supplierProduct || !product.preco_fabricante || parseFloat(product.preco_fabricante) <= 0) {
+        skippedCount++;
+        continue;
       }
 
-      toast({
-        title: "Aplicação concluída!",
-        description: `${successCount} produtos atualizados com ${percentage}% de margem.${skippedCount > 0 ? ` ${skippedCount} produtos sem preço de custo foram ignorados.` : ''}`,
-      });
+      const precoCusto = parseFloat(product.preco_fabricante);
+      const novoPreco = precoCusto * (1 + percentage / 100);
 
-      setSelectedProducts([]);
-      setBulkPercentage("");
-      await loadData();
-    } catch (error) {
-      console.error("Erro ao aplicar percentual:", error);
-      toast({
-        title: "Erro",
-        description: "Erro ao aplicar percentual. Tente novamente.",
-        variant: "destructive"
-      });
+      await retryUpdate(() => base44.entities.SupplierProduct.update(supplierProduct.id, { preco: novoPreco, disponivel: true }));
+      successCount++;
+      await sleep(100);
     }
+
+    toast({
+      title: "Aplicação concluída!",
+      description: `${successCount} produtos atualizados com ${percentage}% de margem.${skippedCount > 0 ? ` ${skippedCount} produtos sem preço de custo foram ignorados.` : ''}`,
+    });
+
+    setSelectedProducts([]);
+    setBulkPercentage("");
+    await loadData();
     setApplyingBulk(false);
   };
 
   const handleBulkActivate = async () => {
     if (selectedProducts.length === 0) {
-      toast({
-        title: "Erro",
-        description: "Selecione pelo menos um produto.",
-        variant: "destructive"
-      });
+      toast({ title: "Erro", description: "Selecione pelo menos um produto.", variant: "destructive" });
       return;
     }
 
     setApplyingBulk(true);
-    try {
-      for (const productId of selectedProducts) {
-        const supplierProduct = supplierProducts.find(sp => sp.product_id === productId);
-        if (supplierProduct) {
-          await base44.entities.SupplierProduct.update(supplierProduct.id, {
-            disponivel: true
-          });
-        }
+    let successCount = 0;
+    for (const productId of selectedProducts) {
+      const supplierProduct = supplierProducts.find(sp => sp.product_id === productId);
+      if (supplierProduct) {
+        await retryUpdate(() => base44.entities.SupplierProduct.update(supplierProduct.id, { disponivel: true }));
+        successCount++;
+        await sleep(100);
       }
-
-      toast({
-        title: "Sucesso!",
-        description: `${selectedProducts.length} produtos ativados.`,
-      });
-
-      setSelectedProducts([]);
-      await loadData();
-    } catch (error) {
-      console.error("Erro ao ativar produtos:", error);
-      toast({
-        title: "Erro",
-        description: "Erro ao ativar produtos. Tente novamente.",
-        variant: "destructive"
-      });
     }
+
+    toast({ title: "Sucesso!", description: `${successCount} produtos ativados.` });
+    setSelectedProducts([]);
+    await loadData();
     setApplyingBulk(false);
   };
 
@@ -438,19 +413,18 @@ export default function MyProducts() {
     if (!window.confirm(`Remover ${selectedProducts.length} produto(s) da sua tabela?`)) return;
 
     setApplyingBulk(true);
-    try {
-      for (const productId of selectedProducts) {
-        const supplierProduct = supplierProducts.find(sp => sp.product_id === productId);
-        if (supplierProduct) {
-          await base44.entities.SupplierProduct.delete(supplierProduct.id);
-        }
+    let successCount = 0;
+    for (const productId of selectedProducts) {
+      const supplierProduct = supplierProducts.find(sp => sp.product_id === productId);
+      if (supplierProduct) {
+        await retryUpdate(() => base44.entities.SupplierProduct.delete(supplierProduct.id));
+        successCount++;
+        await sleep(100);
       }
-      toast({ title: "Removido!", description: `${selectedProducts.length} produto(s) removidos da sua tabela.` });
-      setSelectedProducts([]);
-      await loadData();
-    } catch (error) {
-      toast({ title: "Erro", description: "Erro ao remover produtos.", variant: "destructive" });
     }
+    toast({ title: "Removido!", description: `${successCount} produto(s) removidos da sua tabela.` });
+    setSelectedProducts([]);
+    await loadData();
     setApplyingBulk(false);
   };
 
@@ -473,11 +447,7 @@ export default function MyProducts() {
 
   const handleBulkAddProducts = async () => {
     if (selectedCatalogProducts.length === 0) {
-      toast({
-        title: "Erro",
-        description: "Selecione pelo menos um produto.",
-        variant: "destructive"
-      });
+      toast({ title: "Erro", description: "Selecione pelo menos um produto.", variant: "destructive" });
       return;
     }
 
@@ -485,40 +455,29 @@ export default function MyProducts() {
     let successCount = 0;
     let skippedCount = 0;
 
-    try {
-      for (const productId of selectedCatalogProducts) {
-        // Verificar se o produto já existe na lista do fornecedor
-        const alreadyExists = supplierProducts.some(sp => sp.product_id === productId);
-        
-        if (alreadyExists) {
-          skippedCount++;
-          continue;
-        }
-
-        await base44.entities.SupplierProduct.create({
-          supplier_id: user.id,
-          product_id: productId,
-          preco: 0,
-          disponivel: true
-        });
-        successCount++;
+    for (const productId of selectedCatalogProducts) {
+      const alreadyExists = supplierProducts.some(sp => sp.product_id === productId);
+      if (alreadyExists) {
+        skippedCount++;
+        continue;
       }
-
-      toast({
-        title: "Sucesso!",
-        description: `${successCount} produto(s) adicionado(s) à sua tabela.${skippedCount > 0 ? ` ${skippedCount} já estavam adicionados.` : ''}`,
-      });
-
-      setSelectedCatalogProducts([]);
-      await loadData();
-    } catch (error) {
-      console.error("Erro ao adicionar produtos:", error);
-      toast({
-        title: "Erro",
-        description: "Erro ao adicionar produtos. Tente novamente.",
-        variant: "destructive"
-      });
+      await retryUpdate(() => base44.entities.SupplierProduct.create({
+        supplier_id: user.id,
+        product_id: productId,
+        preco: 0,
+        disponivel: true
+      }));
+      successCount++;
+      await sleep(100);
     }
+
+    toast({
+      title: "Sucesso!",
+      description: `${successCount} produto(s) adicionado(s) à sua tabela.${skippedCount > 0 ? ` ${skippedCount} já estavam adicionados.` : ''}`,
+    });
+
+    setSelectedCatalogProducts([]);
+    await loadData();
     setApplyingBulk(false);
   };
 
