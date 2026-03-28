@@ -230,20 +230,20 @@ export default function Export() {
         </tr>`).join('');
 
       return `
-        <div style="margin-bottom:10px;page-break-inside:avoid;">
+        <div style="margin-bottom:10px;">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:0;padding:6px 10px;background:transparent;border:1px solid #e2e8f0;border-bottom:none;border-radius:4px 4px 0 0;">
             <span style="font-size:11px;">${icon}</span>
-            <span style="font-size:10px;font-weight:700;color:#1e293b;letter-spacing:1px;text-transform:uppercase;">${cat}</span>
+            <span style="font-size:10px;font-weight:700;color:#000000;letter-spacing:1px;text-transform:uppercase;">${cat}</span>
             <span style="margin-left:auto;font-size:8px;color:#64748b;font-weight:500;">${itens.length} item${itens.length !== 1 ? 's' : ''}</span>
           </div>
           <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-top:none;font-size:9px;">
             <thead>
               <tr style="background:transparent;">
-                <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#1e293b !important;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;white-space:nowrap;width:70px;">Código</th>
-                <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#1e293b !important;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;">Produto</th>
-                <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#1e293b !important;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;text-align:center;width:60px;">Espec.</th>
-                <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#1e293b !important;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;text-align:center;width:50px;">Und.</th>
-                <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#1e293b !important;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;text-align:right;width:70px;">Preço</th>
+                <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#000000 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;white-space:nowrap;width:70px;">Código</th>
+                <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#000000 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;">Produto</th>
+                <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#000000 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;text-align:center;width:60px;">Espec.</th>
+                <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#000000 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;text-align:center;width:50px;">Und.</th>
+                <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#000000 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;text-align:right;width:70px;">Preço</th>
               </tr>
             </thead>
             <tbody>${linhas}</tbody>
@@ -301,8 +301,9 @@ export default function Export() {
 
     @media print {
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .page-wrapper { padding: 20px 24px; }
+      .page-wrapper { padding: 8mm; }
       .cover { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      th { color: #000000 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     }
   </style>
 </head>
