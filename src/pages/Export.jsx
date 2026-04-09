@@ -238,13 +238,13 @@ export default function Export() {
           </div>
           <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-top:none;font-size:9px;">
             <thead>
-              <tr style="background:transparent;">
-                <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#000000 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;white-space:nowrap;width:70px;">Código</th>
-                <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#000000 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;">Produto</th>
-                <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#000000 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;text-align:center;width:60px;">Espec.</th>
-                <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#000000 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;text-align:center;width:50px;">Und.</th>
-                <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#000000 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;text-align:right;width:70px;">Preço</th>
-              </tr>
+             <tr style="background:#ffffff !important;">
+               <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#000000 !important;background:#ffffff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;white-space:nowrap;width:70px;">Código</th>
+               <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#000000 !important;background:#ffffff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;">Produto</th>
+               <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#000000 !important;background:#ffffff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;text-align:center;width:60px;">Espec.</th>
+               <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#000000 !important;background:#ffffff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;text-align:center;width:50px;">Und.</th>
+               <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#000000 !important;background:#ffffff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;text-align:right;width:70px;">Preço</th>
+             </tr>
             </thead>
             <tbody>${linhas}</tbody>
           </table>
@@ -299,11 +299,12 @@ export default function Export() {
     .footer-bottom { margin-top: 8px; display: flex; justify-content: space-between; align-items: center; }
     .footer-brand { font-size: 7px; color: #94a3b8; }
 
+    th { background-color: #ffffff !important; color: #000000 !important; }
     @media print {
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .page-wrapper { padding: 8mm; }
       .cover { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      th { color: #000000 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      th { background-color: #ffffff !important; color: #000000 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     }
   </style>
 </head>
