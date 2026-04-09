@@ -600,13 +600,13 @@ export default function Catalogo() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
+    a.download = `catalogo_${(user?.empresa || 'catalogo').replace(/\s+/g, '_')}.html`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    URL.revokeObjectURL(url);
     setExportingPDF(false);
-    toast({ title: "PDF gerado!", description: "Use o botão 'Baixar PDF' na janela aberta para salvar como PDF." });
+    toast({ title: "Arquivo baixado!", description: "Abra o arquivo .html no seu navegador e use Ctrl+P (ou Cmd+P) para salvar como PDF." });
   };
 
   if (loading) {
