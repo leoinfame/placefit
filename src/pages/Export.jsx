@@ -408,11 +408,9 @@ export default function Export() {
 <div style="height:50px;"></div>
 <style>@media print{#pbar,#pbar+div{display:none!important;}}</style>`;
     const finalHTML = htmlContent.replace('<body>', '<body>' + printBar);
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(finalHTML);
-      printWindow.document.close();
-    }
+    const blob = new Blob([finalHTML], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
   };
 
   const getPublicLink = () => {

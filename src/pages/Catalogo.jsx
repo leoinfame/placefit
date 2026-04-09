@@ -596,15 +596,11 @@ export default function Catalogo() {
 
     const finalContent = printContent.replace('<body>', '<body>' + downloadBar);
 
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(finalContent);
-    printWindow.document.close();
-    printWindow.onload = () => {
-      setTimeout(() => {
-        setExportingPDF(false);
-        toast({ title: "PDF gerado!", description: "Use o botão 'Baixar PDF' na janela aberta para salvar como PDF." });
-      }, 500);
-    };
+    const blob = new Blob([finalContent], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    setExportingPDF(false);
+    toast({ title: "PDF gerado!", description: "Use o botão 'Baixar PDF' na janela aberta para salvar como PDF." });
   };
 
   if (loading) {
