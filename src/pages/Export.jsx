@@ -4,6 +4,7 @@ import { useLogoColors } from "@/components/export/useLogoColors";
 import {
   Download,
   FileText,
+  Printer,
   Table,
   Eye,
   RefreshCw,
@@ -686,21 +687,19 @@ export default function Export() {
 
                 <Button
                   onClick={() => generatePDF(false)}
-                  disabled={previewData.length === 0}
                   variant="outline"
                   className="w-full hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200"
                 >
-                  <FileText className="w-4 h-4 mr-2" />
+                  <Download className="w-4 h-4 mr-2" />
                   Baixar PDF
                 </Button>
 
                 <Button
                   onClick={() => generatePDF(true)}
-                  disabled={previewData.length === 0}
                   variant="outline"
                   className="w-full hover:bg-purple-50 hover:text-purple-700 hover:border-purple-200"
                 >
-                  <FileText className="w-4 h-4 mr-2" />
+                  <Printer className="w-4 h-4 mr-2" />
                   Imprimir
                 </Button>
               </CardContent>
