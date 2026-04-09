@@ -398,9 +398,19 @@ export default function Export() {
     }
 
     const htmlContent = buildPDFHTML();
+    const printBar = `<div id="pbar" style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#1e3a5f;color:#fff;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;font-family:Arial,sans-serif;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,0.4);">
+  <span>📄 Tabela de Preços pronta</span>
+  <div style="display:flex;gap:10px;">
+    <button onclick="window.print()" style="background:#16a34a;color:#fff;border:none;padding:8px 22px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">🖨️ Imprimir / Salvar PDF</button>
+    <button onclick="document.getElementById('pbar').remove()" style="background:rgba(255,255,255,0.15);color:#fff;border:none;padding:8px 14px;border-radius:6px;font-size:13px;cursor:pointer;">✕ Fechar barra</button>
+  </div>
+</div>
+<div style="height:50px;"></div>
+<style>@media print{#pbar,#pbar+div{display:none!important;}}</style>`;
+    const finalHTML = htmlContent.replace('<body>', '<body>' + printBar);
     const printWindow = window.open('', '_blank');
     if (printWindow) {
-      printWindow.document.write(htmlContent);
+      printWindow.document.write(finalHTML);
       printWindow.document.close();
     }
   };
