@@ -219,14 +219,14 @@ export default function PublicTable() {
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead>
-                    <tr style={{background: colors ? `linear-gradient(90deg, ${colors.primaryDark} 0%, ${colors.primary} 60%, ${colors.secondary} 100%)` : 'linear-gradient(90deg,#1e3a5f,#1e40af)'}}>
-                      <th className="border border-gray-300 px-4 py-3 text-left font-semibold" style={{color: '#1e293b !important'}}>Código</th>
-                      <th className="border border-gray-300 px-4 py-3 text-left font-semibold" style={{color: '#1e293b !important'}}>Produto</th>
-                      <th className="border border-gray-300 px-4 py-3 text-left font-semibold" style={{color: '#1e293b !important'}}>Categoria</th>
-                      <th className="border border-gray-300 px-4 py-3 text-center font-semibold" style={{color: '#1e293b !important'}}>Unidade</th>
-                      <th className="border border-gray-300 px-4 py-3 text-center font-semibold" style={{color: '#1e293b !important'}}>Peso</th>
-                      <th className="border border-gray-300 px-4 py-3 text-center font-semibold" style={{color: '#1e293b !important'}}>Dimensões</th>
-                      <th className="border border-gray-300 px-4 py-3 text-right font-semibold" style={{color: '#1e293b !important'}}>Preço</th>
+                    <tr style={{background: 'transparent', borderBottom: `2px solid ${colors ? colors.primary : '#1e3a5f'}`}}>
+                      <th className="border border-gray-200 px-4 py-3 text-left font-semibold text-gray-900 bg-white">Código</th>
+                      <th className="border border-gray-200 px-4 py-3 text-left font-semibold text-gray-900 bg-white">Produto</th>
+                      <th className="border border-gray-200 px-4 py-3 text-left font-semibold text-gray-900 bg-white">Categoria</th>
+                      <th className="border border-gray-200 px-4 py-3 text-center font-semibold text-gray-900 bg-white">Unidade</th>
+                      <th className="border border-gray-200 px-4 py-3 text-center font-semibold text-gray-900 bg-white">Peso</th>
+                      <th className="border border-gray-200 px-4 py-3 text-center font-semibold text-gray-900 bg-white">Dimensões</th>
+                      <th className="border border-gray-200 px-4 py-3 text-right font-semibold text-gray-900 bg-white">Preço</th>
                     </tr>
                   </thead>
                   <tbody>

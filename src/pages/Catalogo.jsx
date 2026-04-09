@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Package, Search, ImageIcon, FileText } from "lucide-react";
+import { useLogoColors } from "@/components/export/useLogoColors";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +15,7 @@ export default function Catalogo() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [exportingPDF, setExportingPDF] = useState(false);
+  const logoColors = useLogoColors(user?.logomarca);
 
   const { toast } = useToast();
 
@@ -612,36 +614,29 @@ export default function Catalogo() {
     <div className="p-4 md:p-8 min-h-screen">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Cabeçalho da Empresa */}
-        <Card className="bg-gradient-to-r from-blue-50 to-green-50 border-0 shadow-lg">
-          <CardContent className="p-6 md:p-8">
+        <Card className="border-0 shadow-lg overflow-hidden">
+          <div style={{height: '4px', background: logoColors ? `linear-gradient(90deg, ${logoColors.primaryDark}, ${logoColors.primary}, ${logoColors.secondary})` : 'linear-gradient(90deg,#0f172a,#1e3a5f,#1e40af)'}} />
+          <CardContent className="p-6 md:p-8 bg-white">
             <div className="flex flex-col md:flex-row items-center gap-6">
               {user?.logomarca && (
-                <div className="w-24 h-24 md:w-32 md:h-32 bg-white rounded-xl shadow-md p-4 flex-shrink-0">
-                  <img 
-                    src={user.logomarca} 
-                    alt="Logo" 
-                    className="w-full h-full object-contain"
-                  />
+                <div className="w-24 h-24 md:w-32 md:h-32 bg-white rounded-xl shadow-md p-4 flex-shrink-0" style={{border: `1px solid ${logoColors?.lightBorder || '#e2e8f0'}`}}>
+                  <img src={user.logomarca} alt="Logo" className="w-full h-full object-contain" />
                 </div>
               )}
               <div className="flex-1 text-center md:text-left">
-                <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent mb-2">
+                <h1 className="text-3xl md:text-4xl font-bold mb-2" style={{color: logoColors?.primaryDark || '#0f172a'}}>
                   {user?.empresa || user?.full_name}
                 </h1>
-                {user?.cnpj && (
-                  <p className="text-gray-600 mb-1">CNPJ: {user.cnpj}</p>
-                )}
-                {user?.endereco && (
-                  <p className="text-gray-600 mb-1">{user.endereco}</p>
-                )}
+                {user?.cnpj && <p className="text-gray-600 mb-1">CNPJ: {user.cnpj}</p>}
+                {user?.endereco && <p className="text-gray-600 mb-1">{user.endereco}</p>}
                 <div className="flex flex-wrap gap-3 justify-center md:justify-start mt-3">
                   {user?.whatsapp && (
-                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                    <Badge variant="outline" style={{color: logoColors?.primary || '#1e3a5f', borderColor: logoColors?.lightBorder || '#bfdbfe', background: logoColors?.light || '#eff6ff'}}>
                       WhatsApp: {user.whatsapp}
                     </Badge>
                   )}
                   {user?.site && (
-                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                    <Badge variant="outline" style={{color: logoColors?.primary || '#1e3a5f', borderColor: logoColors?.lightBorder || '#bfdbfe', background: logoColors?.light || '#eff6ff'}}>
                       {user.site}
                     </Badge>
                   )}
@@ -703,17 +698,17 @@ export default function Catalogo() {
           return Object.keys(categorias).sort().map((cat, idx) => (
             <div key={cat} className="space-y-4">
               {/* Header da Categoria */}
-              <div className={`bg-gradient-to-r ${catColors[idx % catColors.length]} rounded-xl px-5 py-4 flex items-center justify-between shadow-md`}>
+              <div className="rounded-xl px-5 py-4 flex items-center justify-between shadow-md" style={{background: logoColors ? `linear-gradient(135deg, ${logoColors.primaryDark} 0%, ${logoColors.primary} 60%, ${logoColors.secondary} 100%)` : `linear-gradient(135deg, #0f172a, #1e3a5f, #1e40af)`}}>
                 <div className="flex items-center gap-4">
-                  <span className="text-4xl font-black text-white/20 leading-none tabular-nums">
+                  <span className="text-4xl font-black leading-none tabular-nums" style={{color: 'rgba(255,255,255,0.2)'}}>
                     {String(idx + 1).padStart(2, '0')}
                   </span>
                   <div>
-                    <h2 className="text-white font-bold text-xl leading-tight">{cat}</h2>
-                    <p className="text-white/70 text-xs mt-0.5">{categorias[cat].length} produto{categorias[cat].length > 1 ? 's' : ''}</p>
+                    <h2 className="font-bold text-xl leading-tight" style={{color: logoColors?.textOnPrimary || '#ffffff'}}>{cat}</h2>
+                    <p className="text-xs mt-0.5" style={{color: `${logoColors?.textOnPrimary || '#ffffff'}99`}}>{categorias[cat].length} produto{categorias[cat].length > 1 ? 's' : ''}</p>
                   </div>
                 </div>
-                <Package className="w-8 h-8 text-white/30" />
+                <Package className="w-8 h-8" style={{color: 'rgba(255,255,255,0.3)'}} />
               </div>
 
               {/* Grid da Categoria */}
