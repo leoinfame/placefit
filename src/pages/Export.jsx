@@ -387,7 +387,7 @@ export default function Export() {
 </html>`;
   };
 
-  const generatePDF = (autoprint = false) => {
+  const generatePDF = () => {
     if (previewData.length === 0) {
       toast({
         title: "Nenhum produto para gerar PDF",
@@ -397,41 +397,11 @@ export default function Export() {
       return;
     }
 
-    try {
-      const htmlContent = buildPDFHTML();
-      const downloadBar = `
-      <div id="dl-bar" style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#1e3a5f;color:#fff;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;font-family:Arial,sans-serif;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">
-        <span>📄 <strong>Tabela de Preços</strong> — Pronta para exportar</span>
-        <div style="display:flex;gap:10px;">
-          <button onclick="window.print()" style="background:#16a34a;color:#fff;border:none;padding:8px 20px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">⬇️ Baixar / Imprimir PDF</button>
-          <button onclick="document.getElementById('dl-bar').style.display='none'" style="background:rgba(255,255,255,0.15);color:#fff;border:none;padding:8px 14px;border-radius:6px;font-size:13px;cursor:pointer;">✕</button>
-        </div>
-      </div>
-      <div style="height:52px;"></div>
-      <style>@media print { #dl-bar, #dl-bar + div { display:none !important; } }</style>`;
-
-      const finalHTML = htmlContent.replace('<body>', '<body>' + downloadBar);
-
-      const printWindow = window.open('', '_blank');
-      if (printWindow) {
-        printWindow.document.write(finalHTML);
-        printWindow.document.close();
-        if (autoprint) {
-          setTimeout(() => printWindow.print(), 800);
-        }
-      }
-
-      toast({
-        title: "PDF pronto!",
-        description: "Use o botão \"Baixar / Imprimir PDF\" na janela aberta.",
-      });
-    } catch (error) {
-      console.error("Erro ao gerar PDF:", error);
-      toast({
-        title: "Erro",
-        description: "Erro ao gerar PDF. Tente novamente.",
-        variant: "destructive"
-      });
+    const htmlContent = buildPDFHTML();
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
     }
   };
 
@@ -686,21 +656,13 @@ export default function Export() {
                 </Button>
 
                 <Button
-                  onClick={() => generatePDF(false)}
+                  onClick={generatePDF}
+                  disabled={previewData.length === 0}
                   variant="outline"
                   className="w-full hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200"
                 >
-                  <Download className="w-4 h-4 mr-2" />
-                  Baixar PDF
-                </Button>
-
-                <Button
-                  onClick={() => generatePDF(true)}
-                  variant="outline"
-                  className="w-full hover:bg-purple-50 hover:text-purple-700 hover:border-purple-200"
-                >
-                  <Printer className="w-4 h-4 mr-2" />
-                  Imprimir
+                  <FileText className="w-4 h-4 mr-2" />
+                  Gerar PDF
                 </Button>
               </CardContent>
             </Card>
