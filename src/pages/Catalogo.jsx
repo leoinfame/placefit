@@ -583,15 +583,27 @@ export default function Catalogo() {
 </body>
 </html>`;
 
+    const downloadBar = `
+    <div id="download-bar" style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#1e3a5f;color:#fff;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;font-family:Arial,sans-serif;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">
+      <span>📄 <strong>Catálogo de Produtos</strong> — Pronto para download</span>
+      <div style="display:flex;gap:10px;">
+        <button onclick="window.print()" style="background:#16a34a;color:#fff;border:none;padding:8px 20px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">⬇️ Baixar PDF</button>
+        <button onclick="document.getElementById('download-bar').style.display='none'" style="background:rgba(255,255,255,0.15);color:#fff;border:none;padding:8px 14px;border-radius:6px;font-size:13px;cursor:pointer;">✕</button>
+      </div>
+    </div>
+    <div style="height:52px;"></div>
+    <style>@media print { #download-bar, #download-bar + div { display:none !important; } }</style>`;
+
+    const finalContent = printContent.replace('<body>', '<body>' + downloadBar);
+
     const printWindow = window.open('', '_blank');
-    printWindow.document.write(printContent);
+    printWindow.document.write(finalContent);
     printWindow.document.close();
     printWindow.onload = () => {
       setTimeout(() => {
-        printWindow.print();
         setExportingPDF(false);
-        toast({ title: "PDF gerado!", description: "Use a janela de impressão para salvar como PDF." });
-      }, 1000);
+        toast({ title: "PDF gerado!", description: "Use o botão 'Baixar PDF' na janela aberta para salvar como PDF." });
+      }, 500);
     };
   };
 
