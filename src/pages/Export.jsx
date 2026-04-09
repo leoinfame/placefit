@@ -410,7 +410,13 @@ export default function Export() {
     const finalHTML = htmlContent.replace('<body>', '<body>' + printBar);
     const blob = new Blob([finalHTML], { type: 'text/html;charset=utf-8' });
     const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   const getPublicLink = () => {

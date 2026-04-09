@@ -598,7 +598,13 @@ export default function Catalogo() {
 
     const blob = new Blob([finalContent], { type: 'text/html;charset=utf-8' });
     const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
     setExportingPDF(false);
     toast({ title: "PDF gerado!", description: "Use o botão 'Baixar PDF' na janela aberta para salvar como PDF." });
   };
