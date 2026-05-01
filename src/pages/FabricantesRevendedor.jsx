@@ -59,12 +59,21 @@ export default function FabricantesRevendedor() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      // Buscar fabricantes diretamente da entidade User
-      const allUsers = await base44.entities.User.list();
-      const fabricantesList = allUsers.filter(u => 
-        u.tipo_usuario === 'fabricante' && u.aprovado === true
-      );
+      // Buscar fabricantes via produtos aprovados (sem precisar listar Users)
+      const allProducts = await base44.entities.Product.filter({ aprovado_produto: true });
       
+      const fabricantesMap = {};
+      allProducts.forEach(p => {
+        if (p.fabricante_id && p.fabricante_nome && !fabricantesMap[p.fabricante_id]) {
+          fabricantesMap[p.fabricante_id] = {
+            id: p.fabricante_id,
+            empresa: p.fabricante_nome,
+            full_name: p.fabricante_nome,
+          };
+        }
+      });
+      
+      const fabricantesList = Object.values(fabricantesMap);
       setFabricantes(fabricantesList);
       setFilteredFabricantes(fabricantesList);
       
