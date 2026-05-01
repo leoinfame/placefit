@@ -60,11 +60,12 @@ export default function FabricantesRevendedor() {
       setUser(currentUser);
 
       // Buscar fabricantes via produtos aprovados (sem precisar listar Users)
-      const allProducts = await base44.entities.Product.filter({ aprovado_produto: true });
+      // Usar list com limite alto para pegar todos os produtos
+      const allProducts = await base44.entities.Product.list(null, 500);
       
       const fabricantesMap = {};
       allProducts.forEach(p => {
-        if (p.fabricante_id && p.fabricante_nome && !fabricantesMap[p.fabricante_id]) {
+        if (p.fabricante_id && p.fabricante_nome && p.aprovado_produto === true && !fabricantesMap[p.fabricante_id]) {
           fabricantesMap[p.fabricante_id] = {
             id: p.fabricante_id,
             empresa: p.fabricante_nome,
