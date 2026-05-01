@@ -59,23 +59,11 @@ export default function FabricantesRevendedor() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      // Usar função backend com service role
-      console.log("🔍 Buscando fabricantes via backend...");
-      const response = await base44.functions.invoke('getFabricantes', {});
-      
-      console.log("📦 Resposta recebida:", response);
-      
-      // Verificar se a resposta tem a estrutura correta
-      if (!response || !response.data) {
-        throw new Error("Nenhuma resposta do servidor");
-      }
-      
-      if (!response.data.fabricantes) {
-        throw new Error("Formato de resposta inválido do servidor");
-      }
-      
-      const fabricantesList = response.data.fabricantes;
-      console.log("✅ Fabricantes encontrados:", fabricantesList.length);
+      // Buscar fabricantes diretamente da entidade User
+      const allUsers = await base44.entities.User.list();
+      const fabricantesList = allUsers.filter(u => 
+        u.tipo_usuario === 'fabricante' && u.aprovado === true
+      );
       
       setFabricantes(fabricantesList);
       setFilteredFabricantes(fabricantesList);
