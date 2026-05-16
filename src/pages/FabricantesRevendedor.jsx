@@ -59,22 +59,24 @@ export default function FabricantesRevendedor() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      // Buscar fabricantes via produtos aprovados (sem precisar listar Users)
-      // Usar list com limite alto para pegar todos os produtos
-      const allProducts = await base44.entities.Product.list(null, 500);
+      // Usar função backend com service role
+      console.log("🔍 Buscando fabricantes via backend...");
+      const response = await base44.functions.invoke('getFabricantes', {});
       
-      const fabricantesMap = {};
-      allProducts.forEach(p => {
-        if (p.fabricante_id && p.fabricante_nome && p.aprovado_produto === true && !fabricantesMap[p.fabricante_id]) {
-          fabricantesMap[p.fabricante_id] = {
-            id: p.fabricante_id,
-            empresa: p.fabricante_nome,
-            full_name: p.fabricante_nome,
-          };
-        }
-      });
+      console.log("📦 Resposta recebida:", response);
       
-      const fabricantesList = Object.values(fabricantesMap);
+      // Verificar se a resposta tem a estrutura correta
+      if (!response || !response.data) {
+        throw new Error("Nenhuma resposta do servidor");
+      }
+      
+      if (!response.data.fabricantes) {
+        throw new Error("Formato de resposta inválido do servidor");
+      }
+      
+      const fabricantesList = response.data.fabricantes;
+      console.log("✅ Fabricantes encontrados:", fabricantesList.length);
+      
       setFabricantes(fabricantesList);
       setFilteredFabricantes(fabricantesList);
       

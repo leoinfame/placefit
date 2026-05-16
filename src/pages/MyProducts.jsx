@@ -119,18 +119,26 @@ export default function MyProducts() {
       
       let uniqueFabricantes = [];
       
-      // Extrair fabricantes diretamente dos produtos (sem backend function)
-      productsData.forEach(p => {
-        if (p.fabricante_id && p.fabricante_nome && fabricanteIds.includes(p.fabricante_id)) {
-          if (!uniqueFabricantes.find(f => f.id === p.fabricante_id)) {
-            uniqueFabricantes.push({
-              id: p.fabricante_id,
-              empresa: p.fabricante_nome,
-              full_name: p.fabricante_nome,
-            });
-          }
+      // Buscar fabricantes via backend function usando service role
+      try {
+        const response = await base44.functions.invoke('getFabricantes', {});
+        
+        if (response.data && response.data.fabricantes) {
+          const allFabricantes = response.data.fabricantes;
+          uniqueFabricantes = allFabricantes.filter(u => fabricanteIds.includes(u.id));
+          console.log("Fabricantes carregados via backend:", uniqueFabricantes);
+        } else {
+          throw new Error("Resposta inválida do servidor");
         }
-      });
+      } catch (err) {
+        console.error("Erro ao buscar fabricantes:", err);
+        toast({
+          title: "Erro ao carregar fabricantes",
+          description: "Não foi possível carregar a lista de fabricantes.",
+          variant: "destructive"
+        });
+        uniqueFabricantes = [];
+      }
 
       // Extrair fabricantes dos produtos selecionados
       const myProductIds = supplierProductsData.map(sp => sp.product_id);
