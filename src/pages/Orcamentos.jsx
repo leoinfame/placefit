@@ -71,6 +71,8 @@ export default function Orcamentos() {
     desconto: 0,
     observacoes: ""
   });
+  const [newDescontoPct, setNewDescontoPct] = useState(0);
+  const [editDescontoPct, setEditDescontoPct] = useState(0);
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -718,32 +720,53 @@ export default function Orcamentos() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Frete (R$)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={newOrcamento.frete}
-                    onFocus={(e) => {
-                      if (parseFloat(e.target.value) === 0) e.target.select();
-                    }}
-                    onChange={(e) => setNewOrcamento({...newOrcamento, frete: parseFloat(e.target.value) || 0})}
-                  />
-                </div>
-                <div>
-                  <Label>Desconto (R$)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={newOrcamento.desconto}
-                    onFocus={(e) => {
-                      if (parseFloat(e.target.value) === 0) e.target.select();
-                    }}
-                    onChange={(e) => setNewOrcamento({...newOrcamento, desconto: parseFloat(e.target.value) || 0})}
-                  />
-                </div>
-              </div>
+              <div className="grid grid-cols-3 gap-4">
+                 <div>
+                   <Label>Frete (R$)</Label>
+                   <Input
+                     type="number"
+                     step="0.01"
+                     value={newOrcamento.frete}
+                     onFocus={(e) => {
+                       if (parseFloat(e.target.value) === 0) e.target.select();
+                     }}
+                     onChange={(e) => setNewOrcamento({...newOrcamento, frete: parseFloat(e.target.value) || 0})}
+                   />
+                 </div>
+                 <div>
+                   <Label>Desconto (%)</Label>
+                   <Input
+                     type="number"
+                     step="0.1"
+                     min="0"
+                     max="100"
+                     value={newDescontoPct}
+                     onFocus={(e) => { if (parseFloat(e.target.value) === 0) e.target.select(); }}
+                     onChange={(e) => {
+                       const pct = parseFloat(e.target.value) || 0;
+                       setNewDescontoPct(pct);
+                       const descontoValor = (newSubtotal * pct) / 100;
+                       setNewOrcamento(prev => ({ ...prev, desconto: descontoValor }));
+                     }}
+                   />
+                 </div>
+                 <div>
+                   <Label>Desconto (R$)</Label>
+                   <Input
+                     type="number"
+                     step="0.01"
+                     value={newOrcamento.desconto}
+                     onFocus={(e) => {
+                       if (parseFloat(e.target.value) === 0) e.target.select();
+                     }}
+                     onChange={(e) => {
+                       const val = parseFloat(e.target.value) || 0;
+                       setNewOrcamento({...newOrcamento, desconto: val});
+                       setNewDescontoPct(newSubtotal > 0 ? parseFloat(((val / newSubtotal) * 100).toFixed(2)) : 0);
+                     }}
+                   />
+                 </div>
+               </div>
 
               <div>
                 <Label>Observações</Label>
@@ -866,32 +889,58 @@ export default function Orcamentos() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Frete (R$)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={editingOrcamento.frete}
-                      onFocus={(e) => {
-                        if (parseFloat(e.target.value) === 0) e.target.select();
-                      }}
-                      onChange={(e) => setEditingOrcamento({...editingOrcamento, frete: parseFloat(e.target.value) || 0})}
-                    />
-                  </div>
-                  <div>
-                    <Label>Desconto (R$)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={editingOrcamento.desconto}
-                      onFocus={(e) => {
-                        if (parseFloat(e.target.value) === 0) e.target.select();
-                      }}
-                      onChange={(e) => setEditingOrcamento({...editingOrcamento, desconto: parseFloat(e.target.value) || 0})}
-                    />
-                  </div>
-                </div>
+                {(() => {
+                  const editSubtotal = editingOrcamento.itens.reduce((sum, item) => sum + (item.subtotal || 0), 0);
+                  return (
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <Label>Frete (R$)</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={editingOrcamento.frete}
+                          onFocus={(e) => {
+                            if (parseFloat(e.target.value) === 0) e.target.select();
+                          }}
+                          onChange={(e) => setEditingOrcamento({...editingOrcamento, frete: parseFloat(e.target.value) || 0})}
+                        />
+                      </div>
+                      <div>
+                        <Label>Desconto (%)</Label>
+                        <Input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          max="100"
+                          value={editDescontoPct}
+                          onFocus={(e) => { if (parseFloat(e.target.value) === 0) e.target.select(); }}
+                          onChange={(e) => {
+                            const pct = parseFloat(e.target.value) || 0;
+                            setEditDescontoPct(pct);
+                            const descontoValor = (editSubtotal * pct) / 100;
+                            setEditingOrcamento(prev => ({ ...prev, desconto: descontoValor }));
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <Label>Desconto (R$)</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={editingOrcamento.desconto}
+                          onFocus={(e) => {
+                            if (parseFloat(e.target.value) === 0) e.target.select();
+                          }}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value) || 0;
+                            setEditingOrcamento({...editingOrcamento, desconto: val});
+                            setEditDescontoPct(editSubtotal > 0 ? parseFloat(((val / editSubtotal) * 100).toFixed(2)) : 0);
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 <div>
                   <Label>Observações</Label>
