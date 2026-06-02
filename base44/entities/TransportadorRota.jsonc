@@ -1,0 +1,74 @@
+{
+  "name": "TransportadorRota",
+  "type": "object",
+  "properties": {
+    "transportador_id": {
+      "type": "string",
+      "description": "ID do transportador"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "AC",
+        "AL",
+        "AP",
+        "AM",
+        "BA",
+        "CE",
+        "DF",
+        "ES",
+        "GO",
+        "MA",
+        "MT",
+        "MS",
+        "MG",
+        "PA",
+        "PB",
+        "PR",
+        "PE",
+        "PI",
+        "RJ",
+        "RN",
+        "RS",
+        "RO",
+        "RR",
+        "SC",
+        "SP",
+        "SE",
+        "TO"
+      ],
+      "description": "Estado da rota"
+    },
+    "cidades": {
+      "type": "string",
+      "description": "Cidades atendidas (separadas por v\u00edrgula)"
+    },
+    "periodicidade": {
+      "type": "string",
+      "description": "Periodicidade da rota (ex: semanal, quinzenal)"
+    },
+    "dias_carregamento": {
+      "type": "string",
+      "description": "Dias de carregamento de complementos"
+    },
+    "observacoes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es adicionais sobre a rota"
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Se a rota est\u00e1 ativa"
+    }
+  },
+  "required": [
+    "transportador_id",
+    "estado"
+  ],
+  "x-security": {
+    "read": "public",
+    "create": "public",
+    "update": "public",
+    "delete": "public"
+  }
+}

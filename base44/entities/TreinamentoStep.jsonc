@@ -1,0 +1,56 @@
+{
+  "name": "TreinamentoStep",
+  "type": "object",
+  "properties": {
+    "tipo_usuario": {
+      "type": "string",
+      "enum": [
+        "revendedor",
+        "fabricante",
+        "transportador"
+      ],
+      "description": "Tipo de usu\u00e1rio ao qual este passo se aplica"
+    },
+    "ordem": {
+      "type": "number",
+      "description": "Ordem de exibi\u00e7\u00e3o do passo"
+    },
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo do passo"
+    },
+    "descricao": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o/texto do passo"
+    },
+    "icone": {
+      "type": "string",
+      "description": "Emoji ou \u00edcone do passo"
+    },
+    "menu_item": {
+      "type": "string",
+      "description": "Item de menu destacado neste passo"
+    },
+    "video_url": {
+      "type": "string",
+      "description": "URL do v\u00eddeo do YouTube para este passo"
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Se este passo est\u00e1 ativo"
+    }
+  },
+  "required": [
+    "tipo_usuario",
+    "ordem",
+    "titulo",
+    "descricao"
+  ],
+  "x-security": {
+    "read": "authenticated",
+    "create": "admin",
+    "update": "admin",
+    "delete": "admin"
+  }
+}

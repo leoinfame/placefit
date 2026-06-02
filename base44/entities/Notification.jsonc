@@ -1,0 +1,64 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "supplier_id": {
+      "type": "string",
+      "description": "ID do fornecedor que receber\u00e1 a notifica\u00e7\u00e3o"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "novo_produto",
+        "alteracao_preco",
+        "produto_aprovado",
+        "mensagem_placefit"
+      ],
+      "description": "Tipo da notifica\u00e7\u00e3o"
+    },
+    "produto_id": {
+      "type": "string",
+      "description": "ID do produto relacionado"
+    },
+    "produto_nome": {
+      "type": "string",
+      "description": "Nome do produto para facilitar busca"
+    },
+    "fabricante_id": {
+      "type": "string",
+      "description": "ID do fabricante que gerou a notifica\u00e7\u00e3o"
+    },
+    "fabricante_nome": {
+      "type": "string",
+      "description": "Nome do fabricante"
+    },
+    "preco_antigo": {
+      "type": "number",
+      "description": "Pre\u00e7o anterior (para altera\u00e7\u00f5es de pre\u00e7o)"
+    },
+    "preco_novo": {
+      "type": "number",
+      "description": "Novo pre\u00e7o"
+    },
+    "mensagem": {
+      "type": "string",
+      "description": "Mensagem da notifica\u00e7\u00e3o"
+    },
+    "lida": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se a notifica\u00e7\u00e3o foi lida"
+    }
+  },
+  "required": [
+    "supplier_id",
+    "tipo",
+    "mensagem"
+  ],
+  "x-security": {
+    "create": "public",
+    "read": "public",
+    "update": "public",
+    "delete": "public"
+  }
+}

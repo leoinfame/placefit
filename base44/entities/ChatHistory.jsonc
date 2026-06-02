@@ -1,0 +1,48 @@
+{
+  "name": "ChatHistory",
+  "type": "object",
+  "properties": {
+    "revendedor_id": {
+      "type": "string",
+      "description": "ID do revendedor dono deste chat"
+    },
+    "client_phone": {
+      "type": "string",
+      "description": "N\u00famero de telefone do cliente (WhatsApp)"
+    },
+    "user_message": {
+      "type": "string",
+      "description": "Mensagem do cliente"
+    },
+    "ai_response": {
+      "type": "string",
+      "description": "Resposta do agente IA"
+    },
+    "feedback": {
+      "type": "string",
+      "enum": [
+        "pendente",
+        "aprovado",
+        "inadequado"
+      ],
+      "default": "pendente",
+      "description": "Feedback sobre a qualidade da resposta"
+    },
+    "observacoes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es do administrador"
+    }
+  },
+  "required": [
+    "revendedor_id",
+    "client_phone",
+    "user_message",
+    "ai_response"
+  ],
+  "x-security": {
+    "read": "authenticated",
+    "create": "public",
+    "update": "authenticated",
+    "delete": "authenticated"
+  }
+}
