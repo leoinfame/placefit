@@ -12,9 +12,7 @@ import {
   Check,
   X,
   Search,
-  UserPlus,
-  Sparkles,
-  AlertTriangle
+  UserPlus
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -75,9 +73,6 @@ export default function Orcamentos() {
   });
   const [newDescontoPct, setNewDescontoPct] = useState(0);
   const [editDescontoPct, setEditDescontoPct] = useState(0);
-  const [pedidoTexto, setPedidoTexto] = useState("");
-  const [interpretandoIA, setInterpretandoIA] = useState(false);
-  const [itensDificuldade, setItensDificuldade] = useState([]);
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -394,100 +389,6 @@ export default function Orcamentos() {
     await generateProfessionalPDF(orcamento, user, clientes, 'orcamento', products);
   };
 
-  const interpretarPedidoTexto = async () => {
-    if (!pedidoTexto.trim()) return;
-    setInterpretandoIA(true);
-    setItensDificuldade([]);
-
-    const catalogoResumido = products.map(p => ({
-      id: p.id,
-      cod: p.cod,
-      nome: p.nome,
-      categoria: p.categoria,
-    }));
-
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Você é um assistente especializado em equipamentos de ginástica e musculação da PlaceFit.
-Analise o texto de solicitação de orçamento abaixo e identifique os itens solicitados, comparando com o catálogo de produtos disponível.
-
-TEXTO DA SOLICITAÇÃO:
-${pedidoTexto}
-
-CATÁLOGO DE PRODUTOS DISPONÍVEIS (JSON):
-${JSON.stringify(catalogoResumido, null, 2)}
-
-INSTRUÇÕES:
-- Para cada item solicitado no texto, tente encontrar o produto mais adequado no catálogo.
-- Use correspondência por similaridade de nome, categoria e características.
-- Para itens com variações (ex: "do 1 ao 10kg"), crie uma entrada para CADA peso/variação individualmente.
-- Extraia a quantidade solicitada (padrão: 1 se não informado).
-- Se não conseguir associar um item a nenhum produto do catálogo, coloque-o em "itens_sem_correspondencia".
-- Seja flexível na busca: "Haltere 12kg" pode corresponder a "Dumbell 12" ou similar.
-
-Retorne SOMENTE o JSON conforme schema abaixo, sem explicações adicionais.`,
-      response_json_schema: {
-        type: "object",
-        properties: {
-          itens_identificados: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                product_id: { type: "string" },
-                nome: { type: "string" },
-                cod: { type: "string" },
-                quantidade: { type: "number" }
-              }
-            }
-          },
-          itens_sem_correspondencia: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                descricao: { type: "string" },
-                motivo: { type: "string" }
-              }
-            }
-          }
-        }
-      }
-    });
-
-    const itensMapeados = (result.itens_identificados || []).map(item => {
-      const produto = products.find(p => p.id === item.product_id);
-      if (!produto) return null;
-      const isFabricante = user?.tipo_usuario === 'fabricante';
-      const preco = isFabricante ? parseFloat(produto.preco_fabricante || 0) : parseFloat(produto.preco_fornecedor || 0);
-      return {
-        product_id: produto.id,
-        cod: produto.cod,
-        nome: produto.nome,
-        quantidade: item.quantidade || 1,
-        preco_unitario: preco,
-        subtotal: preco * (item.quantidade || 1)
-      };
-    }).filter(Boolean);
-
-    if (itensMapeados.length > 0) {
-      setNewOrcamento(prev => ({
-        ...prev,
-        itens: [...itensMapeados, { product_id: "", cod: "", nome: "", quantidade: 1, preco_unitario: 0, subtotal: 0 }]
-      }));
-    }
-
-    if (result.itens_sem_correspondencia?.length > 0) {
-      setItensDificuldade(result.itens_sem_correspondencia);
-    }
-
-    setInterpretandoIA(false);
-    if (itensMapeados.length > 0) {
-      toast({ title: `${itensMapeados.length} item(ns) adicionado(s)!`, description: result.itens_sem_correspondencia?.length > 0 ? "Alguns itens não foram identificados." : "Itens do texto foram adicionados ao orçamento." });
-    } else {
-      toast({ title: "Nenhum item identificado", description: "Não foi possível encontrar produtos correspondentes.", variant: "destructive" });
-    }
-  };
-
   const calcPesoTotal = (itens) => {
     return itens.reduce((sum, item) => {
       const prod = products.find(p => p.id === item.product_id);
@@ -799,58 +700,10 @@ Retorne SOMENTE o JSON conforme schema abaixo, sem explicações adicionais.`,
                 />
               </div>
 
-              {/* Pedido via Texto - IA */}
-              <div className="border border-purple-200 bg-purple-50 rounded-lg p-4 space-y-3">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-purple-600" />
-                  <Label className="text-purple-800 font-semibold">Pedido via Texto (IA)</Label>
-                </div>
-                <p className="text-xs text-purple-600">Cole o texto do cliente com os itens desejados. A IA irá identificar os produtos no catálogo automaticamente.</p>
-                <Textarea
-                  placeholder="Ex: Preciso de halteres emborrachados de 2kg a 10kg, barra W 1,20m cromada..."
-                  value={pedidoTexto}
-                  onChange={(e) => setPedidoTexto(e.target.value)}
-                  rows={5}
-                  className="bg-white border-purple-200 text-sm"
-                />
-                <Button
-                  type="button"
-                  onClick={interpretarPedidoTexto}
-                  disabled={!pedidoTexto.trim() || interpretandoIA}
-                  className="bg-purple-600 hover:bg-purple-700 text-white w-full"
-                >
-                  {interpretandoIA ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                      Interpretando...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Interpretar com IA
-                    </>
-                  )}
-                </Button>
-                {itensDificuldade.length > 0 && (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded p-3 space-y-1">
-                    <div className="flex items-center gap-2 text-yellow-800 font-semibold text-sm">
-                      <AlertTriangle className="w-4 h-4" />
-                      Itens não identificados:
-                    </div>
-                    {itensDificuldade.map((item, i) => (
-                      <div key={i} className="text-xs text-yellow-700">
-                        <span className="font-medium">• {item.descricao}</span>
-                        {item.motivo && <span className="text-yellow-600"> — {item.motivo}</span>}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
               <div>
-                 <Label className="mb-3 block">Produtos *</Label>
-                 <div className="space-y-3">
-                   {newOrcamento.itens.map((item, idx) => (
+                <Label className="mb-3 block">Produtos *</Label>
+                <div className="space-y-3">
+                  {newOrcamento.itens.map((item, idx) => (
                     <ProductAutoComplete
                       key={idx}
                       products={products}
