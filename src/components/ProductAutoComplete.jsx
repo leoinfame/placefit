@@ -24,10 +24,10 @@ export default function ProductAutoComplete({
   const dropdownRef = useRef(null);
 
   useEffect(() => {
-    if (autoFocus && inputRef.current) {
-      inputRef.current.focus();
+    if (autoFocus && inputRef.current && !selectedProduct) {
+      setTimeout(() => inputRef.current?.focus(), 50);
     }
-  }, [autoFocus]);
+  }, [autoFocus, selectedProduct]);
 
   useEffect(() => {
     if (selectedProductData?.product_id) {
@@ -78,27 +78,51 @@ export default function ProductAutoComplete({
   };
 
   if (selectedProduct) {
-    const preco = userType === 'fabricante' ? parseFloat(selectedProduct.preco_fabricante) : parseFloat(selectedProduct.preco_fornecedor);
-    
+    const currentNome = selectedProductData?.nome ?? selectedProduct.nome;
+    const currentPreco = selectedProductData?.preco_unitario ?? (userType === 'fabricante' ? parseFloat(selectedProduct.preco_fabricante) : parseFloat(selectedProduct.preco_fornecedor));
+
+    const dispatchOverride = (overrides) => {
+      if (onSelect) onSelect({
+        ...selectedProduct,
+        _override: true,
+        preco_fornecedor: currentPreco,
+        preco_fabricante: currentPreco,
+        nome: currentNome,
+        ...overrides
+      });
+    };
+
     return (
-      <div className="flex gap-2 items-center p-3 bg-blue-50 rounded-lg border border-blue-200">
-        <div className="flex-1 flex items-center gap-2 min-w-0">
-          <Package className="w-4 h-4 text-blue-600 flex-shrink-0" />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">{selectedProduct.cod} - {selectedProduct.nome}</p>
-          </div>
-        </div>
+      <div className="flex flex-wrap gap-2 items-center p-3 bg-blue-50 rounded-lg border border-blue-200">
+        <Package className="w-4 h-4 text-blue-600 flex-shrink-0" />
+        <Input
+          value={currentNome}
+          onChange={(e) => dispatchOverride({ nome: e.target.value })}
+          className="flex-1 min-w-[120px] h-8 text-sm bg-white"
+          placeholder="Nome do produto"
+        />
+        <Input
+          type="number"
+          step="0.01"
+          min="0"
+          value={currentPreco}
+          onChange={(e) => {
+            const novoPreco = parseFloat(e.target.value) || 0;
+            dispatchOverride({ preco_fornecedor: novoPreco, preco_fabricante: novoPreco });
+          }}
+          className="w-28 h-8 text-sm text-right bg-white flex-shrink-0"
+          placeholder="Preço unit."
+        />
         <Input
           type="number"
           step="1"
           min="1"
           value={qtd}
           onChange={(e) => handleQuantidadeChange(e.target.value)}
-          className="w-20 text-center flex-shrink-0"
+          className="w-20 h-8 text-center flex-shrink-0 bg-white"
           placeholder="Qtd"
         />
-        <div className="w-28 text-right flex-shrink-0">
-          <p className="text-xs text-gray-500">Unit: R$ {preco.toFixed(2)}</p>
+        <div className="w-24 text-right flex-shrink-0">
           <p className="text-sm font-bold text-green-700">R$ {subtotal.toFixed(2)}</p>
         </div>
         <Button 

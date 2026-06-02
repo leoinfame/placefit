@@ -1,0 +1,96 @@
+{
+  "name": "PedidoCompra",
+  "type": "object",
+  "properties": {
+    "revendedor_id": {
+      "type": "string",
+      "description": "ID do revendedor que fez a compra"
+    },
+    "revendedor_nome": {
+      "type": "string",
+      "description": "Nome do revendedor"
+    },
+    "fabricante_id": {
+      "type": "string",
+      "description": "ID do fabricante que receber\u00e1 o pedido"
+    },
+    "fabricante_nome": {
+      "type": "string",
+      "description": "Nome do fabricante"
+    },
+    "venda_id": {
+      "type": "string",
+      "description": "ID da venda que gerou este pedido de compra"
+    },
+    "numero_pedido": {
+      "type": "string",
+      "description": "N\u00famero do pedido de compra"
+    },
+    "data_pedido": {
+      "type": "string",
+      "format": "date",
+      "description": "Data do pedido"
+    },
+    "itens": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "product_id": {
+            "type": "string"
+          },
+          "cod": {
+            "type": "string"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "quantidade": {
+            "type": "number"
+          },
+          "preco_unitario": {
+            "type": "number"
+          },
+          "subtotal": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Lista de produtos do pedido"
+    },
+    "total": {
+      "type": "number",
+      "description": "Total do pedido de compra"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pendente",
+        "enviado",
+        "confirmado",
+        "em_producao",
+        "despachado",
+        "recebido",
+        "cancelado"
+      ],
+      "default": "pendente",
+      "description": "Status do pedido de compra"
+    },
+    "observacoes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es sobre o pedido"
+    }
+  },
+  "required": [
+    "revendedor_id",
+    "fabricante_id",
+    "venda_id",
+    "itens"
+  ],
+  "x-security": {
+    "read": "public",
+    "create": "public",
+    "update": "public",
+    "delete": "public"
+  }
+}

@@ -66,7 +66,7 @@ export default function Orcamentos() {
   // Novo orçamento
   const [newOrcamento, setNewOrcamento] = useState({
     cliente_id: "",
-    itens: [{ product_id: "", cod: "", nome: "", quantidade: 1, preco_unitario: 0, subtotal: 0 }],
+    itens: [{ product_id: "", cod: "", nome: "", quantidade: 1, preco_unitario: 0, subtotal: 0, _key: Date.now() }],
     frete: 0,
     desconto: 0,
     observacoes: ""
@@ -151,7 +151,7 @@ export default function Orcamentos() {
       ...prev,
       itens: [
         ...prev.itens,
-        { product_id: "", cod: "", nome: "", quantidade: 1, preco_unitario: 0, subtotal: 0 }
+        { product_id: "", cod: "", nome: "", quantidade: 1, preco_unitario: 0, subtotal: 0, _key: Date.now() }
       ]
     }));
   };
@@ -169,21 +169,24 @@ export default function Orcamentos() {
 
     setNewOrcamento(prev => {
       const updatedItens = [...prev.itens];
+      const existing = updatedItens[index];
+      const qtd = product._override ? (existing?.quantidade ?? 1) : 1;
       updatedItens[index] = {
+        ...(existing || {}),
         product_id: product.id,
         cod: product.cod,
         nome: product.nome,
-        quantidade: 1,
+        quantidade: qtd,
         preco_unitario: preco,
-        subtotal: preco * 1
+        subtotal: preco * qtd
       };
       return { ...prev, itens: updatedItens };
     });
 
-    // Adicionar automaticamente um novo campo vazio
-    setTimeout(() => {
-      addItemToOrcamento();
-    }, 100);
+    // Adicionar novo campo vazio apenas na seleção inicial, não em edições de nome/preço
+    if (!product._override) {
+      setTimeout(() => addItemToOrcamento(), 100);
+    }
   };
 
   const updateItemQuantidade = (index, quantidade) => {
@@ -705,7 +708,7 @@ export default function Orcamentos() {
                 <div className="space-y-3">
                   {newOrcamento.itens.map((item, idx) => (
                     <ProductAutoComplete
-                      key={idx}
+                      key={item._key || idx}
                       products={products}
                       selectedProductData={item.product_id ? item : null}
                       onSelect={(product) => handleProductSelect(idx, product)}
@@ -842,13 +845,16 @@ export default function Orcamentos() {
                           const preco = isFabricante ? parseFloat(product.preco_fabricante) : parseFloat(product.preco_fornecedor);
                           setEditingOrcamento(prev => {
                             const updatedItens = [...prev.itens];
+                            const existing = updatedItens[idx];
+                            const qtd = product._override ? (existing?.quantidade ?? 1) : 1;
                             updatedItens[idx] = {
+                              ...(existing || {}),
                               product_id: product.id,
                               cod: product.cod,
                               nome: product.nome,
-                              quantidade: 1,
+                              quantidade: qtd,
                               preco_unitario: preco,
-                              subtotal: preco * 1
+                              subtotal: preco * qtd
                             };
                             return { ...prev, itens: updatedItens };
                           });
