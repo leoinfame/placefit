@@ -16,12 +16,14 @@ export default function ProductAutoComplete({
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(
-    selectedProductData?.product_id ? products.find(p => p.id === selectedProductData.product_id) : null
-  );
   const [qtd, setQtd] = useState(quantidade);
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
+
+  // Derive selectedProduct directly from props — no stale state
+  const selectedProduct = selectedProductData?.product_id
+    ? products.find(p => p.id === selectedProductData.product_id) || null
+    : null;
 
   useEffect(() => {
     if (autoFocus && inputRef.current && !selectedProduct) {
@@ -30,20 +32,12 @@ export default function ProductAutoComplete({
   }, [autoFocus, selectedProduct]);
 
   useEffect(() => {
-    if (selectedProductData?.product_id) {
-      const produto = products.find(p => p.id === selectedProductData.product_id);
-      setSelectedProduct(produto);
-    }
-  }, [selectedProductData, products]);
-
-  useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target) &&
           inputRef.current && !inputRef.current.contains(event.target)) {
         setShowDropdown(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
@@ -56,30 +50,23 @@ export default function ProductAutoComplete({
     : [];
 
   const handleSelectProduct = (product) => {
-    setSelectedProduct(product);
     setSearchTerm("");
     setShowDropdown(false);
-    if (onSelect) {
-      onSelect(product);
-    }
+    if (onSelect) onSelect(product);
   };
 
   const handleQuantidadeChange = (newQtd) => {
     const valor = parseFloat(newQtd) || 0;
     setQtd(valor);
-    if (onQuantidadeChange) {
-      onQuantidadeChange(valor);
-    }
-  };
-
-  const handleInputChange = (value) => {
-    setSearchTerm(value);
-    setShowDropdown(value.trim().length > 0);
+    if (onQuantidadeChange) onQuantidadeChange(valor);
   };
 
   if (selectedProduct) {
     const currentNome = selectedProductData?.nome ?? selectedProduct.nome;
-    const currentPreco = selectedProductData?.preco_unitario ?? (userType === 'fabricante' ? parseFloat(selectedProduct.preco_fabricante) : parseFloat(selectedProduct.preco_fornecedor));
+    const currentPreco = selectedProductData?.preco_unitario ?? 
+      (userType === 'fabricante' 
+        ? parseFloat(selectedProduct.preco_fabricante) 
+        : parseFloat(selectedProduct.preco_fornecedor));
 
     const dispatchOverride = (overrides) => {
       if (onSelect) onSelect({
@@ -143,7 +130,10 @@ export default function ProductAutoComplete({
         ref={inputRef}
         type="text"
         value={searchTerm}
-        onChange={(e) => handleInputChange(e.target.value)}
+        onChange={(e) => {
+          setSearchTerm(e.target.value);
+          setShowDropdown(e.target.value.trim().length > 0);
+        }}
         onFocus={() => searchTerm.trim() && setShowDropdown(true)}
         placeholder="Digite o código ou nome do produto..."
         className="w-full"
@@ -157,7 +147,7 @@ export default function ProductAutoComplete({
           {filteredProducts.map((product) => (
             <button
               key={product.id}
-              onClick={() => handleSelectProduct(product)}
+              onMouseDown={(e) => { e.preventDefault(); handleSelectProduct(product); }}
               className="w-full px-4 py-2 text-left hover:bg-blue-50 border-b last:border-b-0 transition-colors"
             >
               <div className="flex items-start justify-between gap-3">
@@ -167,7 +157,9 @@ export default function ProductAutoComplete({
                 </div>
                 <div className="text-right flex-shrink-0">
                   <p className="text-sm font-semibold text-green-700 whitespace-nowrap">
-                    R$ {(userType === 'fabricante' ? parseFloat(product.preco_fabricante) : parseFloat(product.preco_fornecedor)).toFixed(2)}
+                    R$ {(userType === 'fabricante' 
+                      ? parseFloat(product.preco_fabricante) 
+                      : parseFloat(product.preco_fornecedor)).toFixed(2)}
                   </p>
                 </div>
               </div>
