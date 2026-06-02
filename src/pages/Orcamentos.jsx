@@ -98,9 +98,14 @@ export default function Orcamentos() {
       setUser(currentUser);
 
       const isFabricante = currentUser.tipo_usuario === 'fabricante';
+      const isAdmin = currentUser.role === 'admin';
       
       let productsData = [];
-      if (isFabricante) {
+      if (isAdmin) {
+        const allProducts = await base44.entities.Product.list();
+        productsData = allProducts.filter(p => p.ativo !== false && p.preco_fabricante && parseFloat(p.preco_fabricante) > 0)
+          .map(p => ({ ...p, preco_fornecedor: p.preco_fabricante }));
+      } else if (isFabricante) {
         const allProducts = await base44.entities.Product.list();
         productsData = allProducts.filter(p => 
           p.fabricante_id === currentUser.id && 
