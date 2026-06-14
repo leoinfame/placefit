@@ -8,6 +8,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import PublicTableFabricante from './pages/PublicTableFabricante';
+import Marketplace from './pages/Marketplace';
 import AdminTools from './pages/AdminTools';
 import CatalogoWhatsApp from './pages/CatalogoWhatsApp';
 import AdminServicos from './pages/AdminServicos';
@@ -52,7 +53,8 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
-      <Route path="/" element={
+      <Route path="/" element={<Marketplace />} />
+      <Route path="/app" element={
         <LayoutWrapper currentPageName={mainPageKey}>
           <MainPage />
         </LayoutWrapper>

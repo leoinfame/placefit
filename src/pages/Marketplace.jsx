@@ -262,12 +262,21 @@ export default function Marketplace() {
                 <p className="text-sm text-gray-600">Compare Preços de Equipamentos Fitness</p>
               </div>
             </div>
-            {selectedProducts.length > 0 && (
-              <Badge variant="secondary" className="bg-blue-100 text-blue-700 px-4 py-2">
-                <ShoppingCart className="w-4 h-4 mr-2" />
-                {selectedProducts.length} {selectedProducts.length === 1 ? 'produto' : 'produtos'}
-              </Badge>
-            )}
+            <div className="flex items-center gap-3">
+              {selectedProducts.length > 0 && (
+                <Badge variant="secondary" className="bg-blue-100 text-blue-700 px-4 py-2">
+                  <ShoppingCart className="w-4 h-4 mr-2" />
+                  {selectedProducts.length} {selectedProducts.length === 1 ? 'produto' : 'produtos'}
+                </Badge>
+              )}
+              <Button
+                onClick={() => base44.auth.redirectToLogin('/app')}
+                className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white"
+                size="sm"
+              >
+                Entrar no App
+              </Button>
+            </div>
           </div>
         </div>
       </div>
