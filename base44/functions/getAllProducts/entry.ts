@@ -5,15 +5,14 @@ Deno.serve(async (req) => {
         const base44 = createClientFromRequest(req);
 
         // Buscar todos os dados usando service role (sem exigir autenticação)
-        const [allProducts, allSupplierProducts, allUsers] = await Promise.all([
+        const [allProducts, allUsers] = await Promise.all([
             base44.asServiceRole.entities.Product.list(),
-            base44.asServiceRole.entities.SupplierProduct.list(),
             base44.asServiceRole.entities.User.list()
         ]);
 
-        // Filtrar apenas revendedores aprovados (sem expor dados sensíveis)
-        const suppliers = allUsers
-            .filter(u => u.aprovado === true && u.role === 'user' && (!u.tipo_usuario || (u.tipo_usuario !== 'fabricante' && u.tipo_usuario !== 'transportador')))
+        // Filtrar apenas fabricantes aprovados
+        const fabricantes = allUsers
+            .filter(u => u.aprovado === true && u.role === 'user' && u.tipo_usuario === 'fabricante')
             .map(u => ({
                 id: u.id,
                 full_name: u.full_name,
@@ -27,7 +26,17 @@ Deno.serve(async (req) => {
                 estado: u.estado
             }));
 
-        return Response.json({ products: allProducts, supplierProducts: allSupplierProducts, suppliers });
+        // Fabricante IDs aprovados para filtrar produtos
+        const fabricanteIds = new Set(fabricantes.map(f => f.id));
+
+        // Produtos ativos e aprovados de fabricantes
+        const activeProducts = allProducts.filter(p => {
+            if (p.ativo === false) return false;
+            if (p.fabricante_id) return p.aprovado_produto === true;
+            return true;
+        });
+
+        return Response.json({ products: activeProducts, fabricantes });
     } catch (error) {
         console.error('Erro ao buscar produtos:', error);
         return Response.json({ 

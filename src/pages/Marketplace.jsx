@@ -34,8 +34,7 @@ const PLACEFIT_LOGO = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/objec
 
 export default function Marketplace() {
   const [products, setProducts] = useState([]);
-  const [suppliers, setSuppliers] = useState([]);
-  const [supplierProducts, setSupplierProducts] = useState([]);
+  const [fabricantes, setFabricantes] = useState([]);
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
@@ -69,33 +68,13 @@ export default function Marketplace() {
     setError(null);
     try {
       // Usar backend function que não exige autenticação
-      const result = await getAllProducts({}).then(r => r.data).catch(() => ({ products: [], supplierProducts: [], suppliers: [] }));
+      const result = await getAllProducts({}).then(r => r.data).catch(() => ({ products: [], fabricantes: [] }));
 
-      const productsData = result.products || [];
-      const supplierProductsData = result.supplierProducts || [];
-
-      // Filtrar produtos ativos (incluindo produtos de fabricantes aprovados)
-      const activeProducts = productsData.filter(p => {
-        if (p.ativo === false) return false;
-        if (p.fabricante_id) return p.aprovado_produto === true;
-        return true;
-      });
-
-      // Fornecedores já filtrados e aprovados pela backend function
-      const approvedSuppliers = result.suppliers || [];
-
-      const availableSupplierProducts = supplierProductsData.filter(sp =>
-        sp.disponivel !== false
-      );
-
-      console.log('🔍 Marketplace Debug:');
-      console.log('Produtos ativos:', activeProducts.length);
-      console.log('Fornecedores aprovados:', approvedSuppliers.length);
-      console.log('Produtos de fornecedores:', availableSupplierProducts.length);
+      const activeProducts = result.products || [];
+      const fabricantesData = result.fabricantes || [];
 
       setProducts(activeProducts);
-      setSuppliers(approvedSuppliers);
-      setSupplierProducts(availableSupplierProducts);
+      setFabricantes(fabricantesData);
 
       if (activeProducts.length === 0) {
         setError("Nenhum produto disponível no momento.");
@@ -121,36 +100,16 @@ export default function Marketplace() {
 
   const getProductPrices = (productId) => {
     const product = products.find(p => p.id === productId);
-    const prices = [];
+    if (!product || !product.fabricante_id) return [];
 
-    console.log(`📦 Buscando preços para produto ${productId}:`, product?.nome);
+    const fabricante = fabricantes.find(f => f.id === product.fabricante_id);
+    if (!fabricante) return [];
 
-    // Preços de fornecedores via SupplierProduct
-    const supplierPrices = supplierProducts
-      .filter(sp => sp.product_id === productId)
-      .map(sp => {
-        const supplier = suppliers.find(s => s.id === sp.supplier_id);
-        const hasPrice = sp.preco && parseFloat(sp.preco) > 0;
-        console.log('  - Fornecedor via SupplierProduct:', supplier?.empresa || supplier?.full_name, 'Preço:', hasPrice ? sp.preco : 'Sem preço');
-        return supplier ? {
-          supplier,
-          price: hasPrice ? parseFloat(sp.preco) : null,
-          observacoes: sp.observacoes
-        } : null;
-      })
-      .filter(Boolean);
+    const price = product.preco_fabricante && parseFloat(product.preco_fabricante) > 0
+      ? parseFloat(product.preco_fabricante)
+      : null;
 
-    prices.push(...supplierPrices);
-
-    console.log(`  Total de revendedores encontrados: ${prices.length}`);
-
-    // Ordenar: produtos com preço primeiro (por valor), depois sem preço
-    return prices.sort((a, b) => {
-      if (a.price === null && b.price === null) return 0;
-      if (a.price === null) return 1;
-      if (b.price === null) return -1;
-      return a.price - b.price;
-    });
+    return [{ supplier: fabricante, price }];
   };
 
   const filteredProducts = products.filter(product => {
@@ -303,7 +262,7 @@ export default function Marketplace() {
                         </div>
                         <div className="text-right">
                           <p className="text-sm text-gray-500">
-                            {getProductPrices(product.id).length} fornecedor(es)
+                            {getProductPrices(product.id).length > 0 ? "Ver fabricante" : "Sem fabricante"}
                           </p>
                         </div>
                       </div>
