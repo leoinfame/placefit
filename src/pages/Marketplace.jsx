@@ -69,10 +69,7 @@ export default function Marketplace() {
     setError(null);
     try {
       // Usar backend function que não exige autenticação
-      const [result, usersData] = await Promise.all([
-        getAllProducts({}).then(r => r.data).catch(() => ({ products: [], supplierProducts: [] })),
-        base44.entities.User.list().catch(() => [])
-      ]);
+      const result = await getAllProducts({}).then(r => r.data).catch(() => ({ products: [], supplierProducts: [], suppliers: [] }));
 
       const productsData = result.products || [];
       const supplierProductsData = result.supplierProducts || [];
@@ -80,20 +77,12 @@ export default function Marketplace() {
       // Filtrar produtos ativos (incluindo produtos de fabricantes aprovados)
       const activeProducts = productsData.filter(p => {
         if (p.ativo === false) return false;
-        // Se tem fabricante_id, só incluir se aprovado_produto = true
-        if (p.fabricante_id) {
-          return p.aprovado_produto === true;
-        }
+        if (p.fabricante_id) return p.aprovado_produto === true;
         return true;
       });
 
-      // Incluir APENAS revendedores (não fabricantes)
-      const approvedSuppliers = usersData.filter(s => {
-        // Incluir se aprovado e é revendedor (role=user sem tipo_usuario ou tipo_usuario diferente de fabricante e transportador)
-        const isApproved = s.aprovado === true;
-        const isSupplier = s.role === 'user' && (!s.tipo_usuario || (s.tipo_usuario !== 'fabricante' && s.tipo_usuario !== 'transportador'));
-        return isApproved && isSupplier;
-      });
+      // Fornecedores já filtrados e aprovados pela backend function
+      const approvedSuppliers = result.suppliers || [];
 
       const availableSupplierProducts = supplierProductsData.filter(sp =>
         sp.disponivel !== false
