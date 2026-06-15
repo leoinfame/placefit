@@ -27,8 +27,27 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   <Layout currentPageName={currentPageName}>{children}</Layout>
   : <>{children}</>;
 
+const PUBLIC_PATHS = ['/', '/Marketplace', '/PublicTableFabricante', '/PublicRegister', '/PublicRegisterFabricante', '/PublicRegisterTransportador'];
+
+const isPublicPath = () => {
+  const path = window.location.pathname;
+  return PUBLIC_PATHS.some(p => path === p || path.startsWith(p + '/'));
+};
+
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+
+  // Always render public paths without auth check
+  if (isPublicPath()) {
+    return (
+      <Routes>
+        <Route path="/" element={<Marketplace />} />
+        <Route path="/Marketplace" element={<Marketplace />} />
+        <Route path="/PublicTableFabricante" element={<PublicTableFabricante />} />
+        <Route path="*" element={<Marketplace />} />
+      </Routes>
+    );
+  }
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
