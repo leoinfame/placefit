@@ -120,7 +120,7 @@
     "categoria"
   ],
   "x-security": {
-    "read": "authenticated",
+    "read": "public",
     "create": "public",
     "update": "public",
     "delete": "public"
