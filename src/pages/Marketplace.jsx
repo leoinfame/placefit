@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { getAllProducts } from "@/functions/getAllProducts";
 import {
   Search,
   Trash2,
@@ -67,21 +68,14 @@ export default function Marketplace() {
     setLoading(true);
     setError(null);
     try {
-      // Carregar dados sem exigir autenticação
-      const [productsData, usersData, supplierProductsData] = await Promise.all([
-        base44.entities.Product.list().catch(err => {
-          console.error("Erro ao carregar produtos:", err);
-          return [];
-        }),
-        base44.entities.User.list().catch(err => {
-          console.error("Erro ao carregar usuários:", err);
-          return [];
-        }),
-        base44.entities.SupplierProduct.list().catch(err => {
-          console.error("Erro ao carregar produtos de fornecedores:", err);
-          return [];
-        })
+      // Usar backend function que não exige autenticação
+      const [result, usersData] = await Promise.all([
+        getAllProducts({}).then(r => r.data).catch(() => ({ products: [], supplierProducts: [] })),
+        base44.entities.User.list().catch(() => [])
       ]);
+
+      const productsData = result.products || [];
+      const supplierProductsData = result.supplierProducts || [];
 
       // Filtrar produtos ativos (incluindo produtos de fabricantes aprovados)
       const activeProducts = productsData.filter(p => {
