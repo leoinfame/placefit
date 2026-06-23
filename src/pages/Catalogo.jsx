@@ -701,8 +701,8 @@ export default function Catalogo() {
                 Exportar PDF
               </>
             )}
-          </Button>
-        </div>
+            </Button>
+          </div>
 
         {/* Produtos por Categoria */}
         {filteredProducts.length > 0 ? (() => {
