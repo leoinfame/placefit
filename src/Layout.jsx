@@ -258,11 +258,6 @@ export default function Layout({ children, currentPageName }) {
           icon: Users,
         },
         {
-          title: "Notificações",
-          url: createPageUrl("AdminNotifications"),
-          icon: Bell,
-        },
-        {
           title: "Produtos",
           url: createPageUrl("Products"),
           icon: Package,
@@ -298,39 +293,9 @@ export default function Layout({ children, currentPageName }) {
           icon: Package,
         },
         {
-          title: "  • China",
-          url: createPageUrl("FabricantesChina"),
-          icon: Globe,
-        },
-        {
-          title: "  • Atualizações de Mercado",
-          url: createPageUrl("AtualizacoesMercadoChina"),
-          icon: TrendingUp,
-        },
-        {
-          title: "  • Saúde da Importação",
-          url: createPageUrl("SaudeImportacao"),
-          icon: Ship,
-        },
-        {
-          title: "Compras Internacionais",
-          url: createPageUrl("ComprasInternacionais"),
-          icon: Ship,
-        },
-        {
-          title: "Transportadoras",
-          url: createPageUrl("Transportadores"),
-          icon: Dumbbell,
-        },
-        {
           title: "Clientes",
           url: createPageUrl("Clientes"),
           icon: Users,
-        },
-        {
-          title: "Frete",
-          url: createPageUrl("AdminFrete"),
-          icon: Dumbbell,
         },
         {
           title: "Atendente IA",
@@ -341,11 +306,6 @@ export default function Layout({ children, currentPageName }) {
           title: "Marketplace",
           url: createPageUrl("Marketplace"),
           icon: Store,
-        },
-        {
-          title: "Complementos",
-          url: createPageUrl("Complementos"),
-          icon: Dumbbell,
         },
         {
           title: "Convites",
@@ -363,11 +323,6 @@ export default function Layout({ children, currentPageName }) {
           icon: HelpCircle,
         },
         {
-          title: "Serviços",
-          url: createPageUrl("AdminServicos"),
-          icon: Crown,
-        },
-        {
           title: "Versões",
           url: createPageUrl("AdminVersions"),
           icon: Package,
@@ -376,12 +331,6 @@ export default function Layout({ children, currentPageName }) {
     } else if (effectiveUser.tipo_usuario === 'fabricante') {
       // Menu para Fabricantes
       baseItems.push(
-        {
-          title: "Notificações",
-          url: createPageUrl("Notifications"),
-          icon: Bell,
-          badge: unreadNotifications > 0 ? unreadNotifications : null
-        },
         {
           title: "Fabricantes",
           url: createPageUrl("FabricantesParaFabricantes"),
@@ -433,11 +382,6 @@ export default function Layout({ children, currentPageName }) {
           icon: Users,
         },
         {
-          title: "Serviços Premium",
-          url: createPageUrl("Servicos"),
-          icon: Crown,
-        },
-        {
           title: "Suporte",
           url: createPageUrl("Suporte"),
           icon: HelpCircle,
@@ -446,12 +390,6 @@ export default function Layout({ children, currentPageName }) {
     } else {
       // Menu para Revendedores (role='user', sem tipo_usuario ou tipo_usuario não definido)
       baseItems.push(
-        {
-          title: "Notificações",
-          url: createPageUrl("Notifications"),
-          icon: Bell,
-          badge: unreadNotifications > 0 ? unreadNotifications : null
-        },
         {
           title: "Fabricantes",
           url: createPageUrl("FabricantesRevendedor"),
@@ -488,11 +426,6 @@ export default function Layout({ children, currentPageName }) {
           icon: ShoppingCart,
         },
         {
-          title: "Frete",
-          url: createPageUrl("Frete"),
-          icon: Dumbbell,
-        },
-        {
           title: "Financeiro",
           url: createPageUrl("Financeiro"),
           icon: ShoppingCart,
@@ -511,11 +444,6 @@ export default function Layout({ children, currentPageName }) {
           title: "Vendas",
           url: createPageUrl("Vendas"),
           icon: ShoppingCart,
-        },
-        {
-          title: "Serviços Premium",
-          url: createPageUrl("Servicos"),
-          icon: Crown,
         },
         {
           title: "Suporte",
