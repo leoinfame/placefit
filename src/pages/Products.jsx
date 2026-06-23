@@ -45,12 +45,12 @@ const CATEGORIAS = [
 
 const ATTRIBUTE_FIELDS = [
   { field: "subcategoria", label: "Subcategoria" },
+  { field: "bojo_formato", label: "Formato do Bojo" },
   { field: "acabamento", label: "Acabamento" },
+  { field: "barra_acabamento", label: "Acabamento da Barra" },
   { field: "tipo_furo", label: "Tipo de Furo" },
   { field: "peso_kg", label: "Peso (kg)" },
   { field: "barra_tipo", label: "Tipo de Barra" },
-  { field: "barra_acabamento", label: "Acabamento da Barra" },
-  { field: "bojo_formato", label: "Formato do Bojo" },
   { field: "dumbell_tipo", label: "Tipo de Dumbell" },
   { field: "piso_espessura_mm", label: "Espessura (mm)" },
   { field: "piso_formato", label: "Formato do Piso" },
