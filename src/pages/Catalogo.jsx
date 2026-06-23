@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Package, Search, ImageIcon, FileText } from "lucide-react";
+import { Package, Search, ImageIcon, FileText, Download } from "lucide-react";
 import { useLogoColors } from "@/components/export/useLogoColors";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,35 @@ export default function Catalogo() {
   const logoColors = useLogoColors(user?.logomarca);
 
   const { toast } = useToast();
+
+  const exportToCSV = () => {
+    if (filteredProducts.length === 0) {
+      toast({ title: "Nenhum produto", description: "Não há produtos para exportar.", variant: "destructive" });
+      return;
+    }
+    const rows = filteredProducts.map((p) => ({
+      "Código": p.cod || "",
+      "Nome": p.nome || "",
+      "Categoria": p.categoria || "",
+      "Peso (kg)": p.peso || "",
+      "Unidade": p.und || "",
+      "Dimensões": p.dimensoes || "",
+      "NCM": p.ncm || "",
+      "Origem": p.origem || "",
+      "Ativo": p.ativo === false ? "NÃO" : "SIM",
+    }));
+    const headers = Object.keys(rows[0]);
+    const csv = [
+      headers.map((h) => `"${h}"`).join(","),
+      ...rows.map((r) => headers.map((h) => `"${String(r[h] || "").replace(/"/g, '""')}"`).join(",")),
+    ].join("\n");
+    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `catalogo_${new Date().toISOString().split("T")[0]}.csv`;
+    link.click();
+    toast({ title: "CSV exportado!", description: `${rows.length} produtos exportados.` });
+  };
 
   useEffect(() => {
     loadData();
@@ -685,24 +714,35 @@ export default function Catalogo() {
           <h2 className="text-2xl font-bold text-gray-900">
             Catálogo de Produtos ({filteredProducts.length})
           </h2>
-          <Button
-            onClick={exportToPDF}
-            disabled={exportingPDF || filteredProducts.length === 0}
-            className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
-          >
-            {exportingPDF ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Gerando PDF...
-              </>
-            ) : (
-              <>
-                <FileText className="w-4 h-4 mr-2" />
-                Exportar PDF
-              </>
-            )}
+          <div className="flex gap-2">
+            <Button
+              onClick={exportToCSV}
+              disabled={filteredProducts.length === 0}
+              variant="outline"
+              className="border-green-300 text-green-700 hover:bg-green-50"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Exportar CSV
+            </Button>
+            <Button
+              onClick={exportToPDF}
+              disabled={exportingPDF || filteredProducts.length === 0}
+              className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+            >
+              {exportingPDF ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Gerando PDF...
+                </>
+              ) : (
+                <>
+                  <FileText className="w-4 h-4 mr-2" />
+                  Exportar PDF
+                </>
+              )}
             </Button>
           </div>
+        </div>
 
         {/* Produtos por Categoria */}
         {filteredProducts.length > 0 ? (() => {
