@@ -63,40 +63,42 @@ export default function FabricanteProdutos() {
   const getPriceForProduct = (productId) =>
     supplierProducts.find((sp) => sp.product_id === productId);
 
-  const getSubcategoryField = (cat) => {
+  const getSubcategoryFields = (cat) => {
     const fieldMap = {
-      Anilhas: "acabamento",
-      Halteres: "acabamento",
-      Dumbells: "dumbell_tipo",
-      "Barras Montadas": "barra_tipo",
-      Tijolinhos: "tijolinho_tipo",
-      Pisos: "piso_formato",
-      Kettlebells: "acabamento",
-      Suportes: "subcategoria",
+      Anilhas: ["acabamento"],
+      Halteres: ["bojo_formato", "barra_acabamento", "acabamento"],
+      Dumbells: ["dumbell_tipo"],
+      "Barras Montadas": ["barra_tipo"],
+      Tijolinhos: ["tijolinho_tipo"],
+      Pisos: ["piso_formato"],
+      Kettlebells: ["acabamento"],
+      Suportes: ["subcategoria"],
     };
-    return fieldMap[cat] || "subcategoria";
+    return fieldMap[cat] || ["subcategoria"];
   };
 
   const getSubcategories = (cat) => {
     if (!cat || cat === "all") return [];
-    const field = getSubcategoryField(cat);
+    const fields = getSubcategoryFields(cat);
     const subs = [
       ...new Set(
         templates
           .filter((t) => t.categoria === cat)
-          .map((t) => t[field])
-          .filter(Boolean)
+          .flatMap((t) => fields.map(f => t[f]).filter(Boolean))
       ),
     ];
     return subs.sort();
   };
 
   const subcategories = getSubcategories(categoria);
-  const subField = getSubcategoryField(categoria);
+  const subFields = getSubcategoryFields(categoria);
 
   const filteredProducts = templates.filter((p) => {
     if (categoria !== "all" && p.categoria !== categoria) return false;
-    if (subcategoria !== "all" && p[subField] !== subcategoria) return false;
+    if (subcategoria !== "all") {
+      const matchesSubcategoria = subFields.some(field => p[field] === subcategoria);
+      if (!matchesSubcategoria) return false;
+    }
     if (search) {
       const term = search.toLowerCase();
       return (
