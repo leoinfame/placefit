@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Package, Search, Pencil, CheckCircle, Upload, Download } from "lucide-react";
+import { Package, Search, Pencil, CheckCircle, Upload, Download, FileDown, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -36,6 +36,7 @@ export default function FabricanteProdutos() {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [downloadingTemplate, setDownloadingTemplate] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -119,6 +120,39 @@ export default function FabricanteProdutos() {
     }
   };
 
+  const handleDownloadTemplate = async () => {
+    setDownloadingTemplate(true);
+    try {
+      const templates = await base44.entities.ProductTemplate.filter({ ativo: true });
+      const sorted = [...templates].sort((a, b) => {
+        if (a.categoria !== b.categoria) return a.categoria.localeCompare(b.categoria);
+        return (a.cod || "").localeCompare(b.cod || "");
+      });
+      const header = "codigo,nome,categoria,detalhes,preco,disponivel";
+      const rows = sorted.map((t) => {
+        const detalhes = renderTemplateDetails(t);
+        return [t.cod || "", t.nome || "", t.categoria || "", detalhes, "", "SIM"]
+          .map((v) => {
+            const s = String(v || "");
+            return s.includes(",") || s.includes('"') || s.includes("\n")
+              ? `"${s.replace(/"/g, '""')}"` : s;
+          })
+          .join(",");
+      });
+      const csv = [header, ...rows].join("\n");
+      const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "modelo_catalogo_placefit.csv";
+      link.click();
+      URL.revokeObjectURL(link.href);
+    } catch (error) {
+      console.error("Erro ao baixar modelo:", error);
+      alert("Erro ao gerar modelo: " + error.message);
+    }
+    setDownloadingTemplate(false);
+  };
+
   const handleExport = () => {
     const rows = filteredProducts.map((p) => {
       const sp = getPriceForProduct(p.id);
@@ -172,7 +206,20 @@ export default function FabricanteProdutos() {
             Selecione produtos do catálogo padronizado e defina seus preços
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <Button
+            onClick={handleDownloadTemplate}
+            disabled={downloadingTemplate}
+            variant="outline"
+            className="flex items-center gap-2 border-blue-300 text-blue-700 hover:bg-blue-50"
+          >
+            {downloadingTemplate ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <FileDown className="w-4 h-4" />
+            )}
+            <span className="hidden md:inline">{downloadingTemplate ? "Gerando..." : "Modelo CSV"}</span>
+          </Button>
           <Button
             onClick={handleExport}
             variant="outline"
