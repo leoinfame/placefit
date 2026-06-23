@@ -105,7 +105,7 @@ export default function FabricanteProdutos() {
   const subSubField = getSubSubcategoryField(categoria);
 
   const getSubSubcategories = (cat, sub) => {
-    if (!cat || cat === "all" || !subSubField) return [];
+    if (!cat || cat === "all" || !subSubField || sub === "all") return [];
     const subs = [
       ...new Set(
         templates
