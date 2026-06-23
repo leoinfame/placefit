@@ -23,6 +23,7 @@ export default function FabricanteProdutos() {
   const [search, setSearch] = useState("");
   const [categoria, setCategoria] = useState("all");
   const [subcategoria, setSubcategoria] = useState("all");
+  const [subSubcategoria, setSubSubcategoria] = useState("all");
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [uploadOpen, setUploadOpen] = useState(false);
@@ -66,7 +67,7 @@ export default function FabricanteProdutos() {
   const getSubcategoryField = (cat) => {
     const fieldMap = {
       Anilhas: "acabamento",
-      Halteres: "acabamento",
+      Halteres: "bojo_formato",
       Dumbells: "dumbell_tipo",
       "Barras Montadas": "barra_tipo",
       Tijolinhos: "tijolinho_tipo",
@@ -75,6 +76,14 @@ export default function FabricanteProdutos() {
       Suportes: "subcategoria",
     };
     return fieldMap[cat] || "subcategoria";
+  };
+
+  const getSubSubcategoryField = (cat) => {
+    const fieldMap = {
+      Halteres: "acabamento",
+      Anilhas: "tipo_furo",
+    };
+    return fieldMap[cat] || null;
   };
 
   const getSubcategories = (cat) => {
@@ -93,10 +102,27 @@ export default function FabricanteProdutos() {
 
   const subcategories = getSubcategories(categoria);
   const subField = getSubcategoryField(categoria);
+  const subSubField = getSubSubcategoryField(categoria);
+
+  const getSubSubcategories = (cat, sub) => {
+    if (!cat || cat === "all" || !subSubField) return [];
+    const subs = [
+      ...new Set(
+        templates
+          .filter((t) => t.categoria === cat && t[subField] === sub)
+          .map((t) => t[subSubField])
+          .filter(Boolean)
+      ),
+    ];
+    return subs.sort();
+  };
+
+  const subSubcategories = getSubSubcategories(categoria, subcategoria);
 
   const filteredProducts = templates.filter((p) => {
     if (categoria !== "all" && p.categoria !== categoria) return false;
     if (subcategoria !== "all" && p[subField] !== subcategoria) return false;
+    if (subSubcategoria !== "all" && subSubField && p[subSubField] !== subSubcategoria) return false;
     if (search) {
       const term = search.toLowerCase();
       return (
@@ -286,6 +312,7 @@ export default function FabricanteProdutos() {
           onValueChange={(v) => {
             setCategoria(v);
             setSubcategoria("all");
+            setSubSubcategoria("all");
           }}
         >
           <SelectTrigger className="md:w-56">
@@ -301,13 +328,31 @@ export default function FabricanteProdutos() {
           </SelectContent>
         </Select>
         {subcategories.length > 0 && (
-          <Select value={subcategoria} onValueChange={setSubcategoria}>
+          <Select value={subcategoria} onValueChange={(v) => {
+            setSubcategoria(v);
+            setSubSubcategoria("all");
+          }}>
             <SelectTrigger className="md:w-56">
               <SelectValue placeholder="Subcategoria" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas as subcategorias</SelectItem>
               {subcategories.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+        {subSubcategories.length > 0 && (
+          <Select value={subSubcategoria} onValueChange={setSubSubcategoria}>
+            <SelectTrigger className="md:w-56">
+              <SelectValue placeholder="Filtro adicional" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              {subSubcategories.map((s) => (
                 <SelectItem key={s} value={s}>
                   {s}
                 </SelectItem>
