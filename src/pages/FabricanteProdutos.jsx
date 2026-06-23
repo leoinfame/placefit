@@ -345,13 +345,13 @@ export default function FabricanteProdutos() {
             </SelectContent>
           </Select>
         )}
-        {subSubcategories.length > 0 && (
+        {subSubField && subcategoria !== "all" && subSubcategories.length > 0 && (
           <Select value={subSubcategoria} onValueChange={setSubSubcategoria}>
             <SelectTrigger className="md:w-56">
-              <SelectValue placeholder="Filtro adicional" />
+              <SelectValue placeholder="Acabamento" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="all">Todos os acabamentos</SelectItem>
               {subSubcategories.map((s) => (
                 <SelectItem key={s} value={s}>
                   {s}
