@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Package, Search, Plus, Pencil } from "lucide-react";
+import { Package, Search, Plus, Pencil, CheckCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -16,23 +16,18 @@ import PrecoModal from "@/components/catalogo-fabricante/PrecoModal";
 
 const CATEGORIAS = [
   "Anilhas",
-  "Acessórios",
-  "Aparelhos de Ginástica",
-  "Barras",
-  "Cabos",
-  "Cardiovascular",
-  "Complemento",
-  "Funcional",
   "Halteres",
-  "Musculação",
+  "Dumbells",
+  "Barras Montadas",
+  "Tijolinhos",
+  "Pisos",
+  "Kettlebells",
   "Suportes",
-  "Tornozeleiras",
-  "Caneleiras",
 ];
 
 export default function CatalogoFabricante() {
   const [user, setUser] = useState(null);
-  const [products, setProducts] = useState([]);
+  const [templates, setTemplates] = useState([]);
   const [supplierProducts, setSupplierProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -49,12 +44,12 @@ export default function CatalogoFabricante() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      const [allProducts, myPrices] = await Promise.all([
-        base44.entities.Product.filter({ ativo: true }),
+      const [allTemplates, myPrices] = await Promise.all([
+        base44.entities.ProductTemplate.filter({ ativo: true }),
         base44.entities.SupplierProduct.filter({ supplier_id: currentUser.id }),
       ]);
 
-      setProducts(allProducts);
+      setTemplates(allTemplates);
       setSupplierProducts(myPrices);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
@@ -66,7 +61,7 @@ export default function CatalogoFabricante() {
     return supplierProducts.find((sp) => sp.product_id === productId);
   };
 
-  const filteredProducts = products.filter((p) => {
+  const filteredProducts = templates.filter((p) => {
     if (categoria !== "all" && p.categoria !== categoria) return false;
     if (search) {
       const term = search.toLowerCase();
@@ -111,6 +106,21 @@ export default function CatalogoFabricante() {
       console.error("Erro ao salvar:", error);
       alert("Erro ao salvar preço: " + error.message);
     }
+  };
+
+  // Renderiza atributos específicos do template
+  const renderTemplateDetails = (p) => {
+    const details = [];
+    details.push(p.categoria);
+    if (p.subcategoria) details.push(p.subcategoria);
+    if (p.acabamento && p.acabamento !== "N/A") details.push(p.acabamento);
+    if (p.peso_kg) details.push(`${p.peso_kg}kg`);
+    if (p.tipo_furo && p.tipo_furo !== "N/A") details.push(p.tipo_furo);
+    if (p.bojo_formato && p.bojo_formato !== "N/A") details.push(p.bojo_formato);
+    if (p.barra_tipo && p.barra_tipo !== "N/A") details.push(`Barra ${p.barra_tipo}`);
+    if (p.dumbell_tipo && p.dumbell_tipo !== "N/A") details.push(p.dumbell_tipo);
+    if (p.und) details.push(p.und);
+    return details.join(" · ");
   };
 
   if (loading) {
@@ -208,16 +218,14 @@ export default function CatalogoFabricante() {
                         {product.nome}
                       </h3>
                       {hasPrice && (
-                        <Badge className="bg-green-100 text-green-700 border-green-300">
-                          Ativo
+                        <Badge className="bg-green-100 text-green-700 border-green-300 flex items-center gap-1">
+                          <CheckCircle className="w-3 h-3" /> Preço cadastrado
                         </Badge>
                       )}
                     </div>
                     <p className="text-xs text-gray-500">SKU: {product.cod}</p>
                     <p className="text-xs text-gray-500">
-                      {product.categoria}
-                      {product.und ? ` · ${product.und}` : ""}
-                      {product.peso ? ` · ${product.peso}kg` : ""}
+                      {renderTemplateDetails(product)}
                     </p>
                     {hasPrice && (
                       <p className="text-sm font-bold text-green-700 mt-1">
@@ -234,11 +242,11 @@ export default function CatalogoFabricante() {
                 >
                   {hasPrice ? (
                     <>
-                      <Pencil className="w-3 h-3 mr-1" /> Editar Preço
+                      <Pencil className="w-3 h-3 mr-1" /> Editar
                     </>
                   ) : (
                     <>
-                      <Plus className="w-3 h-3 mr-1" /> Adicionar Preço
+                      <Plus className="w-3 h-3 mr-1" /> Adicionar meu preço
                     </>
                   )}
                 </Button>
