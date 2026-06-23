@@ -348,6 +348,23 @@ export default function UploadTabela({ open, onClose, onComplete }) {
               </div>
             )}
 
+            {result.details.divergencias && result.details.divergencias.length > 0 && (
+              <div className="space-y-1">
+                <p className="text-xs font-semibold text-amber-600 uppercase">Divergências encontradas:</p>
+                <div className="max-h-32 overflow-y-auto space-y-1">
+                  {result.details.divergencias.map((d, i) => (
+                    <div key={i} className="flex items-start gap-2 text-xs bg-amber-50 rounded p-2">
+                      <AlertCircle className="w-3 h-3 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-gray-700">{d.descricao}</p>
+                        <p className="text-gray-400">{d.motivo}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <Button
               onClick={handleClose}
               className="w-full bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white"
