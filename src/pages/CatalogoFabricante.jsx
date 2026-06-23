@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Package, Search, Plus, Pencil, CheckCircle } from "lucide-react";
+import { Package, Search, Pencil, CheckCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -78,18 +78,25 @@ export default function CatalogoFabricante() {
   ).length;
   const totalProducts = filteredProducts.length;
 
+  const formatBRL = (val) =>
+    parseFloat(val).toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    });
+
   const handleOpenModal = (product) => {
     setSelectedProduct(product);
     setModalOpen(true);
   };
 
-  const handleSave = async ({ preco, observacoes }) => {
+  const handleSave = async ({ preco, observacoes, disponivel }) => {
     const existing = getPriceForProduct(selectedProduct.id);
     try {
       if (existing) {
         await base44.entities.SupplierProduct.update(existing.id, {
           preco,
           observacoes,
+          disponivel,
         });
       } else {
         await base44.entities.SupplierProduct.create({
@@ -97,7 +104,7 @@ export default function CatalogoFabricante() {
           product_id: selectedProduct.id,
           preco,
           observacoes,
-          disponivel: true,
+          disponivel,
         });
       }
       await loadData();
@@ -108,7 +115,6 @@ export default function CatalogoFabricante() {
     }
   };
 
-  // Renderiza atributos específicos do template
   const renderTemplateDetails = (p) => {
     const details = [];
     details.push(p.categoria);
@@ -117,8 +123,6 @@ export default function CatalogoFabricante() {
     if (p.peso_kg) details.push(`${p.peso_kg}kg`);
     if (p.tipo_furo && p.tipo_furo !== "N/A") details.push(p.tipo_furo);
     if (p.bojo_formato && p.bojo_formato !== "N/A") details.push(p.bojo_formato);
-    if (p.barra_tipo && p.barra_tipo !== "N/A") details.push(`Barra ${p.barra_tipo}`);
-    if (p.dumbell_tipo && p.dumbell_tipo !== "N/A") details.push(p.dumbell_tipo);
     if (p.und) details.push(p.und);
     return details.join(" · ");
   };
@@ -134,7 +138,7 @@ export default function CatalogoFabricante() {
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto w-full">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Catálogo de Produtos</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Meus Produtos / Catálogo</h1>
         <p className="text-sm text-gray-500">
           Vincule seus preços aos produtos do catálogo padronizado
         </p>
@@ -218,8 +222,8 @@ export default function CatalogoFabricante() {
                         {product.nome}
                       </h3>
                       {hasPrice && (
-                        <Badge className="bg-green-100 text-green-700 border-green-300 flex items-center gap-1">
-                          <CheckCircle className="w-3 h-3" /> Preço cadastrado
+                        <Badge className="bg-green-100 text-green-700 border-green-300 flex items-center gap-1 whitespace-nowrap">
+                          <CheckCircle className="w-3 h-3" /> {formatBRL(sp.preco)}
                         </Badge>
                       )}
                     </div>
@@ -227,11 +231,6 @@ export default function CatalogoFabricante() {
                     <p className="text-xs text-gray-500">
                       {renderTemplateDetails(product)}
                     </p>
-                    {hasPrice && (
-                      <p className="text-sm font-bold text-green-700 mt-1">
-                        R$ {parseFloat(sp.preco).toFixed(2)}
-                      </p>
-                    )}
                   </div>
                 </div>
                 <Button
@@ -242,12 +241,10 @@ export default function CatalogoFabricante() {
                 >
                   {hasPrice ? (
                     <>
-                      <Pencil className="w-3 h-3 mr-1" /> Editar
+                      <Pencil className="w-3 h-3 mr-1" /> Editar preço
                     </>
                   ) : (
-                    <>
-                      <Plus className="w-3 h-3 mr-1" /> Adicionar meu preço
-                    </>
+                    <>Adicionar meu preço</>
                   )}
                 </Button>
               </Card>
