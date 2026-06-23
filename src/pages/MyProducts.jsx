@@ -96,11 +96,12 @@ export default function MyProducts() {
         return;
       }
 
-      const [allProducts, supplierProductsData, unitsData, chinafabs] = await Promise.all([
+      const [allProducts, supplierProductsData, unitsData, chinafabs, categoryData] = await Promise.all([
         base44.entities.Product.list(),
         base44.entities.SupplierProduct.filter({ supplier_id: currentUser.id }),
         base44.entities.Unit.list(),
-        base44.entities.FabricanteChina.list()
+        base44.entities.FabricanteChina.list(),
+        base44.entities.Category.filter({ ativo: true })
       ]);
       setFabricantesChina(chinafabs);
 
@@ -157,9 +158,11 @@ export default function MyProducts() {
       setProducts(productsData);
       setSupplierProducts(supplierProductsData);
       
-      // Extrair categorias únicas dos produtos
-      const uniqueCategories = [...new Set(productsData.map(p => p.categoria).filter(Boolean))].sort();
-      setCategories(uniqueCategories);
+      // Carregar categorias do catálogo padrão, não dos produtos
+      const sortedCats = categoryData
+        .sort((a, b) => (a.ordem || 0) - (b.ordem || 0))
+        .map((c) => c.nome);
+      setCategories(sortedCats);
       
       setUnits(unitsData.filter(u => u.ativo).sort((a, b) => (a.ordem || 0) - (b.ordem || 0)).map(u => u.nome));
       setFabricantes(uniqueFabricantes);
