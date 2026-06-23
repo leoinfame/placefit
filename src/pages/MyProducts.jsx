@@ -53,6 +53,7 @@ export default function MyProducts() {
   // Filtros avançados - Catálogo
   const [catalogSearch, setCatalogSearch] = useState("");
   const [catalogCategory, setCatalogCategory] = useState("all");
+  const [catalogSubcategory, setCatalogSubcategory] = useState("all");
   const [catalogFabricante, setCatalogFabricante] = useState("all");
   const [catalogOrigin, setCatalogOrigin] = useState("all");
   const [catalogPriceMin, setCatalogPriceMin] = useState("");
@@ -60,6 +61,7 @@ export default function MyProducts() {
   // Filtros avançados - Meus Produtos
   const [mySearch, setMySearch] = useState("");
   const [myCategory, setMyCategory] = useState("all");
+  const [mySubcategory, setMySubcategory] = useState("all");
   const [myFabricante, setMyFabricante] = useState("all");
   const [myStatus, setMyStatus] = useState("all"); // all | active | inactive
   const [myPriceMin, setMyPriceMin] = useState("");
@@ -190,6 +192,34 @@ export default function MyProducts() {
     setLoading(false);
   };
 
+  const getSubcategoryField = (cat) => {
+    const fieldMap = {
+      Anilhas: "acabamento",
+      Halteres: "acabamento",
+      Dumbells: "dumbell_tipo",
+      "Barras Montadas": "barra_tipo",
+      Tijolinhos: "tijolinho_tipo",
+      Pisos: "piso_formato",
+      Kettlebells: "acabamento",
+      Suportes: "subcategoria",
+    };
+    return fieldMap[cat] || "subcategoria";
+  };
+
+  const getSubcategories = (cat, productList) => {
+    if (!cat || cat === "all") return [];
+    const field = getSubcategoryField(cat);
+    const subs = [
+      ...new Set(
+        productList
+          .filter((t) => t.categoria === cat)
+          .map((t) => t[field])
+          .filter(Boolean)
+      ),
+    ];
+    return subs.sort();
+  };
+
   const getFilteredProducts = () => {
     let filtered = products;
     
@@ -202,6 +232,10 @@ export default function MyProducts() {
       );
     }
     if (catalogCategory !== "all") filtered = filtered.filter(p => p.categoria === catalogCategory);
+    if (catalogSubcategory !== "all") {
+      const field = getSubcategoryField(catalogCategory);
+      filtered = filtered.filter(p => p[field] === catalogSubcategory);
+    }
     if (catalogFabricante !== "all") {
       if (catalogFabricante === "admin") filtered = filtered.filter(p => !p.fabricante_id);
       else filtered = filtered.filter(p => p.fabricante_id === catalogFabricante);
@@ -230,6 +264,10 @@ export default function MyProducts() {
       );
     }
     if (myCategory !== "all") filtered = filtered.filter(p => p.categoria === myCategory);
+    if (mySubcategory !== "all") {
+      const field = getSubcategoryField(myCategory);
+      filtered = filtered.filter(p => p[field] === mySubcategory);
+    }
     if (myFabricante !== "all") {
       if (myFabricante === "admin") filtered = filtered.filter(p => !p.fabricante_id);
       else filtered = filtered.filter(p => p.fabricante_id === myFabricante);
@@ -944,7 +982,7 @@ export default function MyProducts() {
                       className="pl-10 bg-white"
                     />
                   </div>
-                  <Select value={catalogCategory} onValueChange={setCatalogCategory}>
+                  <Select value={catalogCategory} onValueChange={(v) => { setCatalogCategory(v); setCatalogSubcategory("all"); }}>
                     <SelectTrigger className="bg-white"><SelectValue placeholder="Categoria" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todas as categorias</SelectItem>
@@ -953,6 +991,15 @@ export default function MyProducts() {
                   </Select>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {getSubcategories(catalogCategory, products).length > 0 && (
+                    <Select value={catalogSubcategory} onValueChange={setCatalogSubcategory}>
+                      <SelectTrigger className="bg-white"><SelectValue placeholder="Subcategoria" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas as subcategorias</SelectItem>
+                        {getSubcategories(catalogCategory, products).map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  )}
                   <Select value={catalogFabricante} onValueChange={setCatalogFabricante}>
                     <SelectTrigger className="bg-white"><SelectValue placeholder="Fabricante" /></SelectTrigger>
                     <SelectContent>
@@ -978,14 +1025,14 @@ export default function MyProducts() {
                     <Input placeholder="Preço máx" value={catalogPriceMax} onChange={e => setCatalogPriceMax(e.target.value)} type="number" className="pl-8 bg-white" />
                   </div>
                 </div>
-                {(catalogSearch || catalogCategory !== "all" || catalogFabricante !== "all" || catalogOrigin !== "all" || catalogPriceMin || catalogPriceMax) && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500">{getFilteredProducts().length} produto(s) encontrado(s)</span>
-                    <Button variant="ghost" size="sm" className="text-xs text-gray-500 h-7" onClick={() => { setCatalogSearch(""); setCatalogCategory("all"); setCatalogFabricante("all"); setCatalogOrigin("all"); setCatalogPriceMin(""); setCatalogPriceMax(""); }}>
-                      Limpar filtros
-                    </Button>
-                  </div>
-                )}
+                {(catalogSearch || catalogCategory !== "all" || catalogSubcategory !== "all" || catalogFabricante !== "all" || catalogOrigin !== "all" || catalogPriceMin || catalogPriceMax) && (
+                   <div className="flex items-center justify-between">
+                     <span className="text-xs text-gray-500">{getFilteredProducts().length} produto(s) encontrado(s)</span>
+                     <Button variant="ghost" size="sm" className="text-xs text-gray-500 h-7" onClick={() => { setCatalogSearch(""); setCatalogCategory("all"); setCatalogSubcategory("all"); setCatalogFabricante("all"); setCatalogOrigin("all"); setCatalogPriceMin(""); setCatalogPriceMax(""); }}>
+                       Limpar filtros
+                     </Button>
+                   </div>
+                 )}
               </CardContent>
             </Card>
 
@@ -1299,7 +1346,7 @@ export default function MyProducts() {
                       className="pl-10 bg-white"
                     />
                   </div>
-                  <Select value={myCategory} onValueChange={setMyCategory}>
+                  <Select value={myCategory} onValueChange={(v) => { setMyCategory(v); setMySubcategory("all"); }}>
                     <SelectTrigger className="bg-white"><SelectValue placeholder="Categoria" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todas as categorias</SelectItem>
@@ -1308,6 +1355,15 @@ export default function MyProducts() {
                   </Select>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {getSubcategories(myCategory, getMyProducts()).length > 0 && (
+                    <Select value={mySubcategory} onValueChange={setMySubcategory}>
+                      <SelectTrigger className="bg-white"><SelectValue placeholder="Subcategoria" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas as subcategorias</SelectItem>
+                        {getSubcategories(myCategory, getMyProducts()).map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  )}
                   <Select value={myFabricante} onValueChange={setMyFabricante}>
                     <SelectTrigger className="bg-white"><SelectValue placeholder="Fabricante" /></SelectTrigger>
                     <SelectContent>
@@ -1333,14 +1389,14 @@ export default function MyProducts() {
                     <Input placeholder="Preço máx" value={myPriceMax} onChange={e => setMyPriceMax(e.target.value)} type="number" className="pl-8 bg-white" />
                   </div>
                 </div>
-                {(mySearch || myCategory !== "all" || myFabricante !== "all" || myStatus !== "all" || myPriceMin || myPriceMax) && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500">{getMyProductsFiltered().length} produto(s) encontrado(s)</span>
-                    <Button variant="ghost" size="sm" className="text-xs text-gray-500 h-7" onClick={() => { setMySearch(""); setMyCategory("all"); setMyFabricante("all"); setMyStatus("all"); setMyPriceMin(""); setMyPriceMax(""); }}>
-                      Limpar filtros
-                    </Button>
-                  </div>
-                )}
+                {(mySearch || myCategory !== "all" || mySubcategory !== "all" || myFabricante !== "all" || myStatus !== "all" || myPriceMin || myPriceMax) && (
+                   <div className="flex items-center justify-between">
+                     <span className="text-xs text-gray-500">{getMyProductsFiltered().length} produto(s) encontrado(s)</span>
+                     <Button variant="ghost" size="sm" className="text-xs text-gray-500 h-7" onClick={() => { setMySearch(""); setMyCategory("all"); setMySubcategory("all"); setMyFabricante("all"); setMyStatus("all"); setMyPriceMin(""); setMyPriceMax(""); }}>
+                       Limpar filtros
+                     </Button>
+                   </div>
+                 )}
               </CardContent>
             </Card>
 
