@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Package, Search, Pencil, CheckCircle } from "lucide-react";
+import { Package, Search, Pencil, CheckCircle, Upload } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import PrecoModal from "@/components/catalogo-fabricante/PrecoModal";
+import UploadTabela from "@/components/catalogo-fabricante/UploadTabela";
 
 const CATEGORIAS = [
   "Anilhas",
@@ -34,6 +35,7 @@ export default function FabricanteProdutos() {
   const [categoria, setCategoria] = useState("all");
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [uploadOpen, setUploadOpen] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -139,11 +141,21 @@ export default function FabricanteProdutos() {
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto w-full">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Meus Produtos</h1>
-        <p className="text-sm text-gray-500">
-          Selecione produtos do catálogo padronizado e defina seus preços
-        </p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Meus Produtos</h1>
+          <p className="text-sm text-gray-500">
+            Selecione produtos do catálogo padronizado e defina seus preços
+          </p>
+        </div>
+        <Button
+          onClick={() => setUploadOpen(true)}
+          variant="outline"
+          className="flex items-center gap-2 border-blue-300 text-blue-700 hover:bg-blue-50"
+        >
+          <Upload className="w-4 h-4" />
+          <span className="hidden md:inline">Upload de Tabela</span>
+        </Button>
       </div>
 
       <Card className="p-4 bg-gradient-to-r from-blue-50 to-green-50 border-blue-200">
@@ -260,6 +272,12 @@ export default function FabricanteProdutos() {
         }
         onSave={handleSave}
         onClose={() => setModalOpen(false)}
+      />
+
+      <UploadTabela
+        open={uploadOpen}
+        onClose={() => setUploadOpen(false)}
+        onComplete={loadData}
       />
     </div>
   );
