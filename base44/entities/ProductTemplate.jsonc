@@ -1,7 +1,7 @@
 {
   "name": "ProductTemplate",
   "type": "object",
-  "description": "Cat\u00e1logo padronizado de tipos de produtos. Cada registro representa uma varia\u00e7\u00e3o \u00fanica de produto (ex: Anilha Ol\u00edmpica Emborrachada 10kg). Os fabricantes apenas vinculam seu pre\u00e7o a este template via SupplierProduct.",
+  "description": "Cat\u00e1logo padronizado de tipos de produtos. Cada registro representa uma varia\u00e7\u00e3o \u00fanica de produto. Os fabricantes apenas vinculam seu pre\u00e7o a este template via SupplierProduct.",
   "properties": {
     "nome": {
       "type": "string",
@@ -32,24 +32,10 @@
     },
     "tipo_furo": {
       "type": "string",
-      "enum": [
-        "Normal (Furo Pequeno)",
-        "Ol\u00edmpico (Furo 50mm)",
-        "N/A"
-      ],
       "description": "Tipo de furo - aplic\u00e1vel apenas para Anilhas"
     },
     "acabamento": {
       "type": "string",
-      "enum": [
-        "Bruto",
-        "Pintado",
-        "Emborrachado",
-        "Injetado",
-        "B\u00e2mper",
-        "Cromado",
-        "N/A"
-      ],
       "description": "Acabamento/revestimento do produto"
     },
     "peso_kg": {
@@ -59,44 +45,22 @@
     "peso_fracionado": {
       "type": "boolean",
       "default": false,
-      "description": "Se \u00e9 peso fracionado (ex: 1.5kg, 2.5kg) - usado em anilhas b\u00e2mper"
+      "description": "Se \u00e9 peso fracionado (ex: 1.5kg, 2.5kg) - usado em anilhas bumper"
     },
     "barra_tipo": {
       "type": "string",
-      "enum": [
-        "Reta",
-        "W (Curvada)",
-        "N/A"
-      ],
       "description": "Tipo de barra - aplic\u00e1vel para Barras Montadas e Halteres"
     },
     "barra_acabamento": {
       "type": "string",
-      "enum": [
-        "Cromado Recartilhado",
-        "Pintado",
-        "Injetado",
-        "N/A"
-      ],
       "description": "Acabamento da barra central - aplic\u00e1vel para Halteres e Barras Montadas"
     },
     "bojo_formato": {
       "type": "string",
-      "enum": [
-        "Sextavado (Hexagonal)",
-        "Bola",
-        "Redondo",
-        "N/A"
-      ],
       "description": "Formato das extremidades (bojos) - aplic\u00e1vel para Halteres e Dumbells"
     },
     "dumbell_tipo": {
       "type": "string",
-      "enum": [
-        "Monobloco",
-        "Anilhas Montadas",
-        "N/A"
-      ],
       "description": "Tipo construtivo do Dumbell"
     },
     "piso_espessura_mm": {
@@ -105,29 +69,14 @@
     },
     "piso_formato": {
       "type": "string",
-      "enum": [
-        "1x1m (Pe\u00e7a \u00fanica)",
-        "4x 50x50cm (Modular)",
-        "N/A"
-      ],
       "description": "Formato de montagem do piso"
     },
     "tijolinho_tipo": {
       "type": "string",
-      "enum": [
-        "Padr\u00e3o",
-        "Guia (Primeiro da pilha)",
-        "N/A"
-      ],
       "description": "Tipo de tijolinho - padr\u00e3o ou guia"
     },
     "tijolinho_torre": {
       "type": "string",
-      "enum": [
-        "5kg",
-        "10kg",
-        "N/A"
-      ],
       "description": "Torre para a qual o tijolinho \u00e9 compat\u00edvel"
     },
     "suporte_capacidade_pares": {
@@ -140,20 +89,10 @@
     },
     "suporte_modelo": {
       "type": "string",
-      "enum": [
-        "Sextavado",
-        "Anilhas Montadas (com cal\u00e7o)",
-        "N/A"
-      ],
       "description": "Modelo compat\u00edvel do suporte de dumbells"
     },
     "suporte_estrutura": {
       "type": "string",
-      "enum": [
-        "Monobloco",
-        "Desmont\u00e1vel",
-        "N/A"
-      ],
       "description": "Tipo de estrutura do suporte"
     },
     "suporte_degraus": {
@@ -162,20 +101,10 @@
     },
     "suporte_torre_capacidade": {
       "type": "string",
-      "enum": [
-        "5 pares",
-        "10 pares",
-        "N/A"
-      ],
       "description": "Capacidade da torre para halteres"
     },
     "suporte_torre_tipo": {
       "type": "string",
-      "enum": [
-        "Chapa Laser",
-        "Personalizado",
-        "N/A"
-      ],
       "description": "Tipo de acabamento da torre de halteres"
     },
     "und": {

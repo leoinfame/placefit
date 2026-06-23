@@ -283,6 +283,11 @@ export default function Layout({ children, currentPageName }) {
           icon: Package,
         },
         {
+          title: "  • Atributos",
+          url: createPageUrl("Atributos"),
+          icon: Package,
+        },
+        {
           title: "Revendedores",
           url: createPageUrl("Suppliers"),
           icon: UserCircle,
