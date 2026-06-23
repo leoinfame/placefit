@@ -9,91 +9,127 @@ Deno.serve(async (req) => {
     const { file_url } = await req.json();
     if (!file_url) return Response.json({ error: 'file_url é obrigatório' }, { status: 400 });
 
-    // 1. Buscar todos os templates ativos
-    const templates = await base44.asServiceRole.entities.ProductTemplate.filter({ ativo: true });
+    // 1. Buscar templates e SupplierProducts em paralelo
+    const [templates, existingSps] = await Promise.all([
+      base44.asServiceRole.entities.ProductTemplate.filter({ ativo: true }),
+      base44.asServiceRole.entities.SupplierProduct.filter({ supplier_id: user.id })
+    ]);
 
-    // 2. Extrair dados do CSV enviado
-    const extractResult = await base44.asServiceRole.integrations.Core.ExtractDataFromUploadedFile({
-      file_url,
-      json_schema: {
-        type: "object",
-        properties: {
-          produtos: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                codigo: { type: "string", description: "Código/SKU do produto no catálogo padronizado (ex: ANI-OLI-EMB-010)" },
-                preco: { type: "number", description: "Preço em R$ (apenas números)" },
-                disponivel: { type: "string", description: "SIM ou NÃO (padrão: SIM)" }
-              }
-            }
-          }
-        }
-      }
-    });
-
-    if (!extractResult.output || !extractResult.output.produtos || extractResult.output.produtos.length === 0) {
-      return Response.json({ error: 'Nenhum produto encontrado no CSV. Verifique se o arquivo contém as colunas codigo e preco.' }, { status: 400 });
+    const templateByCod = new Map();
+    for (const t of templates) {
+      const cod = (t.cod || "").trim().toUpperCase().replace(/\s+/g, "");
+      if (cod) templateByCod.set(cod, t);
     }
 
-    const produtosExtraidos = extractResult.output.produtos;
-    const results = { created: [], updated: [], unmatched: [] };
+    const existingByPid = new Map();
+    for (const sp of existingSps) existingByPid.set(sp.product_id, sp);
 
-    // 3. Para cada produto, buscar template por código (match exato, case-insensitive)
-    for (const prod of produtosExtraidos) {
-      if (!prod.codigo || !prod.preco) {
-        results.unmatched.push({ descricao: prod.codigo || '(sem código)', motivo: 'Código ou preço ausente' });
+    // 2. Buscar e fazer parse do CSV diretamente (sem IA)
+    const csvRes = await fetch(file_url);
+    if (!csvRes.ok) return Response.json({ error: 'Não foi possível baixar o arquivo.' }, { status: 400 });
+    const csvText = await csvRes.text();
+
+    // Parse CSV simples (suporta aspas e vírgulas dentro de campos)
+    const parseCsv = (text) => {
+      const rows = [];
+      let current = [];
+      let field = "";
+      let inQuotes = false;
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (inQuotes) {
+          if (ch === '"') {
+            if (text[i + 1] === '"') { field += '"'; i++; }
+            else inQuotes = false;
+          } else field += ch;
+        } else {
+          if (ch === '"') inQuotes = true;
+          else if (ch === ',') { current.push(field); field = ""; }
+          else if (ch === '\n' || ch === '\r') {
+            if (field || current.length > 0) { current.push(field); rows.push(current); current = []; field = ""; }
+            if (ch === '\r' && text[i + 1] === '\n') i++;
+          } else field += ch;
+        }
+      }
+      if (field || current.length > 0) { current.push(field); rows.push(current); }
+      return rows;
+    };
+
+    const rows = parseCsv(csvText);
+    if (rows.length < 2) {
+      return Response.json({ error: 'CSV vazio ou sem dados.' }, { status: 400 });
+    }
+
+    // 3. Mapear cabeçalho
+    const headers = rows[0].map(h => h.trim().toLowerCase());
+    const idxCodigo = headers.indexOf("codigo");
+    const idxPreco = headers.indexOf("preco");
+    const idxDisponivel = headers.indexOf("disponivel");
+
+    if (idxCodigo === -1) {
+      return Response.json({ error: 'Coluna "codigo" não encontrada no CSV.' }, { status: 400 });
+    }
+
+    // 4. Processar linhas
+    const parsePreco = (val) => {
+      if (!val) return null;
+      const s = String(val).replace(/[R$\s.]/g, "").replace(",", ".");
+      const n = parseFloat(s);
+      return isNaN(n) ? null : n;
+    };
+
+    const toCreate = [];
+    const toUpdate = [];
+    const results = { created: [], updated: [], unmatched: [], divergencias: [] };
+
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      const codigo = (row[idxCodigo] || "").trim();
+      if (!codigo) continue;
+
+      const preco = idxPreco !== -1 ? parsePreco(row[idxPreco]) : null;
+      if (preco === null || preco <= 0) {
+        results.divergencias.push({ descricao: codigo, motivo: "Sem preço preenchido no CSV" });
+        results.unmatched.push({ descricao: codigo, motivo: "Sem preço no CSV" });
         continue;
       }
 
-      const codigoLimpo = String(prod.codigo).trim().toUpperCase();
-      const template = templates.find((t) => (t.cod || '').trim().toUpperCase() === codigoLimpo);
-
+      const codigoLimpo = codigo.toUpperCase().replace(/\s+/g, "");
+      const template = templateByCod.get(codigoLimpo);
       if (!template) {
-        results.unmatched.push({ descricao: prod.codigo, motivo: 'Código não encontrado no catálogo padronizado' });
+        results.unmatched.push({ descricao: codigo, motivo: "Código não encontrado no catálogo" });
         continue;
       }
 
-      const disponivel = prod.disponivel ? String(prod.disponivel).trim().toUpperCase() !== 'NÃO' : true;
+      const disponivel = idxDisponivel !== -1 && row[idxDisponivel]
+        ? String(row[idxDisponivel]).trim().toUpperCase() !== "NÃO"
+        : true;
 
-      // Verificar se já existe SupplierProduct
-      const existing = await base44.asServiceRole.entities.SupplierProduct.filter({
-        supplier_id: user.id,
-        product_id: template.id
-      });
-
-      if (existing.length > 0) {
-        await base44.asServiceRole.entities.SupplierProduct.update(existing[0].id, {
-          preco: prod.preco,
-          disponivel
-        });
-        results.updated.push({
-          codigo: prod.codigo,
-          template_nome: template.nome,
-          preco: prod.preco
-        });
+      const existing = existingByPid.get(template.id);
+      if (existing) {
+        toUpdate.push({ id: existing.id, preco, disponivel });
+        results.updated.push({ codigo, template_nome: template.nome, preco });
       } else {
-        await base44.asServiceRole.entities.SupplierProduct.create({
-          supplier_id: user.id,
-          product_id: template.id,
-          preco: prod.preco,
-          disponivel
-        });
-        results.created.push({
-          codigo: prod.codigo,
-          template_nome: template.nome,
-          preco: prod.preco
-        });
+        toCreate.push({ supplier_id: user.id, product_id: template.id, preco, disponivel });
+        results.created.push({ codigo, template_nome: template.nome, preco });
       }
+    }
+
+    // 5. Operações em lote
+    if (toCreate.length > 0) {
+      try { await base44.asServiceRole.entities.SupplierProduct.bulkCreate(toCreate); } catch (e) { console.error("bulkCreate:", e.message); }
+    }
+    if (toUpdate.length > 0) {
+      try { await base44.asServiceRole.entities.SupplierProduct.bulkUpdate(toUpdate); } catch (e) { console.error("bulkUpdate:", e.message); }
     }
 
     return Response.json({
       success: true,
-      total_extracted: produtosExtraidos.length,
+      total_extracted: rows.length - 1,
       created: results.created.length,
       updated: results.updated.length,
       unmatched: results.unmatched.length,
+      divergencias: results.divergencias.length,
       details: results
     });
   } catch (error) {
