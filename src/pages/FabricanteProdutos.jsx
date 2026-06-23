@@ -15,17 +15,6 @@ import {
 import PrecoModal from "@/components/catalogo-fabricante/PrecoModal";
 import UploadTabela from "@/components/catalogo-fabricante/UploadTabela";
 
-const CATEGORIAS = [
-  "Anilhas",
-  "Halteres",
-  "Dumbells",
-  "Barras Montadas",
-  "Tijolinhos",
-  "Pisos",
-  "Kettlebells",
-  "Suportes",
-];
-
 export default function FabricanteProdutos() {
   const [user, setUser] = useState(null);
   const [templates, setTemplates] = useState([]);
@@ -38,6 +27,7 @@ export default function FabricanteProdutos() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [downloadingTemplate, setDownloadingTemplate] = useState(false);
+  const [categorias, setCategorias] = useState([]);
 
   useEffect(() => {
     loadData();
@@ -52,11 +42,16 @@ export default function FabricanteProdutos() {
       }
       setUser(currentUser);
 
-      const [allTemplates, myPrices] = await Promise.all([
+      const [allTemplates, myPrices, categoryData] = await Promise.all([
         base44.entities.ProductTemplate.filter({ ativo: true }),
         base44.entities.SupplierProduct.filter({ supplier_id: currentUser.id }),
+        base44.entities.Category.filter({ ativo: true }),
       ]);
 
+      const sortedCats = categoryData
+        .sort((a, b) => (a.ordem || 0) - (b.ordem || 0))
+        .map((c) => c.nome);
+      setCategorias(sortedCats);
       setTemplates(allTemplates);
       setSupplierProducts(myPrices);
     } catch (error) {
@@ -298,7 +293,7 @@ export default function FabricanteProdutos() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas as categorias</SelectItem>
-            {CATEGORIAS.map((c) => (
+            {categorias.map((c) => (
               <SelectItem key={c} value={c}>
                 {c}
               </SelectItem>
