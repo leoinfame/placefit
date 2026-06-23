@@ -9,31 +9,41 @@ Deno.serve(async (req) => {
     const { file_url } = await req.json();
     if (!file_url) return Response.json({ error: 'file_url é obrigatório' }, { status: 400 });
 
-    // 1. Buscar templates ativos e SupplierProducts existentes em paralelo (2 chamadas)
+    // 1. Buscar templates ativos e SupplierProducts existentes em paralelo
     const [templates, existingSps] = await Promise.all([
       base44.asServiceRole.entities.ProductTemplate.filter({ ativo: true }),
       base44.asServiceRole.entities.SupplierProduct.filter({ supplier_id: user.id })
     ]);
 
-    // Mapa de código -> template (normalizado)
-    const templateByCod = new Map();
-    const templateByNome = new Map();
-    for (const t of templates) {
-      const cod = (t.cod || "").toUpperCase().replace(/\s+/g, "");
-      if (cod) templateByCod.set(cod, t);
-      if (t.nome) templateByNome.set(t.nome.trim().toLowerCase(), t);
-    }
-
-    // Mapa de product_id -> SupplierProduct existente
     const existingByPid = new Map();
-    for (const sp of existingSps) {
-      existingByPid.set(sp.product_id, sp);
-    }
+    for (const sp of existingSps) existingByPid.set(sp.product_id, sp);
 
-    // 2. Extrair dados do arquivo (1 chamada)
-    const extractResult = await base44.asServiceRole.integrations.Core.ExtractDataFromUploadedFile({
-      file_url,
-      json_schema: {
+    // Lista compacta de templates
+    const templateList = templates.map(t => {
+      const parts = [t.id, t.cod || "", t.nome || "", t.categoria || ""];
+      if (t.peso_kg) parts.push(`${t.peso_kg}kg`);
+      if (t.acabamento) parts.push(t.acabamento);
+      if (t.tipo_furo) parts.push(t.tipo_furo);
+      if (t.und) parts.push(t.und);
+      return parts.join("|");
+    }).join("\n");
+
+    // 2. ÚNICA chamada LLM: lê o arquivo + extrai produtos + casa com templates
+    const llmResult = await base44.asServiceRole.integrations.Core.InvokeLLM({
+      prompt: `Analise o arquivo enviado (tabela de preços de equipamentos de fitness) e extraia todos os produtos com seus preços.
+Para cada produto, case com o template mais similar do catálogo abaixo.
+
+CATÁLOGO (id|codigo|nome|categoria|atributos):
+${templateList}
+
+Retorne JSON com produtos encontrados. Regras:
+- Extraia TODOS os produtos com preço que encontrar
+- preco: apenas números (45.90, não "R$ 45,90")
+- template_id: ID exato do catálogo casado, ou null se não houver
+- Use o código exato se houver match, senão compare nome/peso/acabamento/tipo`,
+      file_urls: [file_url],
+      model: "gemini_3_flash",
+      response_json_schema: {
         type: "object",
         properties: {
           produtos: {
@@ -41,13 +51,10 @@ Deno.serve(async (req) => {
             items: {
               type: "object",
               properties: {
-                descricao: { type: "string", description: "Nome ou descrição completa do produto" },
-                codigo: { type: "string", description: "Código/SKU do produto se mencionado" },
-                categoria: { type: "string", description: "Categoria do produto" },
-                peso: { type: "string", description: "Peso mencionado" },
-                acabamento: { type: "string", description: "Acabamento/material" },
-                tipo_furo: { type: "string", description: "Tipo de furo" },
-                preco: { type: "number", description: "Preço em R$ (apenas números)" }
+                descricao_original: { type: "string" },
+                template_id: { type: "string" },
+                preco: { type: "number" },
+                motivo: { type: "string" }
               }
             }
           }
@@ -55,100 +62,49 @@ Deno.serve(async (req) => {
       }
     });
 
-    if (!extractResult.output || !extractResult.output.produtos || extractResult.output.produtos.length === 0) {
+    if (!llmResult.produtos || llmResult.produtos.length === 0) {
       return Response.json({ error: 'Nenhum produto encontrado no arquivo.' }, { status: 400 });
     }
 
-    const produtosExtraidos = extractResult.output.produtos;
-
-    // 3. Match direto por código e por nome (sem LLM)
+    // 3. Processar resultados
     const toCreate = [];
     const toUpdate = [];
     const results = { created: [], updated: [], unmatched: [], divergencias: [] };
-    const needLlm = [];
 
-    for (let i = 0; i < produtosExtraidos.length; i++) {
-      const p = produtosExtraidos[i];
-      const codNorm = (p.codigo || "").trim().toUpperCase().replace(/\s+/g, "");
-
-      let matched = null;
-      if (codNorm) matched = templateByCod.get(codNorm);
-      if (!matched && p.descricao) {
-        matched = templateByNome.get(p.descricao.trim().toLowerCase());
+    for (const p of llmResult.produtos) {
+      if (!p.preco || p.preco <= 0) {
+        results.divergencias.push({ descricao: p.descricao_original || "?", motivo: "Produto sem preço" });
+        results.unmatched.push({ descricao: p.descricao_original || "?", motivo: "Sem preço na tabela" });
+        continue;
+      }
+      if (!p.template_id) {
+        results.unmatched.push({ descricao: p.descricao_original || "?", motivo: p.motivo || "Sem template" });
+        continue;
       }
 
-      if (matched && p.preco != null && p.preco > 0) {
-        const existing = existingByPid.get(matched.id);
-        if (existing) {
-          toUpdate.push({ id: existing.id, preco: p.preco, disponivel: true });
-          results.updated.push({ descricao: p.descricao || p.codigo, template_nome: matched.nome, template_cod: matched.cod, preco: p.preco });
-        } else {
-          toCreate.push({ supplier_id: user.id, product_id: matched.id, preco: p.preco, disponivel: true });
-          results.created.push({ descricao: p.descricao || p.codigo, template_nome: matched.nome, template_cod: matched.cod, preco: p.preco });
-        }
+      const tmpl = templates.find(t => t.id === p.template_id);
+      if (!tmpl) {
+        results.unmatched.push({ descricao: p.descricao_original || "?", motivo: "Template ID inválido" });
+        continue;
+      }
+
+      const existing = existingByPid.get(p.template_id);
+      if (existing) {
+        toUpdate.push({ id: existing.id, preco: p.preco, disponivel: true });
+        results.updated.push({ descricao: p.descricao_original, template_nome: tmpl.nome, template_cod: tmpl.cod, preco: p.preco });
       } else {
-        needLlm.push({ indice: i, produto: p });
+        toCreate.push({ supplier_id: user.id, product_id: p.template_id, preco: p.preco, disponivel: true });
+        results.created.push({ descricao: p.descricao_original, template_nome: tmpl.nome, template_cod: tmpl.cod, preco: p.preco });
       }
     }
 
-    // 4. Operações em lote (máximo 2 chamadas, não 187+)
-    if (toCreate.length > 0) {
-      try { await base44.asServiceRole.entities.SupplierProduct.bulkCreate(toCreate); } catch (e) { console.error("bulkCreate:", e.message); }
-    }
-    if (toUpdate.length > 0) {
-      try { await base44.asServiceRole.entities.SupplierProduct.bulkUpdate(toUpdate); } catch (e) { console.error("bulkUpdate:", e.message); }
-    }
-
-    // 5. LLM apenas para produtos não casados (se houver)
-    if (needLlm.length > 0) {
-      try {
-        const llmMatches = await matchWithLlm(base44, templates, needLlm);
-        const llmCreate = [];
-        const llmUpdate = [];
-        for (const match of llmMatches) {
-          const produto = produtosExtraidos[match.indice];
-          if (!match.template_id || !match.preco) {
-            results.unmatched.push({ descricao: match.descricao_original || produto.descricao, motivo: match.motivo || 'Sem template' });
-            continue;
-          }
-          const templateExists = templates.find((t) => t.id === match.template_id);
-          if (!templateExists) {
-            results.unmatched.push({ descricao: match.descricao_original || produto.descricao, motivo: 'Template ID inválido' });
-            continue;
-          }
-          const existing = existingByPid.get(match.template_id);
-          if (existing) {
-            llmUpdate.push({ id: existing.id, preco: match.preco, disponivel: true });
-            results.updated.push({ descricao: match.descricao_original, template_nome: templateExists.nome, template_cod: templateExists.cod, preco: match.preco });
-          } else {
-            llmCreate.push({ supplier_id: user.id, product_id: match.template_id, preco: match.preco, disponivel: true });
-            results.created.push({ descricao: match.descricao_original, template_nome: templateExists.nome, template_cod: templateExists.cod, preco: match.preco });
-          }
-        }
-        if (llmCreate.length > 0) {
-          try { await base44.asServiceRole.entities.SupplierProduct.bulkCreate(llmCreate); } catch (e) { console.error("llm bulkCreate:", e.message); }
-        }
-        if (llmUpdate.length > 0) {
-          try { await base44.asServiceRole.entities.SupplierProduct.bulkUpdate(llmUpdate); } catch (e) { console.error("llm bulkUpdate:", e.message); }
-        }
-      } catch (llmError) {
-        console.error("Erro LLM:", llmError.message);
-        for (const item of needLlm) {
-          results.unmatched.push({ descricao: item.produto.descricao || item.produto.codigo, motivo: `Match IA indisponível: ${llmError.message}` });
-        }
-      }
-    }
-
-    // 6. Divergências
-    for (const p of produtosExtraidos) {
-      if (p.preco == null || p.preco <= 0) {
-        results.divergencias.push({ descricao: p.descricao || p.codigo || "Sem descrição", motivo: "Produto sem preço na tabela" });
-      }
-    }
+    // 4. Operações em lote
+    if (toCreate.length > 0) await base44.asServiceRole.entities.SupplierProduct.bulkCreate(toCreate);
+    if (toUpdate.length > 0) await base44.asServiceRole.entities.SupplierProduct.bulkUpdate(toUpdate);
 
     return Response.json({
       success: true,
-      total_extracted: produtosExtraidos.length,
+      total_extracted: llmResult.produtos.length,
       created: results.created.length,
       updated: results.updated.length,
       unmatched: results.unmatched.length,
@@ -160,47 +116,3 @@ Deno.serve(async (req) => {
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
-
-async function matchWithLlm(base44, templates, needLlm) {
-  const templateList = templates.map((t) => {
-    const parts = [t.id, t.cod, t.nome, `cat:${t.categoria}`];
-    if (t.subcategoria) parts.push(`sub:${t.subcategoria}`);
-    if (t.acabamento && t.acabamento !== "N/A") parts.push(`acab:${t.acabamento}`);
-    if (t.peso_kg) parts.push(`peso:${t.peso_kg}kg`);
-    if (t.tipo_furo && t.tipo_furo !== "N/A") parts.push(`furo:${t.tipo_furo}`);
-    if (t.und) parts.push(`und:${t.und}`);
-    return parts.join(" | ");
-  }).join("\n");
-
-  const llmResult = await base44.asServiceRole.integrations.Core.InvokeLLM({
-    prompt: `Casa cada produto com o template correto.
-
-CATÁLOGO:
-${templateList}
-
-PRODUTOS:
-${needLlm.map((item) => `[${item.indice}] ${item.produto.descricao || ""} | cod:${item.produto.codigo || "?"} | cat:${item.produto.categoria || "?"} | preco:${item.produto.preco}`).join("\n")}
-
-Retorne JSON: { "matches": [{ "indice": number, "descricao_original": string, "template_id": string ou null, "preco": number, "motivo": string }] }`,
-    response_json_schema: {
-      type: "object",
-      properties: {
-        matches: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              indice: { type: "number" },
-              descricao_original: { type: "string" },
-              template_id: { type: "string" },
-              preco: { type: "number" },
-              motivo: { type: "string" }
-            }
-          }
-        }
-      }
-    }
-  });
-
-  return llmResult.matches || [];
-}
