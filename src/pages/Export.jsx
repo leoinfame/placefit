@@ -78,13 +78,15 @@ export default function Export() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      if (currentUser.role === 'admin') {
+      // Admin pode visualizar como fabricante/fornecedor
+      const viewMode = localStorage.getItem('admin_view_mode') || 'admin';
+      if (currentUser.role === 'admin' && viewMode === 'admin') {
         window.location.href = '/Dashboard';
         return;
       }
 
       // Verificar se é fabricante
-      const isFabricante = currentUser.tipo_usuario === 'fabricante';
+      const isFabricante = currentUser.tipo_usuario === 'fabricante' || viewMode === 'fabricante';
 
       if (isFabricante) {
         // Para fabricantes, buscar produtos criados por eles
