@@ -25,12 +25,12 @@ export default function UploadTabela({ open, onClose, onComplete }) {
   const handleFileSelect = (e) => {
     const selected = e.target.files?.[0];
     if (!selected) return;
-    const validTypes = [".csv", ".xlsx", ".xls", ".json"];
+    const validTypes = [".csv", ".xlsx", ".xls", ".json", ".pdf"];
     const ext = selected.name.substring(selected.name.lastIndexOf(".")).toLowerCase();
     if (!validTypes.includes(ext)) {
       toast({
         title: "Formato inválido",
-        description: "Use CSV, Excel (.xlsx) ou JSON.",
+        description: "Use CSV, Excel (.xlsx), JSON ou PDF.",
         variant: "destructive",
       });
       return;
@@ -98,7 +98,7 @@ export default function UploadTabela({ open, onClose, onComplete }) {
             Upload de Tabela de Produtos
           </DialogTitle>
           <DialogDescription>
-            Envie sua tabela de produtos (CSV ou Excel) e o sistema fará o match automático com o catálogo padronizado, vinculando seus preços.
+            Envie sua tabela de produtos (CSV, Excel, PDF ou JSON) e o sistema fará o match automático com o catálogo padronizado, vinculando seus preços.
           </DialogDescription>
         </DialogHeader>
 
@@ -111,7 +111,7 @@ export default function UploadTabela({ open, onClose, onComplete }) {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".csv,.xlsx,.xls,.json"
+                accept=".csv,.xlsx,.xls,.json,.pdf"
                 onChange={handleFileSelect}
                 className="hidden"
               />
@@ -125,7 +125,7 @@ export default function UploadTabela({ open, onClose, onComplete }) {
                 <div className="space-y-2">
                   <Upload className="w-10 h-10 text-gray-400 mx-auto" />
                   <p className="font-medium text-sm text-gray-700">Clique para selecionar o arquivo</p>
-                  <p className="text-xs text-gray-400">CSV, Excel (.xlsx) ou JSON</p>
+                  <p className="text-xs text-gray-400">CSV, Excel (.xlsx), PDF ou JSON</p>
                 </div>
               )}
             </div>
