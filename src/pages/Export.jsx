@@ -58,17 +58,22 @@ export default function Export() {
     setPreviewData(preview);
   };
 
-  const generatePreviewForFabricante = (productsData) => {
-    const preview = productsData.map(product => ({
-      nome: product.nome,
-      cod: product.cod || '',
-      categoria: product.categoria || 'Outros',
-      und: product.und || 'peça',
-      dimensoes: product.dimensoes || '',
-      peso: product.peso ? `${product.peso}kg` : '',
-      preco: parseFloat(product.preco_fabricante || 0),
-      precoFormatado: product.preco_fabricante ? `R$ ${parseFloat(product.preco_fabricante).toFixed(2)}` : 'R$ 0,00'
-    }));
+  const generatePreviewForFabricante = (productsData, supplierProductsData = []) => {
+    const preview = productsData.map(product => {
+      const supplierProduct = supplierProductsData.find(sp => sp.product_id === product.id);
+      const preco = supplierProduct?.preco || 0;
+      
+      return {
+        nome: product.nome,
+        cod: product.cod || '',
+        categoria: product.categoria || 'Outros',
+        und: product.und || 'peça',
+        dimensoes: product.dimensoes || '',
+        peso: product.peso_kg ? `${product.peso_kg}kg` : '',
+        preco: parseFloat(preco),
+        precoFormatado: preco ? `R$ ${parseFloat(preco).toFixed(2)}` : 'R$ 0,00'
+      };
+    });
 
     setPreviewData(preview);
   };
@@ -89,19 +94,21 @@ export default function Export() {
       const isFabricante = currentUser.tipo_usuario === 'fabricante' || viewMode === 'fabricante';
 
       if (isFabricante) {
-        // Para fabricantes, buscar produtos criados por eles
-        const allProducts = await base44.entities.Product.list();
-        const productsData = allProducts.filter(p => 
-          p.fabricante_id === currentUser.id && 
-          p.aprovado_produto === true && 
-          p.ativo !== false
-        );
+        // Para fabricantes, buscar apenas templates que ele configurou preço (novo padrão)
+        const [allTemplates, supplierProductsData] = await Promise.all([
+          base44.entities.ProductTemplate.filter({ ativo: true }),
+          base44.entities.SupplierProduct.filter({ supplier_id: currentUser.id })
+        ]);
         
-        console.log('Produtos do fabricante:', productsData);
+        // Filtrar templates que o fabricante tem SupplierProduct
+        const configuredTemplateIds = supplierProductsData.map(sp => sp.product_id);
+        const productsData = allTemplates.filter(t => configuredTemplateIds.includes(t.id));
+        
+        console.log('Produtos do fabricante (novo padrão):', productsData);
         
         setProducts(productsData);
-        setSupplierProducts([]); // Fabricantes não usam SupplierProduct
-        generatePreviewForFabricante(productsData);
+        setSupplierProducts(supplierProductsData);
+        generatePreviewForFabricante(productsData, supplierProductsData);
       } else {
         // Para fornecedores, buscar produtos normalmente
         const [productsData, supplierProductsData] = await Promise.all([
