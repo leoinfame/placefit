@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Upload, FileSpreadsheet, Loader2, CheckCircle, XCircle, AlertCircle, Download, FileDown } from "lucide-react";
+import { Upload, FileSpreadsheet, Loader2, CheckCircle, XCircle, AlertCircle, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,13 +10,12 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { processSupplierTableUpload } from "@/functions/processSupplierTableUpload";
 import { processDirectCsvUpload } from "@/functions/processDirectCsvUpload";
 
 export default function UploadTabela({ open, onClose, onComplete }) {
-  const [mode, setMode] = useState("ia");
+  const [mode, setMode] = useState("csv");
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -28,7 +27,7 @@ export default function UploadTabela({ open, onClose, onComplete }) {
 
   useEffect(() => {
     if (open) {
-      setMode("ia");
+      setMode("csv");
       setFile(null);
       setResult(null);
       setError(null);
@@ -65,12 +64,10 @@ export default function UploadTabela({ open, onClose, onComplete }) {
     setUploading(true);
     setError(null);
     try {
-      // 1. Upload do arquivo
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       setUploading(false);
       setProcessing(true);
 
-      // 2. Chamar backend apropriado
       const response = mode === "ia"
         ? await processSupplierTableUpload({ file_url })
         : await processDirectCsvUpload({ file_url });
@@ -168,111 +165,6 @@ export default function UploadTabela({ open, onClose, onComplete }) {
     return s;
   };
 
-  const renderUploadArea = () => (
-    <div className="space-y-4">
-      <div
-        onClick={() => fileInputRef.current?.click()}
-        className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition-colors"
-      >
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept={getValidTypes().join(",")}
-          onChange={handleFileSelect}
-          className="hidden"
-        />
-        {file ? (
-          <div className="space-y-2">
-            <FileSpreadsheet className="w-10 h-10 text-green-600 mx-auto" />
-            <p className="font-medium text-sm text-gray-900">{file.name}</p>
-            <p className="text-xs text-gray-500">Clique para trocar o arquivo</p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            <Upload className="w-10 h-10 text-gray-400 mx-auto" />
-            <p className="font-medium text-sm text-gray-700">Clique para selecionar o arquivo</p>
-            <p className="text-xs text-gray-400">
-              {mode === "ia" ? "CSV, Excel (.xlsx), PDF ou JSON" : "Apenas CSV"}
-            </p>
-          </div>
-        )}
-      </div>
-
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex gap-2">
-          <XCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
-          <p className="text-xs text-red-700">{error}</p>
-        </div>
-      )}
-
-      <div className="flex gap-3">
-        <Button variant="outline" onClick={handleClose} className="flex-1">
-          Cancelar
-        </Button>
-        <Button
-          onClick={handleProcess}
-          disabled={!file || uploading}
-          className="flex-1 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white"
-        >
-          {uploading ? "Enviando..." : mode === "ia" ? "Processar Tabela" : "Processar CSV"}
-        </Button>
-      </div>
-    </div>
-  );
-
-  const renderResult = () => (
-    <div className="space-y-4">
-      <Card className="bg-green-50 border-green-200">
-        <CardContent className="p-4 text-center">
-          <CheckCircle className="w-10 h-10 text-green-600 mx-auto mb-2" />
-          <p className="font-semibold text-gray-900">
-            {mode === "ia" ? "Tabela processada com sucesso!" : "CSV processado com sucesso!"}
-          </p>
-          <p className="text-sm text-gray-600 mt-1">{result.total_extracted} produtos encontrados</p>
-        </CardContent>
-      </Card>
-
-      <div className="grid grid-cols-3 gap-2">
-        <div className="bg-green-100 rounded-lg p-3 text-center">
-          <p className="text-2xl font-bold text-green-700">{result.created}</p>
-          <p className="text-xs text-green-700">Novos</p>
-        </div>
-        <div className="bg-blue-100 rounded-lg p-3 text-center">
-          <p className="text-2xl font-bold text-blue-700">{result.updated}</p>
-          <p className="text-xs text-blue-700">Atualizados</p>
-        </div>
-        <div className="bg-gray-100 rounded-lg p-3 text-center">
-          <p className="text-2xl font-bold text-gray-600">{result.unmatched}</p>
-          <p className="text-xs text-gray-600">Sem match</p>
-        </div>
-      </div>
-
-      {result.details.unmatched.length > 0 && (
-        <div className="space-y-1">
-          <p className="text-xs font-semibold text-gray-500 uppercase">Produtos sem correspondência:</p>
-          <div className="max-h-32 overflow-y-auto space-y-1">
-            {result.details.unmatched.map((u, i) => (
-              <div key={i} className="flex items-start gap-2 text-xs bg-gray-50 rounded p-2">
-                <AlertCircle className="w-3 h-3 text-amber-500 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-gray-700">{u.descricao}</p>
-                  <p className="text-gray-400">{u.motivo}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <Button
-        onClick={handleClose}
-        className="w-full bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white"
-      >
-        Concluir
-      </Button>
-    </div>
-  );
-
   return (
     <Dialog open={open} onOpenChange={(o) => !o && handleClose()}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
@@ -287,50 +179,113 @@ export default function UploadTabela({ open, onClose, onComplete }) {
         </DialogHeader>
 
         {!result && !processing && (
-          <Tabs value={mode} onValueChange={setMode}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="ia">Tabela (IA)</TabsTrigger>
-              <TabsTrigger value="csv">CSV Direto</TabsTrigger>
-            </TabsList>
+          <div className="space-y-4">
+            {/* Seletor de modo */}
+            <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
+              <button
+                onClick={() => { setMode("csv"); setFile(null); }}
+                className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  mode === "csv" ? "bg-white text-blue-700 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                CSV Direto
+              </button>
+              <button
+                onClick={() => { setMode("ia"); setFile(null); }}
+                className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  mode === "ia" ? "bg-white text-blue-700 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                Tabela (IA)
+              </button>
+            </div>
 
-            <TabsContent value="ia" className="space-y-4 mt-4">
+            {mode === "csv" && (
+              <>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <p className="text-xs text-blue-800">
+                    <strong>CSV Direto:</strong> mais rápido e preciso. O CSV deve ter as colunas{" "}
+                    <code className="bg-blue-100 px-1 rounded">codigo</code> e{" "}
+                    <code className="bg-blue-100 px-1 rounded">preco</code>. Baixe o modelo abaixo,
+                    preencha os preços e envie.
+                  </p>
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDownloadTemplate}
+                  disabled={downloadingTemplate}
+                  className="w-full text-gray-600 border-blue-300 text-blue-700 hover:bg-blue-50"
+                >
+                  {downloadingTemplate ? (
+                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                  ) : (
+                    <FileDown className="w-3 h-3 mr-1" />
+                  )}
+                  {downloadingTemplate ? "Gerando modelo..." : "Baixar modelo CSV do catálogo"}
+                </Button>
+              </>
+            )}
+
+            {mode === "ia" && (
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                 <p className="text-xs text-amber-800">
                   <strong>Match por IA:</strong> envie qualquer formato (PDF, Excel, CSV, JSON) com descrições e preços.
                   A IA casará automaticamente cada produto com o catálogo padronizado.
                 </p>
               </div>
-              {renderUploadArea()}
-            </TabsContent>
+            )}
 
-            <TabsContent value="csv" className="space-y-4 mt-4">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-xs text-blue-800">
-                  <strong>CSV Direto:</strong> mais rápido e preciso. O CSV deve ter as colunas{" "}
-                  <code className="bg-blue-100 px-1 rounded">codigo</code> e{" "}
-                  <code className="bg-blue-100 px-1 rounded">preco</code>. Baixe o modelo abaixo,
-                  preencha os preços e envie.
-                </p>
+            {/* Área de upload */}
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition-colors"
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept={getValidTypes().join(",")}
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              {file ? (
+                <div className="space-y-2">
+                  <FileSpreadsheet className="w-10 h-10 text-green-600 mx-auto" />
+                  <p className="font-medium text-sm text-gray-900">{file.name}</p>
+                  <p className="text-xs text-gray-500">Clique para trocar o arquivo</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Upload className="w-10 h-10 text-gray-400 mx-auto" />
+                  <p className="font-medium text-sm text-gray-700">Clique para selecionar o arquivo</p>
+                  <p className="text-xs text-gray-400">
+                    {mode === "ia" ? "CSV, Excel (.xlsx), PDF ou JSON" : "Apenas CSV"}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex gap-2">
+                <XCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-red-700">{error}</p>
               </div>
+            )}
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDownloadTemplate}
-                disabled={downloadingTemplate}
-                className="w-full text-gray-600"
-              >
-                {downloadingTemplate ? (
-                  <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                ) : (
-                  <FileDown className="w-3 h-3 mr-1" />
-                )}
-                {downloadingTemplate ? "Gerando modelo..." : "Baixar modelo CSV do catálogo"}
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={handleClose} className="flex-1">
+                Cancelar
               </Button>
-
-              {renderUploadArea()}
-            </TabsContent>
-          </Tabs>
+              <Button
+                onClick={handleProcess}
+                disabled={!file || uploading}
+                className="flex-1 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white"
+              >
+                {uploading ? "Enviando..." : mode === "ia" ? "Processar Tabela" : "Processar CSV"}
+              </Button>
+            </div>
+          </div>
         )}
 
         {processing && (
@@ -349,7 +304,58 @@ export default function UploadTabela({ open, onClose, onComplete }) {
           </div>
         )}
 
-        {result && renderResult()}
+        {result && (
+          <div className="space-y-4">
+            <Card className="bg-green-50 border-green-200">
+              <CardContent className="p-4 text-center">
+                <CheckCircle className="w-10 h-10 text-green-600 mx-auto mb-2" />
+                <p className="font-semibold text-gray-900">
+                  {mode === "ia" ? "Tabela processada com sucesso!" : "CSV processado com sucesso!"}
+                </p>
+                <p className="text-sm text-gray-600 mt-1">{result.total_extracted} produtos encontrados</p>
+              </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-3 gap-2">
+              <div className="bg-green-100 rounded-lg p-3 text-center">
+                <p className="text-2xl font-bold text-green-700">{result.created}</p>
+                <p className="text-xs text-green-700">Novos</p>
+              </div>
+              <div className="bg-blue-100 rounded-lg p-3 text-center">
+                <p className="text-2xl font-bold text-blue-700">{result.updated}</p>
+                <p className="text-xs text-blue-700">Atualizados</p>
+              </div>
+              <div className="bg-gray-100 rounded-lg p-3 text-center">
+                <p className="text-2xl font-bold text-gray-600">{result.unmatched}</p>
+                <p className="text-xs text-gray-600">Sem match</p>
+              </div>
+            </div>
+
+            {result.details.unmatched.length > 0 && (
+              <div className="space-y-1">
+                <p className="text-xs font-semibold text-gray-500 uppercase">Produtos sem correspondência:</p>
+                <div className="max-h-32 overflow-y-auto space-y-1">
+                  {result.details.unmatched.map((u, i) => (
+                    <div key={i} className="flex items-start gap-2 text-xs bg-gray-50 rounded p-2">
+                      <AlertCircle className="w-3 h-3 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-gray-700">{u.descricao}</p>
+                        <p className="text-gray-400">{u.motivo}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <Button
+              onClick={handleClose}
+              className="w-full bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white"
+            >
+              Concluir
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
