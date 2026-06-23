@@ -77,7 +77,7 @@ export default function CatalogoFabricante() {
     const subs = [
       ...new Set(
         templates
-          .filter((t) => t.categoria === cat)
+          .filter((t) => t.categoria === cat && getPriceForProduct(t.id)) // Filtrar por produtos configurados
           .map((t) => t[field])
           .filter(Boolean)
       ),
@@ -88,22 +88,22 @@ export default function CatalogoFabricante() {
   const subcategories = getSubcategories(categoria);
   const subField = getSubcategoryField(categoria);
 
-  const filteredProducts = templates.filter((p) => {
-    if (categoria !== "all" && p.categoria !== categoria) return false;
-    if (subcategoria !== "all" && p[subField] !== subcategoria) return false;
-    if (search) {
-      const term = search.toLowerCase();
-      return (
-        p.nome?.toLowerCase().includes(term) ||
-        p.cod?.toLowerCase().includes(term)
-      );
-    }
-    return true;
-  });
+  const filteredProducts = templates
+    .filter((p) => getPriceForProduct(p.id)) // Mostrar APENAS produtos já configurados
+    .filter((p) => {
+      if (categoria !== "all" && p.categoria !== categoria) return false;
+      if (subcategoria !== "all" && p[subField] !== subcategoria) return false;
+      if (search) {
+        const term = search.toLowerCase();
+        return (
+          p.nome?.toLowerCase().includes(term) ||
+          p.cod?.toLowerCase().includes(term)
+        );
+      }
+      return true;
+    });
 
-  const productsWithPrice = filteredProducts.filter((p) =>
-    getPriceForProduct(p.id)
-  ).length;
+  const productsWithPrice = filteredProducts.length;
   const totalProducts = filteredProducts.length;
 
   const formatBRL = (val) =>
@@ -145,14 +145,14 @@ export default function CatalogoFabricante() {
 
   const handleExport = () => {
     const rows = filteredProducts.map((p) => {
-      const sp = getPriceForProduct(p.id);
+      const sp = getPriceForProduct(p.id); // Sempre vai ter, pois filteredProducts só tem configurados
       return {
         "Código": p.cod || "",
         "Nome": p.nome || "",
         "Categoria": p.categoria || "",
         "Detalhes": renderTemplateDetails(p),
         "Preço (R$)": sp?.preco ? parseFloat(sp.preco).toFixed(2) : "",
-        "Disponível": sp ? (sp.disponivel !== false ? "SIM" : "NÃO") : "NÃO",
+        "Disponível": sp ? (sp.disponivel !== false ? "SIM" : "NÃO") : "SIM",
       };
     });
     const headers = Object.keys(rows[0] || {});
