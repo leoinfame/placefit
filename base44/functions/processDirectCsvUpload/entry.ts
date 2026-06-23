@@ -73,7 +73,12 @@ Deno.serve(async (req) => {
     // 4. Processar linhas
     const parsePreco = (val) => {
       if (!val) return null;
-      const s = String(val).replace(/[R$\s.]/g, "").replace(",", ".");
+      let s = String(val).replace(/[R$\s]/g, "").trim();
+      if (s === "") return null;
+      // Se tem vírgula: formato BR (vírgula = decimal, ponto = milhares)
+      if (s.includes(",")) {
+        s = s.replace(/\./g, "").replace(",", ".");
+      }
       const n = parseFloat(s);
       return isNaN(n) ? null : n;
     };
