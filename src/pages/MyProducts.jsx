@@ -90,7 +90,8 @@ export default function MyProducts() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       
-      if (currentUser.role === 'admin') {
+      const adminViewMode = localStorage.getItem('admin_view_mode') || 'admin';
+      if (currentUser.role === 'admin' && adminViewMode !== 'fornecedor') {
         window.location.href = '/Dashboard';
         return;
       }
