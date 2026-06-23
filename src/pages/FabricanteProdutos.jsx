@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Package, Search, Pencil, CheckCircle, Upload } from "lucide-react";
+import { Package, Search, Pencil, CheckCircle, Upload, Download } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -119,6 +119,30 @@ export default function FabricanteProdutos() {
     }
   };
 
+  const handleExport = () => {
+    const rows = filteredProducts.map((p) => {
+      const sp = getPriceForProduct(p.id);
+      return {
+        "Código": p.cod || "",
+        "Nome": p.nome || "",
+        "Categoria": p.categoria || "",
+        "Detalhes": renderTemplateDetails(p),
+        "Preço (R$)": sp?.preco ? parseFloat(sp.preco).toFixed(2) : "",
+        "Disponível": sp ? (sp.disponivel !== false ? "SIM" : "NÃO") : "NÃO",
+      };
+    });
+    const headers = Object.keys(rows[0] || {});
+    const csv = [
+      headers.map((h) => `"${h}"`).join(","),
+      ...rows.map((r) => headers.map((h) => `"${String(r[h] || "").replace(/"/g, '""')}"`).join(",")),
+    ].join("\n");
+    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `meus_produtos_${new Date().toISOString().split("T")[0]}.csv`;
+    link.click();
+  };
+
   const renderTemplateDetails = (p) => {
     const details = [];
     details.push(p.categoria);
@@ -148,14 +172,24 @@ export default function FabricanteProdutos() {
             Selecione produtos do catálogo padronizado e defina seus preços
           </p>
         </div>
-        <Button
-          onClick={() => setUploadOpen(true)}
-          variant="outline"
-          className="flex items-center gap-2 border-blue-300 text-blue-700 hover:bg-blue-50"
-        >
-          <Upload className="w-4 h-4" />
-          <span className="hidden md:inline">Upload de Tabela</span>
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={handleExport}
+            variant="outline"
+            className="flex items-center gap-2 border-green-300 text-green-700 hover:bg-green-50"
+          >
+            <Download className="w-4 h-4" />
+            <span className="hidden md:inline">Exportar</span>
+          </Button>
+          <Button
+            onClick={() => setUploadOpen(true)}
+            variant="outline"
+            className="flex items-center gap-2 border-blue-300 text-blue-700 hover:bg-blue-50"
+          >
+            <Upload className="w-4 h-4" />
+            <span className="hidden md:inline">Upload de Tabela</span>
+          </Button>
+        </div>
       </div>
 
       <Card className="p-4 bg-gradient-to-r from-blue-50 to-green-50 border-blue-200">

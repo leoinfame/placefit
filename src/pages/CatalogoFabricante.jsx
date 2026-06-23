@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Package, Search, Pencil, CheckCircle } from "lucide-react";
+import { Package, Search, Pencil, CheckCircle, Download } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -115,6 +115,30 @@ export default function CatalogoFabricante() {
     }
   };
 
+  const handleExport = () => {
+    const rows = filteredProducts.map((p) => {
+      const sp = getPriceForProduct(p.id);
+      return {
+        "Código": p.cod || "",
+        "Nome": p.nome || "",
+        "Categoria": p.categoria || "",
+        "Detalhes": renderTemplateDetails(p),
+        "Preço (R$)": sp?.preco ? parseFloat(sp.preco).toFixed(2) : "",
+        "Disponível": sp ? (sp.disponivel !== false ? "SIM" : "NÃO") : "NÃO",
+      };
+    });
+    const headers = Object.keys(rows[0] || {});
+    const csv = [
+      headers.map((h) => `"${h}"`).join(","),
+      ...rows.map((r) => headers.map((h) => `"${String(r[h] || "").replace(/"/g, '""')}"`).join(",")),
+    ].join("\n");
+    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `catalogo_${new Date().toISOString().split("T")[0]}.csv`;
+    link.click();
+  };
+
   const renderTemplateDetails = (p) => {
     const details = [];
     details.push(p.categoria);
@@ -137,11 +161,21 @@ export default function CatalogoFabricante() {
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto w-full">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Meus Produtos / Catálogo</h1>
-        <p className="text-sm text-gray-500">
-          Vincule seus preços aos produtos do catálogo padronizado
-        </p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Meus Produtos / Catálogo</h1>
+          <p className="text-sm text-gray-500">
+            Vincule seus preços aos produtos do catálogo padronizado
+          </p>
+        </div>
+        <Button
+          onClick={handleExport}
+          variant="outline"
+          className="flex items-center gap-2 border-green-300 text-green-700 hover:bg-green-50"
+        >
+          <Download className="w-4 h-4" />
+          <span className="hidden md:inline">Exportar</span>
+        </Button>
       </div>
 
       {/* Counter */}
