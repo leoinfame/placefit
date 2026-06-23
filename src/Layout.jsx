@@ -388,6 +388,11 @@ export default function Layout({ children, currentPageName }) {
           icon: Package,
         },
         {
+          title: "  • Catálogo de Produtos",
+          url: createPageUrl("CatalogoFabricante"),
+          icon: Package,
+        },
+        {
           title: "  • Catálogo",
           url: createPageUrl("Catalogo"),
           icon: Package,

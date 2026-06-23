@@ -18,6 +18,7 @@ import FinanceiroFiscal from './pages/FinanceiroFiscal';
 import PedidosVenda from './pages/PedidosVenda';
 import ClientesFiscais from './pages/ClientesFiscais';
 import ConfiguracaoFiscal from './pages/ConfiguracaoFiscal';
+import CatalogoFabricante from './pages/CatalogoFabricante';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -99,6 +100,7 @@ const AuthenticatedApp = () => {
       <Route path="/PedidosVenda" element={<LayoutWrapper currentPageName="PedidosVenda"><PedidosVenda /></LayoutWrapper>} />
       <Route path="/ClientesFiscais" element={<LayoutWrapper currentPageName="ClientesFiscais"><ClientesFiscais /></LayoutWrapper>} />
       <Route path="/ConfiguracaoFiscal" element={<LayoutWrapper currentPageName="ConfiguracaoFiscal"><ConfiguracaoFiscal /></LayoutWrapper>} />
+      <Route path="/CatalogoFabricante" element={<LayoutWrapper currentPageName="CatalogoFabricante"><CatalogoFabricante /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
