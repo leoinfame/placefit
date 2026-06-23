@@ -77,7 +77,7 @@ export default function CatalogoFabricante() {
     const subs = [
       ...new Set(
         templates
-          .filter((t) => t.categoria === cat && getPriceForProduct(t.id)) // Filtrar por produtos configurados
+          .filter((t) => t.categoria === cat)
           .map((t) => t[field])
           .filter(Boolean)
       ),
@@ -89,7 +89,6 @@ export default function CatalogoFabricante() {
   const subField = getSubcategoryField(categoria);
 
   const filteredProducts = templates
-    .filter((p) => getPriceForProduct(p.id)) // Mostrar APENAS produtos já configurados
     .filter((p) => {
       if (categoria !== "all" && p.categoria !== categoria) return false;
       if (subcategoria !== "all" && p[subField] !== subcategoria) return false;
