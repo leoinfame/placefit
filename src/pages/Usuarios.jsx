@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { adminUpdateUser } from "@/functions/adminUpdateUser";
 import { Users, Search, Building, Trash2, UserCog, Pencil, X, Check, UserPlus, Loader2 } from "lucide-react";
+import EditProfileDialog from "@/components/usuarios/EditProfileDialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -28,8 +29,7 @@ export default function Usuarios() {
   const [editingUser, setEditingUser] = useState(null);
   const [showCadastroDialog, setShowCadastroDialog] = useState(false);
   const [showProfileDialog, setShowProfileDialog] = useState(false);
-  const [profileForm, setProfileForm] = useState(null);
-  const [submittingProfile, setSubmittingProfile] = useState(false);
+  const [profileUser, setProfileUser] = useState(null);
   const [cadastroForm, setCadastroForm] = useState({
     email: "",
     tipo: "fornecedor",
@@ -141,33 +141,8 @@ export default function Usuarios() {
   };
 
   const handleOpenProfile = (usuario) => {
-    setProfileForm({
-      id: usuario.id,
-      full_name: usuario.full_name || '',
-      empresa: usuario.empresa || '',
-      whatsapp: usuario.whatsapp || '',
-      telefone: usuario.telefone || '',
-      cidade: usuario.cidade || '',
-      estado: usuario.estado || '',
-      cnpj: usuario.cnpj || ''
-    });
+    setProfileUser(usuario);
     setShowProfileDialog(true);
-  };
-
-  const handleSaveProfile = async () => {
-    if (!profileForm) return;
-    setSubmittingProfile(true);
-    try {
-      const { id, ...data } = profileForm;
-      await adminUpdateUser({ userId: id, data });
-      setShowProfileDialog(false);
-      setProfileForm(null);
-      loadData();
-      toast({ title: "Perfil atualizado!", description: "Dados do perfil salvos com sucesso." });
-    } catch (error) {
-      toast({ title: "Erro", description: "Erro ao atualizar perfil.", variant: "destructive" });
-    }
-    setSubmittingProfile(false);
   };
 
   const handleEditField = (usuario, field) => {
@@ -642,102 +617,12 @@ export default function Usuarios() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showProfileDialog} onOpenChange={setShowProfileDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <UserCog className="w-5 h-5 text-blue-600" />
-              Editar Perfil do Usuário
-            </DialogTitle>
-          </DialogHeader>
-          {profileForm && (
-            <div className="space-y-4 pt-2">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="col-span-2">
-                  <Label>Nome Completo</Label>
-                  <Input
-                    value={profileForm.full_name}
-                    onChange={(e) => setProfileForm({ ...profileForm, full_name: e.target.value })}
-                    className="mt-1"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <Label>Empresa</Label>
-                  <Input
-                    value={profileForm.empresa}
-                    onChange={(e) => setProfileForm({ ...profileForm, empresa: e.target.value })}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label>WhatsApp</Label>
-                  <Input
-                    value={profileForm.whatsapp}
-                    onChange={(e) => setProfileForm({ ...profileForm, whatsapp: e.target.value })}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label>Telefone</Label>
-                  <Input
-                    value={profileForm.telefone}
-                    onChange={(e) => setProfileForm({ ...profileForm, telefone: e.target.value })}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label>CNPJ</Label>
-                  <Input
-                    value={profileForm.cnpj}
-                    onChange={(e) => setProfileForm({ ...profileForm, cnpj: e.target.value })}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label>Estado (UF)</Label>
-                  <Select
-                    value={profileForm.estado}
-                    onValueChange={(v) => setProfileForm({ ...profileForm, estado: v })}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="UF" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"].map(uf => (
-                        <SelectItem key={uf} value={uf}>{uf}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="col-span-2">
-                  <Label>Cidade</Label>
-                  <Input
-                    value={profileForm.cidade}
-                    onChange={(e) => setProfileForm({ ...profileForm, cidade: e.target.value })}
-                    className="mt-1"
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end gap-3 pt-2">
-                <Button type="button" variant="outline" onClick={() => setShowProfileDialog(false)}>
-                  Cancelar
-                </Button>
-                <Button
-                  onClick={handleSaveProfile}
-                  disabled={submittingProfile}
-                  className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
-                >
-                  {submittingProfile ? (
-                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Salvando...</>
-                  ) : (
-                    <><Check className="w-4 h-4 mr-2" />Salvar</>
-                  )}
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <EditProfileDialog
+        open={showProfileDialog}
+        onOpenChange={setShowProfileDialog}
+        usuario={profileUser}
+        onSaved={loadData}
+      />
     </div>
   );
 }
