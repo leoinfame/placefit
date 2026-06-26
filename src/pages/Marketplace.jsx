@@ -35,6 +35,7 @@ const PLACEFIT_LOGO = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/objec
 export default function Marketplace() {
   const [products, setProducts] = useState([]);
   const [fabricantes, setFabricantes] = useState([]);
+  const [supplierProducts, setSupplierProducts] = useState([]);
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
@@ -68,13 +69,15 @@ export default function Marketplace() {
     setError(null);
     try {
       // Usar backend function que não exige autenticação
-      const result = await getAllProducts({}).then(r => r.data).catch(() => ({ products: [], fabricantes: [] }));
+      const result = await getAllProducts({}).then(r => r.data).catch(() => ({ products: [], fabricantes: [], supplierProducts: [] }));
 
       const activeProducts = result.products || [];
       const fabricantesData = result.fabricantes || [];
+      const supplierProds = result.supplierProducts || [];
 
       setProducts(activeProducts);
       setFabricantes(fabricantesData);
+      setSupplierProducts(supplierProds);
 
       if (activeProducts.length === 0) {
         setError("Nenhum produto disponível no momento.");
@@ -99,17 +102,22 @@ export default function Marketplace() {
   };
 
   const getProductPrices = (productId) => {
-    const product = products.find(p => p.id === productId);
-    if (!product || !product.fabricante_id) return [];
+    const supplierProds = (supplierProducts || []).filter(sp => sp.product_id === productId);
+    if (supplierProds.length === 0) return [];
 
-    const fabricante = fabricantes.find(f => f.id === product.fabricante_id);
-    if (!fabricante) return [];
+    const prices = supplierProds.map(sp => {
+      const fabricante = fabricantes.find(f => f.id === sp.supplier_id);
+      const price = sp.preco && parseFloat(sp.preco) > 0 ? parseFloat(sp.preco) : null;
+      return fabricante ? { supplier: fabricante, price, observacoes: sp.observacoes } : null;
+    }).filter(Boolean);
 
-    const price = product.preco_fabricante && parseFloat(product.preco_fabricante) > 0
-      ? parseFloat(product.preco_fabricante)
-      : null;
+    prices.sort((a, b) => {
+      if (a.price === null) return 1;
+      if (b.price === null) return -1;
+      return a.price - b.price;
+    });
 
-    return [{ supplier: fabricante, price }];
+    return prices;
   };
 
   const filteredProducts = products.filter(product => {

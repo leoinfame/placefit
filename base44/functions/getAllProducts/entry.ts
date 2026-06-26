@@ -4,9 +4,10 @@ Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
 
-        // Buscar todos os dados usando service role (sem exigir autenticação)
-        const [allProducts, allUsers] = await Promise.all([
-            base44.asServiceRole.entities.Product.list(),
+        // Buscar dados usando service role (sem exigir autenticação)
+        const [templates, supplierProducts, allUsers] = await Promise.all([
+            base44.asServiceRole.entities.ProductTemplate.list(),
+            base44.asServiceRole.entities.SupplierProduct.list(),
             base44.asServiceRole.entities.User.list()
         ]);
 
@@ -26,17 +27,37 @@ Deno.serve(async (req) => {
                 estado: u.estado
             }));
 
-        // Fabricante IDs aprovados para filtrar produtos
+        // Fabricante IDs aprovados para filtrar SupplierProducts
         const fabricanteIds = new Set(fabricantes.map(f => f.id));
 
-        // Produtos ativos e aprovados de fabricantes
-        const activeProducts = allProducts.filter(p => {
-            if (p.ativo === false) return false;
-            if (p.fabricante_id) return p.aprovado_produto === true;
+        // Templates ativos
+        const activeTemplates = templates.filter(t => t.ativo !== false);
+
+        // SupplierProducts de fabricantes aprovados, com preço e disponíveis
+        const validSupplierProducts = supplierProducts.filter(sp => {
+            if (sp.disponivel === false) return false;
+            if (!fabricanteIds.has(sp.supplier_id)) return false;
+            if (!sp.preco || sp.preco <= 0) return false;
             return true;
         });
 
-        return Response.json({ products: activeProducts, fabricantes });
+        // Templates que possuem pelo menos um SupplierProduct válido
+        const templatesWithPrices = new Set(validSupplierProducts.map(sp => sp.product_id));
+
+        // Produtos para o marketplace: apenas templates que têm preços
+        const products = activeTemplates
+            .filter(t => templatesWithPrices.has(t.id))
+            .map(t => ({
+                id: t.id,
+                nome: t.nome,
+                cod: t.cod,
+                categoria: t.categoria,
+                und: t.und,
+                peso: t.peso_kg,
+                foto: t.foto
+            }));
+
+        return Response.json({ products, fabricantes, supplierProducts: validSupplierProducts });
     } catch (error) {
         console.error('Erro ao buscar produtos:', error);
         return Response.json({ 
