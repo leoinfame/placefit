@@ -23,7 +23,7 @@ export default function MeusProdutos({ user }) {
 
   const loadData = async () => {
     try {
-      const sps = await base44.entities.SupplierProduct.filter({ supplier_id: user.id });
+      const sps = await base44.entities.SupplierProduct.filter({ supplier_id: user.id }, '-created_date', 500);
       setMySps(sps);
       if (sps.length > 0) {
         const productIds = [...new Set(sps.map(sp => sp.product_id))];

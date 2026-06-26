@@ -36,14 +36,17 @@ export default function CatalogoGeral({ user }) {
   const loadData = async () => {
     try {
       const [tmpls, catalogRes, mine] = await Promise.all([
-        base44.entities.ProductTemplate.filter({ ativo: true }, 'categoria'),
-        getCatalogoData({}),
-        base44.entities.SupplierProduct.filter({ supplier_id: user.id }),
+        base44.entities.ProductTemplate.filter({ ativo: true }, 'categoria', 500),
+        getCatalogoData({}).catch(() => ({ data: { pricesByProduct: {} } })),
+        base44.entities.SupplierProduct.filter({ supplier_id: user.id }, '-created_date', 500),
       ]);
-      setTemplates(tmpls);
-      setPricesByProduct(catalogRes.data?.pricesByProduct || {});
-      setMySps(mine);
-    } catch (e) { console.error(e); toast({ title: "Erro", description: "Erro ao carregar catálogo.", variant: "destructive" }); }
+      setTemplates(tmpls || []);
+      setPricesByProduct(catalogRes?.data?.pricesByProduct || {});
+      setMySps(mine || []);
+    } catch (e) {
+      console.error(e);
+      toast({ title: "Erro", description: "Erro ao carregar catálogo.", variant: "destructive" });
+    }
     setLoading(false);
   };
 

@@ -8,13 +8,15 @@ Deno.serve(async (req) => {
 
     // Buscar fabricantes e seus SupplierProducts em paralelo (service role)
     const [allUsers, allSps] = await Promise.all([
-      base44.asServiceRole.entities.User.filter({ tipo_usuario: 'fabricante' }),
+      base44.asServiceRole.entities.User.list('-created_date', 500),
       base44.asServiceRole.entities.SupplierProduct.list('-created_date', 2000),
     ]);
 
-    const fabIds = new Set(allUsers.map(u => u.id));
+    // Filtrar fabricantes manualmente (mais robusto que filter por campo customizado)
+    const fabricantes = allUsers.filter(u => u.tipo_usuario === 'fabricante');
+    const fabIds = new Set(fabricantes.map(u => u.id));
     const fabNameById = {};
-    for (const u of allUsers) {
+    for (const u of fabricantes) {
       fabNameById[u.id] = u.empresa || u.full_name || 'Fabricante';
     }
 
@@ -22,6 +24,7 @@ Deno.serve(async (req) => {
     const pricesByProduct = {};
     for (const sp of allSps) {
       if (!fabIds.has(sp.supplier_id)) continue;
+      if (!sp.preco || sp.preco <= 0) continue;
       if (!pricesByProduct[sp.product_id]) pricesByProduct[sp.product_id] = [];
       pricesByProduct[sp.product_id].push({
         id: sp.id,
@@ -34,6 +37,6 @@ Deno.serve(async (req) => {
     return Response.json({ pricesByProduct });
   } catch (error) {
     console.error('Erro getCatalogoData:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: error.message, pricesByProduct: {} }, { status: 500 });
   }
 });
