@@ -276,34 +276,35 @@ export default function Export() {
 
     const categoriasBlocos = Object.entries(categorias).map(([cat, itens]) => {
       const icon = categoryIcons[cat] || '📦';
-      const linhas = itens.map((item, idx) => `
-        <tr style="background:${idx % 2 === 0 ? '#ffffff' : '#fafafa'};">
-          <td style="padding:4px 6px;font-size:8px;color:#64748b;font-family:monospace;white-space:nowrap;">${item.cod || '—'}</td>
-          <td style="padding:4px 6px;font-size:9px;font-weight:600;color:#1e293b;">${item.nome}</td>
-          <td style="padding:4px 6px;font-size:8px;color:#475569;text-align:center;">${item.isWeightGrouped ? (item.pesosDisponiveis || '—') : (item.peso || item.dimensoes || '—')}</td>
-          <td style="padding:4px 6px;font-size:8px;color:#475569;text-align:center;">${item.isWeightGrouped ? '/kg' : (item.und || 'peça')}</td>
-          <td style="padding:4px 6px;font-size:9px;font-weight:700;color:#16a34a;text-align:right;white-space:nowrap;">${item.precoFormatado}</td>
-        </tr>`).join('');
+      const cards = itens.map(item => {
+        const espec = item.isWeightGrouped ? (item.pesosDisponiveis || '—') : (item.peso || item.dimensoes || '');
+        const und = item.isWeightGrouped ? '/kg' : (item.und || 'peça');
+        const precoLabel = item.isWeightGrouped ? 'Preço por kg' : 'Preço';
+        return `
+          <div style="border:1px solid #e2e8f0;border-radius:6px;padding:8px;background:#ffffff;break-inside:avoid;display:flex;flex-direction:column;justify-content:space-between;min-height:78px;">
+            <div>
+              ${item.cod ? `<span style="display:inline-block;font-size:7px;font-family:monospace;color:#64748b;background:#f1f5f9;padding:1px 4px;border-radius:3px;margin-bottom:3px;">${item.cod}</span>` : ''}
+              <div style="font-size:9px;font-weight:600;color:#1e293b;line-height:1.25;">${item.nome}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;margin:4px 0;">
+              ${espec && espec !== '—' ? `<span style="font-size:7px;color:#475569;background:#eff6ff;border:1px solid #dbeafe;padding:1px 5px;border-radius:8px;">${espec}</span>` : ''}
+              <span style="font-size:7px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.3px;">${und}</span>
+            </div>
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;border-top:1px solid #f1f5f9;padding-top:3px;">
+              <span style="font-size:7px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.3px;">${precoLabel}</span>
+              <span style="font-size:11px;font-weight:700;color:#16a34a;">${item.precoFormatado}</span>
+            </div>
+          </div>`;
+      }).join('');
 
       return `
-        <div style="margin-bottom:10px;">
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:0;padding:6px 10px;background:transparent;border:1px solid #e2e8f0;border-bottom:none;border-radius:4px 4px 0 0;">
-            <span style="font-size:11px;">${icon}</span>
-            <span style="font-size:10px;font-weight:700;color:#000000;letter-spacing:1px;text-transform:uppercase;">${cat}</span>
-            <span style="margin-left:auto;font-size:8px;color:#64748b;font-weight:500;">${itens.length} item${itens.length !== 1 ? 's' : ''}</span>
+        <div style="margin-bottom:12px;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+            <div style="width:3px;height:14px;background:${c.secondary};border-radius:2px;"></div>
+            <span style="font-size:10px;font-weight:700;color:#1e293b;letter-spacing:1px;text-transform:uppercase;">${cat}</span>
+            <span style="margin-left:auto;font-size:8px;color:#64748b;font-weight:500;">${itens.length} ${itens.length === 1 ? 'item' : 'itens'}</span>
           </div>
-          <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-top:none;font-size:9px;">
-            <thead>
-             <tr style="background:#ffffff !important;">
-               <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#000000 !important;background:#ffffff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;white-space:nowrap;width:70px;">Código</th>
-               <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#000000 !important;background:#ffffff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;">Produto</th>
-               <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#000000 !important;background:#ffffff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;text-align:center;width:60px;">Espec./Pesos</th>
-               <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#000000 !important;background:#ffffff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;text-align:center;width:50px;">Und.</th>
-               <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#000000 !important;background:#ffffff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;text-align:right;width:70px;">Preço</th>
-             </tr>
-            </thead>
-            <tbody>${linhas}</tbody>
-          </table>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;">${cards}</div>
         </div>`;
     }).join('');
 
@@ -355,12 +356,10 @@ export default function Export() {
     .footer-bottom { margin-top: 8px; display: flex; justify-content: space-between; align-items: center; }
     .footer-brand { font-size: 7px; color: #94a3b8; }
 
-    th { background-color: #ffffff !important; color: #000000 !important; }
     @media print {
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .page-wrapper { padding: 8mm; }
       .cover { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      th { background-color: #ffffff !important; color: #000000 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     }
   </style>
 </head>
