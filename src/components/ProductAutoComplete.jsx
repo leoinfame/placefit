@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Input } from "@/components/ui/input";
-import { Package, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Package, X, Search, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function ProductAutoComplete({ 
-  products, 
-  onSelect, 
+export default function ProductAutoComplete({
+  products,
+  onSelect,
   onRemove,
   quantidade = 1,
   onQuantidadeChange,
@@ -16,11 +17,11 @@ export default function ProductAutoComplete({
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
+  const [highlightIndex, setHighlightIndex] = useState(-1);
   const [qtd, setQtd] = useState(quantidade);
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
 
-  // Derive selectedProduct directly from props — no stale state
   const selectedProduct = selectedProductData?.product_id
     ? products.find(p => p.id === selectedProductData.product_id) || null
     : null;
@@ -42,17 +43,45 @@ export default function ProductAutoComplete({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const filteredProducts = searchTerm.trim() 
-    ? products.filter(p => 
-        p.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.cod?.toLowerCase().includes(searchTerm.toLowerCase())
-      ).slice(0, 10)
-    : [];
+  const filteredProducts = useMemo(() => {
+    if (!searchTerm.trim()) return [];
+    const q = searchTerm.toLowerCase();
+    return products.filter(p =>
+      p.nome?.toLowerCase().includes(q) ||
+      p.cod?.toLowerCase().includes(q) ||
+      p.categoria?.toLowerCase().includes(q) ||
+      p.subcategoria?.toLowerCase().includes(q)
+    ).slice(0, 12);
+  }, [searchTerm, products]);
+
+  // Reset highlight when results change
+  useEffect(() => {
+    setHighlightIndex(-1);
+  }, [filteredProducts]);
 
   const handleSelectProduct = (product) => {
     setSearchTerm("");
     setShowDropdown(false);
+    setHighlightIndex(-1);
     if (onSelect) onSelect(product);
+  };
+
+  const handleKeyDown = (e) => {
+    if (!showDropdown || filteredProducts.length === 0) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHighlightIndex(prev => (prev + 1) % filteredProducts.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHighlightIndex(prev => prev <= 0 ? filteredProducts.length - 1 : prev - 1);
+    } else if (e.key === "Enter" && highlightIndex >= 0) {
+      e.preventDefault();
+      handleSelectProduct(filteredProducts[highlightIndex]);
+    } else if (e.key === "Escape") {
+      setShowDropdown(false);
+      setHighlightIndex(-1);
+    }
   };
 
   const handleQuantidadeChange = (newQtd) => {
@@ -61,12 +90,16 @@ export default function ProductAutoComplete({
     if (onQuantidadeChange) onQuantidadeChange(valor);
   };
 
+  const getPreco = (product) => {
+    return userType === 'fabricante'
+      ? parseFloat(product.preco_fabricante || product.preco_fornecedor || 0)
+      : parseFloat(product.preco_fornecedor || 0);
+  };
+
   if (selectedProduct) {
     const currentNome = selectedProductData?.nome ?? selectedProduct.nome;
-    const currentPreco = selectedProductData?.preco_unitario ?? 
-      (userType === 'fabricante' 
-        ? parseFloat(selectedProduct.preco_fabricante) 
-        : parseFloat(selectedProduct.preco_fornecedor));
+    const currentPreco = selectedProductData?.preco_unitario ??
+      getPreco(selectedProduct);
 
     const dispatchOverride = (overrides) => {
       if (onSelect) onSelect({
@@ -112,9 +145,9 @@ export default function ProductAutoComplete({
         <div className="w-24 text-right flex-shrink-0">
           <p className="text-sm font-bold text-green-700">R$ {subtotal.toFixed(2)}</p>
         </div>
-        <Button 
-          size="sm" 
-          variant="ghost" 
+        <Button
+          size="sm"
+          variant="ghost"
           onClick={onRemove}
           className="hover:bg-red-100 hover:text-red-700 flex-shrink-0"
         >
@@ -124,56 +157,98 @@ export default function ProductAutoComplete({
     );
   }
 
+  const isEmpty = products.length === 0;
+
   return (
     <div className="relative">
-      <Input
-        ref={inputRef}
-        type="text"
-        value={searchTerm}
-        onChange={(e) => {
-          setSearchTerm(e.target.value);
-          setShowDropdown(e.target.value.trim().length > 0);
-        }}
-        onFocus={() => searchTerm.trim() && setShowDropdown(true)}
-        placeholder="Digite o código ou nome do produto..."
-        className="w-full"
-      />
-      
-      {showDropdown && filteredProducts.length > 0 && (
-        <div 
+      <div className="relative">
+        <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400 pointer-events-none" />
+        <Input
+          ref={inputRef}
+          type="text"
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setShowDropdown(true);
+          }}
+          onFocus={() => setShowDropdown(true)}
+          onKeyDown={handleKeyDown}
+          placeholder={isEmpty
+            ? "Nenhum produto disponível na sua tabela..."
+            : "Buscar por nome, SKU, categoria... (use ↑↓ e Enter)"
+          }
+          className={`pl-9 ${isEmpty ? 'bg-gray-50 text-gray-400' : ''}`}
+          disabled={isEmpty}
+        />
+      </div>
+
+      {showDropdown && !isEmpty && (
+        <div
           ref={dropdownRef}
-          className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-y-auto"
+          className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-72 overflow-y-auto"
         >
-          {filteredProducts.map((product) => (
-            <button
-              key={product.id}
-              onMouseDown={(e) => { e.preventDefault(); handleSelectProduct(product); }}
-              className="w-full px-4 py-2 text-left hover:bg-blue-50 border-b last:border-b-0 transition-colors"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{product.cod} - {product.nome}</p>
-                  <p className="text-xs text-gray-500">{product.und || 'un'}</p>
+          {filteredProducts.map((product, idx) => {
+            const preco = getPreco(product);
+            return (
+              <button
+                key={product.id}
+                onMouseDown={(e) => { e.preventDefault(); handleSelectProduct(product); }}
+                onMouseEnter={() => setHighlightIndex(idx)}
+                className={`w-full px-4 py-2.5 text-left border-b last:border-b-0 transition-colors ${
+                  idx === highlightIndex ? 'bg-blue-50' : 'hover:bg-blue-50'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-mono font-semibold text-gray-700">{product.cod}</span>
+                      {product.categoria && (
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">
+                          {product.categoria}
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-sm font-medium text-gray-900 truncate mt-0.5">{product.nome}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-xs text-gray-400">{product.und || 'un'}</span>
+                      {product.peso_kg && (
+                        <span className="text-xs text-gray-400">{product.peso_kg}kg</span>
+                      )}
+                      {product.fabricante_nome && (
+                        <span className="text-xs text-gray-400 truncate">{product.fabricante_nome}</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-sm font-semibold text-green-700 whitespace-nowrap">
+                      R$ {preco.toFixed(2)}
+                    </p>
+                  </div>
                 </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="text-sm font-semibold text-green-700 whitespace-nowrap">
-                    R$ {(userType === 'fabricante' 
-                      ? parseFloat(product.preco_fabricante) 
-                      : parseFloat(product.preco_fornecedor)).toFixed(2)}
-                  </p>
-                </div>
-              </div>
-            </button>
-          ))}
+              </button>
+            );
+          })}
+
+          {showDropdown && searchTerm.trim() && filteredProducts.length === 0 && (
+            <div className="p-4 text-center">
+              <p className="text-sm text-gray-500">
+                Nenhum produto encontrado para "<strong>{searchTerm}</strong>"
+              </p>
+            </div>
+          )}
+
+          {showDropdown && !searchTerm.trim() && (
+            <div className="p-4 text-center">
+              <p className="text-sm text-gray-400">Digite para buscar produtos...</p>
+            </div>
+          )}
         </div>
       )}
-      
-      {showDropdown && searchTerm.trim() && filteredProducts.length === 0 && (
-        <div 
-          ref={dropdownRef}
-          className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-4 text-center"
-        >
-          <p className="text-sm text-gray-500">Nenhum produto encontrado</p>
+
+      {isEmpty && (
+        <div className="mt-1 flex items-center gap-2 text-xs text-amber-600">
+          <AlertCircle className="w-3.5 h-3.5" />
+          <span>Você precisa adicionar produtos à sua tabela primeiro. Acesse o <strong>Catálogo Geral</strong>.</span>
         </div>
       )}
     </div>

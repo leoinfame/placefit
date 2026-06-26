@@ -135,6 +135,17 @@ export default function ClienteAutoComplete({ clientes = [], value, onSelect, pl
           <p className="text-sm text-gray-500">Nenhum cliente encontrado para "<strong>{search}</strong>"</p>
         </div>
       )}
+
+      {open && clientes.length === 0 && (
+        <div
+          ref={dropdownRef}
+          className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl p-4 text-center"
+        >
+          <User className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+          <p className="text-sm text-gray-500 mb-1">Nenhum cliente cadastrado</p>
+          <p className="text-xs text-gray-400">Cadastre clientes na página de Clientes para usá-los aqui.</p>
+        </div>
+      )}
     </div>
   );
 }

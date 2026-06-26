@@ -97,37 +97,25 @@ export default function Orcamentos() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      const isFabricante = currentUser.tipo_usuario === 'fabricante';
-      const isAdmin = currentUser.role === 'admin';
-      
-      let productsData = [];
-      if (isAdmin) {
-        const allProducts = await base44.entities.Product.list();
-        productsData = allProducts.filter(p => p.ativo !== false && p.preco_fabricante && parseFloat(p.preco_fabricante) > 0)
-          .map(p => ({ ...p, preco_fornecedor: p.preco_fabricante }));
-      } else if (isFabricante) {
-        const allProducts = await base44.entities.Product.list();
-        productsData = allProducts.filter(p => 
-          p.fabricante_id === currentUser.id && 
-          p.aprovado_produto === true && 
-          p.ativo !== false &&
-          p.preco_fabricante && 
-          parseFloat(p.preco_fabricante) > 0
-        );
-      } else {
-        const [allProducts, supplierProducts] = await Promise.all([
-          base44.entities.Product.list(),
-          base44.entities.SupplierProduct.filter({ supplier_id: currentUser.id })
-        ]);
-        
-        productsData = supplierProducts
-          .filter(sp => sp.disponivel !== false && sp.preco && parseFloat(sp.preco) > 0)
-          .map(sp => {
-            const product = allProducts.find(p => p.id === sp.product_id);
-            return product ? { ...product, preco_fornecedor: sp.preco } : null;
-          })
-          .filter(Boolean);
-      }
+      // Carregar SupplierProduct (tabela de preços do usuário) + ProductTemplate (catálogo)
+      const [supplierProducts, allTemplates] = await Promise.all([
+        base44.entities.SupplierProduct.filter({ supplier_id: currentUser.id }, '-created_date', 500),
+        base44.entities.ProductTemplate.list('categoria', 500)
+      ]);
+
+      const productsData = supplierProducts
+        .filter(sp => sp.disponivel !== false && sp.preco && parseFloat(sp.preco) > 0)
+        .map(sp => {
+          const template = allTemplates.find(t => t.id === sp.product_id);
+          if (!template || template.ativo === false) return null;
+          return {
+            ...template,
+            preco_fornecedor: sp.preco,
+            fabricante_nome: sp.fabricante_nome || '',
+            supplier_product_id: sp.id
+          };
+        })
+        .filter(Boolean);
 
       setProducts(productsData);
 
@@ -312,8 +300,8 @@ export default function Orcamentos() {
       let pesoTotal = 0;
       for (const item of orcamento.itens) {
         const produto = products.find(p => p.id === item.product_id);
-        if (produto && produto.peso) {
-          pesoTotal += parseFloat(produto.peso) * item.quantidade;
+        if (produto && produto.peso_kg) {
+          pesoTotal += parseFloat(produto.peso_kg) * item.quantidade;
         }
       }
 
@@ -331,42 +319,38 @@ export default function Orcamentos() {
       }
 
       // Agrupar produtos por fabricante para criar lista de pedidos pendentes
+      // No novo modelo, o fabricante é identificado pelo fabricante_nome no SupplierProduct
       const produtosPorFabricante = {};
       
       for (const item of orcamento.itens) {
         const produto = products.find(p => p.id === item.product_id);
-        if (!produto || !produto.fabricante_id) continue;
+        if (!produto) continue;
         
-        if (!produtosPorFabricante[produto.fabricante_id]) {
-          produtosPorFabricante[produto.fabricante_id] = {
-            fabricante_id: produto.fabricante_id,
-            fabricante_nome: produto.fabricante_nome,
+        // Usar fabricante_nome do SupplierProduct; se vazio, agrupar sob "Sem fabricante"
+        const fabricanteNome = produto.fabricante_nome || 'Sem fabricante';
+        
+        if (!produtosPorFabricante[fabricanteNome]) {
+          produtosPorFabricante[fabricanteNome] = {
+            fabricante_nome: fabricanteNome,
             itens: []
           };
         }
         
-        // Usar o preço do fabricante em vez do preço de venda do revendedor
-        const precoFabricante = produto.preco_fabricante ? parseFloat(produto.preco_fabricante) : item.preco_unitario;
-        const itemParaFabricante = {
-          ...item,
-          preco_unitario: precoFabricante,
-          subtotal: precoFabricante * item.quantidade
-        };
-        
-        produtosPorFabricante[produto.fabricante_id].itens.push(itemParaFabricante);
+        const itemParaFabricante = { ...item };
+        produtosPorFabricante[fabricanteNome].itens.push(itemParaFabricante);
       }
 
       // Criar pedidos de compra em estado "rascunho" (pendentes de envio)
-      for (const fabricanteId in produtosPorFabricante) {
-        const dadosFabricante = produtosPorFabricante[fabricanteId];
+      for (const fabricanteNome in produtosPorFabricante) {
+        const dadosFabricante = produtosPorFabricante[fabricanteNome];
         const totalPedido = dadosFabricante.itens.reduce((sum, item) => sum + item.subtotal, 0);
-        const numeroPedido = `PC-${Date.now()}-${fabricanteId.slice(0, 6)}`;
+        const numeroPedido = `PC-${Date.now()}-${fabricanteNome.slice(0, 6)}`;
         
         await base44.entities.PedidoCompra.create({
           revendedor_id: user.id,
           revendedor_nome: user.empresa || user.full_name,
-          fabricante_id: fabricanteId,
-          fabricante_nome: dadosFabricante.fabricante_nome,
+          fabricante_id: 'pendente',
+          fabricante_nome: fabricanteNome,
           venda_id: orcamento.id,
           numero_pedido: numeroPedido,
           data_pedido: new Date().toISOString().split('T')[0],
@@ -400,7 +384,7 @@ export default function Orcamentos() {
   const calcPesoTotal = (itens) => {
     return itens.reduce((sum, item) => {
       const prod = products.find(p => p.id === item.product_id);
-      const peso = prod?.peso ? parseFloat(prod.peso) : 0;
+      const peso = prod?.peso_kg ? parseFloat(prod.peso_kg) : 0;
       return sum + peso * (item.quantidade || 1);
     }, 0);
   };
