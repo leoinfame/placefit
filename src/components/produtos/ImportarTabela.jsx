@@ -137,8 +137,7 @@ export default function ImportarTabela({ user }) {
     try {
       let fileObj = file;
       if (!fileObj && csvText.trim()) {
-        fileObj = new Blob([csvText], { type: "text/csv;charset=utf-8;" });
-        fileObj.name = "colado.csv";
+        fileObj = new File([csvText], "colado.csv", { type: "text/csv;charset=utf-8;" });
       }
       if (!fileObj) return;
       const { file_url } = await UploadFile({ file: fileObj });
