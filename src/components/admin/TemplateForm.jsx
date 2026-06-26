@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Upload } from "lucide-react";
+import { Upload, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -154,12 +154,11 @@ export default function TemplateForm({
   editingTemplate,
   onSave,
   onClose,
-  uploadingPhoto,
-  onPhotoUpload,
 }) {
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [opcoesCustom, setOpcoesCustom] = useState({});
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   useEffect(() => {
     loadAtributoConfig();
@@ -197,6 +196,19 @@ export default function TemplateForm({
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleInternalPhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingPhoto(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setFormData(prev => ({ ...prev, foto: file_url }));
+    } catch (err) {
+      console.error("Erro no upload:", err);
+    }
+    setUploadingPhoto(false);
   };
 
   const handleSubmit = async (e) => {
@@ -420,7 +432,7 @@ export default function TemplateForm({
               id="foto-upload"
               type="file"
               accept="image/*"
-              onChange={onPhotoUpload}
+              onChange={handleInternalPhotoUpload}
               className="hidden"
             />
             <Button
@@ -430,7 +442,7 @@ export default function TemplateForm({
               disabled={uploadingPhoto}
             >
               {uploadingPhoto ? (
-                "Enviando..."
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Enviando...</>
               ) : (
                 <>
                   <Upload className="w-4 h-4 mr-2" /> Upload de Foto

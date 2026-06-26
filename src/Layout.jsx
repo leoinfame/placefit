@@ -21,7 +21,8 @@ import {
   Globe,
   Ship,
   TrendingUp,
-  Crown
+  Crown,
+  ShieldCheck
 } from "lucide-react";
 import {
   Sidebar,
@@ -259,8 +260,13 @@ export default function Layout({ children, currentPageName }) {
         },
         {
           title: "Produtos",
-          url: createPageUrl("Produtos") + "?tab=catalogo",
+          url: createPageUrl("Produtos") + "?tab=admin",
           icon: Package,
+        },
+        {
+          title: "  • Gerenciar Catálogo",
+          url: createPageUrl("Produtos") + "?tab=admin",
+          icon: ShieldCheck,
         },
         {
           title: "  • Catálogo Geral",

@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { Package, List, Upload, BarChart3, Layers, Users, DollarSign } from "lucide-react";
+import { Package, List, Upload, BarChart3, Layers, Users, DollarSign, ShieldCheck } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import CatalogoGeral from "@/components/produtos/CatalogoGeral";
 import MeusProdutos from "@/components/produtos/MeusProdutos";
 import ImportarTabela from "@/components/produtos/ImportarTabela";
+import AdminProdutos from "@/components/produtos/AdminProdutos";
 
 const getEffectiveUser = (user) => {
   if (!user) return null;
@@ -83,9 +84,10 @@ export default function Produtos() {
     const isFabricante = user.tipo_usuario === 'fabricante';
     const isRevendedor = !isFabricante && user.tipo_usuario !== 'transportador' && !isAdmin;
     const available = ['catalogo'];
+    if (isAdmin) available.push('admin');
     if (isAdmin || isRevendedor) available.push('meus');
     if (isAdmin || isFabricante) available.push('importar');
-    if (!available.includes(activeTab)) setActiveTab('catalogo');
+    if (!available.includes(activeTab)) setActiveTab(isAdmin ? 'admin' : 'catalogo');
   }, [user, activeTab]);
 
   if (loading) {
@@ -105,6 +107,7 @@ export default function Produtos() {
   const isRevendedor = !isFabricante && user.tipo_usuario !== 'transportador' && !isAdmin;
 
   const tabs = [{ value: 'catalogo', label: 'Catálogo Geral', icon: Package }];
+  if (isAdmin) tabs.unshift({ value: 'admin', label: 'Gerenciar Catálogo', icon: ShieldCheck });
   if (isAdmin || isRevendedor) tabs.push({ value: 'meus', label: 'Meus Produtos', icon: List });
   if (isAdmin || isFabricante) tabs.push({ value: 'importar', label: 'Importar Tabela', icon: Upload });
 
@@ -133,6 +136,7 @@ export default function Produtos() {
               </TabsTrigger>
             ))}
           </TabsList>
+          <TabsContent value="admin"><AdminProdutos /></TabsContent>
           <TabsContent value="catalogo"><CatalogoGeral user={user} /></TabsContent>
           <TabsContent value="meus"><MeusProdutos user={user} /></TabsContent>
           <TabsContent value="importar"><ImportarTabela user={user} /></TabsContent>
