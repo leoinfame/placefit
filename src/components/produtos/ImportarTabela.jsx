@@ -90,18 +90,19 @@ export default function ImportarTabela({ user }) {
       const idxCod = headers.findIndex(h => h === "codigo" || h === "sku" || h === "cod");
       const idxPreco = headers.findIndex(h => h === "preco" || h === "preço" || h === "valor" || h === "preco_unitario");
       const idxNome = headers.findIndex(h => h === "nome" || h === "descricao" || h === "produto");
-      if (idxCod === -1) {
-        toast({ title: "Coluna obrigatória", description: 'Coluna "codigo" não encontrada no CSV.', variant: "destructive" });
+      if (idxCod === -1 && idxNome === -1) {
+        toast({ title: "Coluna obrigatória", description: 'CSV deve ter ao menos uma coluna "nome" ou "codigo".', variant: "destructive" });
         return;
       }
       const data = [];
       for (let i = 1; i < rows.length; i++) {
         const row = rows[i];
-        const cod = (row[idxCod] || "").trim();
-        if (!cod) continue;
+        const cod = idxCod !== -1 ? (row[idxCod] || "").trim() : "";
+        const nome = idxNome !== -1 ? (row[idxNome] || "").trim() : "";
+        if (!cod && !nome) continue;
         data.push({
           cod,
-          nome: idxNome !== -1 ? (row[idxNome] || "").trim() : "",
+          nome,
           preco: idxPreco !== -1 ? parsePreco(row[idxPreco]) : null,
         });
       }
@@ -175,8 +176,8 @@ export default function ImportarTabela({ user }) {
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
             <p className="font-medium mb-1">Formato esperado do CSV:</p>
-            <p>O arquivo deve conter as colunas: <code className="bg-blue-100 px-1 rounded">codigo</code> (SKU do produto) e <code className="bg-blue-100 px-1 rounded">preco</code> (valor numérico).</p>
-            <p className="mt-1">A coluna "nome" é opcional para referência.</p>
+            <p>O arquivo deve conter ao menos a coluna <code className="bg-blue-100 px-1 rounded">nome</code> (descrição do produto) e <code className="bg-blue-100 px-1 rounded">preco</code> (valor numérico).</p>
+            <p className="mt-1">A coluna "codigo" é opcional — se presente, será guardada como código de origem para referência. O sistema casa seus produtos ao catálogo padronizado automaticamente.</p>
           </div>
         </CardContent>
       </Card>
@@ -191,7 +192,7 @@ export default function ImportarTabela({ user }) {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>SKU (codigo)</TableHead>
+                      <TableHead>Código de Origem</TableHead>
                       <TableHead>Nome</TableHead>
                       <TableHead className="text-right">Preço</TableHead>
                     </TableRow>
@@ -199,7 +200,7 @@ export default function ImportarTabela({ user }) {
                   <TableBody>
                     {preview.slice(0, 100).map((row, i) => (
                       <TableRow key={i}>
-                        <TableCell className="font-mono text-xs">{row.cod}</TableCell>
+                        <TableCell className="font-mono text-xs">{row.cod || "—"}</TableCell>
                         <TableCell className="text-gray-600">{row.nome || "—"}</TableCell>
                         <TableCell className="text-right">{row.preco != null ? formatBRL(row.preco) : <span className="text-red-500">sem preço</span>}</TableCell>
                       </TableRow>
@@ -242,7 +243,7 @@ export default function ImportarTabela({ user }) {
             {result.unmatched > 0 && (
               <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
                 <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <p>{result.unmatched} produtos não foram encontrados no catálogo pelo código (SKU). Verifique se os códigos no CSV correspondem aos SKUs do catálogo padronizado.</p>
+                <p>{result.unmatched} produtos não foram encontrados no catálogo. Verifique se os nomes no CSV correspondem aos produtos do catálogo padronizado.</p>
               </div>
             )}
           </CardContent>

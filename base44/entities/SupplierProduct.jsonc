@@ -24,6 +24,10 @@
       "type": "string",
       "description": "Nome do fabricante cujo pre\u00e7o foi usado (para revendedores)"
     },
+    "cod_origem": {
+      "type": "string",
+      "description": "C\u00f3digo de origem do fabricante (SKU pr\u00f3prio do fornecedor, n\u00e3o segue padr\u00e3o, apenas refer\u00eancia)"
+    },
     "observacoes": {
       "type": "string",
       "description": "Observa\u00e7\u00f5es opcionais"

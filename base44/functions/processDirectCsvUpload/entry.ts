@@ -180,8 +180,9 @@ Deno.serve(async (req) => {
     const idxPreco = headers.findIndex(h => h === "preco" || h === "valor" || h === "preco_unitario");
     const idxDisponivel = headers.findIndex(h => h === "disponivel" || h === "disp" || h === "estoque");
 
-    if (idxCodigo === -1) {
-      return Response.json({ error: 'Coluna "codigo" não encontrada no CSV.' }, { status: 400 });
+    // Coluna "codigo" agora é opcional — serve apenas como referência (cod_origem)
+    if (idxNome === -1 && idxCodigo === -1) {
+      return Response.json({ error: 'CSV deve ter ao menos uma coluna "nome" ou "codigo".' }, { status: 400 });
     }
 
     // 4. Processar linhas
@@ -203,57 +204,58 @@ Deno.serve(async (req) => {
 
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
-      const codigo = (row[idxCodigo] || "").trim();
-      if (!codigo) continue;
+      const codigo = idxCodigo !== -1 ? (row[idxCodigo] || "").trim() : "";
+      const nome = idxNome !== -1 ? (row[idxNome] || "").trim() : "";
+
+      // Pula linhas totalmente vazias (sem código e sem nome)
+      if (!codigo && !nome) continue;
 
       const preco = idxPreco !== -1 ? parsePreco(row[idxPreco]) : null;
       if (preco === null || preco <= 0) {
-        results.divergencias.push({ descricao: codigo, motivo: "Sem preço preenchido no CSV" });
-        results.unmatched.push({ descricao: codigo, motivo: "Sem preço no CSV" });
+        results.divergencias.push({ descricao: codigo || nome, motivo: "Sem preço preenchido no CSV" });
+        results.unmatched.push({ descricao: codigo || nome, motivo: "Sem preço no CSV" });
         continue;
       }
 
-      const codigoLimpo = normalizeCod(codigo);
-      let template = templateByCod.get(codigoLimpo);
+      // Tenta match por SKU primeiro (se houver código)
+      const codigoLimpo = codigo ? normalizeCod(codigo) : "";
+      let template = codigoLimpo ? templateByCod.get(codigoLimpo) : null;
 
-      // Fallback: matching por nome quando SKU não bate
-      if (!template && idxNome !== -1) {
-        const nome = (row[idxNome] || "").trim();
-        if (nome) {
-          // 1) tokens ordenados exatos
-          let tokens = normalizeNameTokens(nome);
-          template = templateByTokens.get(tokens);
+      // Fallback: matching por nome (quando não há código ou SKU não bate)
+      if (!template && nome) {
+        // 1) tokens ordenados exatos
+        let tokens = normalizeNameTokens(nome);
+        template = templateByTokens.get(tokens);
 
-          // 2) remover palavras de acabamento (bruto/pintado) que alguns templates não têm
-          if (!template) {
-            const cleaned = normalizeNameTokens(
-              nome.replace(/\bbruto\b/gi, "").replace(/\bpintado\b/gi, "")
-            );
-            template = templateByCleanTokens.get(cleaned) || templateByTokens.get(cleaned);
+        // 2) remover palavras de acabamento (bruto/pintado) que alguns templates não têm
+        if (!template) {
+          const cleaned = normalizeNameTokens(
+            nome.replace(/\bbruto\b/gi, "").replace(/\bpintado\b/gi, "")
+          );
+          template = templateByCleanTokens.get(cleaned) || templateByTokens.get(cleaned);
+        }
+
+        // 3) Matching fuzzy por score de similaridade de tokens
+        if (!template) {
+          const csvTokens = getTokens(nome);
+          let bestScore = 0;
+          let bestTemplate = null;
+          for (const { t, tokens: tmplTokens } of templateTokenList) {
+            const score = scoreTokens(csvTokens, tmplTokens);
+            if (score > bestScore) {
+              bestScore = score;
+              bestTemplate = t;
+            }
           }
-
-          // 3) Matching fuzzy por score de similaridade de tokens
-          if (!template) {
-            const csvTokens = getTokens(nome);
-            let bestScore = 0;
-            let bestTemplate = null;
-            for (const { t, tokens: tmplTokens } of templateTokenList) {
-              const score = scoreTokens(csvTokens, tmplTokens);
-              if (score > bestScore) {
-                bestScore = score;
-                bestTemplate = t;
-              }
-            }
-            // Aceita apenas se a similaridade for alta (>= 70%)
-            if (bestScore >= 0.7) {
-              template = bestTemplate;
-            }
+          // Aceita apenas se a similaridade for alta (>= 70%)
+          if (bestScore >= 0.7) {
+            template = bestTemplate;
           }
         }
       }
 
       if (!template) {
-        results.unmatched.push({ descricao: codigo + (idxNome !== -1 && row[idxNome] ? ` (${row[idxNome]})` : ""), motivo: "SKU e nome não encontrados no catálogo" });
+        results.unmatched.push({ descricao: codigo || nome, motivo: "Nome não encontrado no catálogo" });
         continue;
       }
 
@@ -261,13 +263,16 @@ Deno.serve(async (req) => {
         ? String(row[idxDisponivel]).trim().toUpperCase() !== "NÃO"
         : true;
 
+      // codigo do fabricante é guardado como cod_origem (referência, não segue padrão)
+      const codOrigem = codigo || null;
+
       const existing = existingByPid.get(template.id);
       if (existing) {
-        toUpdate.push({ id: existing.id, preco, disponivel });
-        results.updated.push({ codigo, template_nome: template.nome, preco });
+        toUpdate.push({ id: existing.id, preco, disponivel, ...(codOrigem ? { cod_origem: codOrigem } : {}) });
+        results.updated.push({ codigo: codigo || template.cod, template_nome: template.nome, preco });
       } else {
-        toCreate.push({ supplier_id: user.id, product_id: template.id, preco, disponivel });
-        results.created.push({ codigo, template_nome: template.nome, preco });
+        toCreate.push({ supplier_id: user.id, product_id: template.id, preco, disponivel, ...(codOrigem ? { cod_origem: codOrigem } : {}) });
+        results.created.push({ codigo: codigo || template.cod, template_nome: template.nome, preco });
       }
     }
 

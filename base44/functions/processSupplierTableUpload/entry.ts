@@ -89,11 +89,12 @@ Retorne JSON com produtos encontrados. Regras:
       }
 
       const existing = existingByPid.get(p.template_id);
+      const codOrigem = p.descricao_original || null;
       if (existing) {
-        toUpdate.push({ id: existing.id, preco: p.preco, disponivel: true });
+        toUpdate.push({ id: existing.id, preco: p.preco, disponivel: true, ...(codOrigem ? { cod_origem: codOrigem } : {}) });
         results.updated.push({ descricao: p.descricao_original, template_nome: tmpl.nome, template_cod: tmpl.cod, preco: p.preco });
       } else {
-        toCreate.push({ supplier_id: user.id, product_id: p.template_id, preco: p.preco, disponivel: true });
+        toCreate.push({ supplier_id: user.id, product_id: p.template_id, preco: p.preco, disponivel: true, ...(codOrigem ? { cod_origem: codOrigem } : {}) });
         results.created.push({ descricao: p.descricao_original, template_nome: tmpl.nome, template_cod: tmpl.cod, preco: p.preco });
       }
     }
