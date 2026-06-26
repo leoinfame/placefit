@@ -27,6 +27,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
 import { Label } from "@/components/ui/label";
+import PreviewGrid from "@/components/export/PreviewGrid";
 
 export default function Export() {
   const [user, setUser] = useState(null);
@@ -280,7 +281,7 @@ export default function Export() {
           <td style="padding:4px 6px;font-size:8px;color:#64748b;font-family:monospace;white-space:nowrap;">${item.cod || '—'}</td>
           <td style="padding:4px 6px;font-size:9px;font-weight:600;color:#1e293b;">${item.nome}</td>
           <td style="padding:4px 6px;font-size:8px;color:#475569;text-align:center;">${item.isWeightGrouped ? (item.pesosDisponiveis || '—') : (item.peso || item.dimensoes || '—')}</td>
-          <td style="padding:4px 6px;font-size:8px;color:#475569;text-align:center;">${item.und || 'peça'}</td>
+          <td style="padding:4px 6px;font-size:8px;color:#475569;text-align:center;">${item.isWeightGrouped ? '/kg' : (item.und || 'peça')}</td>
           <td style="padding:4px 6px;font-size:9px;font-weight:700;color:#16a34a;text-align:right;white-space:nowrap;">${item.precoFormatado}</td>
         </tr>`).join('');
 
@@ -582,9 +583,9 @@ export default function Export() {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Preview da Tabela */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-3">
             <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
@@ -601,89 +602,10 @@ export default function Export() {
                   Atualizar
                 </Button>
               </CardHeader>
-              <CardContent className="overflow-x-auto">
-                {previewData.length > 0 ? (() => {
-                  const categorias = {};
-                  previewData.forEach(item => {
-                    const cat = item.categoria || 'Outros';
-                    if (!categorias[cat]) categorias[cat] = [];
-                    categorias[cat].push(item);
-                  });
-
-                  return (
-                    <div style={{fontSize: '12px', fontFamily: 'Arial, sans-serif', color: '#1e293b', padding: '12px 16px'}}>
-                      {/* Header da empresa - otimizado para PDF */}
-                      <div style={{display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', background: colors ? `linear-gradient(135deg, ${colors.primaryDark} 0%, ${colors.primary} 50%, ${colors.secondary} 100%)` : 'linear-gradient(135deg,#0f172a,#1e3a5f,#1e40af)', borderRadius: '8px', marginBottom: '12px'}}>
-                        {user?.logomarca ? (
-                          <img src={user.logomarca} alt="Logo" style={{width: '56px', height: '56px', objectFit: 'contain', background: '#fff', borderRadius: '6px', padding: '4px', flexShrink: 0}} />
-                        ) : (
-                          <div style={{width: '56px', height: '56px', background: 'rgba(255,255,255,0.15)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', flexShrink: 0}}>🏋️</div>
-                        )}
-                        <div style={{flex: 1, minWidth: 0}}>
-                          <p style={{fontSize: '9px', fontWeight: 600, color: colors ? colors.textOnPrimary : '#ffffff', letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '4px'}}>{user?.empresa || user?.full_name}</p>
-                          <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px 12px', marginTop: '4px'}}>
-                            {user?.whatsapp && <span style={{fontSize: '8px', color: colors ? colors.light : '#cbd5e1'}}>📱 {user.whatsapp}</span>}
-                            {user?.email && <span style={{fontSize: '8px', color: colors ? colors.light : '#cbd5e1'}}>✉ {user.email}</span>}
-                          </div>
-                        </div>
-                        <div style={{textAlign: 'right', flexShrink: 0}}>
-                          <p style={{fontSize: '11px', fontWeight: 800, color: colors ? colors.textOnPrimary : '#ffffff', textTransform: 'uppercase', letterSpacing: '0.5px', lineHeight: 1.1}}>Tabela de<br/>Preços</p>
-                          <p style={{fontSize: '8px', color: colors ? colors.light : '#93c5fd', marginTop: '2px'}}>{new Date().toLocaleDateString('pt-BR')}</p>
-                        </div>
-                      </div>
-
-                      {/* Stats Bar */}
-                      <div style={{display: 'flex', gap: '8px', marginBottom: '12px'}}>
-                        <div style={{flex: 1, background: 'transparent', border: '1px solid #e2e8f0', borderRadius: '4px', padding: '6px 8px', textAlign: 'center'}}>
-                          <div style={{fontSize: '16px', fontWeight: 800, color: colors?.textAccent || '#0f172a'}}>{previewData.length}</div>
-                          <div style={{fontSize: '7px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.3px', fontWeight: 600}}>Produtos</div>
-                        </div>
-                        <div style={{flex: 1, background: 'transparent', border: '1px solid #e2e8f0', borderRadius: '4px', padding: '6px 8px', textAlign: 'center'}}>
-                          <div style={{fontSize: '16px', fontWeight: 800, color: colors?.textAccent || '#0f172a'}}>{Object.keys(categorias).length}</div>
-                          <div style={{fontSize: '7px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.3px', fontWeight: 600}}>Categorias</div>
-                        </div>
-                      </div>
-
-                      {/* Produtos por categoria */}
-                      {Object.entries(categorias).map(([cat, itens]) => (
-                        <div key={cat} style={{marginBottom: '10px', border: '1px solid #e2e8f0', borderRadius: '4px', overflow: 'hidden'}}>
-                          <div style={{display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 10px', background: 'transparent', borderBottom: 'none', borderRadius: '4px 4px 0 0'}}>
-                            <span style={{fontSize: '11px'}}>📦</span>
-                            <span style={{fontSize: '10px', fontWeight: 700, color: '#1e293b', letterSpacing: '1px', textTransform: 'uppercase'}}>{cat}</span>
-                            <span style={{marginLeft: 'auto', fontSize: '8px', color: '#64748b', fontWeight: 500}}>{itens.length} item{itens.length !== 1 ? 's' : ''}</span>
-                          </div>
-                          <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '9px'}}>
-                            <thead>
-                              <tr style={{background: 'transparent', borderBottom: '1px solid #e2e8f0'}}>
-                                <th style={{padding: '5px 8px', fontSize: '8px', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.3px', textAlign: 'left', width: '70px'}}>Código</th>
-                                <th style={{padding: '5px 8px', fontSize: '8px', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.3px', textAlign: 'left'}}>Produto</th>
-                                <th style={{padding: '5px 8px', fontSize: '8px', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.3px', textAlign: 'center', width: '60px'}}>Espec./Pesos</th>
-                                <th style={{padding: '5px 8px', fontSize: '8px', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.3px', textAlign: 'center', width: '50px'}}>Und.</th>
-                                <th style={{padding: '5px 8px', fontSize: '8px', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.3px', textAlign: 'right', width: '70px'}}>Preço</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {itens.map((item, i) => (
-                                <tr key={i} style={{background: i % 2 === 0 ? '#ffffff' : '#fafafa'}}>
-                                  <td style={{padding: '4px 6px', fontSize: '8px', color: '#64748b', fontFamily: 'monospace', whiteSpace: 'nowrap'}}>{item.cod || '—'}</td>
-                                  <td style={{padding: '4px 6px', fontSize: '9px', fontWeight: 600, color: '#1e293b'}}>{item.nome}</td>
-                                  <td style={{padding: '4px 6px', fontSize: '8px', color: '#475569', textAlign: 'center'}}>{item.isWeightGrouped ? (item.pesosDisponiveis || '—') : (item.peso || item.dimensoes || '—')}</td>
-                                  <td style={{padding: '4px 6px', fontSize: '8px', color: '#475569', textAlign: 'center'}}>{item.und || 'peça'}</td>
-                                  <td style={{padding: '4px 6px', fontSize: '9px', fontWeight: 700, color: '#16a34a', textAlign: 'right', whiteSpace: 'nowrap'}}>{item.precoFormatado}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      ))}
-
-                      {/* Rodapé */}
-                      <div style={{marginTop: '12px', borderTop: '1px solid #e2e8f0', paddingTop: '8px', fontSize: '8px', color: '#64748b'}}>
-                        ⚠️ Tabela sujeita a alterações sem aviso prévio. Consulte disponibilidade antes do pedido.
-                      </div>
-                    </div>
-                  );
-                })() : (
+              <CardContent>
+                {previewData.length > 0 ? (
+                  <PreviewGrid previewData={previewData} user={user} colors={colors} />
+                ) : (
                   <div className="text-center py-12">
                     <Table className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">Tabela Vazia</h3>
