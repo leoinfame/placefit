@@ -6,11 +6,18 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Não autorizado' }, { status: 401 });
 
-    // Buscar fabricantes e seus SupplierProducts em paralelo (service role)
-    const [allUsers, allSps] = await Promise.all([
-      base44.asServiceRole.entities.User.list('-created_date', 500),
-      base44.asServiceRole.entities.SupplierProduct.list('-created_date', 2000),
-    ]);
+    // Buscar fabricantes (service role)
+    const allUsers = await base44.asServiceRole.entities.User.list('-created_date', 500);
+
+    // Buscar TODOS os SupplierProducts com paginação (pode haver milhares)
+    let allSps = [];
+    let skip = 0;
+    while (true) {
+      const batch = await base44.asServiceRole.entities.SupplierProduct.list('-created_date', 500, skip);
+      allSps = allSps.concat(batch);
+      if (batch.length < 500) break;
+      skip += 500;
+    }
 
     // Filtrar fabricantes manualmente (mais robusto que filter por campo customizado)
     const fabricantes = allUsers.filter(u => u.tipo_usuario === 'fabricante');
