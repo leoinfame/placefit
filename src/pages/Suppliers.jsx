@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { User } from "@/entities/User";
 import { SupplierProduct } from "@/entities/SupplierProduct";
-import { Product } from "@/entities/Product";
+import { base44 } from "@/api/base44Client";
 import { 
   Users, 
   Search, 
@@ -94,7 +94,7 @@ export default function Suppliers() {
 
   const loadProducts = async () => {
     try {
-      const data = await Product.list();
+      const data = await base44.entities.ProductTemplate.list();
       setProducts(data);
     } catch (error) {
       console.error("Erro ao carregar produtos:", error);

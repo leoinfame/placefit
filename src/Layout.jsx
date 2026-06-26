@@ -259,22 +259,22 @@ export default function Layout({ children, currentPageName }) {
         },
         {
           title: "Produtos",
-          url: createPageUrl("Products"),
+          url: createPageUrl("Produtos") + "?tab=catalogo",
           icon: Package,
         },
         {
-          title: "  • Catálogo",
-          url: createPageUrl("Catalogo"),
+          title: "  • Catálogo Geral",
+          url: createPageUrl("Produtos") + "?tab=catalogo",
           icon: Package,
         },
         {
-          title: "  • Categorias",
-          url: createPageUrl("Categories"),
+          title: "  • Meus Produtos",
+          url: createPageUrl("Produtos") + "?tab=meus",
           icon: Package,
         },
         {
-          title: "  • Unidades",
-          url: createPageUrl("Units"),
+          title: "  • Importar Tabela",
+          url: createPageUrl("Produtos") + "?tab=importar",
           icon: Package,
         },
         {
@@ -338,17 +338,17 @@ export default function Layout({ children, currentPageName }) {
         },
         {
           title: "Produtos",
-          url: createPageUrl("FabricanteProdutos"),
+          url: createPageUrl("Produtos") + "?tab=catalogo",
           icon: Package,
         },
         {
-          title: "  • Catálogo de Produtos",
-          url: createPageUrl("CatalogoFabricante"),
+          title: "  • Catálogo Geral",
+          url: createPageUrl("Produtos") + "?tab=catalogo",
           icon: Package,
         },
         {
-          title: "  • Catálogo",
-          url: createPageUrl("Catalogo"),
+          title: "  • Importar Tabela",
+          url: createPageUrl("Produtos") + "?tab=importar",
           icon: Package,
         },
         {
@@ -397,12 +397,17 @@ export default function Layout({ children, currentPageName }) {
         },
         {
           title: "Produtos",
-          url: createPageUrl("MyProducts"),
+          url: createPageUrl("Produtos") + "?tab=catalogo",
           icon: Package,
         },
         {
-          title: "  • Catálogo",
-          url: createPageUrl("Catalogo"),
+          title: "  • Catálogo Geral",
+          url: createPageUrl("Produtos") + "?tab=catalogo",
+          icon: Package,
+        },
+        {
+          title: "  • Meus Produtos",
+          url: createPageUrl("Produtos") + "?tab=meus",
           icon: Package,
         },
         {

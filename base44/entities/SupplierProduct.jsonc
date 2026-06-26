@@ -1,39 +1,49 @@
 {
   "name": "SupplierProduct",
   "type": "object",
+  "description": "Vincula um usu\u00e1rio (fabricante ou revendedor) a um ProductTemplate com pre\u00e7o e margem",
   "properties": {
     "supplier_id": {
       "type": "string",
-      "description": "ID do fornecedor (User)"
+      "description": "ID do usu\u00e1rio logado (fabricante ou revendedor)"
     },
     "product_id": {
       "type": "string",
-      "description": "ID do produto"
+      "description": "ID do ProductTemplate"
     },
     "preco": {
       "type": "number",
-      "description": "Pre\u00e7o do produto para este fornecedor"
+      "description": "Pre\u00e7o unit\u00e1rio de f\u00e1brica"
     },
-    "sale_price": {
+    "margem": {
       "type": "number",
-      "description": "Pre\u00e7o promocional aplicado pelo revendedor (quando houver promo\u00e7\u00e3o)"
+      "default": 0,
+      "description": "Percentual de margem do revendedor"
     },
-    "shipping_label": {
+    "fabricante_nome": {
       "type": "string",
-      "description": "Label de agrupamento de frete baseado nas rotas de TransportadorRota"
+      "description": "Nome do fabricante cujo pre\u00e7o foi usado (para revendedores)"
     },
-    "ucp_checkout_url": {
+    "observacoes": {
       "type": "string",
-      "description": "URL de checkout do PlaceFit para integra\u00e7\u00e3o com Google UCP"
+      "description": "Observa\u00e7\u00f5es opcionais"
     },
     "disponivel": {
       "type": "boolean",
       "default": true,
       "description": "Se o produto est\u00e1 dispon\u00edvel"
     },
-    "observacoes": {
+    "sale_price": {
+      "type": "number",
+      "description": "Pre\u00e7o promocional aplicado pelo revendedor"
+    },
+    "shipping_label": {
       "type": "string",
-      "description": "Observa\u00e7\u00f5es espec\u00edficas do fornecedor"
+      "description": "Label de agrupamento de frete"
+    },
+    "ucp_checkout_url": {
+      "type": "string",
+      "description": "URL de checkout para integra\u00e7\u00e3o com Google UCP"
     }
   },
   "required": [
