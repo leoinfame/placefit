@@ -30,7 +30,7 @@ const UNIDADES = ["peça", "par", "kg", "m²", "kit"];
 
 // Default options per field (used as fallback if no AtributoConfig exists)
 const DEFAULT_OPCOES = {
-  tipo_anilha: ["Vazada", "Injetada", "Sólida", "Bumper", "N/A"],
+  tipo_anilha: ["Vazada", "Injetada", "Sólida", "Bumper", "Prime", "N/A"],
   acabamento: ["Bruto", "Pintado", "Emborrachado", "Injetado", "Bumper", "Cromado", "N/A"],
   tipo_furo: ["Normal (Furo Pequeno)", "Olímpico (Furo 50mm)", "N/A"],
   bojo_formato: ["Sextavado (Hexagonal)", "Bola", "Redondo", "N/A"],
