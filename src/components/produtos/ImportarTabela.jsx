@@ -110,6 +110,9 @@ export default function ImportarTabela({ user }) {
     reader.readAsText(f);
   };
 
+  // Normaliza código removendo tudo que não é alfanumérico, para matching flexível
+  const normalizeCod = (cod) => (cod || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+
   const handleProcess = async () => {
     if (!file) return;
     setProcessing(true);

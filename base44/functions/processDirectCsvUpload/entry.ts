@@ -15,9 +15,12 @@ Deno.serve(async (req) => {
       base44.asServiceRole.entities.SupplierProduct.filter({ supplier_id: user.id })
     ]);
 
+    // Normalização: remove tudo que não é alfanumérico (hífens, espaços, pontos, etc.)
+    const normalizeCod = (cod) => (cod || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+
     const templateByCod = new Map();
     for (const t of templates) {
-      const cod = (t.cod || "").trim().toUpperCase().replace(/\s+/g, "");
+      const cod = normalizeCod(t.cod);
       if (cod) templateByCod.set(cod, t);
     }
 
@@ -110,7 +113,7 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      const codigoLimpo = codigo.toUpperCase().replace(/\s+/g, "");
+      const codigoLimpo = normalizeCod(codigo);
       const template = templateByCod.get(codigoLimpo);
       if (!template) {
         results.unmatched.push({ descricao: codigo, motivo: "Código não encontrado no catálogo" });
