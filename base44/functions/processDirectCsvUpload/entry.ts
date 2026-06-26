@@ -25,16 +25,90 @@ Deno.serve(async (req) => {
     }
 
     // Normalização de nome para matching fallback
-    const normalizeName = (name) =>
-      (name || "").trim().toLowerCase()
+    const normalizeName = (name) => {
+      let n = (name || "").trim().toLowerCase()
         .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
         .replace(/[^a-z0-9\s]/g, " ")
         .replace(/\s+/g, " ").trim();
+      // Normalizar variações comuns de grafia
+      n = n
+        .replace(/\bbamper\b/g, "bumper")
+        .replace(/\bhalt\b/g, "halter")
+        .replace(/\bdumbel\b/g, "dumbbell")
+        .replace(/\bdumbel[l]?\s*$/g, "dumbbell")
+        .replace(/\bkettle\b\s*bells?\b/g, "kettlebell")
+        .replace(/\bkettle\s*$/g, "kettlebell")
+        .replace(/\btorre\b/g, "torre");
+      return n;
+    };
+
+    const getTokens = (name) => {
+      const norm = normalizeName(name);
+      return norm.split(" ").filter(w => w.length > 1); // ignora palavras de 1 char
+    };
 
     const normalizeNameTokens = (name) => {
-      const norm = normalizeName(name);
-      return norm.split(" ").filter(w => w.length > 0).sort().join(" ");
+      const tokens = getTokens(name);
+      return tokens.sort().join(" ");
     };
+
+    // Distância de Levenshtein simplificada para matching fuzzy
+    const levenshtein = (a, b) => {
+      if (a === b) return 0;
+      if (a.length === 0) return b.length;
+      if (b.length === 0) return a.length;
+      const matrix = [];
+      for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+      for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+      for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+          const cost = a[j - 1] === b[i - 1] ? 0 : 1;
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j] + 1,
+            matrix[i][j - 1] + 1,
+            matrix[i - 1][j - 1] + cost
+          );
+        }
+      }
+      return matrix[b.length][a.length];
+    };
+
+    // Dois tokens são "similares" se: exatamente iguais, OU ambos >=4 chars com distância <=2
+    const tokensSimilar = (a, b) => {
+      if (a === b) return true;
+      // Números devem bater exatamente (pesos como "2kg", "20kg")
+      if (/^\d/.test(a) || /^\d/.test(b)) return a === b;
+      // Palavras curtas devem bater exatamente
+      if (a.length < 4 || b.length < 4) return a === b;
+      // Palavras longas: tolera até 2 chars de diferença (ex: bumper/bamper, olimpica/olimpica)
+      const dist = levenshtein(a, b);
+      return dist <= 2;
+    };
+
+    // Score de similaridade entre dois conjuntos de tokens (0 a 1)
+    const scoreTokens = (csvTokens, tmplTokens) => {
+      if (csvTokens.length === 0 || tmplTokens.length === 0) return 0;
+      let matches = 0;
+      const used = new Set();
+      for (const ct of csvTokens) {
+        for (let i = 0; i < tmplTokens.length; i++) {
+          if (used.has(i)) continue;
+          if (tokensSimilar(ct, tmplTokens[i])) {
+            matches++;
+            used.add(i);
+            break;
+          }
+        }
+      }
+      // Score = fração de tokens do CSV que encontraram par no template
+      return matches / Math.max(csvTokens.length, tmplTokens.length);
+    };
+
+    // Pré-computa tokens dos templates para matching fuzzy
+    const templateTokenList = templates.map(t => ({
+      t,
+      tokens: getTokens(t.nome),
+    }));
 
     // Mapa por tokens de nome (palavras ordenadas) — tolera ordem diferente das palavras
     const templateByTokens = new Map();
@@ -156,6 +230,24 @@ Deno.serve(async (req) => {
               nome.replace(/\bbruto\b/gi, "").replace(/\bpintado\b/gi, "")
             );
             template = templateByCleanTokens.get(cleaned) || templateByTokens.get(cleaned);
+          }
+
+          // 3) Matching fuzzy por score de similaridade de tokens
+          if (!template) {
+            const csvTokens = getTokens(nome);
+            let bestScore = 0;
+            let bestTemplate = null;
+            for (const { t, tokens: tmplTokens } of templateTokenList) {
+              const score = scoreTokens(csvTokens, tmplTokens);
+              if (score > bestScore) {
+                bestScore = score;
+                bestTemplate = t;
+              }
+            }
+            // Aceita apenas se a similaridade for alta (>= 70%)
+            if (bestScore >= 0.7) {
+              template = bestTemplate;
+            }
           }
         }
       }
