@@ -22,13 +22,14 @@
         "Pisos",
         "Kettlebells",
         "Suportes",
+        "Kits",
         "Outros"
       ],
       "description": "Categoria principal do produto"
     },
     "subcategoria": {
       "type": "string",
-      "description": "Subcategoria espec\u00edfica (ex: Suporte para Halteres, Suporte para Dumbells, Suporte para Kettlebells)"
+      "description": "Subcategoria espec\u00edfica (ex: Suporte para Halteres, Suporte para Dumbells, Suporte para Kettlebells, Halter Sextavado, Dumbell Sextavado, Barra Montada, Barra Montada Monobloco)"
     },
     "tipo_anilha": {
       "type": "string",
@@ -41,6 +42,14 @@
     "acabamento": {
       "type": "string",
       "description": "Acabamento/revestimento do produto"
+    },
+    "pegada": {
+      "type": "string",
+      "description": "Tipo de pegada - aplic\u00e1vel para Kits (ex: Cromada, Injetada, W Cromada)"
+    },
+    "peso_faixa": {
+      "type": "string",
+      "description": "Faixa de peso do kit (ex: 1-10, 12-30, 10-30)"
     },
     "peso_kg": {
       "type": "number",
