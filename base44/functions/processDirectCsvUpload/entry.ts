@@ -24,6 +24,31 @@ Deno.serve(async (req) => {
       if (cod) templateByCod.set(cod, t);
     }
 
+    // Normalização de nome para matching fallback
+    const normalizeName = (name) =>
+      (name || "").trim().toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9\s]/g, " ")
+        .replace(/\s+/g, " ").trim();
+
+    const normalizeNameTokens = (name) => {
+      const norm = normalizeName(name);
+      return norm.split(" ").filter(w => w.length > 0).sort().join(" ");
+    };
+
+    // Mapa por tokens de nome (palavras ordenadas) — tolera ordem diferente das palavras
+    const templateByTokens = new Map();
+    // Mapa por nome normalizado sem palavras de acabamento (bruto/pintado)
+    const templateByCleanTokens = new Map();
+    for (const t of templates) {
+      const tokens = normalizeNameTokens(t.nome);
+      if (tokens) templateByTokens.set(tokens, t);
+      const cleanTokens = normalizeNameTokens(
+        (t.nome || "").replace(/\bbruto\b/gi, "").replace(/\bpintado\b/gi, "")
+      );
+      if (cleanTokens && cleanTokens !== tokens) templateByCleanTokens.set(cleanTokens, t);
+    }
+
     const existingByPid = new Map();
     for (const sp of existingSps) existingByPid.set(sp.product_id, sp);
 
@@ -77,6 +102,7 @@ Deno.serve(async (req) => {
     // 3. Mapear cabeçalho (normaliza acentos e aceita variações comuns)
     const headers = rows[0].map(h => h.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
     const idxCodigo = headers.findIndex(h => h === "codigo" || h === "sku" || h === "cod");
+    const idxNome = headers.findIndex(h => h === "nome" || h === "produto" || h === "descricao" || h === "descricao_produto");
     const idxPreco = headers.findIndex(h => h === "preco" || h === "valor" || h === "preco_unitario");
     const idxDisponivel = headers.findIndex(h => h === "disponivel" || h === "disp" || h === "estoque");
 
@@ -114,9 +140,28 @@ Deno.serve(async (req) => {
       }
 
       const codigoLimpo = normalizeCod(codigo);
-      const template = templateByCod.get(codigoLimpo);
+      let template = templateByCod.get(codigoLimpo);
+
+      // Fallback: matching por nome quando SKU não bate
+      if (!template && idxNome !== -1) {
+        const nome = (row[idxNome] || "").trim();
+        if (nome) {
+          // 1) tokens ordenados exatos
+          let tokens = normalizeNameTokens(nome);
+          template = templateByTokens.get(tokens);
+
+          // 2) remover palavras de acabamento (bruto/pintado) que alguns templates não têm
+          if (!template) {
+            const cleaned = normalizeNameTokens(
+              nome.replace(/\bbruto\b/gi, "").replace(/\bpintado\b/gi, "")
+            );
+            template = templateByCleanTokens.get(cleaned) || templateByTokens.get(cleaned);
+          }
+        }
+      }
+
       if (!template) {
-        results.unmatched.push({ descricao: codigo, motivo: "Código não encontrado no catálogo" });
+        results.unmatched.push({ descricao: codigo + (idxNome !== -1 && row[idxNome] ? ` (${row[idxNome]})` : ""), motivo: "SKU e nome não encontrados no catálogo" });
         continue;
       }
 
