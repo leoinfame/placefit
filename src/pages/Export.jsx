@@ -38,6 +38,43 @@ export default function Export() {
   const { toast } = useToast();
   const colors = useLogoColors(user?.logomarca);
 
+  // Agrupa produtos vendidos por kg: mostra apenas 1 linha com pesos disponíveis e preço por kg
+  const groupKgProducts = (previewItems) => {
+    const kgItems = previewItems.filter(item => item.und === 'kg' && item.peso_kg);
+    const nonKgItems = previewItems.filter(item => !(item.und === 'kg' && item.peso_kg));
+
+    const groups = {};
+    kgItems.forEach(item => {
+      const baseName = item.nome.replace(/\s+\d+([.,]\d+)?kg$/i, '').trim();
+      if (!groups[baseName]) {
+        groups[baseName] = { items: [], pesos: [], cod: '', categoria: item.categoria, und: 'kg' };
+      }
+      groups[baseName].items.push(item);
+      groups[baseName].pesos.push(item.peso_kg);
+      if (item.peso_kg === 1 || !groups[baseName].referenceItem) {
+        groups[baseName].referenceItem = item;
+      }
+    });
+
+    const groupedItems = Object.entries(groups).map(([baseName, group]) => {
+      const ref = group.referenceItem || group.items[0];
+      const pesosOrdenados = [...new Set(group.pesos)].sort((a, b) => a - b);
+      return {
+        nome: baseName,
+        cod: ref.cod || '',
+        categoria: ref.categoria,
+        und: 'kg',
+        peso: '',
+        pesosDisponiveis: pesosOrdenados.map(p => `${p}kg`).join(', '),
+        preco: ref.preco,
+        precoFormatado: `R$ ${ref.preco.toFixed(2)}/kg`,
+        isKgGrouped: true
+      };
+    });
+
+    return [...nonKgItems, ...groupedItems];
+  };
+
   const generatePreview = (productsData, supplierProductsData) => {
     const availableProducts = supplierProductsData.filter(sp => sp.preco > 0);
 
@@ -49,12 +86,13 @@ export default function Export() {
         categoria: product.categoria || 'Outros',
         und: product.und || 'peça',
         peso: product.peso_kg ? `${product.peso_kg}kg` : '',
+        peso_kg: product.peso_kg || null,
         preco: sp.preco,
         precoFormatado: `R$ ${sp.preco.toFixed(2)}`
       } : null;
     }).filter(Boolean);
 
-    setPreviewData(preview);
+    setPreviewData(groupKgProducts(preview));
   };
 
   const generatePreviewForFabricante = (productsData, supplierProductsData = []) => {
@@ -69,12 +107,13 @@ export default function Export() {
         und: product.und || 'peça',
         dimensoes: product.dimensoes || '',
         peso: product.peso_kg ? `${product.peso_kg}kg` : '',
+        peso_kg: product.peso_kg || null,
         preco: parseFloat(preco),
         precoFormatado: preco ? `R$ ${parseFloat(preco).toFixed(2)}` : 'R$ 0,00'
       };
     });
 
-    setPreviewData(preview);
+    setPreviewData(groupKgProducts(preview));
   };
 
   const loadData = useCallback(async () => {
@@ -233,7 +272,7 @@ export default function Export() {
         <tr style="background:${idx % 2 === 0 ? '#ffffff' : '#fafafa'};">
           <td style="padding:4px 6px;font-size:8px;color:#64748b;font-family:monospace;white-space:nowrap;">${item.cod || '—'}</td>
           <td style="padding:4px 6px;font-size:9px;font-weight:600;color:#1e293b;">${item.nome}</td>
-          <td style="padding:4px 6px;font-size:8px;color:#475569;text-align:center;">${item.peso || item.dimensoes || '—'}</td>
+          <td style="padding:4px 6px;font-size:8px;color:#475569;text-align:center;">${item.isKgGrouped ? (item.pesosDisponiveis || '—') : (item.peso || item.dimensoes || '—')}</td>
           <td style="padding:4px 6px;font-size:8px;color:#475569;text-align:center;">${item.und || 'peça'}</td>
           <td style="padding:4px 6px;font-size:9px;font-weight:700;color:#16a34a;text-align:right;white-space:nowrap;">${item.precoFormatado}</td>
         </tr>`).join('');
@@ -250,7 +289,7 @@ export default function Export() {
              <tr style="background:#ffffff !important;">
                <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#000000 !important;background:#ffffff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;white-space:nowrap;width:70px;">Código</th>
                <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#000000 !important;background:#ffffff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;">Produto</th>
-               <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#000000 !important;background:#ffffff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;text-align:center;width:60px;">Espec.</th>
+               <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#000000 !important;background:#ffffff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;text-align:center;width:60px;">Espec./Pesos</th>
                <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#000000 !important;background:#ffffff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;text-align:center;width:50px;">Und.</th>
                <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#000000 !important;background:#ffffff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;text-align:right;width:70px;">Preço</th>
              </tr>
@@ -611,7 +650,7 @@ export default function Export() {
                               <tr style={{background: 'transparent', borderBottom: '1px solid #e2e8f0'}}>
                                 <th style={{padding: '5px 8px', fontSize: '8px', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.3px', textAlign: 'left', width: '70px'}}>Código</th>
                                 <th style={{padding: '5px 8px', fontSize: '8px', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.3px', textAlign: 'left'}}>Produto</th>
-                                <th style={{padding: '5px 8px', fontSize: '8px', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.3px', textAlign: 'center', width: '60px'}}>Espec.</th>
+                                <th style={{padding: '5px 8px', fontSize: '8px', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.3px', textAlign: 'center', width: '60px'}}>Espec./Pesos</th>
                                 <th style={{padding: '5px 8px', fontSize: '8px', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.3px', textAlign: 'center', width: '50px'}}>Und.</th>
                                 <th style={{padding: '5px 8px', fontSize: '8px', fontWeight: 700, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.3px', textAlign: 'right', width: '70px'}}>Preço</th>
                               </tr>
@@ -621,7 +660,7 @@ export default function Export() {
                                 <tr key={i} style={{background: i % 2 === 0 ? '#ffffff' : '#fafafa'}}>
                                   <td style={{padding: '4px 6px', fontSize: '8px', color: '#64748b', fontFamily: 'monospace', whiteSpace: 'nowrap'}}>{item.cod || '—'}</td>
                                   <td style={{padding: '4px 6px', fontSize: '9px', fontWeight: 600, color: '#1e293b'}}>{item.nome}</td>
-                                  <td style={{padding: '4px 6px', fontSize: '8px', color: '#475569', textAlign: 'center'}}>{item.peso || item.dimensoes || '—'}</td>
+                                  <td style={{padding: '4px 6px', fontSize: '8px', color: '#475569', textAlign: 'center'}}>{item.isKgGrouped ? (item.pesosDisponiveis || '—') : (item.peso || item.dimensoes || '—')}</td>
                                   <td style={{padding: '4px 6px', fontSize: '8px', color: '#475569', textAlign: 'center'}}>{item.und || 'peça'}</td>
                                   <td style={{padding: '4px 6px', fontSize: '9px', fontWeight: 700, color: '#16a34a', textAlign: 'right', whiteSpace: 'nowrap'}}>{item.precoFormatado}</td>
                                 </tr>
