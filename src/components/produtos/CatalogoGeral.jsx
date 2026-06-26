@@ -73,9 +73,14 @@ export default function CatalogoGeral({ user }) {
         const s = filters.search.toLowerCase();
         if (!t.nome?.toLowerCase().includes(s) && !t.cod?.toLowerCase().includes(s)) return false;
       }
+      // Revendedor só vê produtos com preço de fabricante disponível
+      if (isRevendedor) {
+        const prices = pricesByProduct[t.id] || [];
+        if (prices.length === 0) return false;
+      }
       return true;
     });
-  }, [templates, filters]);
+  }, [templates, filters, pricesByProduct, isRevendedor]);
 
   const isProductMine = (productId) => mySps.some(sp => sp.product_id === productId);
 
