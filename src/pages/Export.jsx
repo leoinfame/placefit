@@ -38,20 +38,23 @@ export default function Export() {
   const { toast } = useToast();
   const colors = useLogoColors(user?.logomarca);
 
-  // Agrupa produtos vendidos por kg: mostra apenas 1 linha com pesos disponíveis e preço por kg
-  const groupKgProducts = (previewItems) => {
-    const kgItems = previewItems.filter(item => item.und === 'kg' && item.peso_kg);
-    const nonKgItems = previewItems.filter(item => !(item.und === 'kg' && item.peso_kg));
+  // Agrupa produtos que têm variações de peso (ex: Halter 1kg, 2kg, 3kg...)
+  // em uma única linha, mostrando os pesos disponíveis e o preço do item de referência (1kg)
+  const groupWeightProducts = (previewItems) => {
+    const withWeight = previewItems.filter(item => item.peso_kg);
+    const withoutWeight = previewItems.filter(item => !item.peso_kg);
 
     const groups = {};
-    kgItems.forEach(item => {
+    withWeight.forEach(item => {
       const baseName = item.nome.replace(/\s+\d+([.,]\d+)?kg$/i, '').trim();
       if (!groups[baseName]) {
-        groups[baseName] = { items: [], pesos: [], cod: '', categoria: item.categoria, und: 'kg' };
+        groups[baseName] = { items: [], pesos: [], categoria: item.categoria, und: item.und };
       }
       groups[baseName].items.push(item);
       groups[baseName].pesos.push(item.peso_kg);
-      if (item.peso_kg === 1 || !groups[baseName].referenceItem) {
+      if (item.peso_kg === 1) {
+        groups[baseName].referenceItem = item;
+      } else if (!groups[baseName].referenceItem) {
         groups[baseName].referenceItem = item;
       }
     });
@@ -59,20 +62,22 @@ export default function Export() {
     const groupedItems = Object.entries(groups).map(([baseName, group]) => {
       const ref = group.referenceItem || group.items[0];
       const pesosOrdenados = [...new Set(group.pesos)].sort((a, b) => a - b);
+      const isGrouped = group.items.length > 1;
+
       return {
-        nome: baseName,
-        cod: ref.cod || '',
+        nome: isGrouped ? baseName : ref.nome,
+        cod: isGrouped ? '' : (ref.cod || ''),
         categoria: ref.categoria,
-        und: 'kg',
+        und: ref.und || 'peça',
         peso: '',
-        pesosDisponiveis: pesosOrdenados.map(p => `${p}kg`).join(', '),
+        pesosDisponiveis: isGrouped ? pesosOrdenados.map(p => `${p}kg`).join(', ') : '',
         preco: ref.preco,
-        precoFormatado: `R$ ${ref.preco.toFixed(2)}/kg`,
-        isKgGrouped: true
+        precoFormatado: ref.precoFormatado,
+        isWeightGrouped: isGrouped
       };
     });
 
-    return [...nonKgItems, ...groupedItems];
+    return [...withoutWeight, ...groupedItems];
   };
 
   const generatePreview = (productsData, supplierProductsData) => {
@@ -92,7 +97,7 @@ export default function Export() {
       } : null;
     }).filter(Boolean);
 
-    setPreviewData(groupKgProducts(preview));
+    setPreviewData(groupWeightProducts(preview));
   };
 
   const generatePreviewForFabricante = (productsData, supplierProductsData = []) => {
@@ -113,7 +118,7 @@ export default function Export() {
       };
     });
 
-    setPreviewData(groupKgProducts(preview));
+    setPreviewData(groupWeightProducts(preview));
   };
 
   const loadData = useCallback(async () => {
@@ -272,7 +277,7 @@ export default function Export() {
         <tr style="background:${idx % 2 === 0 ? '#ffffff' : '#fafafa'};">
           <td style="padding:4px 6px;font-size:8px;color:#64748b;font-family:monospace;white-space:nowrap;">${item.cod || '—'}</td>
           <td style="padding:4px 6px;font-size:9px;font-weight:600;color:#1e293b;">${item.nome}</td>
-          <td style="padding:4px 6px;font-size:8px;color:#475569;text-align:center;">${item.isKgGrouped ? (item.pesosDisponiveis || '—') : (item.peso || item.dimensoes || '—')}</td>
+          <td style="padding:4px 6px;font-size:8px;color:#475569;text-align:center;">${item.isWeightGrouped ? (item.pesosDisponiveis || '—') : (item.peso || item.dimensoes || '—')}</td>
           <td style="padding:4px 6px;font-size:8px;color:#475569;text-align:center;">${item.und || 'peça'}</td>
           <td style="padding:4px 6px;font-size:9px;font-weight:700;color:#16a34a;text-align:right;white-space:nowrap;">${item.precoFormatado}</td>
         </tr>`).join('');
@@ -660,7 +665,7 @@ export default function Export() {
                                 <tr key={i} style={{background: i % 2 === 0 ? '#ffffff' : '#fafafa'}}>
                                   <td style={{padding: '4px 6px', fontSize: '8px', color: '#64748b', fontFamily: 'monospace', whiteSpace: 'nowrap'}}>{item.cod || '—'}</td>
                                   <td style={{padding: '4px 6px', fontSize: '9px', fontWeight: 600, color: '#1e293b'}}>{item.nome}</td>
-                                  <td style={{padding: '4px 6px', fontSize: '8px', color: '#475569', textAlign: 'center'}}>{item.isKgGrouped ? (item.pesosDisponiveis || '—') : (item.peso || item.dimensoes || '—')}</td>
+                                  <td style={{padding: '4px 6px', fontSize: '8px', color: '#475569', textAlign: 'center'}}>{item.isWeightGrouped ? (item.pesosDisponiveis || '—') : (item.peso || item.dimensoes || '—')}</td>
                                   <td style={{padding: '4px 6px', fontSize: '8px', color: '#475569', textAlign: 'center'}}>{item.und || 'peça'}</td>
                                   <td style={{padding: '4px 6px', fontSize: '9px', fontWeight: 700, color: '#16a34a', textAlign: 'right', whiteSpace: 'nowrap'}}>{item.precoFormatado}</td>
                                 </tr>
