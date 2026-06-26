@@ -39,8 +39,20 @@ export default function CatalogoGeral({ user }) {
 
   const loadData = async () => {
     try {
+      // Paginar por todos os templates ativos (pode haver mais de 500)
+      const fetchAllTemplates = async () => {
+        let all = [];
+        let skip = 0;
+        while (true) {
+          const batch = await base44.entities.ProductTemplate.filter({ ativo: true }, 'categoria', 500, skip);
+          all = all.concat(batch);
+          if (batch.length < 500) break;
+          skip += 500;
+        }
+        return all;
+      };
       const [tmpls, catalogRes, mine] = await Promise.all([
-        base44.entities.ProductTemplate.filter({ ativo: true }, 'categoria', 500),
+        fetchAllTemplates(),
         getCatalogoData({}).catch(() => ({ data: { pricesByProduct: {} } })),
         base44.entities.SupplierProduct.filter({ supplier_id: user.id }, '-created_date', 500),
       ]);
