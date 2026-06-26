@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { UploadFile } from "@/integrations/Core";
 import { processDirectCsvUpload } from "@/functions/processDirectCsvUpload";
-import { Upload, FileSpreadsheet, Eye, Loader2, CheckCircle, AlertCircle, Download } from "lucide-react";
+import { Upload, FileSpreadsheet, Eye, Loader2, CheckCircle, AlertCircle, Download, ClipboardPaste } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,7 +11,7 @@ import { useToast } from "@/components/ui/use-toast";
 
 const CATEGORIAS = [
   "Anilhas","Halteres","Dumbells","Barras Montadas",
-  "Tijolinhos","Pisos","Kettlebells","Suportes","Outros"
+  "Tijolinhos","Pisos","Kettlebells","Suportes","Kits","Outros"
 ];
 
 function parseCSV(text) {
@@ -65,61 +65,83 @@ const formatBRL = (v) => v != null ? v.toLocaleString("pt-BR", { style: "currenc
 export default function ImportarTabela({ user }) {
   const [categoria, setCategoria] = useState("");
   const [file, setFile] = useState(null);
+  const [csvText, setCsvText] = useState("");
+  const [inputMode, setInputMode] = useState("file");
   const [preview, setPreview] = useState([]);
   const [processing, setProcessing] = useState(false);
   const [result, setResult] = useState(null);
   const fileInputRef = useRef(null);
   const { toast } = useToast();
 
+  const parseCsvText = (text) => {
+    const rows = parseCSV(text);
+    if (rows.length < 2) {
+      toast({ title: "CSV vazio", description: "O conteúdo não tem dados.", variant: "destructive" });
+      return;
+    }
+    const headers = rows[0].map(h => h.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
+    const idxCod = headers.findIndex(h => h === "codigo" || h === "sku" || h === "cod");
+    const idxPreco = headers.findIndex(h => h === "preco" || h === "preço" || h === "valor" || h === "preco_unitario");
+    const idxNome = headers.findIndex(h => h === "nome" || h === "descricao" || h === "produto");
+    if (idxCod === -1 && idxNome === -1) {
+      toast({ title: "Coluna obrigatória", description: 'CSV deve ter ao menos uma coluna "nome" ou "codigo".', variant: "destructive" });
+      return;
+    }
+    const data = [];
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      const cod = idxCod !== -1 ? (row[idxCod] || "").trim() : "";
+      const nome = idxNome !== -1 ? (row[idxNome] || "").trim() : "";
+      if (!cod && !nome) continue;
+      data.push({
+        cod,
+        nome,
+        preco: idxPreco !== -1 ? parsePreco(row[idxPreco]) : null,
+      });
+    }
+    setPreview(data);
+  };
+
   const handleFileChange = (e) => {
     const f = e.target.files?.[0];
     if (!f) return;
     setFile(f);
+    setCsvText("");
     setPreview([]);
     setResult(null);
 
     const reader = new FileReader();
     reader.onload = (ev) => {
-      const text = ev.target.result;
-      const rows = parseCSV(text);
-      if (rows.length < 2) {
-        toast({ title: "CSV vazio", description: "O arquivo não tem dados.", variant: "destructive" });
-        return;
-      }
-      const headers = rows[0].map(h => h.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
-      const idxCod = headers.findIndex(h => h === "codigo" || h === "sku" || h === "cod");
-      const idxPreco = headers.findIndex(h => h === "preco" || h === "preço" || h === "valor" || h === "preco_unitario");
-      const idxNome = headers.findIndex(h => h === "nome" || h === "descricao" || h === "produto");
-      if (idxCod === -1 && idxNome === -1) {
-        toast({ title: "Coluna obrigatória", description: 'CSV deve ter ao menos uma coluna "nome" ou "codigo".', variant: "destructive" });
-        return;
-      }
-      const data = [];
-      for (let i = 1; i < rows.length; i++) {
-        const row = rows[i];
-        const cod = idxCod !== -1 ? (row[idxCod] || "").trim() : "";
-        const nome = idxNome !== -1 ? (row[idxNome] || "").trim() : "";
-        if (!cod && !nome) continue;
-        data.push({
-          cod,
-          nome,
-          preco: idxPreco !== -1 ? parsePreco(row[idxPreco]) : null,
-        });
-      }
-      setPreview(data);
+      parseCsvText(ev.target.result);
     };
     reader.readAsText(f);
+  };
+
+  const handleParsePaste = () => {
+    if (!csvText.trim()) {
+      toast({ title: "Texto vazio", description: "Cole o conteúdo do CSV na caixa de texto.", variant: "destructive" });
+      return;
+    }
+    setFile(null);
+    setPreview([]);
+    setResult(null);
+    parseCsvText(csvText);
   };
 
   // Normaliza código removendo tudo que não é alfanumérico, para matching flexível
   const normalizeCod = (cod) => (cod || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
 
   const handleProcess = async () => {
-    if (!file) return;
     setProcessing(true);
     setResult(null);
     try {
-      const { file_url } = await UploadFile({ file });
+      let fileObj = file;
+      if (!fileObj && csvText.trim()) {
+        fileObj = new Blob([csvText], { type: "text/csv;charset=utf-8;" });
+        fileObj.name = "colado.csv";
+      }
+      if (!fileObj) return;
+      const { file_url } = await UploadFile({ file: fileObj });
       const res = await processDirectCsvUpload({ file_url });
       setResult(res.data);
       toast({ title: "Importação concluída!", description: `${(res.data?.created || 0) + (res.data?.updated || 0)} produtos processados.` });
@@ -133,19 +155,28 @@ export default function ImportarTabela({ user }) {
     <div className="space-y-4">
       <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-sm">
         <CardContent className="p-5 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label>Categoria</Label>
-              <Select value={categoria} onValueChange={setCategoria}>
-                <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione a categoria" /></SelectTrigger>
-                <SelectContent>
-                  {CATEGORIAS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
+          <div>
+            <Label>Categoria</Label>
+            <Select value={categoria} onValueChange={setCategoria}>
+              <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione a categoria" /></SelectTrigger>
+              <SelectContent>
+                {CATEGORIAS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <div className="flex gap-1 mb-2">
+              <Button size="sm" variant={inputMode === "file" ? "default" : "outline"} onClick={() => setInputMode("file")}>
+                <FileSpreadsheet className="w-4 h-4 mr-2" /> Arquivo CSV
+              </Button>
+              <Button size="sm" variant={inputMode === "paste" ? "default" : "outline"} onClick={() => setInputMode("paste")}>
+                <ClipboardPaste className="w-4 h-4 mr-2" /> Colar CSV
+              </Button>
             </div>
-            <div>
-              <Label>Arquivo CSV</Label>
-              <div className="mt-1 flex gap-2">
+
+            {inputMode === "file" ? (
+              <div className="flex gap-2">
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -158,16 +189,25 @@ export default function ImportarTabela({ user }) {
                   {file ? file.name : "Selecionar arquivo CSV"}
                 </Button>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-2">
+                <textarea
+                  value={csvText}
+                  onChange={(e) => setCsvText(e.target.value)}
+                  placeholder="Cole aqui o conteúdo do CSV&#10;Ex:&#10;nome;preco&#10;Anilha 20kg;130,00"
+                  className="w-full min-h-[140px] font-mono text-xs rounded-md border border-gray-200 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <Button variant="outline" size="sm" onClick={handleParsePaste} disabled={!csvText.trim()}>
+                  <Eye className="w-4 h-4 mr-2" /> Pré-visualizar
+                </Button>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => setPreview(p => [...p])} disabled={!file || preview.length === 0}>
-              <Eye className="w-4 h-4 mr-2" /> Preview
-            </Button>
             <Button
               onClick={handleProcess}
-              disabled={!file || processing}
+              disabled={(!file && !csvText.trim()) || preview.length === 0 || processing}
               className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
             >
               {processing ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Processando...</> : <><Upload className="w-4 h-4 mr-2" />Processar e Importar</>}
