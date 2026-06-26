@@ -6,10 +6,10 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Não autorizado' }, { status: 401 });
 
-    // Buscar SupplierProducts primeiro (public read - funciona para qualquer usuário)
-    const allSps = await base44.entities.SupplierProduct.list('-created_date', 2000);
+    // Buscar SupplierProducts via service role (garante todos os registros)
+    const allSps = await base44.asServiceRole.entities.SupplierProduct.list('-created_date', 2000);
 
-    // Tentar buscar fabricantes via service role (pode falhar para não-admins)
+    // Buscar fabricantes via service role
     let fabIds = new Set();
     let fabNameById = {};
     try {
@@ -20,7 +20,6 @@ Deno.serve(async (req) => {
         fabNameById[u.id] = u.empresa || u.full_name || 'Fabricante';
       }
     } catch (e) {
-      // Fallback: usar fabricante_nome do próprio SupplierProduct
       console.log('User list failed, using fabricante_nome fallback:', e.message);
     }
 
@@ -30,14 +29,10 @@ Deno.serve(async (req) => {
       if (!sp.preco || sp.preco <= 0) continue;
 
       // Determinar se é fabricante: pelo User list OU pelo campo fabricante_nome
-      let isFabricante = false;
-      let fabName = sp.fabricante_nome || 'Fabricante';
+      let isFabricante = fabIds.has(sp.supplier_id);
+      let fabName = sp.fabricante_nome || fabNameById[sp.supplier_id] || 'Fabricante';
 
-      if (fabIds.has(sp.supplier_id)) {
-        isFabricante = true;
-        fabName = fabNameById[sp.supplier_id] || sp.fabricante_nome || 'Fabricante';
-      } else if (sp.fabricante_nome && sp.fabricante_nome.trim() !== '') {
-        // Fallback: se fabricante_nome está preenchido, incluir
+      if (!isFabricante && sp.fabricante_nome && sp.fabricante_nome.trim() !== '') {
         isFabricante = true;
       }
 
