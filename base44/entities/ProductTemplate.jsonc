@@ -30,6 +30,10 @@
       "type": "string",
       "description": "Subcategoria espec\u00edfica (ex: Suporte para Halteres, Suporte para Dumbells, Suporte para Kettlebells)"
     },
+    "tipo_anilha": {
+      "type": "string",
+      "description": "Tipo construtivo da anilha (ex: Vazada, Injetada, S\u00f3lida, Bumper) - aplic\u00e1vel apenas para Anilhas"
+    },
     "tipo_furo": {
       "type": "string",
       "description": "Tipo de furo - aplic\u00e1vel apenas para Anilhas"

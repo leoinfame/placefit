@@ -30,6 +30,7 @@ const UNIDADES = ["peça", "par", "kg", "m²", "kit"];
 
 // Default options per field (used as fallback if no AtributoConfig exists)
 const DEFAULT_OPCOES = {
+  tipo_anilha: ["Vazada", "Injetada", "Sólida", "Bumper", "N/A"],
   acabamento: ["Bruto", "Pintado", "Emborrachado", "Injetado", "Bumper", "Cromado", "N/A"],
   tipo_furo: ["Normal (Furo Pequeno)", "Olímpico (Furo 50mm)", "N/A"],
   bojo_formato: ["Sextavado (Hexagonal)", "Bola", "Redondo", "N/A"],
@@ -47,7 +48,7 @@ const DEFAULT_OPCOES = {
 
 // Which fields are relevant per category
 const CAMPOS_POR_CATEGORIA = {
-  Anilhas: ["peso_kg", "acabamento", "tipo_furo", "peso_fracionado"],
+  Anilhas: ["tipo_anilha", "peso_kg", "acabamento", "tipo_furo", "peso_fracionado"],
   Halteres: ["peso_kg", "acabamento", "bojo_formato", "barra_acabamento"],
   Dumbells: ["peso_kg", "acabamento", "bojo_formato", "dumbell_tipo"],
   "Barras Montadas": ["peso_kg", "barra_tipo", "barra_acabamento"],
@@ -68,6 +69,7 @@ const CAMPOS_POR_CATEGORIA = {
 };
 
 const CAMPO_LABELS = {
+  tipo_anilha: "Tipo de Anilha",
   peso_kg: "Peso (kg)",
   acabamento: "Acabamento",
   tipo_furo: "Tipo de Furo",
@@ -91,6 +93,7 @@ const CAMPO_LABELS = {
 };
 
 const SELECT_FIELDS = [
+  "tipo_anilha",
   "acabamento",
   "tipo_furo",
   "bojo_formato",
@@ -122,6 +125,7 @@ const EMPTY_FORM = {
   categoria: "",
   und: "",
   subcategoria: "",
+  tipo_anilha: "N/A",
   acabamento: "N/A",
   peso_kg: "",
   tipo_furo: "N/A",
