@@ -72,7 +72,9 @@ export default function Export() {
         peso: '',
         pesosDisponiveis: isGrouped ? pesosOrdenados.map(p => `${p}kg`).join(', ') : '',
         preco: ref.preco,
-        precoFormatado: ref.precoFormatado,
+        precoFormatado: isGrouped
+          ? `R$ ${ref.preco.toFixed(2)}/kg`
+          : ref.precoFormatado,
         isWeightGrouped: isGrouped
       };
     });
