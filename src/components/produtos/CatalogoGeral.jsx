@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { getCatalogoData } from "@/functions/getCatalogoData";
-import { Search, Package, Plus, Check, Loader2, Tag, Weight } from "lucide-react";
+import { Search, Package, Plus, Check, Loader2, Weight, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
@@ -26,7 +27,10 @@ export default function CatalogoGeral({ user }) {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ categoria: "", subcategoria: "", acabamento: "", search: "" });
   const [addModal, setAddModal] = useState(null);
+  const [bulkModal, setBulkModal] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [savingBulk, setSavingBulk] = useState(false);
+  const [selected, setSelected] = useState(new Set());
   const { toast } = useToast();
 
   const isRevendedor = user?.role !== 'admin' && user?.tipo_usuario !== 'fabricante' && user?.tipo_usuario !== 'transportador';
@@ -50,7 +54,6 @@ export default function CatalogoGeral({ user }) {
     setLoading(false);
   };
 
-  // Unique subcategorias and acabamentos based on selected categoria
   const subcategoriaOptions = useMemo(() => {
     const base = filters.categoria ? templates.filter(t => t.categoria === filters.categoria) : templates;
     return [...new Set(base.map(t => t.subcategoria).filter(Boolean))].sort();
@@ -76,6 +79,41 @@ export default function CatalogoGeral({ user }) {
 
   const isProductMine = (productId) => mySps.some(sp => sp.product_id === productId);
 
+  // Selection helpers
+  const visibleIds = filteredTemplates.map(t => t.id);
+  const allVisibleSelected = visibleIds.length > 0 && visibleIds.every(id => selected.has(id));
+  const someVisibleSelected = visibleIds.some(id => selected.has(id));
+
+  const toggleSelect = (id) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (allVisibleSelected) {
+        visibleIds.forEach(id => next.delete(id));
+      } else {
+        visibleIds.forEach(id => next.add(id));
+      }
+      return next;
+    });
+  };
+
+  const clearSelection = () => setSelected(new Set());
+
+  // Bulk add: only products with available fabricante prices and not already mine
+  const getBulkEligible = () => {
+    return filteredTemplates.filter(t => {
+      const prices = pricesByProduct[t.id] || [];
+      return prices.length > 0 && !isProductMine(t.id);
+    });
+  };
+
   const handleAdd = async () => {
     if (!addModal) return;
     setSaving(true);
@@ -98,6 +136,40 @@ export default function CatalogoGeral({ user }) {
     setSaving(false);
   };
 
+  const handleBulkAdd = async () => {
+    if (!bulkModal) return;
+    setSavingBulk(true);
+    const eligible = getBulkEligible().filter(t => selected.has(t.id));
+    let ok = 0, fail = 0;
+    try {
+      // bulkCreate with first available fabricante per product
+      const records = eligible.map(t => {
+        const prices = pricesByProduct[t.id] || [];
+        const first = prices[0];
+        return {
+          supplier_id: user.id,
+          product_id: t.id,
+          preco: first.preco,
+          margem: bulkModal.margem || 0,
+          fabricante_nome: first.fabricante_nome,
+          observacoes: "",
+          disponivel: true,
+        };
+      });
+      if (records.length > 0) {
+        const created = await base44.entities.SupplierProduct.bulkCreate(records);
+        ok = Array.isArray(created) ? created.length : records.length;
+      }
+      toast({ title: `${ok} produtos adicionados!`, description: `Margem de ${bulkModal.margem || 0}% aplicada a todos.` });
+      setBulkModal(null);
+      clearSelection();
+      loadData();
+    } catch (e) {
+      toast({ title: "Erro", description: "Erro ao adicionar produtos em massa.", variant: "destructive" });
+    }
+    setSavingBulk(false);
+  };
+
   if (loading) {
     return <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>;
   }
@@ -110,23 +182,22 @@ export default function CatalogoGeral({ user }) {
           placeholder="Buscar por nome ou SKU..."
           value={filters.search}
           onChange={(e) => setFilters(f => ({ ...f, search: e.target.value }))}
-          className="md:col-span-1"
         />
-        <Select value={filters.categoria} onValueChange={(v) => setFilters(f => ({ ...f, categoria: v === "all" ? "" : v, subcategoria: "", acabamento: "" }))}>
+        <Select value={filters.categoria || "all"} onValueChange={(v) => setFilters(f => ({ ...f, categoria: v === "all" ? "" : v, subcategoria: "", acabamento: "" }))}>
           <SelectTrigger><SelectValue placeholder="Categoria" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas as categorias</SelectItem>
             {CATEGORIAS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={filters.subcategoria} onValueChange={(v) => setFilters(f => ({ ...f, subcategoria: v === "all" ? "" : v }))}>
+        <Select value={filters.subcategoria || "all"} onValueChange={(v) => setFilters(f => ({ ...f, subcategoria: v === "all" ? "" : v }))}>
           <SelectTrigger><SelectValue placeholder="Tipo" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os tipos</SelectItem>
             {subcategoriaOptions.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={filters.acabamento} onValueChange={(v) => setFilters(f => ({ ...f, acabamento: v === "all" ? "" : v }))}>
+        <Select value={filters.acabamento || "all"} onValueChange={(v) => setFilters(f => ({ ...f, acabamento: v === "all" ? "" : v }))}>
           <SelectTrigger><SelectValue placeholder="Acabamento" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os acabamentos</SelectItem>
@@ -135,72 +206,134 @@ export default function CatalogoGeral({ user }) {
         </Select>
       </div>
 
+      {/* Barra de ações em massa */}
+      {selected.size > 0 && (
+        <div className="flex items-center justify-between gap-3 bg-blue-50 border border-blue-200 rounded-lg px-4 py-2.5">
+          <div className="flex items-center gap-2">
+            <Layers className="w-4 h-4 text-blue-600" />
+            <span className="text-sm font-medium text-blue-700">{selected.size} selecionado(s)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {isRevendedor && (
+              <Button
+                size="sm"
+                className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+                onClick={() => setBulkModal({ margem: 0 })}
+              >
+                <Plus className="w-4 h-4 mr-1" /> Adicionar Selecionados
+              </Button>
+            )}
+            <Button size="sm" variant="ghost" onClick={clearSelection}>Limpar</Button>
+          </div>
+        </div>
+      )}
+
       <p className="text-sm text-gray-500">{filteredTemplates.length} produtos encontrados</p>
 
-      {/* Lista de produtos */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredTemplates.map(tmpl => {
-          const fabPrices = pricesByProduct[tmpl.id] || [];
-          const alreadyMine = isProductMine(tmpl.id);
-          return (
-            <Card key={tmpl.id} className="bg-white/80 backdrop-blur-sm border-0 shadow-sm hover:shadow-md transition-shadow">
-              <CardContent className="p-4 space-y-3">
-                <div className="flex items-start gap-3">
-                  {tmpl.foto ? (
-                    <img src={tmpl.foto} alt={tmpl.nome} className="w-14 h-14 rounded-lg object-cover flex-shrink-0" />
-                  ) : (
-                    <div className="w-14 h-14 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
-                      <Package className="w-6 h-6 text-gray-300" />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm text-gray-900 truncate">{tmpl.nome}</p>
-                    <p className="text-xs text-gray-400 font-mono">{tmpl.cod}</p>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-1.5">
-                  <Badge variant="secondary" className="text-xs">{tmpl.categoria}</Badge>
-                  {tmpl.subcategoria && <Badge variant="outline" className="text-xs">{tmpl.subcategoria}</Badge>}
-                  {tmpl.acabamento && <Badge variant="outline" className="text-xs">{tmpl.acabamento}</Badge>}
-                  {tmpl.peso_kg != null && (
-                    <Badge variant="outline" className="text-xs"><Weight className="w-3 h-3 mr-1" />{tmpl.peso_kg}kg</Badge>
-                  )}
-                </div>
-
-                {/* Fabricantes com preços */}
-                {fabPrices.length > 0 ? (
-                  <div className="space-y-1.5 border-t pt-2">
-                    {fabPrices.map(sp => (
-                      <div key={sp.id} className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600 truncate">{sp.fabricante_nome}</span>
-                        <span className="font-semibold text-green-600">{formatBRL(sp.preco)}</span>
+      {/* Tabela de produtos */}
+      <div className="rounded-lg border bg-white overflow-hidden">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={allVisibleSelected ? true : someVisibleSelected ? "indeterminate" : false}
+                    onCheckedChange={toggleSelectAll}
+                  />
+                </TableHead>
+                <TableHead className="w-12"></TableHead>
+                <TableHead>Produto</TableHead>
+                <TableHead>SKU</TableHead>
+                <TableHead>Categoria</TableHead>
+                <TableHead>Fabricantes / Preços</TableHead>
+                <TableHead className="text-center">Status</TableHead>
+                {isRevendedor && <TableHead className="text-center">Ação</TableHead>}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredTemplates.map(tmpl => {
+                const fabPrices = pricesByProduct[tmpl.id] || [];
+                const alreadyMine = isProductMine(tmpl.id);
+                const isSelected = selected.has(tmpl.id);
+                return (
+                  <TableRow key={tmpl.id} className={isSelected ? "bg-blue-50/50" : ""}>
+                    <TableCell>
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => toggleSelect(tmpl.id)}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      {tmpl.foto ? (
+                        <img src={tmpl.foto} alt={tmpl.nome} className="w-10 h-10 rounded-lg object-cover" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                          <Package className="w-5 h-5 text-gray-300" />
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium text-sm text-gray-900">{tmpl.nome}</p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {tmpl.subcategoria && <Badge variant="outline" className="text-xs">{tmpl.subcategoria}</Badge>}
+                          {tmpl.acabamento && <Badge variant="outline" className="text-xs">{tmpl.acabamento}</Badge>}
+                          {tmpl.peso_kg != null && (
+                            <Badge variant="outline" className="text-xs"><Weight className="w-3 h-3 mr-0.5" />{tmpl.peso_kg}kg</Badge>
+                          )}
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-xs text-gray-400 border-t pt-2">Nenhum fabricante com preço cadastrado</p>
-                )}
-
-                {isRevendedor && fabPrices.length > 0 && (
-                  alreadyMine ? (
-                    <Button disabled size="sm" variant="outline" className="w-full">
-                      <Check className="w-4 h-4 mr-1" /> Já na sua tabela
-                    </Button>
-                  ) : (
-                    <Button
-                      size="sm"
-                      className="w-full bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
-                      onClick={() => setAddModal({ template: tmpl, fabPrices, preco: fabPrices[0].preco, fabricante_nome: fabPrices[0].fabricante_nome, margem: 0, observacoes: "" })}
-                    >
-                      <Plus className="w-4 h-4 mr-1" /> Adicionar aos Meus Produtos
-                    </Button>
-                  )
-                )}
-              </CardContent>
-            </Card>
-          );
-        })}
+                    </TableCell>
+                    <TableCell className="font-mono text-xs text-gray-500">{tmpl.cod}</TableCell>
+                    <TableCell><Badge variant="secondary" className="text-xs">{tmpl.categoria}</Badge></TableCell>
+                    <TableCell>
+                      {fabPrices.length > 0 ? (
+                        <div className="space-y-0.5">
+                          {fabPrices.slice(0, 3).map(sp => (
+                            <div key={sp.id} className="flex items-center justify-between text-xs gap-2 min-w-[160px]">
+                              <span className="text-gray-600 truncate">{sp.fabricante_nome}</span>
+                              <span className="font-semibold text-green-600 whitespace-nowrap">{formatBRL(sp.preco)}</span>
+                            </div>
+                          ))}
+                          {fabPrices.length > 3 && (
+                            <p className="text-xs text-gray-400">+{fabPrices.length - 3} outros</p>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-400">Sem preços</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {alreadyMine ? (
+                        <Badge className="bg-green-100 text-green-700 text-xs"><Check className="w-3 h-3 mr-0.5" /> Na tabela</Badge>
+                      ) : fabPrices.length > 0 ? (
+                        <Badge variant="outline" className="text-xs">Disponível</Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-xs text-gray-400">Sem preço</Badge>
+                      )}
+                    </TableCell>
+                    {isRevendedor && (
+                      <TableCell>
+                        <div className="flex justify-center">
+                          {fabPrices.length > 0 && !alreadyMine && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setAddModal({ template: tmpl, fabPrices, preco: fabPrices[0].preco, fabricante_nome: fabPrices[0].fabricante_nome, margem: 0, observacoes: "" })}
+                            >
+                              <Plus className="w-3 h-3 mr-1" /> Adicionar
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
       {filteredTemplates.length === 0 && (
@@ -210,7 +343,7 @@ export default function CatalogoGeral({ user }) {
         </div>
       )}
 
-      {/* Modal Adicionar */}
+      {/* Modal Adicionar Individual */}
       {addModal && (
         <Dialog open onOpenChange={() => setAddModal(null)}>
           <DialogContent className="max-w-md">
@@ -230,8 +363,8 @@ export default function CatalogoGeral({ user }) {
                 <Select
                   value={addModal.fabricante_nome}
                   onValueChange={(v) => {
-                    const selected = addModal.fabPrices.find(f => f.fabricante_nome === v);
-                    setAddModal(m => ({ ...m, fabricante_nome: v, preco: selected?.preco || 0 }));
+                    const selectedFab = addModal.fabPrices.find(f => f.fabricante_nome === v);
+                    setAddModal(m => ({ ...m, fabricante_nome: v, preco: selectedFab?.preco || 0 }));
                   }}
                 >
                   <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
@@ -277,6 +410,49 @@ export default function CatalogoGeral({ user }) {
                 <Button variant="outline" onClick={() => setAddModal(null)}>Cancelar</Button>
                 <Button onClick={handleAdd} disabled={saving} className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700">
                   {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Salvando...</> : <><Check className="w-4 h-4 mr-2" />Salvar</>}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Modal Adicionar em Massa */}
+      {bulkModal && (
+        <Dialog open onOpenChange={() => setBulkModal(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Layers className="w-5 h-5 text-blue-600" /> Adicionar em Massa
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 pt-2">
+              <div className="bg-blue-50 rounded-lg p-3">
+                <p className="text-sm text-blue-700">
+                  {selected.size} produto(s) selecionado(s).
+                </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  Serão adicionados apenas os produtos com preço de fabricante disponível e que ainda não estão na sua tabela. O primeiro fabricante de cada produto será usado.
+                </p>
+              </div>
+
+              <div>
+                <Label>Margem Padrão (%) — aplicada a todos</Label>
+                <Input
+                  type="number"
+                  value={bulkModal.margem}
+                  onChange={(e) => setBulkModal(m => ({ ...m, margem: parseFloat(e.target.value) || 0 }))}
+                  className="mt-1"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Você poderá ajustar individualmente depois em "Meus Produtos".
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <Button variant="outline" onClick={() => setBulkModal(null)}>Cancelar</Button>
+                <Button onClick={handleBulkAdd} disabled={savingBulk} className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700">
+                  {savingBulk ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Adicionando...</> : <><Plus className="w-4 h-4 mr-2" />Adicionar Tudo</>}
                 </Button>
               </div>
             </div>
