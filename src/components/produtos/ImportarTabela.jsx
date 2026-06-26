@@ -15,6 +15,18 @@ const CATEGORIAS = [
 ];
 
 function parseCSV(text) {
+  // Remover BOM (Byte Order Mark) comum em exports do Excel
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+
+  // Detectar delimitador: ponto e vírgula (Excel BR), vírgula ou tab
+  const firstLine = text.split(/\r?\n/)[0] || "";
+  let delimiter = ',';
+  const semis = (firstLine.match(/;/g) || []).length;
+  const commas = (firstLine.match(/,/g) || []).length;
+  const tabs = (firstLine.match(/\t/g) || []).length;
+  if (semis >= commas && semis >= tabs && semis > 0) delimiter = ';';
+  else if (tabs > commas && tabs > 0) delimiter = '\t';
+
   const rows = [];
   let current = [];
   let field = "";
@@ -28,7 +40,7 @@ function parseCSV(text) {
       } else field += ch;
     } else {
       if (ch === '"') inQuotes = true;
-      else if (ch === ',') { current.push(field); field = ""; }
+      else if (ch === delimiter) { current.push(field); field = ""; }
       else if (ch === '\n' || ch === '\r') {
         if (field || current.length > 0) { current.push(field); rows.push(current); current = []; field = ""; }
         if (ch === '\r' && text[i + 1] === '\n') i++;
@@ -74,10 +86,10 @@ export default function ImportarTabela({ user }) {
         toast({ title: "CSV vazio", description: "O arquivo não tem dados.", variant: "destructive" });
         return;
       }
-      const headers = rows[0].map(h => h.trim().toLowerCase());
-      const idxCod = headers.indexOf("codigo");
-      const idxPreco = headers.indexOf("preco");
-      const idxNome = headers.indexOf("nome");
+      const headers = rows[0].map(h => h.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
+      const idxCod = headers.findIndex(h => h === "codigo" || h === "sku" || h === "cod");
+      const idxPreco = headers.findIndex(h => h === "preco" || h === "preço" || h === "valor" || h === "preco_unitario");
+      const idxNome = headers.findIndex(h => h === "nome" || h === "descricao" || h === "produto");
       if (idxCod === -1) {
         toast({ title: "Coluna obrigatória", description: 'Coluna "codigo" não encontrada no CSV.', variant: "destructive" });
         return;

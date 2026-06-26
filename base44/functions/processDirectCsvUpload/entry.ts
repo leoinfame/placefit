@@ -29,8 +29,19 @@ Deno.serve(async (req) => {
     if (!csvRes.ok) return Response.json({ error: 'Não foi possível baixar o arquivo.' }, { status: 400 });
     const csvText = await csvRes.text();
 
-    // Parse CSV simples (suporta aspas e vírgulas dentro de campos)
+    // Parse CSV com detecção automática de delimitador (ponto e vírgula Excel BR, vírgula ou tab)
     const parseCsv = (text) => {
+      // Remover BOM comum em exports do Excel
+      if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+
+      const firstLine = text.split(/\r?\n/)[0] || "";
+      let delimiter = ',';
+      const semis = (firstLine.match(/;/g) || []).length;
+      const commas = (firstLine.match(/,/g) || []).length;
+      const tabs = (firstLine.match(/\t/g) || []).length;
+      if (semis >= commas && semis >= tabs && semis > 0) delimiter = ';';
+      else if (tabs > commas && tabs > 0) delimiter = '\t';
+
       const rows = [];
       let current = [];
       let field = "";
@@ -44,7 +55,7 @@ Deno.serve(async (req) => {
           } else field += ch;
         } else {
           if (ch === '"') inQuotes = true;
-          else if (ch === ',') { current.push(field); field = ""; }
+          else if (ch === delimiter) { current.push(field); field = ""; }
           else if (ch === '\n' || ch === '\r') {
             if (field || current.length > 0) { current.push(field); rows.push(current); current = []; field = ""; }
             if (ch === '\r' && text[i + 1] === '\n') i++;
@@ -60,11 +71,11 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'CSV vazio ou sem dados.' }, { status: 400 });
     }
 
-    // 3. Mapear cabeçalho
-    const headers = rows[0].map(h => h.trim().toLowerCase());
-    const idxCodigo = headers.indexOf("codigo");
-    const idxPreco = headers.indexOf("preco");
-    const idxDisponivel = headers.indexOf("disponivel");
+    // 3. Mapear cabeçalho (normaliza acentos e aceita variações comuns)
+    const headers = rows[0].map(h => h.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
+    const idxCodigo = headers.findIndex(h => h === "codigo" || h === "sku" || h === "cod");
+    const idxPreco = headers.findIndex(h => h === "preco" || h === "valor" || h === "preco_unitario");
+    const idxDisponivel = headers.findIndex(h => h === "disponivel" || h === "disp" || h === "estoque");
 
     if (idxCodigo === -1) {
       return Response.json({ error: 'Coluna "codigo" não encontrada no CSV.' }, { status: 400 });
