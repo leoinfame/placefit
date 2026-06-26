@@ -6,44 +6,31 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Não autorizado' }, { status: 401 });
 
-    // Buscar SupplierProducts via service role (garante todos os registros)
-    const allSps = await base44.asServiceRole.entities.SupplierProduct.list('-created_date', 2000);
+    // Buscar fabricantes e seus SupplierProducts em paralelo (service role)
+    const [allUsers, allSps] = await Promise.all([
+      base44.asServiceRole.entities.User.list('-created_date', 500),
+      base44.asServiceRole.entities.SupplierProduct.list('-created_date', 2000),
+    ]);
 
-    // Buscar fabricantes via service role
-    let fabIds = new Set();
-    let fabNameById = {};
-    try {
-      const allUsers = await base44.asServiceRole.entities.User.list('-created_date', 500);
-      const fabricantes = allUsers.filter(u => u.tipo_usuario === 'fabricante');
-      fabIds = new Set(fabricantes.map(u => u.id));
-      for (const u of fabricantes) {
-        fabNameById[u.id] = u.empresa || u.full_name || 'Fabricante';
-      }
-    } catch (e) {
-      console.log('User list failed, using fabricante_nome fallback:', e.message);
+    // Filtrar fabricantes manualmente (mais robusto que filter por campo customizado)
+    const fabricantes = allUsers.filter(u => u.tipo_usuario === 'fabricante');
+    const fabIds = new Set(fabricantes.map(u => u.id));
+    const fabNameById = {};
+    for (const u of fabricantes) {
+      fabNameById[u.id] = u.empresa || u.full_name || 'Fabricante';
     }
 
     // Agrupar preços de fabricantes por product_id
     const pricesByProduct = {};
     for (const sp of allSps) {
+      if (!fabIds.has(sp.supplier_id)) continue;
       if (!sp.preco || sp.preco <= 0) continue;
-
-      // Determinar se é fabricante: pelo User list OU pelo campo fabricante_nome
-      let isFabricante = fabIds.has(sp.supplier_id);
-      let fabName = sp.fabricante_nome || fabNameById[sp.supplier_id] || 'Fabricante';
-
-      if (!isFabricante && sp.fabricante_nome && sp.fabricante_nome.trim() !== '') {
-        isFabricante = true;
-      }
-
-      if (!isFabricante) continue;
-
       if (!pricesByProduct[sp.product_id]) pricesByProduct[sp.product_id] = [];
       pricesByProduct[sp.product_id].push({
         id: sp.id,
         supplier_id: sp.supplier_id,
         preco: sp.preco,
-        fabricante_nome: fabName,
+        fabricante_nome: fabNameById[sp.supplier_id] || 'Fabricante',
       });
     }
 

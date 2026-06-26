@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
-import { getAllProducts } from "@/functions/getAllProducts";
+import { getCatalogoData } from "@/functions/getCatalogoData";
 import { Search, Package, Plus, Check, Loader2, Weight, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,28 +39,13 @@ export default function CatalogoGeral({ user }) {
 
   const loadData = async () => {
     try {
-      const [tmpls, allProdsRes, mine] = await Promise.all([
+      const [tmpls, catalogRes, mine] = await Promise.all([
         base44.entities.ProductTemplate.filter({ ativo: true }, 'categoria', 500),
-        getAllProducts({}).then(r => r.data).catch(() => ({ supplierProducts: [], fabricantes: [] })),
+        getCatalogoData({}).catch(() => ({ data: { pricesByProduct: {} } })),
         base44.entities.SupplierProduct.filter({ supplier_id: user.id }, '-created_date', 500),
       ]);
       setTemplates(tmpls || []);
-      // Construir pricesByProduct a partir dos supplierProducts (mesma fonte do Marketplace)
-      const sps = allProdsRes?.supplierProducts || [];
-      const fabs = allProdsRes?.fabricantes || [];
-      const fabNameById = {};
-      for (const f of fabs) { fabNameById[f.id] = f.empresa || f.full_name || 'Fabricante'; }
-      const pbp = {};
-      for (const sp of sps) {
-        if (!pbp[sp.product_id]) pbp[sp.product_id] = [];
-        pbp[sp.product_id].push({
-          id: sp.id,
-          supplier_id: sp.supplier_id,
-          preco: sp.preco,
-          fabricante_nome: sp.fabricante_nome || fabNameById[sp.supplier_id] || 'Fabricante',
-        });
-      }
-      setPricesByProduct(pbp);
+      setPricesByProduct(catalogRes?.data?.pricesByProduct || {});
       setMySps(mine || []);
     } catch (e) {
       console.error(e);
