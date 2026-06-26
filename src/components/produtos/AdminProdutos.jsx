@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import {
   Search, Plus, Pencil, Trash2, Loader2, Package, PackageSearch,
-  DollarSign, AlertTriangle, ShieldCheck, Layers, Power, PowerOff, Check,
+  DollarSign, AlertTriangle, ShieldCheck, Layers, Power, PowerOff, Check, Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import TemplateForm from "@/components/admin/TemplateForm";
+import ImportarTemplatesCsv from "@/components/produtos/ImportarTemplatesCsv";
 
 const CATEGORIAS = [
   "Anilhas", "Halteres", "Dumbells", "Barras Montadas",
@@ -38,6 +39,7 @@ export default function AdminProdutos() {
   const [confirmDeleteTpl, setConfirmDeleteTpl] = useState(null);
   const [selectedTpls, setSelectedTpls] = useState(new Set());
   const [bulkTplAction, setBulkTplAction] = useState(null); // null | 'delete' | 'activate' | 'deactivate'
+  const [importOpen, setImportOpen] = useState(false);
 
   // Supplier products state
   const [allSps, setAllSps] = useState([]);
@@ -298,12 +300,20 @@ export default function AdminProdutos() {
                 </SelectContent>
               </Select>
             </div>
-            <Button
-              onClick={() => { setEditingTpl(null); setFormOpen(true); }}
-              className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
-            >
-              <Plus className="w-4 h-4 mr-2" /> Adicionar Produto
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setImportOpen(true)}
+              >
+                <Upload className="w-4 h-4 mr-2" /> Importar CSV
+              </Button>
+              <Button
+                onClick={() => { setEditingTpl(null); setFormOpen(true); }}
+                className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+              >
+                <Plus className="w-4 h-4 mr-2" /> Adicionar Produto
+              </Button>
+            </div>
           </div>
 
           {selectedTpls.size > 0 && (
@@ -720,7 +730,22 @@ export default function AdminProdutos() {
             </div>
           </DialogContent>
         </Dialog>
-      )}
-    </div>
-  );
-}
+        )}
+
+        {/* === IMPORTAR TEMPLATES CSV === */}
+        <Dialog open={importOpen} onOpenChange={setImportOpen}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+         <DialogHeader>
+           <DialogTitle className="flex items-center gap-2">
+             <Upload className="w-5 h-5" /> Importar Templates por CSV
+           </DialogTitle>
+         </DialogHeader>
+         <ImportarTemplatesCsv
+           onClose={() => setImportOpen(false)}
+           onImported={loadData}
+         />
+        </DialogContent>
+        </Dialog>
+        </div>
+        );
+        }
