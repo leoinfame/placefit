@@ -9,7 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 
 const CATEGORIAS = [
   "Anilhas","Halteres","Dumbells","Barras Montadas",
-  "Tijolinhos","Pisos","Kettlebells","Suportes","Outros"
+  "Tijolinhos","Pisos","Kettlebells","Suportes","Kits","Outros"
 ];
 const UNIDADES = ["peça","par","kg","m²","kit"];
 

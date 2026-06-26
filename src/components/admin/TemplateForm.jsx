@@ -23,6 +23,7 @@ const CATEGORIAS = [
   "Pisos",
   "Kettlebells",
   "Suportes",
+  "Kits",
   "Outros",
 ];
 
@@ -66,6 +67,7 @@ const CAMPOS_POR_CATEGORIA = {
     "suporte_torre_tipo",
   ],
   Outros: ["subcategoria"],
+  Kits: ["subcategoria", "acabamento", "pegada", "peso_faixa", "suporte_capacidade_pares"],
 };
 
 const CAMPO_LABELS = {
