@@ -48,8 +48,7 @@ export default function Export() {
         cod: product.cod || '',
         categoria: product.categoria || 'Outros',
         und: product.und || 'peça',
-        dimensoes: product.dimensoes || '',
-        peso: product.peso ? `${product.peso}kg` : '',
+        peso: product.peso_kg ? `${product.peso_kg}kg` : '',
         preco: sp.preco,
         precoFormatado: `R$ ${sp.preco.toFixed(2)}`
       } : null;
@@ -110,10 +109,10 @@ export default function Export() {
         setSupplierProducts(supplierProductsData);
         generatePreviewForFabricante(productsData, supplierProductsData);
       } else {
-        // Para fornecedores, buscar produtos normalmente
+        // Para revendedores, buscar templates e seus SupplierProducts
         const [productsData, supplierProductsData] = await Promise.all([
-          base44.entities.Product.filter({ ativo: true }),
-          base44.entities.SupplierProduct.filter({ supplier_id: currentUser.id, disponivel: true })
+          base44.entities.ProductTemplate.filter({ ativo: true }, 'categoria', 500),
+          base44.entities.SupplierProduct.filter({ supplier_id: currentUser.id, disponivel: true }, '-created_date', 500)
         ]);
 
         setProducts(productsData);
