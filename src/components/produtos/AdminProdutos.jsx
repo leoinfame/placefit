@@ -58,9 +58,31 @@ export default function AdminProdutos() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
+      const fetchAllTemplates = async () => {
+        let all = [];
+        let skip = 0;
+        while (true) {
+          const batch = await base44.entities.ProductTemplate.filter({}, 'categoria', 500, skip);
+          all = all.concat(batch);
+          if (batch.length < 500) break;
+          skip += 500;
+        }
+        return all;
+      };
+      const fetchAllSps = async () => {
+        let all = [];
+        let skip = 0;
+        while (true) {
+          const batch = await base44.entities.SupplierProduct.filter({}, '-created_date', 500, skip);
+          all = all.concat(batch);
+          if (batch.length < 500) break;
+          skip += 500;
+        }
+        return all;
+      };
       const [tmpls, sps, users] = await Promise.all([
-        base44.entities.ProductTemplate.list('categoria', 500),
-        base44.entities.SupplierProduct.list('-created_date', 500),
+        fetchAllTemplates(),
+        fetchAllSps(),
         base44.entities.User.list(),
       ]);
       setTemplates(tmpls || []);
