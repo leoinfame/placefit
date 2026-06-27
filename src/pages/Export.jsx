@@ -139,27 +139,40 @@ export default function Export() {
       // Verificar se é fabricante
       const isFabricante = currentUser.tipo_usuario === 'fabricante' || viewMode === 'fabricante';
 
+      // Helper para buscar todos os registros com paginação completa
+      const fetchAll = async (entity, query, sort, pageSize = 500) => {
+        let all = [];
+        let skip = 0;
+        while (true) {
+          const batch = sort
+            ? await entity.filter(query, sort, pageSize, skip)
+            : await entity.filter(query, undefined, pageSize, skip);
+          all = all.concat(batch);
+          if (batch.length < pageSize) break;
+          skip += pageSize;
+        }
+        return all;
+      };
+
       if (isFabricante) {
         // Para fabricantes, buscar apenas templates que ele configurou preço (novo padrão)
         const [allTemplates, supplierProductsData] = await Promise.all([
-          base44.entities.ProductTemplate.filter({ ativo: true }),
-          base44.entities.SupplierProduct.filter({ supplier_id: currentUser.id })
+          fetchAll(base44.entities.ProductTemplate, { ativo: true }),
+          fetchAll(base44.entities.SupplierProduct, { supplier_id: currentUser.id })
         ]);
         
         // Filtrar templates que o fabricante tem SupplierProduct
         const configuredTemplateIds = supplierProductsData.map(sp => sp.product_id);
         const productsData = allTemplates.filter(t => configuredTemplateIds.includes(t.id));
         
-        console.log('Produtos do fabricante (novo padrão):', productsData);
-        
         setProducts(productsData);
         setSupplierProducts(supplierProductsData);
         generatePreviewForFabricante(productsData, supplierProductsData);
       } else {
-        // Para revendedores, buscar templates e seus SupplierProducts
+        // Para revendedores, buscar templates e seus SupplierProducts (com paginação completa)
         const [productsData, supplierProductsData] = await Promise.all([
-          base44.entities.ProductTemplate.filter({ ativo: true }, 'categoria', 500),
-          base44.entities.SupplierProduct.filter({ supplier_id: currentUser.id, disponivel: true }, '-created_date', 500)
+          fetchAll(base44.entities.ProductTemplate, { ativo: true }, 'categoria'),
+          fetchAll(base44.entities.SupplierProduct, { supplier_id: currentUser.id, disponivel: true }, '-created_date')
         ]);
 
         setProducts(productsData);
