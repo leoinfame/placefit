@@ -17,6 +17,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import TemplateForm from "@/components/admin/TemplateForm";
 import ImportarTemplatesCsv from "@/components/produtos/ImportarTemplatesCsv";
+import FotoUploadModal from "@/components/produtos/FotoUploadModal";
 
 const CATEGORIAS = [
   "Anilhas", "Halteres", "Dumbells", "Barras Montadas",
@@ -37,6 +38,7 @@ export default function AdminProdutos() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingTpl, setEditingTpl] = useState(null);
   const [confirmDeleteTpl, setConfirmDeleteTpl] = useState(null);
+  const [fotoModalTpl, setFotoModalTpl] = useState(null);
   const [selectedTpls, setSelectedTpls] = useState(new Set());
   const [bulkTplAction, setBulkTplAction] = useState(null); // null | 'delete' | 'activate' | 'deactivate'
   const [importOpen, setImportOpen] = useState(false);
@@ -369,13 +371,19 @@ export default function AdminProdutos() {
                         />
                       </TableCell>
                       <TableCell>
-                        {t.foto ? (
-                          <img src={t.foto} alt={t.nome} className="w-10 h-10 rounded-lg object-cover" />
-                        ) : (
-                          <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                            <Package className="w-5 h-5 text-gray-300" />
-                          </div>
-                        )}
+                        <button
+                          onClick={() => setFotoModalTpl(t)}
+                          className="block w-10 h-10 rounded-lg overflow-hidden border border-gray-200 hover:border-blue-400 hover:ring-1 hover:ring-blue-200 transition-all relative group"
+                          title="Gerenciar imagem"
+                        >
+                          {t.foto ? (
+                            <img src={t.foto} alt={t.nome} className="w-10 h-10 object-cover" />
+                          ) : (
+                            <div className="w-10 h-10 bg-gray-100 flex items-center justify-center">
+                              <Upload className="w-4 h-4 text-gray-300 group-hover:text-blue-400" />
+                            </div>
+                          )}
+                        </button>
                       </TableCell>
                       <TableCell className="font-mono text-xs">{t.cod}</TableCell>
                       <TableCell className="font-medium">{t.nome}</TableCell>
@@ -731,6 +739,25 @@ export default function AdminProdutos() {
           </DialogContent>
         </Dialog>
         )}
+
+        {/* === MODAL: UPLOAD DE FOTO === */}
+        <Dialog open={!!fotoModalTpl} onOpenChange={(o) => { if (!o) setFotoModalTpl(null); }}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Upload className="w-5 h-5 text-blue-600" /> Imagem do Produto
+              </DialogTitle>
+            </DialogHeader>
+            {fotoModalTpl && (
+              <FotoUploadModal
+                template={fotoModalTpl}
+                allTemplates={templates}
+                onClose={() => setFotoModalTpl(null)}
+                onSaved={() => { setFotoModalTpl(null); loadData(); }}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* === IMPORTAR TEMPLATES CSV === */}
         <Dialog open={importOpen} onOpenChange={setImportOpen}>
