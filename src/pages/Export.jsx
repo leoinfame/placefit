@@ -72,6 +72,9 @@ export default function Export() {
         : [...new Set(group.pesos)].sort((a, b) => a - b);
       const isGrouped = group.items.length > 1 || isKettlebell;
 
+      // Calculate price per kg: divide reference price by its weight
+      const precoPorKg = (ref.peso_kg && ref.peso_kg > 0) ? ref.preco / ref.peso_kg : ref.preco;
+
       return {
         nome: isGrouped ? baseName : ref.nome,
         cod: isGrouped ? '' : (ref.cod || ''),
@@ -80,9 +83,9 @@ export default function Export() {
         peso: '',
         pesosDisponiveis: isGrouped ? pesosOrdenados.map(p => `${p}kg`).join(', ') : '',
         foto: group.foto || ref.foto || '',
-        preco: ref.preco,
+        preco: isGrouped ? precoPorKg : ref.preco,
         precoFormatado: isGrouped
-          ? `R$ ${ref.preco.toFixed(2)}/kg`
+          ? `R$ ${precoPorKg.toFixed(2)}/kg`
           : ref.precoFormatado,
         isWeightGrouped: isGrouped
       };
