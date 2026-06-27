@@ -6,6 +6,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import CatalogoGeral from "@/components/produtos/CatalogoGeral";
 import MeusProdutos from "@/components/produtos/MeusProdutos";
+import MeusProdutosFabricante from "@/components/produtos/MeusProdutosFabricante";
 import ImportarTabela from "@/components/produtos/ImportarTabela";
 import AdminProdutos from "@/components/produtos/AdminProdutos";
 
@@ -85,7 +86,7 @@ export default function Produtos() {
     const isRevendedor = !isFabricante && user.tipo_usuario !== 'transportador' && !isAdmin;
     const available = ['catalogo'];
     if (isAdmin) available.push('admin');
-    if (isAdmin || isRevendedor) available.push('meus');
+    if (isAdmin || isRevendedor || isFabricante) available.push('meus');
     if (isAdmin || isFabricante) available.push('importar');
     if (!available.includes(activeTab)) setActiveTab(isAdmin ? 'admin' : 'catalogo');
   }, [user, activeTab]);
@@ -108,7 +109,7 @@ export default function Produtos() {
 
   const tabs = [{ value: 'catalogo', label: 'Catálogo Geral', icon: Package }];
   if (isAdmin) tabs.unshift({ value: 'admin', label: 'Gerenciar Catálogo', icon: ShieldCheck });
-  if (isAdmin || isRevendedor) tabs.push({ value: 'meus', label: 'Meus Produtos', icon: List });
+  if (isAdmin || isRevendedor || isFabricante) tabs.push({ value: 'meus', label: 'Meus Produtos', icon: List });
   if (isAdmin || isFabricante) tabs.push({ value: 'importar', label: 'Importar Tabela', icon: Upload });
 
   return (
@@ -138,7 +139,9 @@ export default function Produtos() {
           </TabsList>
           <TabsContent value="admin"><AdminProdutos /></TabsContent>
           <TabsContent value="catalogo"><CatalogoGeral user={user} /></TabsContent>
-          <TabsContent value="meus"><MeusProdutos user={user} /></TabsContent>
+          <TabsContent value="meus">
+            {isFabricante ? <MeusProdutosFabricante user={user} /> : <MeusProdutos user={user} />}
+          </TabsContent>
           <TabsContent value="importar"><ImportarTabela user={user} /></TabsContent>
         </Tabs>
       </div>
