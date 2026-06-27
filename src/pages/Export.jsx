@@ -42,8 +42,8 @@ export default function Export() {
   // Agrupa produtos que têm variações de peso (ex: Halter 1kg, 2kg, 3kg...)
   // em uma única linha, mostrando os pesos disponíveis e o preço do item de referência (1kg)
   const groupWeightProducts = (previewItems) => {
-    const withWeight = previewItems.filter(item => item.peso_kg);
-    const withoutWeight = previewItems.filter(item => !item.peso_kg);
+    const withWeight = previewItems.filter(item => item.peso_kg || (item.categoria || '').toLowerCase() === 'kettlebells');
+    const withoutWeight = previewItems.filter(item => !item.peso_kg && (item.categoria || '').toLowerCase() !== 'kettlebells');
 
     const groups = {};
     withWeight.forEach(item => {
@@ -65,8 +65,12 @@ export default function Export() {
 
     const groupedItems = Object.entries(groups).map(([baseName, group]) => {
       const ref = group.referenceItem || group.items[0];
-      const pesosOrdenados = [...new Set(group.pesos)].sort((a, b) => a - b);
-      const isGrouped = group.items.length > 1;
+      const isKettlebell = (group.categoria || '').toLowerCase() === 'kettlebells';
+      const pesosPadraoKB = [4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40];
+      const pesosOrdenados = isKettlebell
+        ? pesosPadraoKB
+        : [...new Set(group.pesos)].sort((a, b) => a - b);
+      const isGrouped = group.items.length > 1 || isKettlebell;
 
       return {
         nome: isGrouped ? baseName : ref.nome,
