@@ -90,47 +90,65 @@ export default function PreviewGrid({ previewData, user, colors }) {
             {itens.map((item, i) => (
               <div
                 key={i}
-                className="bg-white border border-gray-200 rounded-xl p-3 hover:shadow-md transition-shadow flex flex-col justify-between min-h-[110px]"
+                className="bg-white border border-gray-200 rounded-xl p-3 hover:shadow-md transition-shadow flex gap-3 min-h-[110px]"
               >
-                {/* Topo: código + nome */}
-                <div>
-                  {item.cod && (
-                    <span
-                      className="inline-block text-[10px] font-mono text-gray-500 bg-gray-50 px-1.5 py-0.5 rounded mb-1.5"
-                    >
-                      {item.cod}
-                    </span>
+                {/* Imagem do produto */}
+                <div className="flex-shrink-0">
+                  {item.foto ? (
+                    <img
+                      src={item.foto}
+                      alt={item.nome}
+                      className="w-16 h-16 object-cover rounded-lg border border-gray-200"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center text-gray-300 text-2xl">
+                      📦
+                    </div>
                   )}
-                  <p className="text-sm font-semibold text-gray-800 leading-snug line-clamp-2">
-                    {item.nome}
-                  </p>
                 </div>
 
-                {/* Meio: espec/pesos + und */}
-                <div className="flex items-center gap-2 my-2">
-                  {item.isWeightGrouped && item.pesosDisponiveis && (
-                    <span className="text-[11px] text-gray-600 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full">
-                      {item.pesosDisponiveis}
-                    </span>
-                  )}
-                  {!item.isWeightGrouped && item.peso && (
-                    <span className="text-[11px] text-gray-600 bg-gray-50 border border-gray-200 px-2 py-0.5 rounded-full">
-                      {item.peso}
-                    </span>
-                  )}
-                  <span className="text-[10px] text-gray-400 uppercase tracking-wide">
-                    {item.und || 'peça'}
-                  </span>
-                </div>
+                {/* Conteúdo */}
+                <div className="flex-1 flex flex-col justify-between min-w-0">
+                  {/* Topo: código + nome */}
+                  <div>
+                    {item.cod && (
+                      <span
+                        className="inline-block text-[10px] font-mono text-gray-500 bg-gray-50 px-1.5 py-0.5 rounded mb-1.5"
+                      >
+                        {item.cod}
+                      </span>
+                    )}
+                    <p className="text-sm font-semibold text-gray-800 leading-snug line-clamp-2">
+                      {item.nome}
+                    </p>
+                  </div>
 
-                {/* Preço */}
-                <div className="flex items-end justify-between">
-                  <span className="text-[10px] text-gray-400 uppercase tracking-wide">
-                    {item.isWeightGrouped ? 'Preço por kg' : 'Preço'}
-                  </span>
-                  <span className="text-base font-bold text-green-600">
-                    {item.precoFormatado}
-                  </span>
+                  {/* Meio: espec/pesos + und */}
+                  <div className="flex items-center gap-2 my-2">
+                    {item.isWeightGrouped && item.pesosDisponiveis && (
+                      <span className="text-[11px] text-gray-600 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full">
+                        {item.pesosDisponiveis}
+                      </span>
+                    )}
+                    {!item.isWeightGrouped && item.peso && (
+                      <span className="text-[11px] text-gray-600 bg-gray-50 border border-gray-200 px-2 py-0.5 rounded-full">
+                        {item.peso}
+                      </span>
+                    )}
+                    <span className="text-[10px] text-gray-400 uppercase tracking-wide">
+                      {item.und || 'peça'}
+                    </span>
+                  </div>
+
+                  {/* Preço */}
+                  <div className="flex items-end justify-between">
+                    <span className="text-[10px] text-gray-400 uppercase tracking-wide">
+                      {item.isWeightGrouped ? 'Preço por kg' : 'Preço'}
+                    </span>
+                    <span className="text-base font-bold text-green-600">
+                      {item.precoFormatado}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}

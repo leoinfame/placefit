@@ -51,6 +51,9 @@ export default function Export() {
       if (!groups[baseName]) {
         groups[baseName] = { items: [], pesos: [], categoria: item.categoria, und: item.und };
       }
+      if (item.foto && !groups[baseName].foto) {
+        groups[baseName].foto = item.foto;
+      }
       groups[baseName].items.push(item);
       groups[baseName].pesos.push(item.peso_kg);
       if (item.peso_kg === 1) {
@@ -72,6 +75,7 @@ export default function Export() {
         und: ref.und || 'peça',
         peso: '',
         pesosDisponiveis: isGrouped ? pesosOrdenados.map(p => `${p}kg`).join(', ') : '',
+        foto: group.foto || ref.foto || '',
         preco: ref.preco,
         precoFormatado: isGrouped
           ? `R$ ${ref.preco.toFixed(2)}/kg`
@@ -95,6 +99,7 @@ export default function Export() {
         und: product.und || 'peça',
         peso: product.peso_kg ? `${product.peso_kg}kg` : '',
         peso_kg: product.peso_kg || null,
+        foto: product.foto || '',
         preco: sp.preco,
         precoFormatado: `R$ ${sp.preco.toFixed(2)}`
       } : null;
@@ -116,6 +121,7 @@ export default function Export() {
         dimensoes: product.dimensoes || '',
         peso: product.peso_kg ? `${product.peso_kg}kg` : '',
         peso_kg: product.peso_kg || null,
+        foto: product.foto || '',
         preco: parseFloat(preco),
         precoFormatado: preco ? `R$ ${parseFloat(preco).toFixed(2)}` : 'R$ 0,00'
       };
