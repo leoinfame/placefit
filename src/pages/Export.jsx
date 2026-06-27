@@ -299,19 +299,25 @@ export default function Export() {
         const espec = item.isWeightGrouped ? (item.pesosDisponiveis || '—') : (item.peso || item.dimensoes || '');
         const und = item.isWeightGrouped ? '/kg' : (item.und || 'peça');
         const precoLabel = item.isWeightGrouped ? 'Preço por kg' : 'Preço';
+        const fotoHtml = item.foto
+          ? `<img src="${item.foto}" alt="${item.nome}" style="width:30px;height:30px;object-fit:cover;border-radius:4px;border:1px solid #e2e8f0;flex-shrink:0;">`
+          : `<div style="width:30px;height:30px;border-radius:4px;border:1px solid #e2e8f0;background:#f8fafc;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">📦</div>`;
         return `
-          <div style="border:1px solid #e2e8f0;border-radius:6px;padding:8px;background:#ffffff;break-inside:avoid;display:flex;flex-direction:column;justify-content:space-between;min-height:78px;">
-            <div>
-              ${item.cod ? `<span style="display:inline-block;font-size:7px;font-family:monospace;color:#64748b;background:#f1f5f9;padding:1px 4px;border-radius:3px;margin-bottom:3px;">${item.cod}</span>` : ''}
-              <div style="font-size:9px;font-weight:600;color:#1e293b;line-height:1.25;">${item.nome}</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:4px;margin:4px 0;">
-              ${espec && espec !== '—' ? `<span style="font-size:7px;color:#475569;background:#eff6ff;border:1px solid #dbeafe;padding:1px 5px;border-radius:8px;">${espec}</span>` : ''}
-              <span style="font-size:7px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.3px;">${und}</span>
-            </div>
-            <div style="display:flex;align-items:flex-end;justify-content:space-between;border-top:1px solid #f1f5f9;padding-top:3px;">
-              <span style="font-size:7px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.3px;">${precoLabel}</span>
-              <span style="font-size:11px;font-weight:700;color:#16a34a;">${item.precoFormatado}</span>
+          <div style="border:1px solid #e2e8f0;border-radius:6px;padding:8px;background:#ffffff;break-inside:avoid;display:flex;gap:6px;min-height:78px;">
+            ${fotoHtml}
+            <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;min-width:0;">
+              <div>
+                ${item.cod ? `<span style="display:inline-block;font-size:7px;font-family:monospace;color:#64748b;background:#f1f5f9;padding:1px 4px;border-radius:3px;margin-bottom:3px;">${item.cod}</span>` : ''}
+                <div style="font-size:9px;font-weight:600;color:#1e293b;line-height:1.25;">${item.nome}</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:4px;margin:4px 0;">
+                ${espec && espec !== '—' ? `<span style="font-size:7px;color:#475569;background:#eff6ff;border:1px solid #dbeafe;padding:1px 5px;border-radius:8px;">${espec}</span>` : ''}
+                <span style="font-size:7px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.3px;">${und}</span>
+              </div>
+              <div style="display:flex;align-items:flex-end;justify-content:space-between;border-top:1px solid #f1f5f9;padding-top:3px;">
+                <span style="font-size:7px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.3px;">${precoLabel}</span>
+                <span style="font-size:11px;font-weight:700;color:#16a34a;">${item.precoFormatado}</span>
+              </div>
             </div>
           </div>`;
       }).join('');
