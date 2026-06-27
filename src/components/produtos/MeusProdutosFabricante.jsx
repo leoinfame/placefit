@@ -2,12 +2,13 @@ import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import {
   Loader2, Package, Search, X, ChevronDown, ChevronRight,
-  Power, PowerOff, Save, Tag, Weight, DollarSign, CheckCircle2, AlertCircle
+  Save, Tag, Weight, DollarSign, CheckCircle2, Plus, RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -31,7 +32,6 @@ const GROUP_FIELDS = [
 const getGroupKey = (tmpl) => GROUP_FIELDS.map(f => tmpl[f] ?? '').join('|');
 
 const getBaseName = (tmpl) => {
-  // Remove weight suffix from name (e.g., "Anilha Vazada Injetado 10kg" → "Anilha Vazada Injetado")
   return (tmpl.nome || '').replace(/\s+\d+([.,]\d+)?\s*kg$/i, '').trim();
 };
 
@@ -47,21 +47,35 @@ const sortCategories = (cats) => {
 };
 
 export default function MeusProdutosFabricante({ user }) {
-  const [groups, setGroups] = useState([]); // [{ key, baseName, categoria, variations: [{sp, tmpl}], hasWeights, currentPrecoKg, allAvailable, someAvailable }]
+  const [allGroups, setAllGroups] = useState([]); // ALL product groups from catalog
+  const [spMap, setSpMap] = useState({}); // { productTemplateId: sp }
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterCategoria, setFilterCategoria] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all"); // all | selected | notSelected
   const [expandedGroups, setExpandedGroups] = useState(new Set());
-  const [editValues, setEditValues] = useState({}); // { groupKey: { precoKg, precoIndividual, saving } }
+  const [editValues, setEditValues] = useState({}); // { groupKey: precoKg }
+  const [savingGroups, setSavingGroups] = useState(new Set());
   const { toast } = useToast();
 
   useEffect(() => { loadData(); }, []);
 
   const loadData = async () => {
+    setLoading(true);
     try {
-      // Fetch all SPs with pagination
-      let allSps = [];
+      // Fetch ALL templates (paginated)
+      let allTemplates = [];
       let skip = 0;
+      while (true) {
+        const batch = await base44.entities.ProductTemplate.filter({ ativo: true }, 'categoria', 500, skip);
+        allTemplates = allTemplates.concat(batch);
+        if (batch.length < 500) break;
+        skip += 500;
+      }
+
+      // Fetch fabricante's existing SPs (paginated)
+      let allSps = [];
+      skip = 0;
       while (true) {
         const batch = await base44.entities.SupplierProduct.filter(
           { supplier_id: user.id }, '-created_date', 500, skip
@@ -71,42 +85,34 @@ export default function MeusProdutosFabricante({ user }) {
         skip += 500;
       }
 
-      if (allSps.length === 0) {
-        setGroups([]);
-        setLoading(false);
-        return;
-      }
-
-      // Fetch all templates with pagination
-      let allTemplates = [];
-      skip = 0;
-      while (true) {
-        const batch = await base44.entities.ProductTemplate.list('categoria', 500, skip);
-        allTemplates = allTemplates.concat(batch);
-        if (batch.length < 500) break;
-        skip += 500;
-      }
-
-      const tmplMap = new Map(allTemplates.map(t => [t.id, t]));
-
-      // Group SPs by base product
-      const groupMap = new Map();
+      // Map SPs by product_id
+      const spByProduct = {};
       for (const sp of allSps) {
-        const tmpl = tmplMap.get(sp.product_id);
-        if (!tmpl) continue;
+        spByProduct[sp.product_id] = sp;
+      }
+      setSpMap(spByProduct);
+
+      // Group ALL templates by base product
+      const groupMap = new Map();
+      for (const tmpl of allTemplates) {
         const key = getGroupKey(tmpl);
         if (!groupMap.has(key)) {
-          groupMap.set(key, { key, baseName: getBaseName(tmpl), categoria: tmpl.categoria, variations: [] });
+          groupMap.set(key, {
+            key,
+            baseName: getBaseName(tmpl),
+            categoria: tmpl.categoria,
+            templates: [],
+          });
         }
-        groupMap.get(key).variations.push({ sp, tmpl });
+        groupMap.get(key).templates.push(tmpl);
       }
 
-      // Sort variations by peso_kg within each group
+      // Sort templates by peso_kg within each group
       for (const g of groupMap.values()) {
-        g.variations.sort((a, b) => (a.tmpl.peso_kg || 0) - (b.tmpl.peso_kg || 0));
+        g.templates.sort((a, b) => (a.peso_kg || 0) - (b.peso_kg || 0));
       }
 
-      setGroups([...groupMap.values()]);
+      setAllGroups([...groupMap.values()]);
     } catch (e) {
       console.error(e);
       toast({ title: "Erro", description: "Erro ao carregar produtos.", variant: "destructive" });
@@ -114,17 +120,51 @@ export default function MeusProdutosFabricante({ user }) {
     setLoading(false);
   };
 
+  // Check if a group is selected (has SPs for all templates)
+  const isGroupSelected = (g) => {
+    return g.templates.every(t => spMap[t.id]);
+  };
+
+  const isGroupPartiallySelected = (g) => {
+    return g.templates.some(t => spMap[t.id]) && !isGroupSelected(g);
+  };
+
+  const hasWeights = (g) => g.templates.some(t => t.peso_kg != null);
+
+  const getCurrentPrecoKg = (g) => {
+    const withWeights = g.templates.filter(t => t.peso_kg && spMap[t.id]?.preco);
+    if (withWeights.length === 0) return null;
+    const sorted = [...withWeights].sort((a, b) => a.peso_kg - b.peso_kg);
+    return spMap[sorted[0].id].preco / sorted[0].peso_kg;
+  };
+
+  const getGroupStatus = (g) => {
+    if (isGroupSelected(g)) {
+      const allAvailable = g.templates.every(t => spMap[t.id]?.disponivel !== false);
+      if (allAvailable) return 'published';
+      const anyAvailable = g.templates.some(t => spMap[t.id]?.disponivel !== false);
+      if (anyAvailable) return 'partial';
+      return 'hidden';
+    }
+    if (isGroupPartiallySelected(g)) return 'partial';
+    return 'notSelected';
+  };
+
   // Filter
   const filteredGroups = useMemo(() => {
-    return groups.filter(g => {
+    return allGroups.filter(g => {
       if (filterCategoria !== "all" && g.categoria !== filterCategoria) return false;
+      const status = getGroupStatus(g);
+      if (filterStatus === "selected" && status === 'notSelected') return false;
+      if (filterStatus === "notSelected" && status !== 'notSelected') return false;
       if (search) {
         const s = search.toLowerCase();
         if (!g.baseName.toLowerCase().includes(s) && !g.categoria.toLowerCase().includes(s)) return false;
       }
       return true;
     });
-  }, [groups, search, filterCategoria]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allGroups, spMap, search, filterCategoria, filterStatus]);
 
   // Group by categoria for display
   const byCategoria = useMemo(() => {
@@ -134,12 +174,13 @@ export default function MeusProdutosFabricante({ user }) {
       map.get(g.categoria).push(g);
     }
     return sortCategories([...map.keys()]).map(cat => ({ categoria: cat, groups: map.get(cat) }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredGroups]);
 
   const categoriasDisponiveis = useMemo(() => {
-    const set = new Set(groups.map(g => g.categoria));
+    const set = new Set(allGroups.map(g => g.categoria));
     return sortCategories([...set]);
-  }, [groups]);
+  }, [allGroups]);
 
   const toggleExpand = (key) => {
     setExpandedGroups(prev => {
@@ -149,345 +190,377 @@ export default function MeusProdutosFabricante({ user }) {
     });
   };
 
-  const getGroupStatus = (g) => {
-    const availableCount = g.variations.filter(v => v.sp.disponivel !== false).length;
-    if (availableCount === g.variations.length) return 'all';
-    if (availableCount === 0) return 'none';
-    return 'partial';
-  };
-
-  const hasWeights = (g) => g.variations.some(v => v.tmpl.peso_kg != null);
-
-  // Get current preço/kg from existing data
-  const getCurrentPrecoKg = (g) => {
-    const withWeights = g.variations.filter(v => v.tmpl.peso_kg && v.sp.preco);
-    if (withWeights.length === 0) return null;
-    // Use the smallest weight variant as reference
-    const sorted = [...withWeights].sort((a, b) => a.tmpl.peso_kg - b.tmpl.peso_kg);
-    return sorted[0].sp.preco / sorted[0].tmpl.peso_kg;
-  };
-
   const handlePrecoKgChange = (groupKey, value) => {
-    setEditValues(prev => ({ ...prev, [groupKey]: { ...prev[groupKey], precoKg: value } }));
+    setEditValues(prev => ({ ...prev, [groupKey]: value }));
   };
 
-  const handleSavePrecoKg = async (g) => {
-    const editVal = editValues[g.key];
-    if (!editVal || editVal.precoKg == null || isNaN(editVal.precoKg)) {
+  // Save: create or update SPs for all weight variations based on preço/kg
+  const handleSaveGroup = async (g) => {
+    const precoKgStr = editValues[g.key];
+    if (precoKgStr == null || precoKgStr === "" || isNaN(precoKgStr)) {
       toast({ title: "Erro", description: "Informe um preço por kg válido.", variant: "destructive" });
       return;
     }
 
-    setEditValues(prev => ({ ...prev, [g.key]: { ...prev[g.key], saving: true } }));
+    const precoKg = parseFloat(precoKgStr);
+    const weightTemplates = g.templates.filter(t => t.peso_kg != null);
+    const nonWeightTemplates = g.templates.filter(t => t.peso_kg == null);
+
+    if (weightTemplates.length === 0 && nonWeightTemplates.length === 0) {
+      toast({ title: "Aviso", description: "Este produto não tem variações." });
+      return;
+    }
+
+    setSavingGroups(prev => new Set(prev).add(g.key));
 
     try {
-      const precoKg = parseFloat(editVal.precoKg);
-      const updates = g.variations
-        .filter(v => v.tmpl.peso_kg != null)
-        .map(v => ({
-          id: v.sp.id,
-          preco: Math.round(precoKg * v.tmpl.peso_kg * 100) / 100,
-        }));
+      const toCreate = [];
+      const toUpdate = [];
 
-      if (updates.length === 0) {
-        toast({ title: "Aviso", description: "Este produto não tem variações com peso definido." });
-        setEditValues(prev => { const n = { ...prev }; delete n[g.key]; return n; });
-        return;
+      // Weight-based: calculate from precoKg
+      for (const tmpl of weightTemplates) {
+        const preco = Math.round(precoKg * tmpl.peso_kg * 100) / 100;
+        const existing = spMap[tmpl.id];
+        if (existing) {
+          toUpdate.push({ id: existing.id, preco, disponivel: true });
+        } else {
+          toCreate.push({
+            supplier_id: user.id,
+            product_id: tmpl.id,
+            preco,
+            fabricante_nome: user.empresa || user.full_name,
+            disponivel: true,
+          });
+        }
       }
 
-      await base44.entities.SupplierProduct.bulkUpdate(updates);
-      toast({ title: "Preços atualizados!", description: `${updates.length} variação(ões) atualizada(s) com base no preço/kg.` });
+      // Non-weight templates: use precoKg as direct price (for products like Suportes, Kits without weight)
+      for (const tmpl of nonWeightTemplates) {
+        const existing = spMap[tmpl.id];
+        if (existing) {
+          toUpdate.push({ id: existing.id, preco: precoKg, disponivel: true });
+        } else {
+          toCreate.push({
+            supplier_id: user.id,
+            product_id: tmpl.id,
+            preco: precoKg,
+            fabricante_nome: user.empresa || user.full_name,
+            disponivel: true,
+          });
+        }
+      }
+
+      if (toCreate.length > 0) {
+        await base44.entities.SupplierProduct.bulkCreate(toCreate);
+      }
+      if (toUpdate.length > 0) {
+        await base44.entities.SupplierProduct.bulkUpdate(toUpdate);
+      }
+
+      toast({
+        title: "Preço salvo e produto publicado!",
+        description: `${toCreate.length} criada(s), ${toUpdate.length} atualizada(s).`,
+      });
       setEditValues(prev => { const n = { ...prev }; delete n[g.key]; return n; });
       loadData();
     } catch (e) {
-      toast({ title: "Erro", description: e?.message || "Erro ao atualizar preços.", variant: "destructive" });
-      setEditValues(prev => ({ ...prev, [g.key]: { ...prev[g.key], saving: false } }));
+      toast({ title: "Erro", description: e?.message || "Erro ao salvar.", variant: "destructive" });
     }
+    setSavingGroups(prev => { const n = new Set(prev); n.delete(g.key); return n; });
   };
 
-  const handleToggleDisponivel = async (g, makeAvailable) => {
+  // Toggle visibility (publish/hide) for an already-selected group
+  const handleTogglePublish = async (g, makeAvailable) => {
+    setSavingGroups(prev => new Set(prev).add(g.key));
     try {
-      const updates = g.variations.map(v => ({ id: v.sp.id, disponivel: makeAvailable }));
-      await base44.entities.SupplierProduct.bulkUpdate(updates);
-      toast({ title: makeAvailable ? "Produtos publicados" : "Produtos despublicados", description: `${g.variations.length} variação(ões) ${makeAvailable ? 'disponibilizada(s)' : 'indisponibilizada(s)'}.` });
-      loadData();
-    } catch (e) {
-      toast({ title: "Erro", description: e?.message || "Erro ao atualizar disponibilidade.", variant: "destructive" });
-    }
-  };
-
-  const handleIndividualPrecoChange = (spId, value) => {
-    setEditValues(prev => ({ ...prev, [`ind_${spId}`]: value }));
-  };
-
-  const handleSaveIndividualPreco = async (sp) => {
-    const val = editValues[`ind_${sp.id}`];
-    if (val == null || isNaN(val)) {
-      toast({ title: "Erro", description: "Preço inválido.", variant: "destructive" });
-      return;
-    }
-    try {
-      await base44.entities.SupplierProduct.update(sp.id, { preco: parseFloat(val) });
-      toast({ title: "Preço atualizado!" });
-      setEditValues(prev => { const n = { ...prev }; delete n[`ind_${sp.id}`]; return n; });
+      const updates = g.templates
+        .filter(t => spMap[t.id])
+        .map(t => ({ id: spMap[t.id].id, disponivel: makeAvailable }));
+      if (updates.length > 0) {
+        await base44.entities.SupplierProduct.bulkUpdate(updates);
+      }
+      toast({ title: makeAvailable ? "Publicado" : "Ocultado", description: `${g.baseName} ${makeAvailable ? 'publicado' : 'ocultado'}.` });
       loadData();
     } catch (e) {
       toast({ title: "Erro", description: e?.message || "Erro ao atualizar.", variant: "destructive" });
     }
+    setSavingGroups(prev => { const n = new Set(prev); n.delete(g.key); return n; });
+  };
+
+  // Remove all SPs for a group
+  const handleRemoveGroup = async (g) => {
+    if (!confirm(`Remover "${g.baseName}" da sua tabela de preços?`)) return;
+    setSavingGroups(prev => new Set(prev).add(g.key));
+    try {
+      const sps = g.templates.filter(t => spMap[t.id]).map(t => spMap[t.id].id);
+      for (const spId of sps) {
+        await base44.entities.SupplierProduct.delete(spId);
+      }
+      toast({ title: "Produto removido", description: `${g.baseName} removido da sua tabela.` });
+      loadData();
+    } catch (e) {
+      toast({ title: "Erro", description: e?.message || "Erro ao remover.", variant: "destructive" });
+    }
+    setSavingGroups(prev => { const n = new Set(prev); n.delete(g.key); return n; });
   };
 
   if (loading) {
     return <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>;
   }
 
-  const totalPublished = groups.reduce((acc, g) => acc + g.variations.filter(v => v.sp.disponivel !== false).length, 0);
-  const totalVariations = groups.reduce((acc, g) => acc + g.variations.length, 0);
+  const totalSelected = allGroups.filter(g => isGroupSelected(g)).length;
+  const totalGroups = allGroups.length;
 
   return (
     <div className="space-y-4">
-      {/* Header stats */}
+      {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-2 flex-wrap">
           <Badge className="bg-blue-100 text-blue-700 text-sm px-3 py-1">
-            {groups.length} {groups.length === 1 ? "produto" : "produtos"} ({totalVariations} variações)
+            {totalSelected} de {totalGroups} produtos selecionados
           </Badge>
-          <Badge className="bg-green-100 text-green-700 text-sm px-3 py-1">
-            {totalPublished} publicada(s)
-          </Badge>
+        </div>
+        <Button variant="outline" size="sm" onClick={loadData}>
+            <RefreshCw className="w-4 h-4 mr-2" /> Atualizar
+          </Button>
+      </div>
+
+      {/* Filters */}
+      <div className="rounded-lg border bg-white p-4 space-y-3">
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Input
+              placeholder="Buscar produto..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <Select value={filterCategoria} onValueChange={setFilterCategoria}>
+            <SelectTrigger className="w-[160px] h-9">
+              <SelectValue placeholder="Categoria" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas categorias</SelectItem>
+              {categoriasDisponiveis.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-[140px] h-9">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="selected">Selecionados</SelectItem>
+              <SelectItem value="notSelected">Não selecionados</SelectItem>
+            </SelectContent>
+          </Select>
+          {(search || filterCategoria !== "all" || filterStatus !== "all") && (
+            <Button variant="ghost" size="sm" onClick={() => { setSearch(""); setFilterCategoria("all"); setFilterStatus("all"); }} className="text-gray-500">
+              <X className="w-4 h-4 mr-1" /> Limpar
+            </Button>
+          )}
         </div>
       </div>
 
-      {groups.length === 0 ? (
-        <div className="text-center py-20 text-gray-400">
-          <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
-          <p>Você ainda não tem produtos cadastrados.</p>
-          <p className="text-sm">Use a aba <strong>Importar Tabela</strong> para adicionar seus preços.</p>
+      {/* Products grouped by category */}
+      {byCategoria.length === 0 ? (
+        <div className="text-center py-16 text-gray-400">
+          <Package className="w-10 h-10 mx-auto mb-2 opacity-50" />
+          <p>Nenhum produto encontrado com os filtros aplicados.</p>
         </div>
       ) : (
-        <>
-          {/* Filters */}
-          <div className="rounded-lg border bg-white p-4 space-y-3">
-            <div className="flex items-center gap-2 flex-wrap">
-              <div className="relative flex-1 min-w-[200px]">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <Input
-                  placeholder="Buscar produto..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-              <Select value={filterCategoria} onValueChange={setFilterCategoria}>
-                <SelectTrigger className="w-[180px] h-9">
-                  <SelectValue placeholder="Categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas categorias</SelectItem>
-                  {categoriasDisponiveis.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              {(search || filterCategoria !== "all") && (
-                <Button variant="ghost" size="sm" onClick={() => { setSearch(""); setFilterCategoria("all"); }} className="text-gray-500">
-                  <X className="w-4 h-4 mr-1" /> Limpar
-                </Button>
-              )}
+        byCategoria.map(({ categoria, groups: catGroups }) => (
+          <div key={categoria} className="space-y-2">
+            <div className="flex items-center gap-2 pt-2">
+              <Tag className="w-5 h-5 text-blue-600" />
+              <h3 className="text-lg font-bold text-gray-900">{categoria}</h3>
+              <Badge variant="outline" className="text-xs">{catGroups.length} {catGroups.length === 1 ? "produto" : "produtos"}</Badge>
             </div>
-          </div>
 
-          {/* Products grouped by category */}
-          {byCategoria.length === 0 ? (
-            <div className="text-center py-16 text-gray-400">
-              <Package className="w-10 h-10 mx-auto mb-2 opacity-50" />
-              <p>Nenhum produto encontrado com os filtros aplicados.</p>
-            </div>
-          ) : (
-            byCategoria.map(({ categoria, groups: catGroups }) => (
-              <div key={categoria} className="space-y-2">
-                <div className="flex items-center gap-2 pt-2">
-                  <Tag className="w-5 h-5 text-blue-600" />
-                  <h3 className="text-lg font-bold text-gray-900">{categoria}</h3>
-                  <Badge variant="outline" className="text-xs">{catGroups.length} {catGroups.length === 1 ? "produto" : "produtos"}</Badge>
-                </div>
+            {catGroups.map(g => {
+              const status = getGroupStatus(g);
+              const isExpanded = expandedGroups.has(g.key);
+              const currentPrecoKg = getCurrentPrecoKg(g);
+              const editVal = editValues[g.key];
+              const hasW = hasWeights(g);
+              const isSaving = savingGroups.has(g.key);
+              const isSelected = status !== 'notSelected';
 
-                {catGroups.map(g => {
-                  const status = getGroupStatus(g);
-                  const isExpanded = expandedGroups.has(g.key);
-                  const currentPrecoKg = getCurrentPrecoKg(g);
-                  const editVal = editValues[g.key];
-                  const hasW = hasWeights(g);
+              return (
+                <div key={g.key} className={`rounded-lg border bg-white overflow-hidden transition-all ${isSelected ? 'border-blue-200' : 'border-gray-200'}`}>
+                  {/* Group header */}
+                  <div className="flex items-center gap-3 p-4 flex-wrap">
+                    <button
+                      onClick={() => toggleExpand(g.key)}
+                      className="flex items-center gap-2 flex-1 text-left min-w-0"
+                    >
+                      {isExpanded
+                        ? <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                        : <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                      }
+                      <div className="min-w-0">
+                        <p className="font-semibold text-gray-900 truncate">{g.baseName}</p>
+                        <p className="text-xs text-gray-500">
+                          {g.templates.length} {g.templates.length === 1 ? "variação" : "variações"}
+                          {hasW && currentPrecoKg != null && ` • Preço/kg atual: ${formatBRL(currentPrecoKg)}`}
+                          {hasW && currentPrecoKg == null && isSelected && ` • Sem preço definido`}
+                        </p>
+                      </div>
+                    </button>
 
-                  return (
-                    <div key={g.key} className="rounded-lg border bg-white overflow-hidden">
-                      {/* Group header */}
-                      <div className="flex items-center gap-3 p-4 flex-wrap">
-                        <button
-                          onClick={() => toggleExpand(g.key)}
-                          className="flex items-center gap-2 flex-1 text-left min-w-0"
-                        >
-                          {isExpanded
-                            ? <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                            : <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                          }
-                          <div className="min-w-0">
-                            <p className="font-semibold text-gray-900 truncate">{g.baseName}</p>
-                            <p className="text-xs text-gray-500">
-                              {g.variations.length} {g.variations.length === 1 ? "variação" : "variações"}
-                              {hasW && currentPrecoKg != null && ` • Preço/kg atual: ${formatBRL(currentPrecoKg)}`}
-                            </p>
-                          </div>
-                        </button>
+                    {/* Status badge */}
+                    <div className="flex items-center gap-2">
+                      {status === 'published' && (
+                        <Badge className="bg-green-100 text-green-700 gap-1">
+                          <CheckCircle2 className="w-3 h-3" /> Publicado
+                        </Badge>
+                      )}
+                      {status === 'partial' && (
+                        <Badge className="bg-yellow-100 text-yellow-700 gap-1">
+                          Parcial
+                        </Badge>
+                      )}
+                      {status === 'hidden' && (
+                        <Badge variant="outline" className="text-gray-400 gap-1">
+                          Oculto
+                        </Badge>
+                      )}
+                      {status === 'notSelected' && (
+                        <Badge variant="outline" className="text-gray-400 gap-1">
+                          Não selecionado
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
 
-                        {/* Publish toggle */}
-                        <div className="flex items-center gap-1">
-                          {status === 'all' && (
-                            <Badge className="bg-green-100 text-green-700 gap-1">
-                              <CheckCircle2 className="w-3 h-3" /> Publicado
-                            </Badge>
-                          )}
-                          {status === 'partial' && (
-                            <Badge className="bg-yellow-100 text-yellow-700 gap-1">
-                              <AlertCircle className="w-3 h-3" /> Parcial
-                            </Badge>
-                          )}
-                          {status === 'none' && (
-                            <Badge variant="outline" className="text-gray-400 gap-1">
-                              <PowerOff className="w-3 h-3" /> Oculto
-                            </Badge>
-                          )}
-                          {status !== 'all' && (
+                  {/* Price/kg input — always visible on each card */}
+                  <div className="border-t bg-gray-50/50 px-4 py-3">
+                    <div className="flex items-end gap-2 flex-wrap">
+                      <div className="flex-1 min-w-[180px]">
+                        <Label className="text-xs text-gray-600 flex items-center gap-1">
+                          <DollarSign className="w-3 h-3" /> Preço por kg (R$)
+                        </Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder={currentPrecoKg != null ? currentPrecoKg.toFixed(2) : "0.00"}
+                          value={editVal ?? ""}
+                          onChange={(e) => handlePrecoKgChange(g.key, e.target.value)}
+                          className="mt-1"
+                        />
+                      </div>
+                      <Button
+                        onClick={() => handleSaveGroup(g)}
+                        disabled={isSaving || editVal == null || editVal === ""}
+                        className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+                      >
+                        {isSaving
+                          ? <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          : isSelected
+                            ? <RefreshCw className="w-4 h-4 mr-2" />
+                            : <Plus className="w-4 h-4 mr-2" />
+                        }
+                        {isSelected ? "Atualizar" : "Selecionar & Salvar"}
+                      </Button>
+
+                      {isSelected && (
+                        <>
+                          {status !== 'published' && (
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => handleToggleDisponivel(g, true)}
-                              className="border-green-300 text-green-700 hover:bg-green-50 h-8"
+                              onClick={() => handleTogglePublish(g, true)}
+                              disabled={isSaving}
+                              className="border-green-300 text-green-700 hover:bg-green-50"
                             >
-                              <Power className="w-3 h-3 mr-1" /> Publicar
+                              Publicar
                             </Button>
                           )}
-                          {status !== 'none' && (
+                          {status === 'published' && (
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => handleToggleDisponivel(g, false)}
-                              className="border-gray-300 text-gray-600 hover:bg-gray-50 h-8"
+                              onClick={() => handleTogglePublish(g, false)}
+                              disabled={isSaving}
+                              className="border-gray-300 text-gray-600 hover:bg-gray-50"
                             >
-                              <PowerOff className="w-3 h-3 mr-1" /> Ocultar
+                              Ocultar
                             </Button>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleRemoveGroup(g)}
+                            disabled={isSaving}
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          >
+                            Remover
+                          </Button>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Preview of calculated prices */}
+                    {editVal && !isNaN(editVal) && (
+                      <div className="mt-2 text-xs text-gray-600">
+                        <p className="font-medium mb-1">Prévia dos preços:</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {g.templates.filter(t => t.peso_kg != null).slice(0, 8).map(t => (
+                            <Badge key={t.id} variant="outline" className="text-xs gap-1">
+                              <Weight className="w-3 h-3" />
+                              {t.peso_kg}kg → {formatBRL(parseFloat(editVal) * t.peso_kg)}
+                            </Badge>
+                          ))}
+                          {g.templates.filter(t => t.peso_kg != null).length > 8 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{g.templates.filter(t => t.peso_kg != null).length - 8} mais
+                            </Badge>
                           )}
                         </div>
                       </div>
+                    )}
+                  </div>
 
-                      {/* Expanded: edit preço/kg + list variations */}
-                      {isExpanded && (
-                        <div className="border-t bg-gray-50/50 p-4 space-y-4">
-                          {/* Preço por kg editor (only for weight-based products) */}
-                          {hasW && (
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                              <div className="flex items-center gap-2 mb-2">
-                                <DollarSign className="w-4 h-4 text-blue-600" />
-                                <Label className="font-semibold text-blue-900">Definir preço por kg</Label>
-                              </div>
-                              <p className="text-xs text-blue-700 mb-3">
-                                Informe o preço por kg e todos as variações de peso serão recalculadas automaticamente.
-                              </p>
-                              <div className="flex items-end gap-2 flex-wrap">
-                                <div className="flex-1 min-w-[150px]">
-                                  <Label className="text-xs text-gray-600">Preço por kg (R$)</Label>
-                                  <Input
-                                    type="number"
-                                    step="0.01"
-                                    placeholder={currentPrecoKg != null ? currentPrecoKg.toFixed(2) : "0.00"}
-                                    value={editVal?.precoKg ?? ""}
-                                    onChange={(e) => handlePrecoKgChange(g.key, e.target.value)}
-                                    className="mt-1"
-                                  />
-                                </div>
-                                <Button
-                                  onClick={() => handleSavePrecoKg(g)}
-                                  disabled={editVal?.saving || editVal?.precoKg == null || editVal?.precoKg === ""}
-                                  className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
-                                >
-                                  {editVal?.saving
-                                    ? <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    : <Save className="w-4 h-4 mr-2" />
-                                  }
-                                  Atualizar todos
-                                </Button>
-                              </div>
-                              {editVal?.precoKg && !isNaN(editVal.precoKg) && (
-                                <div className="mt-3 text-xs text-gray-600">
-                                  <p className="font-medium mb-1">Prévia dos preços calculados:</p>
-                                  <div className="flex flex-wrap gap-2">
-                                    {g.variations.filter(v => v.tmpl.peso_kg != null).map(v => (
-                                      <Badge key={v.sp.id} variant="outline" className="text-xs gap-1">
-                                        <Weight className="w-3 h-3" />
-                                        {v.tmpl.peso_kg}kg → {formatBRL(parseFloat(editVal.precoKg) * v.tmpl.peso_kg)}
-                                      </Badge>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          )}
-
-                          {/* Variation list */}
-                          <div className="space-y-2">
-                            {g.variations.map(v => {
-                              const indEdit = editValues[`ind_${v.sp.id}`];
-                              const disponivel = v.sp.disponivel !== false;
-                              return (
-                                <div key={v.sp.id} className="flex items-center gap-3 bg-white rounded-lg border p-3 flex-wrap">
-                                  <div className="flex items-center gap-2 flex-1 min-w-[180px]">
-                                    {v.tmpl.peso_kg != null && (
-                                      <Badge variant="outline" className="text-xs gap-1">
-                                        <Weight className="w-3 h-3" /> {v.tmpl.peso_kg}kg
-                                      </Badge>
-                                    )}
-                                    <span className="text-sm text-gray-700 truncate">{v.tmpl.nome}</span>
-                                    <span className="text-xs text-gray-400 font-mono">{v.tmpl.cod}</span>
-                                  </div>
-
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-[120px]">
-                                      <Label className="text-xs text-gray-500">Preço (R$)</Label>
-                                      <Input
-                                        type="number"
-                                        step="0.01"
-                                        value={indEdit ?? v.sp.preco ?? ""}
-                                        onChange={(e) => handleIndividualPrecoChange(v.sp.id, e.target.value)}
-                                        className="h-8 text-sm"
-                                      />
-                                    </div>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => handleSaveIndividualPreco(v.sp)}
-                                      disabled={indEdit == null || indEdit === v.sp.preco}
-                                      className="h-8 mt-5"
-                                    >
-                                      <Save className="w-3 h-3" />
-                                    </Button>
-                                  </div>
-
-                                  <div className="flex items-center gap-1">
-                                    {disponivel
-                                      ? <Badge className="bg-green-100 text-green-700 text-xs">Disponível</Badge>
-                                      : <Badge variant="outline" className="text-gray-400 text-xs">Oculto</Badge>
-                                    }
-                                  </div>
-                                </div>
-                              );
-                            })}
+                  {/* Expanded: list variations */}
+                  {isExpanded && (
+                    <div className="border-t bg-white p-4 space-y-2">
+                      <p className="text-xs font-medium text-gray-500 mb-2">Variações deste produto:</p>
+                      {g.templates.map(t => {
+                        const sp = spMap[t.id];
+                        return (
+                          <div key={t.id} className="flex items-center gap-3 bg-gray-50 rounded-lg border p-2.5 flex-wrap">
+                            {t.peso_kg != null && (
+                              <Badge variant="outline" className="text-xs gap-1">
+                                <Weight className="w-3 h-3" /> {t.peso_kg}kg
+                              </Badge>
+                            )}
+                            <span className="text-sm text-gray-700 truncate flex-1 min-w-[150px]">{t.nome}</span>
+                            <span className="text-xs text-gray-400 font-mono">{t.cod}</span>
+                            {sp ? (
+                              <>
+                                <Badge className="bg-green-100 text-green-700 text-xs">
+                                  {formatBRL(sp.preco)}
+                                </Badge>
+                                {sp.disponivel === false
+                                  ? <Badge variant="outline" className="text-gray-400 text-xs">Oculto</Badge>
+                                  : <Badge className="bg-green-50 text-green-600 text-xs">Ativo</Badge>
+                                }
+                              </>
+                            ) : (
+                              <Badge variant="outline" className="text-gray-400 text-xs">Sem preço</Badge>
+                            )}
                           </div>
-                        </div>
-                      )}
+                        );
+                      })}
                     </div>
-                  );
-                })}
-              </div>
-            ))
-          )}
-        </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ))
       )}
     </div>
   );
