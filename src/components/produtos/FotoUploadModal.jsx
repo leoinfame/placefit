@@ -23,8 +23,14 @@ export default function FotoUploadModal({ template, allTemplates, onClose, onSav
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
-  // Find all templates in the same group (variations)
-  const variations = (allTemplates || []).filter(t => getGroupKey(t) === getGroupKey(template));
+  // Find all templates in the same group (variations), deduplicated by ID
+  const seenIds = new Set();
+  const variations = (allTemplates || []).filter(t => {
+    if (getGroupKey(t) !== getGroupKey(template)) return false;
+    if (seenIds.has(t.id)) return false;
+    seenIds.add(t.id);
+    return true;
+  });
 
   const handleFileSelect = async (e) => {
     const file = e.target.files?.[0];
