@@ -86,7 +86,7 @@ export default function Produtos() {
     const isRevendedor = !isFabricante && user.tipo_usuario !== 'transportador' && !isAdmin;
     const available = ['catalogo'];
     if (isAdmin) available.push('admin');
-    if (isAdmin || isFabricante) available.push('meus');
+    available.push('meus');
     if (isAdmin || isFabricante) available.push('importar');
     if (!available.includes(activeTab)) setActiveTab(isAdmin ? 'admin' : 'catalogo');
   }, [user, activeTab]);
@@ -109,7 +109,7 @@ export default function Produtos() {
 
   const tabs = [{ value: 'catalogo', label: 'Catálogo Geral', icon: Package }];
   if (isAdmin) tabs.unshift({ value: 'admin', label: 'Gerenciar Catálogo', icon: ShieldCheck });
-  if (isAdmin || isFabricante) tabs.push({ value: 'meus', label: 'Meus Produtos', icon: List });
+  tabs.push({ value: 'meus', label: 'Meus Produtos', icon: List });
   if (isAdmin || isFabricante) tabs.push({ value: 'importar', label: 'Importar Tabela', icon: Upload });
 
   return (
