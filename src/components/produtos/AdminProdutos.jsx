@@ -18,6 +18,7 @@ import { useToast } from "@/components/ui/use-toast";
 import TemplateForm from "@/components/admin/TemplateForm";
 import ImportarTemplatesCsv from "@/components/produtos/ImportarTemplatesCsv";
 import FotoUploadModal from "@/components/produtos/FotoUploadModal";
+import AdminCatalogoGrouped from "@/components/produtos/AdminCatalogoGrouped";
 
 const CATEGORIAS = [
   "Anilhas", "Halteres", "Dumbells", "Barras Montadas",
@@ -33,8 +34,6 @@ export default function AdminProdutos() {
 
   // Catalogo state
   const [templates, setTemplates] = useState([]);
-  const [catFilter, setCatFilter] = useState("all");
-  const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [editingTpl, setEditingTpl] = useState(null);
   const [confirmDeleteTpl, setConfirmDeleteTpl] = useState(null);
@@ -103,17 +102,6 @@ export default function AdminProdutos() {
   useEffect(() => { loadData(); }, [loadData]);
 
   // --- Template CRUD ---
-  const filteredTemplates = useMemo(() => {
-    return templates.filter(t => {
-      if (catFilter !== "all" && t.categoria !== catFilter) return false;
-      if (search) {
-        const s = search.toLowerCase();
-        if (!t.nome?.toLowerCase().includes(s) && !t.cod?.toLowerCase().includes(s)) return false;
-      }
-      return true;
-    });
-  }, [templates, catFilter, search]);
-
   const handleSaveTemplate = async (data) => {
     try {
       if (editingTpl) {
@@ -146,30 +134,6 @@ export default function AdminProdutos() {
   };
 
   // --- Bulk Template Actions ---
-  const visibleTplIds = filteredTemplates.map(t => t.id);
-  const allTplsSelected = visibleTplIds.length > 0 && visibleTplIds.every(id => selectedTpls.has(id));
-  const someTplsSelected = visibleTplIds.some(id => selectedTpls.has(id));
-
-  const toggleTpl = (id) => {
-    setSelectedTpls(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  };
-
-  const toggleSelectAllTpls = () => {
-    setSelectedTpls(prev => {
-      const next = new Set(prev);
-      if (allTplsSelected) {
-        visibleTplIds.forEach(id => next.delete(id));
-      } else {
-        visibleTplIds.forEach(id => next.add(id));
-      }
-      return next;
-    });
-  };
-
   const handleBulkTplConfirm = async () => {
     const ids = [...selectedTpls];
     if (ids.length === 0 || !bulkTplAction) return;
@@ -305,39 +269,16 @@ export default function AdminProdutos() {
 
         {/* === ABA: CATÁLOGO === */}
         <TabsContent value="catalogo" className="space-y-4">
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <div className="flex items-center gap-3 flex-wrap">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <Input
-                  placeholder="Buscar produto ou SKU..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-10 w-64"
-                />
-              </div>
-              <Select value={catFilter} onValueChange={setCatFilter}>
-                <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as categorias</SelectItem>
-                  {CATEGORIAS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setImportOpen(true)}
-              >
-                <Upload className="w-4 h-4 mr-2" /> Importar CSV
-              </Button>
-              <Button
-                onClick={() => { setEditingTpl(null); setFormOpen(true); }}
-                className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
-              >
-                <Plus className="w-4 h-4 mr-2" /> Adicionar Produto
-              </Button>
-            </div>
+          <div className="flex items-center justify-end gap-2">
+            <Button variant="outline" onClick={() => setImportOpen(true)}>
+              <Upload className="w-4 h-4 mr-2" /> Importar CSV
+            </Button>
+            <Button
+              onClick={() => { setEditingTpl(null); setFormOpen(true); }}
+              className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+            >
+              <Plus className="w-4 h-4 mr-2" /> Adicionar Produto
+            </Button>
           </div>
 
           {selectedTpls.size > 0 && (
@@ -361,87 +302,14 @@ export default function AdminProdutos() {
             </div>
           )}
 
-          <div className="rounded-lg border bg-white overflow-hidden">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12">
-                      <Checkbox
-                        checked={allTplsSelected ? true : someTplsSelected ? "indeterminate" : false}
-                        onCheckedChange={toggleSelectAllTpls}
-                      />
-                    </TableHead>
-                    <TableHead className="w-16">Foto</TableHead>
-                    <TableHead>SKU</TableHead>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Categoria</TableHead>
-                    <TableHead>Un.</TableHead>
-                    <TableHead className="text-center">Status</TableHead>
-                    <TableHead className="text-center">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredTemplates.map(t => {
-                    const isSelected = selectedTpls.has(t.id);
-                    return (
-                    <TableRow key={t.id} className={isSelected ? "bg-blue-50/50" : ""}>
-                      <TableCell>
-                        <Checkbox
-                          checked={isSelected}
-                          onCheckedChange={() => toggleTpl(t.id)}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <button
-                          onClick={() => setFotoModalTpl(t)}
-                          className="block w-10 h-10 rounded-lg overflow-hidden border border-gray-200 hover:border-blue-400 hover:ring-1 hover:ring-blue-200 transition-all relative group"
-                          title="Gerenciar imagem"
-                        >
-                          {t.foto ? (
-                            <img src={t.foto} alt={t.nome} className="w-10 h-10 object-cover" />
-                          ) : (
-                            <div className="w-10 h-10 bg-gray-100 flex items-center justify-center">
-                              <Upload className="w-4 h-4 text-gray-300 group-hover:text-blue-400" />
-                            </div>
-                          )}
-                        </button>
-                      </TableCell>
-                      <TableCell className="font-mono text-xs">{t.cod}</TableCell>
-                      <TableCell className="font-medium">{t.nome}</TableCell>
-                      <TableCell><Badge variant="secondary" className="text-xs">{t.categoria}</Badge></TableCell>
-                      <TableCell className="text-xs">{t.und}</TableCell>
-                      <TableCell className="text-center">
-                        {t.ativo !== false ? (
-                          <Badge className="bg-green-100 text-green-700 text-xs">Ativo</Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-xs">Inativo</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center justify-center gap-1">
-                          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => { setEditingTpl(t); setFormOpen(true); }}>
-                            <Pencil className="w-4 h-4" />
-                          </Button>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-red-500 hover:text-red-700" onClick={() => setConfirmDeleteTpl(t)}>
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-
-          {filteredTemplates.length === 0 && (
-            <div className="text-center py-16 text-gray-400">
-              <PackageSearch className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p>Nenhum produto encontrado.</p>
-            </div>
-          )}
+          <AdminCatalogoGrouped
+            templates={templates}
+            selectedTpls={selectedTpls}
+            setSelectedTpls={setSelectedTpls}
+            onEditTemplate={(t) => { setEditingTpl(t); setFormOpen(true); }}
+            onDeleteTemplate={(t) => setConfirmDeleteTpl(t)}
+            onFotoTemplate={(t) => setFotoModalTpl(t)}
+          />
         </TabsContent>
 
         {/* === ABA: PREÇOS DE FORNECEDORES === */}
