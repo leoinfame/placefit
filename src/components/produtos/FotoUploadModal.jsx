@@ -58,7 +58,8 @@ export default function FotoUploadModal({ template, allTemplates, onClose, onSav
       toast({ title: "Imagem salva!", description: `Aplicada a ${updates.length} ${updates.length === 1 ? "variação" : "variações"} do produto.` });
       onSaved();
     } catch (err) {
-      toast({ title: "Erro", description: "Falha ao salvar imagem.", variant: "destructive" });
+      const errMsg = err?.response?.data?.detail || err?.message || "Falha ao salvar imagem.";
+      toast({ title: "Erro ao salvar imagem", description: errMsg, variant: "destructive" });
     }
     setSaving(false);
   };
@@ -73,7 +74,8 @@ export default function FotoUploadModal({ template, allTemplates, onClose, onSav
       toast({ title: "Imagem removida", description: `${updates.length} ${updates.length === 1 ? "variação" : "variações"} atualizadas.` });
       onSaved();
     } catch (err) {
-      toast({ title: "Erro", description: "Falha ao remover imagem.", variant: "destructive" });
+      const errMsg = err?.response?.data?.detail || err?.message || "Falha ao remover imagem.";
+      toast({ title: "Erro ao remover imagem", description: errMsg, variant: "destructive" });
     }
     setSaving(false);
   };
