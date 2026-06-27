@@ -269,13 +269,12 @@ export default function MeusProdutos({ user }) {
     }
   };
 
-  // Remove a group (all variations)
+  // Remove a group (all variations) — uses deleteMany to be resilient to already-deleted records
   const handleRemoveGroup = async (g) => {
     if (!confirm(`Remover "${g.baseName}" da sua tabela?`)) return;
     try {
-      for (const v of g.variations) {
-        await base44.entities.SupplierProduct.delete(v.sp.id);
-      }
+      const spIds = g.variations.map(v => v.sp.id);
+      await base44.entities.SupplierProduct.deleteMany({ _id: { $in: spIds } });
       toast({ title: "Produto removido", description: `${g.baseName} removido da sua tabela.` });
       loadData();
     } catch (e) {
@@ -291,10 +290,9 @@ export default function MeusProdutos({ user }) {
     setSaving(true);
     try {
       if (bulkModal.type === 'delete') {
-        for (const g of selectedGroups) {
-          for (const v of g.variations) {
-            await base44.entities.SupplierProduct.delete(v.sp.id);
-          }
+        const allSpIds = selectedGroups.flatMap(g => g.variations.map(v => v.sp.id));
+        if (allSpIds.length > 0) {
+          await base44.entities.SupplierProduct.deleteMany({ _id: { $in: allSpIds } });
         }
         toast({ title: `${selectedGroups.length} produto(s) removido(s)` });
       } else if (bulkModal.type === 'margin') {
