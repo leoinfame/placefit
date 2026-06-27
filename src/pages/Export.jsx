@@ -172,7 +172,7 @@ export default function Export() {
         // Para revendedores, buscar templates e seus SupplierProducts (com paginação completa)
         const [productsData, supplierProductsData] = await Promise.all([
           fetchAll(base44.entities.ProductTemplate, { ativo: true }, 'categoria'),
-          fetchAll(base44.entities.SupplierProduct, { supplier_id: currentUser.id, disponivel: true }, '-created_date')
+          fetchAll(base44.entities.SupplierProduct, { supplier_id: currentUser.id }, '-created_date')
         ]);
 
         setProducts(productsData);
@@ -536,7 +536,7 @@ export default function Export() {
   }
 
   const isFabricante = user?.tipo_usuario === 'fabricante';
-  const availableProductsCount = isFabricante ? products.length : supplierProducts.filter(sp => sp.preco > 0).length;
+  const availableProductsCount = isFabricante ? products.length : supplierProducts.length;
 
   return (
     <div className="p-4 md:p-8 min-h-screen">
