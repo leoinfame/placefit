@@ -97,17 +97,39 @@ export default function Orcamentos() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      // Carregar SupplierProduct (tabela de preços do usuário) + ProductTemplate (catálogo)
+      // Helper para buscar TODOS os registros com paginação completa.
+      // Garante fidelidade de 100% entre "Meus Produtos", "Sua Tabela" e o orçamento:
+      // os mesmos produtos visíveis na tabela do revendedor estarão disponíveis para orçar.
+      const fetchAll = async (entity, query, sort, pageSize = 500) => {
+        let all = [];
+        let skip = 0;
+        while (true) {
+          const batch = sort
+            ? await entity.filter(query, sort, pageSize, skip)
+            : await entity.filter(query, undefined, pageSize, skip);
+          all = all.concat(batch);
+          if (batch.length < pageSize) break;
+          skip += pageSize;
+        }
+        return all;
+      };
+
+      // Carregar TODOS os SupplierProduct do revendedor + TODOS os ProductTemplate ativos.
+      // Critérios idênticos aos da "Sua Tabela" (Export): template ativo + preço > 0.
+      // Não filtra por "disponivel" — produtos ocultos do catálogo público ainda podem
+      // ser orçados manualmente, exatamente como aparecem na Sua Tabela.
       const [supplierProducts, allTemplates] = await Promise.all([
-        base44.entities.SupplierProduct.filter({ supplier_id: currentUser.id }, '-created_date', 500),
-        base44.entities.ProductTemplate.list('categoria', 500)
+        fetchAll(base44.entities.SupplierProduct, { supplier_id: currentUser.id }, '-created_date'),
+        fetchAll(base44.entities.ProductTemplate, { ativo: true }, 'categoria')
       ]);
 
+      const tmplMap = new Map(allTemplates.map(t => [t.id, t]));
+
       const productsData = supplierProducts
-        .filter(sp => sp.disponivel !== false && sp.preco && parseFloat(sp.preco) > 0)
+        .filter(sp => sp.preco && parseFloat(sp.preco) > 0)
         .map(sp => {
-          const template = allTemplates.find(t => t.id === sp.product_id);
-          if (!template || template.ativo === false) return null;
+          const template = tmplMap.get(sp.product_id);
+          if (!template) return null;
           return {
             ...template,
             preco_fornecedor: sp.preco,
