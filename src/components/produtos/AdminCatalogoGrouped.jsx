@@ -11,27 +11,23 @@ import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
 const CATEGORIAS = [
-  "Anilhas", "Halteres", "Dumbells", "Barras Montadas",
-  "Tijolinhos", "Pisos", "Kettlebells", "Suportes", "Kits", "Outros",
+  "Anilhas", "Halteres", "Dumbells",
+  "Tijolinhos", "Pisos", "Kettlebells", "Kits", "Outros",
 ];
 
 const CATEGORY_ORDER = [...CATEGORIAS];
 
 const GROUP_FIELDS = [
   'categoria', 'subcategoria', 'tipo_anilha', 'tipo_furo', 'acabamento',
-  'barra_tipo', 'barra_acabamento', 'bojo_formato', 'dumbell_tipo',
+  'barra_acabamento', 'bojo_formato', 'dumbell_tipo',
   'piso_espessura_mm', 'piso_formato', 'tijolinho_tipo', 'tijolinho_torre',
-  'suporte_modelo', 'suporte_estrutura', 'suporte_degraus',
-  'suporte_capacidade_pares', 'suporte_capacidade_unidades',
-  'suporte_torre_capacidade', 'suporte_torre_tipo',
   'pegada', 'peso_faixa'
 ];
 
 const SEARCH_FIELDS = [
   'nome', 'cod', 'subcategoria', 'acabamento', 'dumbell_tipo', 'bojo_formato',
-  'pegada', 'tipo_anilha', 'tipo_furo', 'barra_tipo', 'barra_acabamento',
-  'piso_formato', 'tijolinho_tipo', 'tijolinho_torre', 'suporte_modelo',
-  'suporte_estrutura', 'suporte_torre_tipo', 'suporte_torre_capacidade',
+  'pegada', 'tipo_anilha', 'tipo_furo', 'barra_acabamento',
+  'piso_formato', 'tijolinho_tipo', 'tijolinho_torre',
   'peso_faixa', 'ncm', 'gtin', 'google_category',
 ];
 

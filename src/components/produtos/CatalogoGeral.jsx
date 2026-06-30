@@ -13,8 +13,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useToast } from "@/components/ui/use-toast";
 
 const CATEGORIAS = [
-  "Anilhas","Halteres","Dumbells","Barras Montadas",
-  "Tijolinhos","Pisos","Kettlebells","Suportes","Kits","Outros"
+  "Anilhas","Halteres","Dumbells",
+  "Tijolinhos","Pisos","Kettlebells","Kits","Outros"
 ];
 
 const CATEGORY_ORDER = [...CATEGORIAS];

@@ -17,11 +17,9 @@
         "Anilhas",
         "Halteres",
         "Dumbells",
-        "Barras Montadas",
         "Tijolinhos",
         "Pisos",
         "Kettlebells",
-        "Suportes",
         "Kits",
         "Outros"
       ],
@@ -29,7 +27,7 @@
     },
     "subcategoria": {
       "type": "string",
-      "description": "Subcategoria espec\u00edfica (ex: Suporte para Halteres, Suporte para Dumbells, Suporte para Kettlebells, Halter Sextavado, Dumbell Sextavado, Barra Montada, Barra Montada Monobloco)"
+      "description": "Subcategoria espec\u00edfica (ex: Halter Sextavado, Dumbell Sextavado)"
     },
     "tipo_anilha": {
       "type": "string",
@@ -60,13 +58,9 @@
       "default": false,
       "description": "Se \u00e9 peso fracionado (ex: 1.5kg, 2.5kg) - usado em anilhas bumper"
     },
-    "barra_tipo": {
-      "type": "string",
-      "description": "Tipo de barra - aplic\u00e1vel para Barras Montadas e Halteres"
-    },
     "barra_acabamento": {
       "type": "string",
-      "description": "Acabamento da barra central - aplic\u00e1vel para Halteres e Barras Montadas"
+      "description": "Acabamento da barra central - aplic\u00e1vel para Halteres"
     },
     "bojo_formato": {
       "type": "string",
@@ -91,34 +85,6 @@
     "tijolinho_torre": {
       "type": "string",
       "description": "Torre para a qual o tijolinho \u00e9 compat\u00edvel"
-    },
-    "suporte_capacidade_pares": {
-      "type": "number",
-      "description": "Capacidade em pares - aplic\u00e1vel para suportes de halteres/dumbells"
-    },
-    "suporte_capacidade_unidades": {
-      "type": "number",
-      "description": "Capacidade em unidades - aplic\u00e1vel para suporte de kettlebells"
-    },
-    "suporte_modelo": {
-      "type": "string",
-      "description": "Modelo compat\u00edvel do suporte de dumbells"
-    },
-    "suporte_estrutura": {
-      "type": "string",
-      "description": "Tipo de estrutura do suporte"
-    },
-    "suporte_degraus": {
-      "type": "number",
-      "description": "N\u00famero de degraus/prateleiras do suporte (2 ou 3)"
-    },
-    "suporte_torre_capacidade": {
-      "type": "string",
-      "description": "Capacidade da torre para halteres"
-    },
-    "suporte_torre_tipo": {
-      "type": "string",
-      "description": "Tipo de acabamento da torre de halteres"
     },
     "und": {
       "type": "string",

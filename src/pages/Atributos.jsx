@@ -26,11 +26,9 @@ const CATEGORIAS = [
   "Anilhas",
   "Halteres",
   "Dumbells",
-  "Barras Montadas",
   "Tijolinhos",
   "Pisos",
   "Kettlebells",
-  "Suportes",
   "Outros",
 ];
 
