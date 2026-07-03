@@ -76,6 +76,11 @@ export default function MeusProdutos({ user }) {
         if (batch.length < 500) break;
         skip += 500;
       }
+      // Dedup by id — safety net against unstable pagination
+      {
+        const seenSp = new Set();
+        allSps = allSps.filter(sp => { if (seenSp.has(sp.id)) return false; seenSp.add(sp.id); return true; });
+      }
 
       if (allSps.length === 0) {
         setGroups([]);
@@ -83,14 +88,19 @@ export default function MeusProdutos({ user }) {
         return;
       }
 
-      // Fetch all templates with pagination
+      // Fetch all templates with pagination (sort by _id for stable pagination)
       let allTemplates = [];
       skip = 0;
       while (true) {
-        const batch = await base44.entities.ProductTemplate.list('categoria', 500, skip);
+        const batch = await base44.entities.ProductTemplate.list('_id', 500, skip);
         allTemplates = allTemplates.concat(batch);
         if (batch.length < 500) break;
         skip += 500;
+      }
+      // Dedup by id — safety net against unstable pagination
+      {
+        const seen = new Set();
+        allTemplates = allTemplates.filter(t => { if (seen.has(t.id)) return false; seen.add(t.id); return true; });
       }
 
       const tmplMap = new Map(allTemplates.map(t => [t.id, t]));

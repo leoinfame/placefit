@@ -98,20 +98,21 @@ export default function Orcamentos() {
       setUser(currentUser);
 
       // Helper para buscar TODOS os registros com paginação completa.
-      // Garante fidelidade de 100% entre "Meus Produtos", "Sua Tabela" e o orçamento:
-      // os mesmos produtos visíveis na tabela do revendedor estarão disponíveis para orçar.
-      const fetchAll = async (entity, query, sort, pageSize = 500) => {
+      // Sempre ordena por _id (campo único) para garantir paginação estável,
+      // evitando duplicação ou perda de registros entre páginas.
+      // Garante fidelidade de 100% entre "Meus Produtos", "Sua Tabela" e o orçamento.
+      const fetchAll = async (entity, query, pageSize = 500) => {
         let all = [];
         let skip = 0;
         while (true) {
-          const batch = sort
-            ? await entity.filter(query, sort, pageSize, skip)
-            : await entity.filter(query, undefined, pageSize, skip);
+          const batch = await entity.filter(query, '_id', pageSize, skip);
           all = all.concat(batch);
           if (batch.length < pageSize) break;
           skip += pageSize;
         }
-        return all;
+        // Dedup by id — safety net against unstable pagination
+        const seen = new Set();
+        return all.filter(r => { if (seen.has(r.id)) return false; seen.add(r.id); return true; });
       };
 
       // Carregar TODOS os SupplierProduct do revendedor + TODOS os ProductTemplate ativos.
@@ -119,8 +120,8 @@ export default function Orcamentos() {
       // Não filtra por "disponivel" — produtos ocultos do catálogo público ainda podem
       // ser orçados manualmente, exatamente como aparecem na Sua Tabela.
       const [supplierProducts, allTemplates] = await Promise.all([
-        fetchAll(base44.entities.SupplierProduct, { supplier_id: currentUser.id }, '-created_date'),
-        fetchAll(base44.entities.ProductTemplate, { ativo: true }, 'categoria')
+        fetchAll(base44.entities.SupplierProduct, { supplier_id: currentUser.id }),
+        fetchAll(base44.entities.ProductTemplate, { ativo: true })
       ]);
 
       const tmplMap = new Map(allTemplates.map(t => [t.id, t]));

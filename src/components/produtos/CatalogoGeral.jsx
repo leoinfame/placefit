@@ -71,12 +71,14 @@ export default function CatalogoGeral({ user }) {
         let all = [];
         let skip = 0;
         while (true) {
-          const batch = await base44.entities.ProductTemplate.filter({ ativo: true }, 'categoria', 500, skip);
+          const batch = await base44.entities.ProductTemplate.filter({ ativo: true }, '_id', 500, skip);
           all = all.concat(batch);
           if (batch.length < 500) break;
           skip += 500;
         }
-        return all;
+        // Dedup by id — safety net against unstable pagination
+        const seen = new Set();
+        return all.filter(t => { if (seen.has(t.id)) return false; seen.add(t.id); return true; });
       };
       const [tmpls, catalogRes, mine] = await Promise.all([
         fetchAllTemplates(),

@@ -63,14 +63,19 @@ export default function MeusProdutosFabricante({ user }) {
   const loadData = async () => {
     setLoading(true);
     try {
-      // Fetch ALL templates (paginated)
+      // Fetch ALL templates (paginated, sort by _id for stable pagination)
       let allTemplates = [];
       let skip = 0;
       while (true) {
-        const batch = await base44.entities.ProductTemplate.filter({ ativo: true }, 'categoria', 500, skip);
+        const batch = await base44.entities.ProductTemplate.filter({ ativo: true }, '_id', 500, skip);
         allTemplates = allTemplates.concat(batch);
         if (batch.length < 500) break;
         skip += 500;
+      }
+      // Dedup by id — safety net against unstable pagination
+      {
+        const seen = new Set();
+        allTemplates = allTemplates.filter(t => { if (seen.has(t.id)) return false; seen.add(t.id); return true; });
       }
 
       // Fetch fabricante's existing SPs (paginated)
@@ -83,6 +88,11 @@ export default function MeusProdutosFabricante({ user }) {
         allSps = allSps.concat(batch);
         if (batch.length < 500) break;
         skip += 500;
+      }
+      // Dedup by id — safety net against unstable pagination
+      {
+        const seenSp = new Set();
+        allSps = allSps.filter(sp => { if (seenSp.has(sp.id)) return false; seenSp.add(sp.id); return true; });
       }
 
       // Map SPs by product_id
