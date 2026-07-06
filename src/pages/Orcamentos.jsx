@@ -115,10 +115,14 @@ export default function Orcamentos() {
         return all.filter(r => { if (seen.has(r.id)) return false; seen.add(r.id); return true; });
       };
 
+      // Verificar view mode do admin (mesma lógica do Export)
+      const viewMode = localStorage.getItem('admin_view_mode') || 'admin';
+      const isFabricante = currentUser.tipo_usuario === 'fabricante' || viewMode === 'fabricante';
+
       // Carregar TODOS os SupplierProduct do revendedor + TODOS os ProductTemplate ativos.
-      // Critérios idênticos aos da "Sua Tabela" (Export): template ativo + preço > 0.
-      // Não filtra por "disponivel" — produtos ocultos do catálogo público ainda podem
-      // ser orçados manualmente, exatamente como aparecem na Sua Tabela.
+      // Lógica alinhada com "Sua Tabela" (Export):
+      // - Fabricante: TODOS os templates com SupplierProduct (mesmo sem preço configurado)
+      // - Revendedor: apenas SupplierProduct com preço > 0
       const [supplierProducts, allTemplates] = await Promise.all([
         fetchAll(base44.entities.SupplierProduct, { supplier_id: currentUser.id }),
         fetchAll(base44.entities.ProductTemplate, { ativo: true })
@@ -126,19 +130,39 @@ export default function Orcamentos() {
 
       const tmplMap = new Map(allTemplates.map(t => [t.id, t]));
 
-      const productsData = supplierProducts
-        .filter(sp => sp.preco && parseFloat(sp.preco) > 0)
-        .map(sp => {
-          const template = tmplMap.get(sp.product_id);
-          if (!template) return null;
-          return {
-            ...template,
-            preco_fornecedor: sp.preco,
-            fabricante_nome: sp.fabricante_nome || '',
-            supplier_product_id: sp.id
-          };
-        })
-        .filter(Boolean);
+      let productsData;
+      if (isFabricante) {
+        // Fabricante: todos os templates que ele configurou (tem SupplierProduct),
+        // independente de ter preço ou não — igual ao Export
+        productsData = supplierProducts
+          .map(sp => {
+            const template = tmplMap.get(sp.product_id);
+            if (!template) return null;
+            return {
+              ...template,
+              preco_fornecedor: sp.preco || 0,
+              preco_fabricante: sp.preco || 0,
+              fabricante_nome: sp.fabricante_nome || '',
+              supplier_product_id: sp.id
+            };
+          })
+          .filter(Boolean);
+      } else {
+        // Revendedor: apenas produtos com preço > 0
+        productsData = supplierProducts
+          .filter(sp => sp.preco && parseFloat(sp.preco) > 0)
+          .map(sp => {
+            const template = tmplMap.get(sp.product_id);
+            if (!template) return null;
+            return {
+              ...template,
+              preco_fornecedor: sp.preco,
+              fabricante_nome: sp.fabricante_nome || '',
+              supplier_product_id: sp.id
+            };
+          })
+          .filter(Boolean);
+      }
 
       setProducts(productsData);
 
