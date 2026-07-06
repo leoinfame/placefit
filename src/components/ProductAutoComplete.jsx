@@ -51,7 +51,7 @@ export default function ProductAutoComplete({
       p.cod?.toLowerCase().includes(q) ||
       p.categoria?.toLowerCase().includes(q) ||
       p.subcategoria?.toLowerCase().includes(q)
-    ).slice(0, 12);
+    );
   }, [searchTerm, products]);
 
   // Reset highlight when results change
