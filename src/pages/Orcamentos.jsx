@@ -48,6 +48,7 @@ import { useToast } from "@/components/ui/use-toast";
 import ProductAutoComplete from "@/components/ProductAutoComplete";
 import ClienteAutoComplete from "@/components/ClienteAutoComplete";
 import { generateProfessionalPDF } from "@/components/ProfessionalPDF";
+import { expandTemplates } from "@/utils/expandTemplates";
 
 export default function Orcamentos() {
   const [user, setUser] = useState(null);
@@ -104,7 +105,7 @@ export default function Orcamentos() {
       const res = await getProdutosData({ mode: "meus", isFabricante });
       const data = res.data || res;
       const supplierProducts = data.mySupplierProducts || [];
-      const allTemplates = data.templates || [];
+      const allTemplates = expandTemplates(data.templates || [], data.fieldMap);
 
       const tmplMap = new Map(allTemplates.map(t => [t.id, t]));
 
