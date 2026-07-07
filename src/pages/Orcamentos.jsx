@@ -103,30 +103,36 @@ export default function Orcamentos() {
       const viewMode = localStorage.getItem('admin_view_mode') || 'admin';
       const isFabricante = currentUser.tipo_usuario === 'fabricante' || viewMode === 'fabricante';
 
-      const res = await getProdutosData({ mode: "meus", isFabricante });
+      const res = await getProdutosData({ mode: isFabricante ? "meus" : "catalogo", isFabricante });
       const data = res.data || res;
       const supplierProducts = data.mySupplierProducts || [];
       const allTemplates = expandTemplates(data.templates || [], data.fieldMap);
+      const pricesByProduct = data.pricesByProduct || {};
 
       const tmplMap = new Map(allTemplates.map(t => [t.id, t]));
+      const spByProductId = new Map(supplierProducts.map(sp => [sp.product_id, sp]));
 
       // Debug: track KP4 through the pipeline
       const kp4TemplateId = '6a3fd72af902fe48947f7969';
       const kp4InRawTemplates = (data.templates || []).find(t => t.c === 'KP4' || t.i === kp4TemplateId);
       const kp4InRawSps = supplierProducts.find(sp => sp.product_id === kp4TemplateId);
       const kp4InExpanded = allTemplates.find(t => t.cod === 'KP4' || t.id === kp4TemplateId);
+      const kp4InPrices = !!pricesByProduct[kp4TemplateId];
       setDebugInfo({
         rawTemplateCount: (data.templates || []).length,
         rawSpCount: supplierProducts.length,
         kp4InRawTemplates: !!kp4InRawTemplates,
         kp4InRawSps: !!kp4InRawSps,
         kp4InExpanded: !!kp4InExpanded,
+        kp4InPrices,
         expandedCount: allTemplates.length,
+        priceEntries: Object.keys(pricesByProduct).length,
         fieldMapKeys: data.fieldMap ? Object.keys(data.fieldMap).slice(0, 5).join(',') : 'NONE',
       });
 
       let productsData;
       if (isFabricante) {
+        // Fabricante: apenas seus próprios produtos
         productsData = supplierProducts
           .map(sp => {
             const template = tmplMap.get(sp.product_id);
@@ -141,16 +147,32 @@ export default function Orcamentos() {
           })
           .filter(Boolean);
       } else {
-        productsData = supplierProducts
-          .map(sp => {
-            const template = tmplMap.get(sp.product_id);
-            if (!template) return null;
-            return {
-              ...template,
-              preco_fornecedor: sp.preco || 0,
-              fabricante_nome: sp.fabricante_nome || '',
-              supplier_product_id: sp.id
-            };
+        // Revendedor: TODOS os templates do catálogo + preços de fabricantes
+        productsData = allTemplates
+          .map(template => {
+            const mySp = spByProductId.get(template.id);
+            if (mySp) {
+              // Revendedor já tem o produto na sua tabela — usa seu preço
+              return {
+                ...template,
+                preco_fornecedor: mySp.preco || 0,
+                fabricante_nome: mySp.fabricante_nome || '',
+                supplier_product_id: mySp.id
+              };
+            }
+            // Revendedor não tem o produto — usa o menor preço de fabricante disponível
+            const fabricantePrices = pricesByProduct[template.id];
+            if (fabricantePrices && fabricantePrices.length > 0) {
+              const bestPrice = fabricantePrices.reduce((min, p) => p.preco < min.preco ? p : min, fabricantePrices[0]);
+              return {
+                ...template,
+                preco_fornecedor: bestPrice.preco,
+                fabricante_nome: bestPrice.fabricante_nome || '',
+                supplier_product_id: null
+              };
+            }
+            // Sem preço de fabricante — não mostra o produto
+            return null;
           })
           .filter(Boolean);
       }
@@ -736,10 +758,10 @@ export default function Orcamentos() {
                   <p className="text-xs text-amber-600 mb-2">Nenhum produto carregado. Verifique sua tabela de produtos.</p>
                 )}
                 <div className="text-xs text-gray-500 mb-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
-                  <p className="font-bold">DEBUG PIPELINE:</p>
-                  <p>Produtos finais: {products.length} | KP4 na lista: {products.find(p => p.cod === 'KP4') ? 'SIM ✅' : 'NÃO ❌'}</p>
+                  <p className="font-bold">DEBUG:</p>
+                  <p>Produtos: {products.length} | KP4: {products.find(p => p.cod === 'KP4') ? 'SIM ✅' : 'NÃO ❌'}</p>
                   {debugInfo && (
-                    <p>Templates brutos: {debugInfo.rawTemplateCount} | SPs brutos: {debugInfo.rawSpCount} | KP4 em templates: {debugInfo.kp4InRawTemplates ? 'SIM ✅' : 'NÃO ❌'} | KP4 em SPs: {debugInfo.kp4InRawSps ? 'SIM ✅' : 'NÃO ❌'} | KP4 expandido: {debugInfo.kp4InExpanded ? 'SIM ✅' : 'NÃO ❌'}</p>
+                    <p>Templates: {debugInfo.rawTemplateCount} | SPs: {debugInfo.rawSpCount} | Preços fabricante: {debugInfo.priceEntries} | KP4 tmpl: {debugInfo.kp4InRawTemplates ? '✅' : '❌'} | KP4 SP: {debugInfo.kp4InRawSps ? '✅' : '❌'} | KP4 preços: {debugInfo.kp4InPrices ? '✅' : '❌'}</p>
                   )}
                 </div>
                 <div className="space-y-3">
