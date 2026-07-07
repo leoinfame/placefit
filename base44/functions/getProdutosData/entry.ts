@@ -1,35 +1,27 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
-const TEMPLATE_FIELDS = [
-  'id', 'nome', 'cod', 'categoria', 'subcategoria',
-  'tipo_anilha', 'tipo_furo', 'acabamento',
-  'barra_tipo', 'barra_acabamento', 'bojo_formato', 'dumbell_tipo',
-  'piso_espessura_mm', 'piso_formato', 'tijolinho_tipo', 'tijolinho_torre',
-  'suporte_modelo', 'suporte_estrutura', 'suporte_degraus',
-  'suporte_capacidade_pares', 'suporte_capacidade_unidades',
-  'suporte_torre_capacidade', 'suporte_torre_tipo',
-  'pegada', 'peso_faixa', 'peso_kg', 'und', 'foto', 'ativo'
-];
+// Short field name mapping to reduce response size (~70% smaller payload)
+const FIELD_MAP = {
+  id: 'i', nome: 'n', cod: 'c', categoria: 'ca', subcategoria: 'sc',
+  tipo_anilha: 'ta', tipo_furo: 'tf', acabamento: 'ac',
+  barra_tipo: 'bt', barra_acabamento: 'ba', bojo_formato: 'bf', dumbell_tipo: 'dt',
+  piso_espessura_mm: 'pe', piso_formato: 'pf', tijolinho_tipo: 'tt', tijolinho_torre: 'tl',
+  suporte_modelo: 'sm', suporte_estrutura: 'se', suporte_degraus: 'sd',
+  suporte_capacidade_pares: 'scp', suporte_capacidade_unidades: 'scu',
+  suporte_torre_capacidade: 'stc', suporte_torre_tipo: 'stt',
+  pegada: 'pg', peso_faixa: 'pfa', peso_kg: 'pk', und: 'u', foto: 'f', ativo: 'at'
+};
 
-// Campos reduzidos para fabricantes (sem foto/ativo) — diminui o payload de ~700KB para ~500KB
-const TEMPLATE_FIELDS_FABRICANTE = [
-  'id', 'nome', 'cod', 'categoria', 'subcategoria',
-  'tipo_anilha', 'tipo_furo', 'acabamento',
-  'barra_tipo', 'barra_acabamento', 'bojo_formato', 'dumbell_tipo',
-  'piso_espessura_mm', 'piso_formato', 'tijolinho_tipo', 'tijolinho_torre',
-  'suporte_modelo', 'suporte_estrutura', 'suporte_degraus',
-  'suporte_capacidade_pares', 'suporte_capacidade_unidades',
-  'suporte_torre_capacidade', 'suporte_torre_tipo',
-  'pegada', 'peso_faixa', 'peso_kg', 'und'
-];
+const TEMPLATE_FIELDS = Object.keys(FIELD_MAP);
+const TEMPLATE_FIELDS_FABRICANTE = TEMPLATE_FIELDS.filter(f => f !== 'foto' && f !== 'ativo');
 
 const SP_FIELDS = ['id', 'product_id', 'preco', 'margem', 'fabricante_nome', 'disponivel', 'supplier_id', 'sale_price', 'cod_origem', 'observacoes'];
 
-const projectEntity = (entity, fields) => {
+const projectEntityShort = (entity, fields) => {
   const out = {};
   for (const f of fields) {
     const v = entity[f];
-    if (v !== null && v !== undefined) out[f] = v;
+    if (v !== null && v !== undefined) out[FIELD_MAP[f]] = v;
   }
   return out;
 };
@@ -54,32 +46,38 @@ Deno.serve(async (req) => {
 
     const body = req.method === 'POST' ? await req.json().catch(() => ({})) : {};
     const isFabricante = user.tipo_usuario === 'fabricante' || body.isFabricante === true;
-    const mode = body.mode || 'catalogo'; // 'catalogo' | 'meus'
+    const mode = body.mode || 'catalogo';
 
-    // 1. Buscar SupplierProducts do usuário atual (sempre necessário)
+    // 1. Buscar SupplierProducts do usuário atual
     const mySpsRaw = await fetchAll((sort, limit, skip) =>
       base44.asServiceRole.entities.SupplierProduct.filter({ supplier_id: user.id }, sort, limit, skip)
     );
-    const mySps = mySpsRaw.map(sp => projectEntity(sp, SP_FIELDS));
+    const mySps = mySpsRaw.map(sp => {
+      const out = {};
+      for (const f of SP_FIELDS) {
+        const v = sp[f];
+        if (v !== null && v !== undefined) out[f] = v;
+      }
+      return out;
+    });
 
-    // 2. Buscar templates — no modo "meus", buscar apenas os que o usuário tem
+    // 2. Buscar templates
     let templates = [];
     if (mode === 'meus') {
       const productIds = [...new Set(mySps.map(sp => sp.product_id))];
       if (productIds.length > 0) {
         const matchingTemplates = await base44.asServiceRole.entities.ProductTemplate.filter({ id: { $in: productIds } });
-        templates = matchingTemplates.map(t => projectEntity(t, TEMPLATE_FIELDS));
+        templates = matchingTemplates.map(t => projectEntityShort(t, TEMPLATE_FIELDS));
       }
     } else {
-      // Modo catálogo: buscar todos os templates ativos
       const tplFields = isFabricante ? TEMPLATE_FIELDS_FABRICANTE : TEMPLATE_FIELDS;
       const allTemplatesRaw = await fetchAll((sort, limit, skip) =>
         base44.asServiceRole.entities.ProductTemplate.filter({ ativo: true }, 'cod', limit, skip)
       );
-      templates = allTemplatesRaw.map(t => projectEntity(t, tplFields));
+      templates = allTemplatesRaw.map(t => projectEntityShort(t, tplFields));
     }
 
-    // 3. pricesByProduct — apenas no modo catálogo E para revendedores (fabricantes não precisam)
+    // 3. pricesByProduct — apenas para revendedores
     let pricesByProduct = {};
     if (mode === 'catalogo' && !isFabricante) {
       const fabricantes = await base44.asServiceRole.entities.User.filter({ tipo_usuario: 'fabricante' });
@@ -110,6 +108,7 @@ Deno.serve(async (req) => {
       mySupplierProducts: mySps,
       pricesByProduct,
       isFabricante,
+      fieldMap: FIELD_MAP,
     });
   } catch (error) {
     console.error('Erro getProdutosData:', error);

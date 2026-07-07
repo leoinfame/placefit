@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { getProdutosData } from "@/functions/getProdutosData";
+import { expandTemplates } from "@/utils/expandTemplates";
 import { useLogoColors } from "@/components/export/useLogoColors";
 import {
   Download,
@@ -154,7 +155,7 @@ export default function Export() {
 
       const res = await getProdutosData({ mode: "meus", isFabricante });
       const data = res.data || res;
-      const allTemplates = data.templates || [];
+      const allTemplates = expandTemplates(data.templates || [], data.fieldMap);
       const supplierProductsData = data.mySupplierProducts || [];
 
       if (isFabricante) {

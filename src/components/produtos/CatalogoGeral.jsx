@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
+import { expandTemplates } from "@/utils/expandTemplates";
 
 const CATEGORIAS = [
   "Anilhas","Halteres","Dumbells",
@@ -70,7 +71,7 @@ export default function CatalogoGeral({ user }) {
     try {
       const res = await getProdutosData({ mode: "catalogo" });
       const data = res.data || res;
-      setTemplates(data.templates || []);
+      setTemplates(expandTemplates(data.templates || [], data.fieldMap));
       if (data.pricesByProduct && Object.keys(data.pricesByProduct).length > 0) {
         setPricesByProduct(data.pricesByProduct);
         setPricesError(false);

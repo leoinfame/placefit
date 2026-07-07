@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
+import { expandTemplates } from "@/utils/expandTemplates";
 
 const formatBRL = (v) => v != null && !isNaN(v) ? v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "—";
 
@@ -69,7 +70,7 @@ export default function MeusProdutos({ user }) {
       const res = await getProdutosData({ mode: "meus" });
       const data = res.data || res;
       const allSps = data.mySupplierProducts || [];
-      const allTemplates = data.templates || [];
+      const allTemplates = expandTemplates(data.templates || [], data.fieldMap);
 
       if (allSps.length === 0) {
         setGroups([]);

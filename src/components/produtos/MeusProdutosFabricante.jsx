@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
+import { expandTemplates } from "@/utils/expandTemplates";
 
 const formatBRL = (v) => v != null && !isNaN(v) ? v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "—";
 
@@ -66,7 +67,7 @@ export default function MeusProdutosFabricante({ user }) {
     try {
       const res = await getProdutosData({ mode: "catalogo", isFabricante: true });
       const data = res.data || res;
-      const allTemplates = data.templates || [];
+      const allTemplates = expandTemplates(data.templates || [], data.fieldMap);
       const allSps = data.mySupplierProducts || [];
 
       // Map SPs by product_id
