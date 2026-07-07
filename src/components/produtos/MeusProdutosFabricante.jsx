@@ -3,7 +3,8 @@ import { base44 } from "@/api/base44Client";
 import { getProdutosData } from "@/functions/getProdutosData";
 import {
   Loader2, Package, Search, X, ChevronDown, ChevronRight,
-  Save, Tag, Weight, DollarSign, CheckCircle2, Plus, RefreshCw
+  Save, Tag, Weight, DollarSign, CheckCircle2, Plus, RefreshCw,
+  Trash2, Eye, EyeOff, CheckSquare, Square
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,6 +59,9 @@ export default function MeusProdutosFabricante({ user }) {
   const [expandedGroups, setExpandedGroups] = useState(new Set());
   const [editValues, setEditValues] = useState({}); // { groupKey: precoKg }
   const [savingGroups, setSavingGroups] = useState(new Set());
+  const [selectedGroups, setSelectedGroups] = useState(new Set());
+  const [bulkPrecoKg, setBulkPrecoKg] = useState("");
+  const [bulkLoading, setBulkLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => { loadData(); }, []);
@@ -289,12 +293,155 @@ export default function MeusProdutosFabricante({ user }) {
     setSavingGroups(prev => { const n = new Set(prev); n.delete(g.key); return n; });
   };
 
+  const toggleGroupSelection = (key) => {
+    setSelectedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    const allKeys = filteredGroups.map(g => g.key);
+    const allSelected = allKeys.every(k => selectedGroups.has(k));
+    setSelectedGroups(prev => {
+      const next = new Set(prev);
+      if (allSelected) {
+        allKeys.forEach(k => next.delete(k));
+      } else {
+        allKeys.forEach(k => next.add(k));
+      }
+      return next;
+    });
+  };
+
+  const getSelectedGroups = () => filteredGroups.filter(g => selectedGroups.has(g.key));
+
+  const handleBulkPublish = async (makeAvailable) => {
+    const groups = getSelectedGroups();
+    if (groups.length === 0) return;
+    setBulkLoading(true);
+    try {
+      const updates = [];
+      for (const g of groups) {
+        for (const t of g.templates) {
+          if (spMap[t.id]) {
+            updates.push({ id: spMap[t.id].id, disponivel: makeAvailable });
+          }
+        }
+      }
+      if (updates.length > 0) {
+        await base44.entities.SupplierProduct.bulkUpdate(updates);
+      }
+      toast({
+        title: makeAvailable ? "Produtos publicados" : "Produtos ocultados",
+        description: `${groups.length} produto(s) ${makeAvailable ? 'publicado(s)' : 'ocultado(s)'}.`,
+      });
+      setSelectedGroups(new Set());
+      loadData();
+    } catch (e) {
+      toast({ title: "Erro", description: e?.message || "Erro ao atualizar.", variant: "destructive" });
+    }
+    setBulkLoading(false);
+  };
+
+  const handleBulkRemove = async () => {
+    const groups = getSelectedGroups();
+    if (groups.length === 0) return;
+    if (!confirm(`Remover ${groups.length} produto(s) da sua tabela de preços?`)) return;
+    setBulkLoading(true);
+    try {
+      const spIds = [];
+      for (const g of groups) {
+        for (const t of g.templates) {
+          if (spMap[t.id]) spIds.push(spMap[t.id].id);
+        }
+      }
+      for (const spId of spIds) {
+        await base44.entities.SupplierProduct.delete(spId);
+      }
+      toast({ title: "Produtos removidos", description: `${groups.length} produto(s) removido(s).` });
+      setSelectedGroups(new Set());
+      loadData();
+    } catch (e) {
+      toast({ title: "Erro", description: e?.message || "Erro ao remover.", variant: "destructive" });
+    }
+    setBulkLoading(false);
+  };
+
+  const handleBulkUpdatePreco = async () => {
+    const groups = getSelectedGroups();
+    if (groups.length === 0) return;
+    if (!bulkPrecoKg || isNaN(bulkPrecoKg)) {
+      toast({ title: "Erro", description: "Informe um preço por kg válido.", variant: "destructive" });
+      return;
+    }
+    setBulkLoading(true);
+    try {
+      const precoKg = parseFloat(bulkPrecoKg);
+      const toCreate = [];
+      const toUpdate = [];
+      for (const g of groups) {
+        const weightTemplates = g.templates.filter(t => t.peso_kg != null);
+        const nonWeightTemplates = g.templates.filter(t => t.peso_kg == null);
+        for (const tmpl of weightTemplates) {
+          const preco = Math.round(precoKg * tmpl.peso_kg * 100) / 100;
+          const existing = spMap[tmpl.id];
+          if (existing) {
+            toUpdate.push({ id: existing.id, preco, disponivel: true });
+          } else {
+            toCreate.push({
+              supplier_id: user.id,
+              product_id: tmpl.id,
+              preco,
+              fabricante_nome: user.empresa || user.full_name,
+              disponivel: true,
+            });
+          }
+        }
+        for (const tmpl of nonWeightTemplates) {
+          const existing = spMap[tmpl.id];
+          if (existing) {
+            toUpdate.push({ id: existing.id, preco: precoKg, disponivel: true });
+          } else {
+            toCreate.push({
+              supplier_id: user.id,
+              product_id: tmpl.id,
+              preco: precoKg,
+              fabricante_nome: user.empresa || user.full_name,
+              disponivel: true,
+            });
+          }
+        }
+      }
+      if (toCreate.length > 0) {
+        await base44.entities.SupplierProduct.bulkCreate(toCreate);
+      }
+      if (toUpdate.length > 0) {
+        await base44.entities.SupplierProduct.bulkUpdate(toUpdate);
+      }
+      toast({
+        title: "Preços atualizados!",
+        description: `${groups.length} produto(s) • ${toCreate.length} criada(s), ${toUpdate.length} atualizada(s).`,
+      });
+      setSelectedGroups(new Set());
+      setBulkPrecoKg("");
+      loadData();
+    } catch (e) {
+      toast({ title: "Erro", description: e?.message || "Erro ao salvar.", variant: "destructive" });
+    }
+    setBulkLoading(false);
+  };
+
   if (loading) {
     return <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>;
   }
 
   const totalSelected = allGroups.filter(g => isGroupSelected(g)).length;
   const totalGroups = allGroups.length;
+  const selectedCount = selectedGroups.size;
+  const allFilteredKeys = filteredGroups.map(g => g.key);
+  const allFilteredSelected = allFilteredKeys.length > 0 && allFilteredKeys.every(k => selectedGroups.has(k));
 
   return (
     <div className="space-y-4">
@@ -349,6 +496,76 @@ export default function MeusProdutosFabricante({ user }) {
         </div>
       </div>
 
+      {/* Bulk Actions Bar */}
+      {selectedCount > 0 && (
+        <div className="sticky top-0 z-10 rounded-lg border-2 border-blue-300 bg-white shadow-md p-4 space-y-3">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <CheckSquare className="w-5 h-5 text-blue-600" />
+              <span className="font-semibold text-gray-900">{selectedCount} produto(s) selecionado(s)</span>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => setSelectedGroups(new Set())} className="text-gray-500">
+              <X className="w-4 h-4 mr-1" /> Limpar seleção
+            </Button>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => handleBulkPublish(true)}
+              disabled={bulkLoading}
+              className="border-green-300 text-green-700 hover:bg-green-50"
+            >
+              <Eye className="w-4 h-4 mr-1" /> Publicar
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => handleBulkPublish(false)}
+              disabled={bulkLoading}
+              className="border-gray-300 text-gray-600 hover:bg-gray-50"
+            >
+              <EyeOff className="w-4 h-4 mr-1" /> Ocultar
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleBulkRemove}
+              disabled={bulkLoading}
+              className="border-red-300 text-red-600 hover:bg-red-50"
+            >
+              <Trash2 className="w-4 h-4 mr-1" /> Remover
+            </Button>
+            <div className="h-6 w-px bg-gray-200 mx-1" />
+            <div className="flex items-end gap-2 flex-1 min-w-[200px]">
+              <div className="flex-1">
+                <Label className="text-xs text-gray-600">Preço/kg em massa (R$)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={bulkPrecoKg}
+                  onChange={(e) => setBulkPrecoKg(e.target.value)}
+                  className="mt-1 h-9"
+                />
+              </div>
+              <Button
+                size="sm"
+                onClick={handleBulkUpdatePreco}
+                disabled={bulkLoading || !bulkPrecoKg}
+                className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+              >
+                {bulkLoading
+                  ? <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                  : <RefreshCw className="w-4 h-4 mr-1" />
+                }
+                Atualizar Preços
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Products grouped by category */}
       {byCategoria.length === 0 ? (
         <div className="text-center py-16 text-gray-400">
@@ -364,6 +581,19 @@ export default function MeusProdutosFabricante({ user }) {
               <Badge variant="outline" className="text-xs">{catGroups.length} {catGroups.length === 1 ? "produto" : "produtos"}</Badge>
             </div>
 
+            {/* Select All checkbox */}
+            {byCategoria.length > 0 && categoria === byCategoria[0].categoria && (
+              <div className="flex items-center gap-2 px-1 py-1">
+                <Checkbox
+                  checked={allFilteredSelected}
+                  onCheckedChange={toggleSelectAll}
+                />
+                <button onClick={toggleSelectAll} className="text-sm text-gray-600 hover:text-gray-900">
+                  {allFilteredSelected ? "Desmarcar todos" : "Selecionar todos"}
+                </button>
+              </div>
+            )}
+
             {catGroups.map(g => {
               const status = getGroupStatus(g);
               const isExpanded = expandedGroups.has(g.key);
@@ -377,6 +607,11 @@ export default function MeusProdutosFabricante({ user }) {
                 <div key={g.key} className={`rounded-lg border bg-white overflow-hidden transition-all ${isSelected ? 'border-blue-200' : 'border-gray-200'}`}>
                   {/* Group header */}
                   <div className="flex items-center gap-3 p-4 flex-wrap">
+                    <Checkbox
+                      checked={selectedGroups.has(g.key)}
+                      onCheckedChange={() => toggleGroupSelection(g.key)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
                     <button
                       onClick={() => toggleExpand(g.key)}
                       className="flex items-center gap-2 flex-1 text-left min-w-0"
