@@ -60,11 +60,12 @@ export default function AdminProdutos() {
       const fetchAllTemplates = async () => {
         let all = [];
         let skip = 0;
+        const BATCH = 200;
         while (true) {
-          const batch = await base44.entities.ProductTemplate.filter({}, '_id', 500, skip);
+          const batch = await base44.entities.ProductTemplate.filter({}, 'cod', BATCH, skip);
           all = all.concat(batch);
-          if (batch.length < 500) break;
-          skip += 500;
+          if (batch.length < BATCH) break;
+          skip += BATCH;
         }
         // Dedup by id — safety net against unstable pagination
         const seen = new Set();
