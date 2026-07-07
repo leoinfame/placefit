@@ -98,14 +98,12 @@ export default function Orcamentos() {
       setUser(currentUser);
 
       // Helper para buscar TODOS os registros com paginação completa.
-      // Sempre ordena por _id (campo único) para garantir paginação estável,
-      // evitando duplicação ou perda de registros entre páginas.
-      // Garante fidelidade de 100% entre "Meus Produtos", "Sua Tabela" e o orçamento.
-      const fetchAll = async (entity, query, pageSize = 500) => {
+      // Usa sort estável por entidade para evitar perda de registros entre páginas.
+      const fetchAll = async (entity, query, sort = '-created_date', pageSize = 500) => {
         let all = [];
         let skip = 0;
         while (true) {
-          const batch = await entity.filter(query, '_id', pageSize, skip);
+          const batch = await entity.filter(query, sort, pageSize, skip);
           all = all.concat(batch);
           if (batch.length < pageSize) break;
           skip += pageSize;
@@ -124,8 +122,8 @@ export default function Orcamentos() {
       // - Fabricante: TODOS os templates com SupplierProduct (mesmo sem preço configurado)
       // - Revendedor: apenas SupplierProduct com preço > 0
       const [supplierProducts, allTemplates] = await Promise.all([
-        fetchAll(base44.entities.SupplierProduct, { supplier_id: currentUser.id }),
-        fetchAll(base44.entities.ProductTemplate, { ativo: true })
+        fetchAll(base44.entities.SupplierProduct, { supplier_id: currentUser.id }, '-created_date'),
+        fetchAll(base44.entities.ProductTemplate, { ativo: true }, 'cod')
       ]);
 
       const tmplMap = new Map(allTemplates.map(t => [t.id, t]));
