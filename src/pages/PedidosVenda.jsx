@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import ProductCombobox from "@/components/ProductCombobox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Search, Eye, Edit, Trash2, FileText, Package } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -297,25 +298,15 @@ export default function PedidosVenda() {
                     <div className="grid grid-cols-4 gap-3">
                       <div className="col-span-2 space-y-2">
                         <Label>Produto</Label>
-                        <Select value={itemForm.product_id} onValueChange={(value) => {
-                          const prod = produtos.find(p => p.id === value);
-                          setItemForm({
+                        <ProductCombobox
+                          products={produtos}
+                          value={itemForm.product_id}
+                          onSelect={(prod) => setItemForm({
                             ...itemForm,
-                            product_id: value,
+                            product_id: prod ? prod.id : "",
                             valor_unitario: prod?.preco || 0
-                          });
-                        }}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {produtos.map(prod => (
-                              <SelectItem key={prod.id} value={prod.id}>
-                                {prod.product_name} - R$ {prod.preco}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          })}
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label>Quantidade</Label>
