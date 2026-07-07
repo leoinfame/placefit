@@ -72,7 +72,7 @@ export default function CatalogoGeral({ user }) {
         let all = [];
         let skip = 0;
         while (true) {
-          const batch = await base44.entities.ProductTemplate.filter({ ativo: true }, '_id', 500, skip);
+          const batch = await base44.entities.ProductTemplate.filter({ ativo: true }, 'cod', 500, skip);
           all = all.concat(batch);
           if (batch.length < 500) break;
           skip += 500;
