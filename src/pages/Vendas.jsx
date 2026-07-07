@@ -116,9 +116,19 @@ export default function Vendas() {
           disponivel: true 
         });
 
+        // Os SupplierProduct do revendedor apontam para ProductTemplate
+        // (nao para a entidade antiga Product). Resolver contra ProductTemplate.
+        const _tplIds = [...new Set(supplierProductsData.map(sp => sp.product_id).filter(Boolean))];
+        const _tplMap = {};
+        for (let _i = 0; _i < _tplIds.length; _i += 100) {
+          const _chunk = _tplIds.slice(_i, _i + 100);
+          const _tpls = await base44.entities.ProductTemplate.filter({ id: { $in: _chunk } });
+          for (const _t of _tpls) _tplMap[_t.id] = _t;
+        }
+
         myProductsList = supplierProductsData
           .map(sp => {
-            const product = productsData.find(p => p.id === sp.product_id);
+            const product = _tplMap[sp.product_id];
             if (!product) return null;
             return {
               ...product,
