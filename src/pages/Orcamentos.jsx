@@ -716,6 +716,10 @@ export default function Orcamentos() {
 
               <div>
                 <Label className="mb-3 block">Produtos *</Label>
+                {products.length === 0 && (
+                  <p className="text-xs text-amber-600 mb-2">Nenhum produto carregado. Verifique sua tabela de produtos.</p>
+                )}
+                <p className="text-xs text-gray-400 mb-2">DEBUG: {products.length} produtos carregados | KP4: {products.find(p => p.cod === 'KP4') ? 'SIM' : 'NÃO'}</p>
                 <div className="space-y-3">
                   {newOrcamento.itens.map((item, idx) => (
                     <ProductAutoComplete
