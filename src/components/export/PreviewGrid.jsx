@@ -84,6 +84,7 @@ export default function PreviewGrid({ previewData, user, colors }) {
       {/* Grid de produtos por categoria */}
       {sortedCategories.map(cat => {
         const itens = categorias[cat];
+        return (
         <div key={cat}>
           {/* Cabeçalho da categoria */}
           <div className="flex items-center gap-2 mb-3 px-1">
@@ -168,6 +169,7 @@ export default function PreviewGrid({ previewData, user, colors }) {
             ))}
           </div>
         </div>
+        );
       })}
 
       {/* Rodapé */}
