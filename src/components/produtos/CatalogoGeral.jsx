@@ -56,7 +56,7 @@ export default function CatalogoGeral({ user }) {
   const [isFabricanteMode, setIsFabricanteMode] = useState(false);
   const [mySps, setMySps] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({ categoria: "", subcategoria: "", acabamento: "", search: "" });
+  const [filters, setFilters] = useState({ categoria: "", subcategoria: "", acabamento: "", fabricante: "", search: "" });
   const [addModal, setAddModal] = useState(null);
   const [bulkModal, setBulkModal] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -99,6 +99,18 @@ export default function CatalogoGeral({ user }) {
     return [...new Set(base.map(t => t.acabamento).filter(Boolean))].sort();
   }, [templates, filters.categoria]);
 
+  const fabricanteOptions = useMemo(() => {
+    const base = filters.categoria ? templates.filter(t => t.categoria === filters.categoria) : templates;
+    const fabSet = new Set();
+    for (const t of base) {
+      const prices = pricesByProduct[t.id] || [];
+      for (const p of prices) {
+        if (p.fabricante_nome) fabSet.add(p.fabricante_nome);
+      }
+    }
+    return [...fabSet].sort();
+  }, [templates, filters.categoria, pricesByProduct]);
+
   const filteredTemplates = useMemo(() => {
     return templates.filter(t => {
       if (filters.categoria && t.categoria !== filters.categoria) return false;
@@ -111,6 +123,10 @@ export default function CatalogoGeral({ user }) {
       if (isRevendedor && !pricesError && !isFabricanteMode) {
         const prices = pricesByProduct[t.id] || [];
         if (prices.length === 0) return false;
+      }
+      if (filters.fabricante) {
+        const prices = pricesByProduct[t.id] || [];
+        if (!prices.some(p => p.fabricante_nome === filters.fabricante)) return false;
       }
       return true;
     });
@@ -310,13 +326,13 @@ export default function CatalogoGeral({ user }) {
       )}
 
       {/* Filtros */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
         <Input
           placeholder="Buscar por nome ou SKU..."
           value={filters.search}
           onChange={(e) => setFilters(f => ({ ...f, search: e.target.value }))}
         />
-        <Select value={filters.categoria || "all"} onValueChange={(v) => setFilters(f => ({ ...f, categoria: v === "all" ? "" : v, subcategoria: "", acabamento: "" }))}>
+        <Select value={filters.categoria || "all"} onValueChange={(v) => setFilters(f => ({ ...f, categoria: v === "all" ? "" : v, subcategoria: "", acabamento: "", fabricante: "" }))}>
           <SelectTrigger><SelectValue placeholder="Categoria" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas as categorias</SelectItem>
@@ -335,6 +351,13 @@ export default function CatalogoGeral({ user }) {
           <SelectContent>
             <SelectItem value="all">Todos os acabamentos</SelectItem>
             {acabamentoOptions.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={filters.fabricante || "all"} onValueChange={(v) => setFilters(f => ({ ...f, fabricante: v === "all" ? "" : v }))}>
+          <SelectTrigger><SelectValue placeholder="Fabricante" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os fabricantes</SelectItem>
+            {fabricanteOptions.map(fab => <SelectItem key={fab} value={fab}>{fab}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>
