@@ -64,6 +64,7 @@ export default function Orcamentos() {
   const [selectedOrcamento, setSelectedOrcamento] = useState(null);
   const [editingOrcamento, setEditingOrcamento] = useState(null);
   const [productSearchTerm, setProductSearchTerm] = useState("");
+  const [debugInfo, setDebugInfo] = useState(null);
   
   // Novo orçamento
   const [newOrcamento, setNewOrcamento] = useState({
@@ -108,6 +109,21 @@ export default function Orcamentos() {
       const allTemplates = expandTemplates(data.templates || [], data.fieldMap);
 
       const tmplMap = new Map(allTemplates.map(t => [t.id, t]));
+
+      // Debug: track KP4 through the pipeline
+      const kp4TemplateId = '6a3fd72af902fe48947f7969';
+      const kp4InRawTemplates = (data.templates || []).find(t => t.c === 'KP4' || t.i === kp4TemplateId);
+      const kp4InRawSps = supplierProducts.find(sp => sp.product_id === kp4TemplateId);
+      const kp4InExpanded = allTemplates.find(t => t.cod === 'KP4' || t.id === kp4TemplateId);
+      setDebugInfo({
+        rawTemplateCount: (data.templates || []).length,
+        rawSpCount: supplierProducts.length,
+        kp4InRawTemplates: !!kp4InRawTemplates,
+        kp4InRawSps: !!kp4InRawSps,
+        kp4InExpanded: !!kp4InExpanded,
+        expandedCount: allTemplates.length,
+        fieldMapKeys: data.fieldMap ? Object.keys(data.fieldMap).slice(0, 5).join(',') : 'NONE',
+      });
 
       let productsData;
       if (isFabricante) {
@@ -719,7 +735,13 @@ export default function Orcamentos() {
                 {products.length === 0 && (
                   <p className="text-xs text-amber-600 mb-2">Nenhum produto carregado. Verifique sua tabela de produtos.</p>
                 )}
-                <p className="text-xs text-gray-400 mb-2">DEBUG: {products.length} produtos carregados | KP4: {products.find(p => p.cod === 'KP4') ? 'SIM' : 'NÃO'}</p>
+                <div className="text-xs text-gray-500 mb-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                  <p className="font-bold">DEBUG PIPELINE:</p>
+                  <p>Produtos finais: {products.length} | KP4 na lista: {products.find(p => p.cod === 'KP4') ? 'SIM ✅' : 'NÃO ❌'}</p>
+                  {debugInfo && (
+                    <p>Templates brutos: {debugInfo.rawTemplateCount} | SPs brutos: {debugInfo.rawSpCount} | KP4 em templates: {debugInfo.kp4InRawTemplates ? 'SIM ✅' : 'NÃO ❌'} | KP4 em SPs: {debugInfo.kp4InRawSps ? 'SIM ✅' : 'NÃO ❌'} | KP4 expandido: {debugInfo.kp4InExpanded ? 'SIM ✅' : 'NÃO ❌'}</p>
+                  )}
+                </div>
                 <div className="space-y-3">
                   {newOrcamento.itens.map((item, idx) => (
                     <ProductAutoComplete
