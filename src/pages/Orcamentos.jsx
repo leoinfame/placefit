@@ -126,13 +126,12 @@ export default function Orcamentos() {
           .filter(Boolean);
       } else {
         productsData = supplierProducts
-          .filter(sp => sp.preco && parseFloat(sp.preco) > 0)
           .map(sp => {
             const template = tmplMap.get(sp.product_id);
             if (!template) return null;
             return {
               ...template,
-              preco_fornecedor: sp.preco,
+              preco_fornecedor: sp.preco || 0,
               fabricante_nome: sp.fabricante_nome || '',
               supplier_product_id: sp.id
             };
