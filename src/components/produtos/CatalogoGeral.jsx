@@ -53,6 +53,7 @@ export default function CatalogoGeral({ user }) {
   const [templates, setTemplates] = useState([]);
   const [pricesByProduct, setPricesByProduct] = useState({});
   const [pricesError, setPricesError] = useState(false);
+  const [isFabricanteMode, setIsFabricanteMode] = useState(false);
   const [mySps, setMySps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ categoria: "", subcategoria: "", acabamento: "", search: "" });
@@ -72,12 +73,13 @@ export default function CatalogoGeral({ user }) {
       const res = await getProdutosData({ mode: "catalogo" });
       const data = res.data || res;
       setTemplates(expandTemplates(data.templates || [], data.fieldMap));
+      setIsFabricanteMode(!!data.isFabricante);
       if (data.pricesByProduct && Object.keys(data.pricesByProduct).length > 0) {
         setPricesByProduct(data.pricesByProduct);
         setPricesError(false);
       } else {
         setPricesByProduct({});
-        setPricesError(true);
+        setPricesError(!data.isFabricante);
       }
       setMySps(data.mySupplierProducts || []);
     } catch (e) {
@@ -106,13 +108,13 @@ export default function CatalogoGeral({ user }) {
         const s = filters.search.toLowerCase();
         if (!t.nome?.toLowerCase().includes(s) && !t.cod?.toLowerCase().includes(s)) return false;
       }
-      if (isRevendedor && !pricesError) {
+      if (isRevendedor && !pricesError && !isFabricanteMode) {
         const prices = pricesByProduct[t.id] || [];
         if (prices.length === 0) return false;
       }
       return true;
     });
-  }, [templates, filters, pricesByProduct, isRevendedor]);
+  }, [templates, filters, pricesByProduct, isRevendedor, pricesError, isFabricanteMode]);
 
   // Group filtered templates by base product
   const groups = useMemo(() => {
@@ -300,7 +302,7 @@ export default function CatalogoGeral({ user }) {
 
   return (
     <div className="space-y-4">
-      {pricesError && (
+      {pricesError && !isFabricanteMode && (
         <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-2.5 flex items-center gap-2">
           <Loader2 className="w-4 h-4 text-amber-600 animate-spin" />
           <span className="text-sm text-amber-700">Carregando preços de fabricantes... Alguns produtos podem aparecer sem preço temporariamente.</span>
