@@ -54,7 +54,25 @@ export default function PedidosVenda() {
 
       setPedidos(pedidosData || []);
       setClientes(clientesData || []);
-      setProdutos(produtosData || []);
+
+      // Os SupplierProduct do revendedor apontam para ProductTemplate.
+      // Juntamos aqui para exibir nome/cod/ncm reais no seletor e na NF-e.
+      const _sps = produtosData || [];
+      const _tplIds = [...new Set(_sps.map(sp => sp.product_id).filter(Boolean))];
+      const _tplMap = {};
+      for (let _i = 0; _i < _tplIds.length; _i += 100) {
+        const _chunk = _tplIds.slice(_i, _i + 100);
+        const _tpls = await base44.entities.ProductTemplate.filter({ id: { $in: _chunk } });
+        for (const _t of _tpls) _tplMap[_t.id] = _t;
+      }
+      const _produtosEnriquecidos = _sps
+        .map(sp => {
+          const t = _tplMap[sp.product_id];
+          if (!t) return null;
+          return { ...sp, product_name: t.nome, product_cod: t.cod, product_ncm: t.ncm };
+        })
+        .filter(Boolean);
+      setProdutos(_produtosEnriquecidos);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
     } finally {
