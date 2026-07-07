@@ -231,13 +231,34 @@ export default function CatalogoGeral({ user }) {
   const clearSelection = () => setSelected(new Set());
 
   // Get fabricante prices for a specific fabricante within a group
+  // Returns ALL variations in the group — for variations without an explicit
+  // fabricante price, the price is interpolated from the average preço/kg.
   const getGroupFabricanteVariations = (group, fabricanteNome) => {
+    const hasWeights = group.templates.some(t => t.peso_kg != null);
+
+    // First pass: collect explicit prices and compute avg preço/kg
+    let precoKgSum = 0;
+    let precoKgCount = 0;
+    for (const tmpl of group.templates) {
+      const prices = pricesByProduct[tmpl.id] || [];
+      const fabPrice = prices.find(p => p.fabricante_nome === fabricanteNome);
+      if (fabPrice && fabPrice.preco && tmpl.peso_kg) {
+        precoKgSum += fabPrice.preco / tmpl.peso_kg;
+        precoKgCount++;
+      }
+    }
+    const avgPrecoKg = precoKgCount > 0 ? precoKgSum / precoKgCount : null;
+
+    // Second pass: include ALL templates in the group
     const result = [];
     for (const tmpl of group.templates) {
       const prices = pricesByProduct[tmpl.id] || [];
       const fabPrice = prices.find(p => p.fabricante_nome === fabricanteNome);
-      if (fabPrice) {
+      if (fabPrice && fabPrice.preco != null) {
         result.push({ templateId: tmpl.id, preco: fabPrice.preco, peso_kg: tmpl.peso_kg, nome: tmpl.nome });
+      } else if (hasWeights && avgPrecoKg && tmpl.peso_kg) {
+        // Interpolate price based on average preço/kg
+        result.push({ templateId: tmpl.id, preco: Math.round(avgPrecoKg * tmpl.peso_kg * 100) / 100, peso_kg: tmpl.peso_kg, nome: tmpl.nome });
       }
     }
     return result;

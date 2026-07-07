@@ -105,20 +105,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Debug: count templates and check for KP4
-    const kp4Template = templates.find(t => t.c === 'KP4');
-    const kp4Sp = mySps.find(sp => sp.product_id === '6a3fd72af902fe48947f7969');
-
     return Response.json({
-      _debug: {
-        totalTemplates: templates.length,
-        totalSps: mySps.length,
-        kp4InTemplates: !!kp4Template,
-        kp4InSps: !!kp4Sp,
-        kp4TemplateCod: kp4Template?.c || null,
-        kp4SpPreco: kp4Sp?.preco || null,
-        userId: user.id,
-      },
       templates,
       mySupplierProducts: mySps,
       pricesByProduct,
