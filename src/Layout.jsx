@@ -353,6 +353,11 @@ export default function Layout({ children, currentPageName }) {
           icon: Package,
         },
         {
+          title: "  • Meus Produtos",
+          url: createPageUrl("Produtos") + "?tab=meus",
+          icon: Package,
+        },
+        {
           title: "  • Importar Tabela",
           url: createPageUrl("Produtos") + "?tab=importar",
           icon: Package,
