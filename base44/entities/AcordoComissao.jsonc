@@ -1,0 +1,39 @@
+{
+  "description": "Configuracao por revendedor de como calcular o lucro de cada fabricante: comissao paga pelo fabricante (percentual sobre a venda) ou markup sobre a compra (venda - custo).",
+  "name": "AcordoComissao",
+  "properties": {
+    "fabricante_id": {
+      "description": "ID do fabricante (User), quando disponivel",
+      "type": "string"
+    },
+    "fabricante_nome": {
+      "description": "Nome do fabricante (empresa) - casa com fabricante_nome do SupplierProduct",
+      "type": "string"
+    },
+    "paga_comissao": {
+      "default": false,
+      "description": "Se true, o lucro e a comissao paga pelo fabricante sobre a venda; se false, o lucro e markup (venda - compra)",
+      "type": "boolean"
+    },
+    "percentual_comissao": {
+      "default": 0,
+      "description": "Percentual de comissao sobre o valor da venda (usado quando paga_comissao=true)",
+      "type": "number"
+    },
+    "revendedor_id": {
+      "description": "ID do revendedor dono deste acordo",
+      "type": "string"
+    }
+  },
+  "required": [
+    "revendedor_id",
+    "fabricante_nome"
+  ],
+  "type": "object",
+  "x-security": {
+    "create": "authenticated",
+    "delete": "authenticated",
+    "read": "authenticated",
+    "update": "authenticated"
+  }
+}
