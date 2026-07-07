@@ -11,6 +11,18 @@ const TEMPLATE_FIELDS = [
   'pegada', 'peso_faixa', 'peso_kg', 'und', 'foto', 'ativo'
 ];
 
+// Campos reduzidos para fabricantes (sem foto/ativo) — diminui o payload de ~700KB para ~500KB
+const TEMPLATE_FIELDS_FABRICANTE = [
+  'id', 'nome', 'cod', 'categoria', 'subcategoria',
+  'tipo_anilha', 'tipo_furo', 'acabamento',
+  'barra_tipo', 'barra_acabamento', 'bojo_formato', 'dumbell_tipo',
+  'piso_espessura_mm', 'piso_formato', 'tijolinho_tipo', 'tijolinho_torre',
+  'suporte_modelo', 'suporte_estrutura', 'suporte_degraus',
+  'suporte_capacidade_pares', 'suporte_capacidade_unidades',
+  'suporte_torre_capacidade', 'suporte_torre_tipo',
+  'pegada', 'peso_faixa', 'peso_kg', 'und'
+];
+
 const SP_FIELDS = ['id', 'product_id', 'preco', 'margem', 'fabricante_nome', 'disponivel', 'supplier_id', 'sale_price', 'cod_origem', 'observacoes'];
 
 const projectEntity = (entity, fields) => {
@@ -60,15 +72,16 @@ Deno.serve(async (req) => {
       }
     } else {
       // Modo catálogo: buscar todos os templates ativos
+      const tplFields = isFabricante ? TEMPLATE_FIELDS_FABRICANTE : TEMPLATE_FIELDS;
       const allTemplatesRaw = await fetchAll((sort, limit, skip) =>
         base44.asServiceRole.entities.ProductTemplate.filter({ ativo: true }, 'cod', limit, skip)
       );
-      templates = allTemplatesRaw.map(t => projectEntity(t, TEMPLATE_FIELDS));
+      templates = allTemplatesRaw.map(t => projectEntity(t, tplFields));
     }
 
-    // 3. pricesByProduct — apenas no modo catálogo
+    // 3. pricesByProduct — apenas no modo catálogo E para revendedores (fabricantes não precisam)
     let pricesByProduct = {};
-    if (mode === 'catalogo') {
+    if (mode === 'catalogo' && !isFabricante) {
       const fabricantes = await base44.asServiceRole.entities.User.filter({ tipo_usuario: 'fabricante' });
       const fabNameById = {};
       const fabIds = new Set();
