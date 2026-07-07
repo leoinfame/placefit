@@ -3,12 +3,25 @@ import React from "react";
 export default function PreviewGrid({ previewData, user, colors }) {
   if (!previewData || previewData.length === 0) return null;
 
+  // Ordem desejada de categorias; demais aparecem depois em ordem alfabética
+  const CATEGORY_ORDER = ['Anilhas', 'Halteres', 'Dumbells', 'Kettlebells', 'Tijolinhos', 'Pisos', 'Kits'];
+
   // Agrupar por categoria
   const categorias = {};
   previewData.forEach(item => {
     const cat = item.categoria || 'Outros';
     if (!categorias[cat]) categorias[cat] = [];
     categorias[cat].push(item);
+  });
+
+  // Ordenar categorias: primeiro as da lista, depois as restantes alfabeticamente
+  const sortedCategories = Object.keys(categorias).sort((a, b) => {
+    const ia = CATEGORY_ORDER.indexOf(a);
+    const ib = CATEGORY_ORDER.indexOf(b);
+    if (ia !== -1 && ib !== -1) return ia - ib;
+    if (ia !== -1) return -1;
+    if (ib !== -1) return 1;
+    return a.localeCompare(b, 'pt-BR');
   });
 
   const c = colors || {
@@ -69,7 +82,8 @@ export default function PreviewGrid({ previewData, user, colors }) {
       </div>
 
       {/* Grid de produtos por categoria */}
-      {Object.entries(categorias).map(([cat, itens]) => (
+      {sortedCategories.map(cat => {
+        const itens = categorias[cat];
         <div key={cat}>
           {/* Cabeçalho da categoria */}
           <div className="flex items-center gap-2 mb-3 px-1">
@@ -154,7 +168,7 @@ export default function PreviewGrid({ previewData, user, colors }) {
             ))}
           </div>
         </div>
-      ))}
+      })}
 
       {/* Rodapé */}
       <div className="border-t border-gray-200 pt-3">

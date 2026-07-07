@@ -267,6 +267,17 @@ export default function Export() {
       categorias[cat].push(item);
     });
 
+    // Ordem desejada de categorias; demais aparecem depois em ordem alfabética
+    const CATEGORY_ORDER = ['Anilhas', 'Halteres', 'Dumbells', 'Kettlebells', 'Tijolinhos', 'Pisos', 'Kits'];
+    const sortedCategories = Object.keys(categorias).sort((a, b) => {
+      const ia = CATEGORY_ORDER.indexOf(a);
+      const ib = CATEGORY_ORDER.indexOf(b);
+      if (ia !== -1 && ib !== -1) return ia - ib;
+      if (ia !== -1) return -1;
+      if (ib !== -1) return 1;
+      return a.localeCompare(b, 'pt-BR');
+    });
+
     const categoryIcons = {
       'Cardiovascular': '🏃',
       'Musculação': '💪',
@@ -277,7 +288,8 @@ export default function Export() {
       'Outros': '📦',
     };
 
-    const categoriasBlocos = Object.entries(categorias).map(([cat, itens]) => {
+    const categoriasBlocos = sortedCategories.map(cat => {
+      const itens = categorias[cat];
       const icon = categoryIcons[cat] || '📦';
       const cards = itens.map(item => {
         const espec = item.isWeightGrouped ? (item.pesosDisponiveis || '—') : (item.peso || item.dimensoes || '');
