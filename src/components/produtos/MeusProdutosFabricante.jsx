@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
+import { getProdutosData } from "@/functions/getProdutosData";
 import {
   Loader2, Package, Search, X, ChevronDown, ChevronRight,
   Save, Tag, Weight, DollarSign, CheckCircle2, Plus, RefreshCw
@@ -63,37 +64,10 @@ export default function MeusProdutosFabricante({ user }) {
   const loadData = async () => {
     setLoading(true);
     try {
-      // Fetch ALL templates (paginated, sort by _id for stable pagination)
-      let allTemplates = [];
-      let skip = 0;
-      while (true) {
-        const batch = await base44.entities.ProductTemplate.filter({ ativo: true }, '_id', 500, skip);
-        allTemplates = allTemplates.concat(batch);
-        if (batch.length < 500) break;
-        skip += 500;
-      }
-      // Dedup by id — safety net against unstable pagination
-      {
-        const seen = new Set();
-        allTemplates = allTemplates.filter(t => { if (seen.has(t.id)) return false; seen.add(t.id); return true; });
-      }
-
-      // Fetch fabricante's existing SPs (paginated)
-      let allSps = [];
-      skip = 0;
-      while (true) {
-        const batch = await base44.entities.SupplierProduct.filter(
-          { supplier_id: user.id }, '-created_date', 500, skip
-        );
-        allSps = allSps.concat(batch);
-        if (batch.length < 500) break;
-        skip += 500;
-      }
-      // Dedup by id — safety net against unstable pagination
-      {
-        const seenSp = new Set();
-        allSps = allSps.filter(sp => { if (seenSp.has(sp.id)) return false; seenSp.add(sp.id); return true; });
-      }
+      const res = await getProdutosData({ mode: "catalogo", isFabricante: true });
+      const data = res.data || res;
+      const allTemplates = data.templates || [];
+      const allSps = data.mySupplierProducts || [];
 
       // Map SPs by product_id
       const spByProduct = {};

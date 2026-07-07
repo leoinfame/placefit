@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
-import { getCatalogoData } from "@/functions/getCatalogoData";
+import { getProdutosData } from "@/functions/getProdutosData";
 import { Search, Package, Plus, Check, Loader2, Weight, Layers, Tag, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,33 +68,17 @@ export default function CatalogoGeral({ user }) {
 
   const loadData = async () => {
     try {
-      const fetchAllTemplates = async () => {
-        let all = [];
-        let skip = 0;
-        while (true) {
-          const batch = await base44.entities.ProductTemplate.filter({ ativo: true }, 'cod', 500, skip);
-          all = all.concat(batch);
-          if (batch.length < 500) break;
-          skip += 500;
-        }
-        // Dedup by id — safety net against unstable pagination
-        const seen = new Set();
-        return all.filter(t => { if (seen.has(t.id)) return false; seen.add(t.id); return true; });
-      };
-      const [tmpls, catalogRes, mine] = await Promise.all([
-        fetchAllTemplates(),
-        getCatalogoData({}).catch(() => null),
-        base44.entities.SupplierProduct.filter({ supplier_id: user.id }, '-created_date', 500),
-      ]);
-      setTemplates(tmpls || []);
-      if (catalogRes?.data?.pricesByProduct) {
-        setPricesByProduct(catalogRes.data.pricesByProduct);
+      const res = await getProdutosData({ mode: "catalogo" });
+      const data = res.data || res;
+      setTemplates(data.templates || []);
+      if (data.pricesByProduct && Object.keys(data.pricesByProduct).length > 0) {
+        setPricesByProduct(data.pricesByProduct);
         setPricesError(false);
       } else {
         setPricesByProduct({});
         setPricesError(true);
       }
-      setMySps(mine || []);
+      setMySps(data.mySupplierProducts || []);
     } catch (e) {
       console.error(e);
       toast({ title: "Erro", description: "Erro ao carregar catálogo.", variant: "destructive" });

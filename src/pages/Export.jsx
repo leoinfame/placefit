@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
+import { getProdutosData } from "@/functions/getProdutosData";
 import { useLogoColors } from "@/components/export/useLogoColors";
 import {
   Download,
@@ -149,50 +150,23 @@ export default function Export() {
         return;
       }
 
-      // Verificar se é fabricante
       const isFabricante = currentUser.tipo_usuario === 'fabricante' || viewMode === 'fabricante';
 
-      // Helper para buscar todos os registros com paginação completa.
-      // Ordena por -created_date para garantir paginação estável.
-      const fetchAll = async (entity, query, pageSize = 500) => {
-        let all = [];
-        let skip = 0;
-        while (true) {
-          const batch = await entity.filter(query, '-created_date', pageSize, skip);
-          all = all.concat(batch);
-          if (batch.length < pageSize) break;
-          skip += pageSize;
-        }
-        // Dedup by id — safety net against unstable pagination
-        const seen = new Set();
-        return all.filter(r => { if (seen.has(r.id)) return false; seen.add(r.id); return true; });
-      };
+      const res = await getProdutosData({ mode: "meus", isFabricante });
+      const data = res.data || res;
+      const allTemplates = data.templates || [];
+      const supplierProductsData = data.mySupplierProducts || [];
 
       if (isFabricante) {
-        // Para fabricantes, buscar apenas templates que ele configurou preço (novo padrão)
-        const [allTemplates, supplierProductsData] = await Promise.all([
-          fetchAll(base44.entities.ProductTemplate, { ativo: true }),
-          fetchAll(base44.entities.SupplierProduct, { supplier_id: currentUser.id })
-        ]);
-
-        
-        // Filtrar templates que o fabricante tem SupplierProduct
         const configuredTemplateIds = supplierProductsData.map(sp => sp.product_id);
         const productsData = allTemplates.filter(t => configuredTemplateIds.includes(t.id));
-        
         setProducts(productsData);
         setSupplierProducts(supplierProductsData);
         generatePreviewForFabricante(productsData, supplierProductsData);
       } else {
-        // Para revendedores, buscar templates e seus SupplierProducts (com paginação completa)
-        const [productsData, supplierProductsData] = await Promise.all([
-          fetchAll(base44.entities.ProductTemplate, { ativo: true }),
-          fetchAll(base44.entities.SupplierProduct, { supplier_id: currentUser.id })
-        ]);
-
-        setProducts(productsData);
+        setProducts(allTemplates);
         setSupplierProducts(supplierProductsData);
-        generatePreview(productsData, supplierProductsData);
+        generatePreview(allTemplates, supplierProductsData);
       }
 
     } catch (error) {

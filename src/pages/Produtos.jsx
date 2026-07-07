@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
+import { getProdutosData } from "@/functions/getProdutosData";
 import { Package, List, Upload, BarChart3, Layers, Users, DollarSign, ShieldCheck } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -66,15 +67,12 @@ export default function Produtos() {
 
   const loadStats = async () => {
     try {
-      const [tmpls, sps, fabs] = await Promise.all([
-        base44.entities.ProductTemplate.filter({ ativo: true }),
-        base44.entities.SupplierProduct.list('-created_date', 2000),
-        base44.entities.User.filter({ tipo_usuario: 'fabricante' }),
-      ]);
+      const res = await getProdutosData({ mode: "catalogo" });
+      const data = res.data || res;
       setStats({
-        templates: tmpls.length,
-        supplierProducts: sps.length,
-        fabricantes: fabs.length,
+        templates: data.templates?.length || 0,
+        supplierProducts: Object.values(data.pricesByProduct || {}).flat().length,
+        fabricantes: 0,
       });
     } catch (e) { console.error(e); }
   };

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { getProdutosData } from "@/functions/getProdutosData";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   FileText,
@@ -97,41 +98,18 @@ export default function Orcamentos() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      // Helper para buscar TODOS os registros com paginação completa.
-      // Usa sort estável por entidade para evitar perda de registros entre páginas.
-      const fetchAll = async (entity, query, sort = '-created_date', pageSize = 500) => {
-        let all = [];
-        let skip = 0;
-        while (true) {
-          const batch = await entity.filter(query, sort, pageSize, skip);
-          all = all.concat(batch);
-          if (batch.length < pageSize) break;
-          skip += pageSize;
-        }
-        // Dedup by id — safety net against unstable pagination
-        const seen = new Set();
-        return all.filter(r => { if (seen.has(r.id)) return false; seen.add(r.id); return true; });
-      };
-
-      // Verificar view mode do admin (mesma lógica do Export)
       const viewMode = localStorage.getItem('admin_view_mode') || 'admin';
       const isFabricante = currentUser.tipo_usuario === 'fabricante' || viewMode === 'fabricante';
 
-      // Carregar TODOS os SupplierProduct do revendedor + TODOS os ProductTemplate ativos.
-      // Lógica alinhada com "Sua Tabela" (Export):
-      // - Fabricante: TODOS os templates com SupplierProduct (mesmo sem preço configurado)
-      // - Revendedor: apenas SupplierProduct com preço > 0
-      const [supplierProducts, allTemplates] = await Promise.all([
-        fetchAll(base44.entities.SupplierProduct, { supplier_id: currentUser.id }, '-created_date'),
-        fetchAll(base44.entities.ProductTemplate, { ativo: true }, 'cod')
-      ]);
+      const res = await getProdutosData({ mode: "meus", isFabricante });
+      const data = res.data || res;
+      const supplierProducts = data.mySupplierProducts || [];
+      const allTemplates = data.templates || [];
 
       const tmplMap = new Map(allTemplates.map(t => [t.id, t]));
 
       let productsData;
       if (isFabricante) {
-        // Fabricante: todos os templates que ele configurou (tem SupplierProduct),
-        // independente de ter preço ou não — igual ao Export
         productsData = supplierProducts
           .map(sp => {
             const template = tmplMap.get(sp.product_id);
@@ -146,7 +124,6 @@ export default function Orcamentos() {
           })
           .filter(Boolean);
       } else {
-        // Revendedor: apenas produtos com preço > 0
         productsData = supplierProducts
           .filter(sp => sp.preco && parseFloat(sp.preco) > 0)
           .map(sp => {
