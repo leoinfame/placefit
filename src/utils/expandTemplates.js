@@ -10,8 +10,11 @@ const FIELD_MAP = {
   pg: 'pegada', pfa: 'peso_faixa', pk: 'peso_kg', u: 'und', f: 'foto', at: 'ativo'
 };
 
+const invertMap = (map) => Object.fromEntries(Object.entries(map).map(([k, v]) => [v, k]));
+
 export function expandTemplates(templates, fieldMap) {
-  const map = fieldMap || FIELD_MAP;
+  // Backend sends long→short (e.g. { id: 'i' }); expandTemplates needs short→long (e.g. { i: 'id' })
+  const map = fieldMap ? invertMap(fieldMap) : FIELD_MAP;
   return (templates || []).map(t => {
     const expanded = {};
     for (const [short, long] of Object.entries(map)) {
