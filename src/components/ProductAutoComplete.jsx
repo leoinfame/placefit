@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Package, X, Search, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { tokenizeQuery, productMatches } from "@/utils/productSearch";
 
 export default function ProductAutoComplete({
   products,
@@ -44,17 +45,8 @@ export default function ProductAutoComplete({
   }, []);
 
   const filteredProducts = useMemo(() => {
-    const q = searchTerm.trim().toLowerCase();
-    const base = q
-      ? products.filter(p =>
-          p.nome?.toLowerCase().includes(q) ||
-          p.cod?.toLowerCase().includes(q) ||
-          p.categoria?.toLowerCase().includes(q) ||
-          p.subcategoria?.toLowerCase().includes(q) ||
-          p.fabricante_nome?.toLowerCase().includes(q)
-        )
-      : products;
-    // Sem busca: mostra TODOS (ordenados), nao so os 50 primeiros
+    const tokens = tokenizeQuery(searchTerm);
+    const base = tokens.length ? products.filter((p) => productMatches(p, tokens)) : products;
     const sorted = [...base].sort((a, b) => {
       const c = (a.categoria || "").localeCompare(b.categoria || "");
       if (c !== 0) return c;
