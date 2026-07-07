@@ -51,6 +51,7 @@ const formatBRL = (v) => v != null && !isNaN(v) ? v.toLocaleString("pt-BR", { st
 export default function CatalogoGeral({ user }) {
   const [templates, setTemplates] = useState([]);
   const [pricesByProduct, setPricesByProduct] = useState({});
+  const [pricesError, setPricesError] = useState(false);
   const [mySps, setMySps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ categoria: "", subcategoria: "", acabamento: "", search: "" });
@@ -82,11 +83,17 @@ export default function CatalogoGeral({ user }) {
       };
       const [tmpls, catalogRes, mine] = await Promise.all([
         fetchAllTemplates(),
-        getCatalogoData({}).catch(() => ({ data: { pricesByProduct: {} } })),
+        getCatalogoData({}).catch(() => null),
         base44.entities.SupplierProduct.filter({ supplier_id: user.id }, '-created_date', 500),
       ]);
       setTemplates(tmpls || []);
-      setPricesByProduct(catalogRes?.data?.pricesByProduct || {});
+      if (catalogRes?.data?.pricesByProduct) {
+        setPricesByProduct(catalogRes.data.pricesByProduct);
+        setPricesError(false);
+      } else {
+        setPricesByProduct({});
+        setPricesError(true);
+      }
       setMySps(mine || []);
     } catch (e) {
       console.error(e);
@@ -114,7 +121,7 @@ export default function CatalogoGeral({ user }) {
         const s = filters.search.toLowerCase();
         if (!t.nome?.toLowerCase().includes(s) && !t.cod?.toLowerCase().includes(s)) return false;
       }
-      if (isRevendedor) {
+      if (isRevendedor && !pricesError) {
         const prices = pricesByProduct[t.id] || [];
         if (prices.length === 0) return false;
       }
@@ -308,6 +315,13 @@ export default function CatalogoGeral({ user }) {
 
   return (
     <div className="space-y-4">
+      {pricesError && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-2.5 flex items-center gap-2">
+          <Loader2 className="w-4 h-4 text-amber-600 animate-spin" />
+          <span className="text-sm text-amber-700">Carregando preços de fabricantes... Alguns produtos podem aparecer sem preço temporariamente.</span>
+        </div>
+      )}
+
       {/* Filtros */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
         <Input
