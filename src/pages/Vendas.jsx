@@ -82,22 +82,8 @@ export default function Vendas() {
         base44.entities.Product.list()
       ]);
 
-      // Calcular lucro para revendedores
-      if (currentUser.role !== 'admin' && !currentUser.tipo_usuario) {
-        pedidosData = pedidosData.map(pedido => {
-          let lucroTotal = 0;
-          pedido.itens.forEach(item => {
-            const produto = productsData.find(p => p.id === item.product_id);
-            if (produto && produto.preco_fabricante) {
-              const precoFabricante = parseFloat(produto.preco_fabricante);
-              const precoVenda = parseFloat(item.preco_unitario);
-              const lucroItem = (precoVenda - precoFabricante) * item.quantidade;
-              lucroTotal += lucroItem;
-            }
-          });
-          return { ...pedido, lucro_total: lucroTotal };
-        });
-      }
+      // O lucro do revendedor e calculado mais abaixo, depois que os produtos
+      // (via ProductTemplate) e os acordos de comissao sao carregados.
 
       let myProductsList = [];
 
@@ -134,10 +120,45 @@ export default function Vendas() {
             return {
               ...product,
               preco: sp.preco || 0,
+              custo_fabricante: sp.preco || 0,
+              fabricante_nome: sp.fabricante_nome || '',
               supplier_product_id: sp.id
             };
           })
           .filter(p => p && p.preco > 0);
+      }
+
+      // Lucro do revendedor: por fabricante, comissao (%) sobre a venda OU markup (venda - custo)
+      if (currentUser.role !== 'admin' && !currentUser.tipo_usuario) {
+        let acordos = [];
+        try {
+          acordos = await base44.entities.AcordoComissao.filter({ revendedor_id: currentUser.id });
+        } catch (e) {
+          console.warn('Nao foi possivel carregar acordos de comissao:', e);
+        }
+        const comissaoMap = {};
+        for (const a of (acordos || [])) comissaoMap[a.fabricante_nome] = a;
+
+        const produtoMap = {};
+        for (const p of myProductsList) produtoMap[p.id] = p;
+
+        pedidosData = pedidosData.map(pedido => {
+          let lucroTotal = 0;
+          (pedido.itens || []).forEach(item => {
+            const produto = produtoMap[item.product_id];
+            if (!produto) return; // item legado / produto nao encontrado: nao estima lucro
+            const precoVenda = parseFloat(item.preco_unitario) || 0;
+            const qtd = parseFloat(item.quantidade) || 0;
+            const acordo = comissaoMap[produto.fabricante_nome];
+            if (acordo && acordo.paga_comissao) {
+              lucroTotal += ((parseFloat(acordo.percentual_comissao) || 0) / 100) * (precoVenda * qtd);
+            } else {
+              const custo = parseFloat(produto.custo_fabricante) || 0;
+              lucroTotal += (precoVenda - custo) * qtd;
+            }
+          });
+          return { ...pedido, lucro_total: lucroTotal };
+        });
       }
 
       console.log('Produtos carregados para pedido:', myProductsList.length);
