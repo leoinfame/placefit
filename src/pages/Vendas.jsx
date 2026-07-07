@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Plus, Search, Eye, Trash2, ShoppingCart, Package, FileText, Printer, User, Edit3, Save, Loader2, Zap, Truck, Share2, Receipt } from "lucide-react";
 import { generateProfessionalPDF } from "@/components/ProfessionalPDF";
 import ClienteAutoComplete from "@/components/ClienteAutoComplete";
+import ProductCombobox from "@/components/ProductCombobox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -1144,18 +1145,11 @@ export default function Vendas() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                       <div className="md:col-span-2">
                         <Label htmlFor="produto">Produto</Label>
-                        <Select value={selectedProduct} onValueChange={setSelectedProduct}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione um produto" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {myProducts.map(product => (
-                              <SelectItem key={product.id} value={product.id}>
-                                {product.nome} - R$ {parseFloat(product.preco).toFixed(2)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <ProductCombobox
+                          products={myProducts}
+                          value={selectedProduct}
+                          onSelect={(p) => setSelectedProduct(p ? p.id : "")}
+                        />
                       </div>
                       <div>
                         <Label htmlFor="quantidade">Quantidade</Label>
