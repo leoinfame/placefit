@@ -92,7 +92,7 @@ export default function MeusProdutos({ user }) {
       let allTemplates = [];
       skip = 0;
       while (true) {
-        const batch = await base44.entities.ProductTemplate.list('_id', 500, skip);
+        const batch = await base44.entities.ProductTemplate.list('cod', 500, skip);
         allTemplates = allTemplates.concat(batch);
         if (batch.length < 500) break;
         skip += 500;

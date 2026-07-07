@@ -153,13 +153,12 @@ export default function Export() {
       const isFabricante = currentUser.tipo_usuario === 'fabricante' || viewMode === 'fabricante';
 
       // Helper para buscar todos os registros com paginação completa.
-      // Sempre ordena por _id (campo único) para garantir paginação estável,
-      // evitando duplicação ou perda de registros entre páginas.
+      // Ordena por -created_date para garantir paginação estável.
       const fetchAll = async (entity, query, pageSize = 500) => {
         let all = [];
         let skip = 0;
         while (true) {
-          const batch = await entity.filter(query, '_id', pageSize, skip);
+          const batch = await entity.filter(query, '-created_date', pageSize, skip);
           all = all.concat(batch);
           if (batch.length < pageSize) break;
           skip += pageSize;
