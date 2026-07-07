@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Search, X, Package } from "lucide-react";
+import { tokenizeQuery, productMatches } from "@/utils/productSearch";
 
 // Seletor unico de produto com busca. Reutilizavel em Vendas, PedidosVenda, etc.
 // Resiliente a duas formas de produto: template ({nome, cod}) e SupplierProduct
@@ -37,16 +38,8 @@ export default function ProductCombobox({
   }, []);
 
   const filtered = useMemo(() => {
-    const q = searchTerm.trim().toLowerCase();
-    const base = q
-      ? products.filter((p) =>
-          getLabel(p).toLowerCase().includes(q) ||
-          getCod(p).toLowerCase().includes(q) ||
-          (p.categoria || "").toLowerCase().includes(q) ||
-          (p.subcategoria || "").toLowerCase().includes(q) ||
-          (p.fabricante_nome || "").toLowerCase().includes(q)
-        )
-      : products;
+    const tokens = tokenizeQuery(searchTerm);
+    const base = tokens.length ? products.filter((p) => productMatches(p, tokens)) : products;
     const sorted = [...base].sort((a, b) => {
       const c = (a.categoria || "").localeCompare(b.categoria || "");
       if (c !== 0) return c;
