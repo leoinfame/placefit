@@ -66,7 +66,9 @@ Deno.serve(async (req) => {
     if (mode === 'meus') {
       const productIds = [...new Set(mySps.map(sp => sp.product_id))];
       if (productIds.length > 0) {
-        const matchingTemplates = await base44.asServiceRole.entities.ProductTemplate.filter({ id: { $in: productIds } });
+        const matchingTemplates = await fetchAll((sort, limit, skip) =>
+          base44.asServiceRole.entities.ProductTemplate.filter({ id: { $in: productIds } }, sort, limit, skip)
+        );
         templates = matchingTemplates.map(t => projectEntityShort(t, TEMPLATE_FIELDS));
       }
     } else {
