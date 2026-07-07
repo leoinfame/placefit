@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import AIResponseFormatter from "@/components/AIResponseFormatter";
+import ComissaoConfig from "@/components/ComissaoConfig";
 
 export default function FabricantesRevendedor() {
   const [user, setUser] = useState(null);
@@ -693,6 +694,12 @@ RESPONDA EM PORTUGUÊS BRASILEIRO DE FORMA PROFISSIONAL E COMERCIAL.
                       <Package className="w-4 h-4 mr-2" />
                       Ver Catálogo
                     </Button>
+
+                    <ComissaoConfig
+                      fabricanteNome={fabricante.empresa || fabricante.full_name}
+                      fabricanteId={fabricante.id}
+                      revendedorId={user?.id}
+                    />
                   </div>
                 </CardContent>
               </Card>
