@@ -45,13 +45,22 @@ export default function ProductAutoComplete({
 
   const filteredProducts = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
-    if (!q) return products.slice(0, 50);
-    return products.filter(p =>
-      p.nome?.toLowerCase().includes(q) ||
-      p.cod?.toLowerCase().includes(q) ||
-      p.categoria?.toLowerCase().includes(q) ||
-      p.subcategoria?.toLowerCase().includes(q)
-    );
+    const base = q
+      ? products.filter(p =>
+          p.nome?.toLowerCase().includes(q) ||
+          p.cod?.toLowerCase().includes(q) ||
+          p.categoria?.toLowerCase().includes(q) ||
+          p.subcategoria?.toLowerCase().includes(q) ||
+          p.fabricante_nome?.toLowerCase().includes(q)
+        )
+      : products;
+    // Sem busca: mostra TODOS (ordenados), nao so os 50 primeiros
+    const sorted = [...base].sort((a, b) => {
+      const c = (a.categoria || "").localeCompare(b.categoria || "");
+      if (c !== 0) return c;
+      return (a.nome || "").localeCompare(b.nome || "");
+    });
+    return sorted.slice(0, 500);
   }, [searchTerm, products]);
 
   // Reset highlight when results change
@@ -237,9 +246,9 @@ export default function ProductAutoComplete({
             </div>
           )}
 
-          {showDropdown && !searchTerm.trim() && products.length > 50 && (
+          {showDropdown && !searchTerm.trim() && products.length > 500 && (
             <div className="p-3 text-center border-t bg-gray-50">
-              <p className="text-xs text-gray-400">Mostrando os primeiros 50 — digite para filtrar todos os {products.length}</p>
+              <p className="text-xs text-gray-400">Mostrando os primeiros 500 — digite para filtrar todos os {products.length}</p>
             </div>
           )}
         </div>
