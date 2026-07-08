@@ -251,7 +251,25 @@ export default function Export() {
     setExporting(false);
   };
 
-  const buildPDFHTML = () => {
+  const fetchImageAsDataURL = async (url) => {
+    if (!url) return url;
+    try {
+      const response = await fetch(url, { mode: 'cors' });
+      if (!response.ok) return url;
+      const blob = await response.blob();
+      return await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = () => resolve(url);
+        reader.readAsDataURL(blob);
+      });
+    } catch (e) {
+      return url;
+    }
+  };
+
+  const buildPDFHTML = (imageMap = {}) => {
+    const getImg = (url) => imageMap[url] || url || '';
     const nomeEmpresa = user?.empresa || user?.full_name || 'Fornecedor';
     const dataGeracao = new Date().toLocaleDateString('pt-BR');
     const c = colors || {
@@ -295,8 +313,9 @@ export default function Export() {
         const espec = item.isWeightGrouped ? (item.pesosDisponiveis || '—') : (item.peso || item.dimensoes || '');
         const und = item.isWeightGrouped ? '/kg' : (item.und || 'peça');
         const precoLabel = item.isWeightGrouped ? 'Preço por kg' : 'Preço';
-        const fotoHtml = item.foto
-          ? `<img src="${item.foto}" alt="${item.nome}" style="width:30px;height:30px;object-fit:cover;border-radius:4px;border:1px solid #e2e8f0;flex-shrink:0;">`
+        const fotoUrl = getImg(item.foto);
+        const fotoHtml = fotoUrl
+          ? `<img src="${fotoUrl}" alt="${item.nome}" style="width:30px;height:30px;object-fit:cover;border-radius:4px;border:1px solid #e2e8f0;flex-shrink:0;">`
           : `<div style="width:30px;height:30px;border-radius:4px;border:1px solid #e2e8f0;background:#f8fafc;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">📦</div>`;
         return `
           <div style="border:1px solid #e2e8f0;border-radius:6px;padding:8px;background:#ffffff;break-inside:avoid;display:flex;gap:6px;min-height:78px;">
@@ -390,7 +409,7 @@ export default function Export() {
   <!-- CAPA -->
   <div class="cover">
     ${user?.logomarca
-      ? `<img src="${user.logomarca}" alt="Logo" class="cover-logo">`
+      ? `<img src="${getImg(user.logomarca)}" alt="Logo" class="cover-logo">`
       : `<div class="cover-logo-placeholder">🏋️</div>`}
     <div class="cover-body">
     <div class="cover-title">${nomeEmpresa}</div>
@@ -462,7 +481,7 @@ export default function Export() {
 </html>`;
   };
 
-  const generatePDF = () => {
+  const generatePDF = async () => {
     if (previewData.length === 0) {
       toast({
         title: "Nenhum produto para gerar PDF",
@@ -472,7 +491,21 @@ export default function Export() {
       return;
     }
 
-    const htmlContent = buildPDFHTML();
+    setExporting(true);
+
+    // Coletar todas as URLs de imagens únicas e converter para base64
+    const imageUrls = new Set();
+    if (user?.logomarca) imageUrls.add(user.logomarca);
+    previewData.forEach(item => {
+      if (item.foto) imageUrls.add(item.foto);
+    });
+
+    const imageMap = {};
+    await Promise.all(Array.from(imageUrls).map(async (url) => {
+      imageMap[url] = await fetchImageAsDataURL(url);
+    }));
+
+    const htmlContent = buildPDFHTML(imageMap);
 
     const iframe = document.createElement('iframe');
     iframe.style.position = 'fixed';
@@ -491,6 +524,7 @@ export default function Export() {
       iframe.contentWindow.focus();
       iframe.contentWindow.print();
       setTimeout(() => document.body.removeChild(iframe), 1000);
+      setExporting(false);
     }, 500);
   };
 
@@ -667,12 +701,21 @@ export default function Export() {
 
                 <Button
                   onClick={generatePDF}
-                  disabled={previewData.length === 0}
+                  disabled={exporting || previewData.length === 0}
                   variant="outline"
                   className="w-full hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200"
                 >
-                  <FileText className="w-4 h-4 mr-2" />
-                  Gerar PDF
+                  {exporting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                      Preparando...
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="w-4 h-4 mr-2" />
+                      Gerar PDF
+                    </>
+                  )}
                 </Button>
               </CardContent>
             </Card>
