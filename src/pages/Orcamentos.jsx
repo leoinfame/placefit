@@ -49,12 +49,14 @@ import ProductAutoComplete from "@/components/ProductAutoComplete";
 import ClienteAutoComplete from "@/components/ClienteAutoComplete";
 import { generateProfessionalPDF } from "@/components/ProfessionalPDF";
 import { expandTemplates } from "@/utils/expandTemplates";
+import { sugerirFrete } from "@/utils/frete";
 
 export default function Orcamentos() {
   const [user, setUser] = useState(null);
   const [clientes, setClientes] = useState([]);
   const [products, setProducts] = useState([]);
   const [fornecedores, setFornecedores] = useState([]);
+  const [tabelaFrete, setTabelaFrete] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFornecedor, setSelectedFornecedor] = useState("all");
   const [loading, setLoading] = useState(true);
@@ -164,6 +166,13 @@ export default function Orcamentos() {
         ? await base44.entities.Cliente.filter({ ativo: true })
         : await base44.entities.Cliente.filter({ fornecedor_id: currentUser.id, ativo: true });
       setClientes(clientesData);
+
+      try {
+        const tabela = await base44.entities.TabelaFrete.filter({ ativo: true });
+        setTabelaFrete(tabela);
+      } catch (error) {
+        console.error("Erro ao carregar tabela de frete:", error);
+      }
 
       // Buscar fornecedores para exibir nome
       if (currentUser.role === 'admin') {
