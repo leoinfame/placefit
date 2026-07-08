@@ -788,6 +788,26 @@ export default function Orcamentos() {
                      }}
                      onChange={(e) => setNewOrcamento({...newOrcamento, frete: parseFloat(e.target.value) || 0})}
                    />
+                   {sugestaoFreteNovo && (
+                     <div className="mt-1.5 flex items-center justify-between gap-2 text-xs bg-blue-50 border border-blue-100 rounded px-2 py-1.5">
+                       <span className="text-blue-700">
+                         Sugestão: <strong>R$ {sugestaoFreteNovo.valor.toFixed(2)}</strong>
+                         {" "}({clienteSelecionadoNovo?.cidade || "?"}/{sugestaoFreteNovo.uf}, {sugestaoFreteNovo.capital ? "capital" : "interior"}, {pesoTotalNovo.toFixed(1)}kg)
+                       </span>
+                       <button
+                         type="button"
+                         onClick={() => setNewOrcamento(prev => ({ ...prev, frete: parseFloat(sugestaoFreteNovo.valor.toFixed(2)) }))}
+                         className="text-blue-700 font-semibold hover:underline whitespace-nowrap flex-shrink-0"
+                       >
+                         Usar
+                       </button>
+                     </div>
+                   )}
+                   {clienteSelecionadoNovo && !sugestaoFreteNovo && pesoTotalNovo > 0 && (
+                     <p className="mt-1.5 text-xs text-amber-600">
+                       Sem tabela de frete cadastrada para {clienteSelecionadoNovo.estado || "este estado"}. Informe o frete manualmente.
+                     </p>
+                   )}
                  </div>
                  <div>
                    <Label>Desconto (%)</Label>
