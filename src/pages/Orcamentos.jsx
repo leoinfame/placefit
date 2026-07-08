@@ -454,6 +454,17 @@ export default function Orcamentos() {
 
   const { subtotal: newSubtotal, total: newTotal } = calculateTotals(newOrcamento);
 
+  const clienteSelecionadoNovo = clientes.find(c => c.id === newOrcamento.cliente_id);
+  const pesoTotalNovo = calcPesoTotal(newOrcamento.itens);
+  const sugestaoFreteNovo = clienteSelecionadoNovo
+    ? sugerirFrete({
+        estado: clienteSelecionadoNovo.estado,
+        cidade: clienteSelecionadoNovo.cidade,
+        pesoTotal: pesoTotalNovo,
+        tabelaFrete,
+      })
+    : null;
+
   const filteredOrcamentos = orcamentos.filter(orc => {
     const matchSearch = searchTerm === "" || 
       orc.numero_pedido.toLowerCase().includes(searchTerm.toLowerCase()) ||
