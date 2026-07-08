@@ -4,7 +4,6 @@ import { aplicarPreCadastro } from "@/functions/aplicarPreCadastro";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import OnboardingTour from "@/components/OnboardingTour";
-import ServicosPremiuSection from "@/components/dashboard/ServicosPremiuSection";
 import { 
   Package, 
   Users, 
@@ -379,64 +378,6 @@ export default function Dashboard() {
           </Alert>
         )}
 
-        {/* Banner Especial de Frete - Apenas para Revendedores */}
-        {user?.role === 'user' && user?.aprovado && (
-          <Link to={createPageUrl("Frete")}>
-            <Card className="group hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 border-0 overflow-hidden relative">
-              <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
-              <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
-              <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
-              
-              <CardContent className="p-8 relative z-10">
-                <div className="flex flex-col md:flex-row items-center gap-6">
-                  <div className="flex-shrink-0">
-                    <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                      <TrendingUp className="w-10 h-10 text-white" />
-                    </div>
-                  </div>
-                  
-                  <div className="flex-1 text-center md:text-left">
-                    <div className="flex items-center gap-3 mb-2 justify-center md:justify-start">
-                      <h3 className="text-2xl font-bold text-white">
-                        🚚 Publique suas Ofertas de Frete
-                      </h3>
-                      <Badge className="bg-yellow-400 text-yellow-900 font-bold animate-pulse">
-                        NOVO!
-                      </Badge>
-                    </div>
-                    <p className="text-white/90 text-lg mb-4">
-                      Conecte-se com caminhoneiros e otimize sua logística! Publique suas demandas de frete e encontre rotas de complemento rapidamente.
-                    </p>
-                    <div className="flex flex-wrap gap-4 justify-center md:justify-start text-sm text-white/80">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4" />
-                        <span>Redução de custos</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4" />
-                        <span>Mais agilidade</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4" />
-                        <span>Conexão direta</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex-shrink-0">
-                    <Button 
-                      className="bg-white text-red-600 hover:bg-gray-100 font-bold text-lg px-8 py-6 rounded-xl shadow-xl group-hover:scale-105 transition-transform duration-300"
-                    >
-                      Começar Agora
-                      <TrendingUp className="w-5 h-5 ml-2" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        )}
-
         {/* Cards de Ação */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
           {getActionCards().map((card, index) => (
@@ -519,11 +460,6 @@ export default function Dashboard() {
               </Card>
             )}
           </div>
-        )}
-
-        {/* Serviços Premium - apenas para usuários não admin */}
-        {user?.role !== 'admin' && user?.aprovado && (
-          <ServicosPremiuSection user={user} />
         )}
 
         {/* Atividade Recente */}
