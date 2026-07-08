@@ -85,6 +85,7 @@ import PublicTable from './pages/PublicTable';
 import SaudeImportacao from './pages/SaudeImportacao';
 import Suporte from './pages/Suporte';
 import Suppliers from './pages/Suppliers';
+import TabelaFrete from './pages/TabelaFrete';
 import TransportadorRotas from './pages/TransportadorRotas';
 import Transportadores from './pages/Transportadores';
 import Treinamento from './pages/Treinamento';
@@ -133,6 +134,7 @@ export const PAGES = {
     "SaudeImportacao": SaudeImportacao,
     "Suporte": Suporte,
     "Suppliers": Suppliers,
+    "TabelaFrete": TabelaFrete,
     "TransportadorRotas": TransportadorRotas,
     "Transportadores": Transportadores,
     "Treinamento": Treinamento,
