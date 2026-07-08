@@ -64,7 +64,7 @@ const normalizar = (s) =>
   (s || "")
     .toString()
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(new RegExp(String.fromCharCode(0x300) + "-" + String.fromCharCode(0x36f), "g"), "")
     .toLowerCase()
     .replace(/[^a-z]/g, "");
 
