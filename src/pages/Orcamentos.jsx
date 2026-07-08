@@ -970,6 +970,16 @@ export default function Orcamentos() {
 
                 {(() => {
                   const editSubtotal = editingOrcamento.itens.reduce((sum, item) => sum + (item.subtotal || 0), 0);
+                  const clienteSelecionadoEdit = clientes.find(c => c.id === editingOrcamento.cliente_id);
+                  const pesoTotalEdit = calcPesoTotal(editingOrcamento.itens);
+                  const sugestaoFreteEdit = clienteSelecionadoEdit
+                    ? sugerirFrete({
+                        estado: clienteSelecionadoEdit.estado,
+                        cidade: clienteSelecionadoEdit.cidade,
+                        pesoTotal: pesoTotalEdit,
+                        tabelaFrete,
+                      })
+                    : null;
                   return (
                     <div className="grid grid-cols-3 gap-4">
                       <div>
@@ -983,6 +993,26 @@ export default function Orcamentos() {
                           }}
                           onChange={(e) => setEditingOrcamento({...editingOrcamento, frete: parseFloat(e.target.value) || 0})}
                         />
+                        {sugestaoFreteEdit && (
+                          <div className="mt-1.5 flex items-center justify-between gap-2 text-xs bg-blue-50 border border-blue-100 rounded px-2 py-1.5">
+                            <span className="text-blue-700">
+                              Sugestão: <strong>R$ {sugestaoFreteEdit.valor.toFixed(2)}</strong>
+                              {" "}({clienteSelecionadoEdit?.cidade || "?"}/{sugestaoFreteEdit.uf}, {sugestaoFreteEdit.capital ? "capital" : "interior"}, {pesoTotalEdit.toFixed(1)}kg)
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setEditingOrcamento(prev => ({ ...prev, frete: parseFloat(sugestaoFreteEdit.valor.toFixed(2)) }))}
+                              className="text-blue-700 font-semibold hover:underline whitespace-nowrap flex-shrink-0"
+                            >
+                              Usar
+                            </button>
+                          </div>
+                        )}
+                        {clienteSelecionadoEdit && !sugestaoFreteEdit && pesoTotalEdit > 0 && (
+                          <p className="mt-1.5 text-xs text-amber-600">
+                            Sem tabela de frete cadastrada para {clienteSelecionadoEdit.estado || "este estado"}. Informe o frete manualmente.
+                          </p>
+                        )}
                       </div>
                       <div>
                         <Label>Desconto (%)</Label>
