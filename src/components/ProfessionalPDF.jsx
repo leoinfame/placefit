@@ -103,7 +103,7 @@ export async function generateProfessionalPDF(pedido, user, clientes, tipo = "ve
   // Calcular peso total
   const pesoTotal = (pedido.itens || []).reduce((sum, item) => {
     const prod = products.find(p => p.id === item.product_id);
-    const peso = prod?.peso ? parseFloat(prod.peso) : 0;
+    const peso = prod?.peso_kg ? parseFloat(prod.peso_kg) : (prod?.peso ? parseFloat(prod.peso) : 0);
     return sum + peso * (item.quantidade || 1);
   }, 0);
 

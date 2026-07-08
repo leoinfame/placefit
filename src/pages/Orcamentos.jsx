@@ -1076,6 +1076,12 @@ export default function Orcamentos() {
                         <span>Desconto:</span>
                         <span>R$ {editingOrcamento.desconto.toFixed(2)}</span>
                       </div>
+                      {calcPesoTotal(editingOrcamento.itens) > 0 && (
+                        <div className="flex justify-between mb-1 text-gray-600">
+                          <span>Peso Total:</span>
+                          <span>{calcPesoTotal(editingOrcamento.itens).toFixed(2)} kg</span>
+                        </div>
+                      )}
                       <div className="flex justify-between font-bold text-lg border-t pt-2">
                         <span>Total:</span>
                         <span className="text-green-700">R$ {total.toFixed(2)}</span>
@@ -1145,6 +1151,12 @@ export default function Orcamentos() {
                     <span>Desconto:</span>
                     <span>R$ {selectedOrcamento.desconto.toFixed(2)}</span>
                   </div>
+                  {calcPesoTotal(selectedOrcamento.itens) > 0 && (
+                    <div className="flex justify-between mb-1 text-gray-600">
+                      <span>Peso Total:</span>
+                      <span>{calcPesoTotal(selectedOrcamento.itens).toFixed(2)} kg</span>
+                    </div>
+                  )}
                   <div className="flex justify-between font-bold text-lg border-t pt-2">
                     <span>Total:</span>
                     <span className="text-green-700">R$ {selectedOrcamento.total.toFixed(2)}</span>
