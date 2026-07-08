@@ -22,7 +22,8 @@ import {
   Ship,
   TrendingUp,
   Crown,
-  ShieldCheck
+  ShieldCheck,
+  Truck
 } from "lucide-react";
 import {
   Sidebar,
@@ -302,6 +303,11 @@ export default function Layout({ children, currentPageName }) {
           title: "Clientes",
           url: createPageUrl("Clientes"),
           icon: Users,
+        },
+        {
+          title: "Tabela de Frete",
+          url: createPageUrl("TabelaFrete"),
+          icon: Truck,
         },
         {
           title: "Atendente IA",
