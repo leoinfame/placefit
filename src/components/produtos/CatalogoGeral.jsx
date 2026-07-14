@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { getProdutosData } from "@/functions/getProdutosData";
-import { Search, Package, Plus, Check, Loader2, Weight, Layers, Tag, DollarSign } from "lucide-react";
+import { Search, Package, Plus, Check, Loader2, Weight, Layers, Tag, DollarSign, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { expandTemplates } from "@/utils/expandTemplates";
+import { generateCatalogoPDF } from "@/components/produtos/CatalogoPdf";
 
 const CATEGORIAS = [
   "Anilhas","Halteres","Dumbells",
@@ -406,7 +407,20 @@ export default function CatalogoGeral({ user }) {
       )}
 
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <p className="text-sm text-gray-500">{groups.length} produtos encontrados</p>
+        <div className="flex items-center gap-3">
+          <p className="text-sm text-gray-500">{groups.length} produtos encontrados</p>
+          {groups.length > 0 && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => generateCatalogoPDF(user, byCategoria, getGroupFabricantes)}
+              className="gap-1.5 text-blue-700 border-blue-200 hover:bg-blue-50"
+            >
+              <Printer className="w-4 h-4" />
+              <span className="hidden sm:inline">Imprimir Catálogo (PDF)</span>
+            </Button>
+          )}
+        </div>
         {groups.length > 0 && (
           <div className="flex items-center gap-2">
             <Checkbox
