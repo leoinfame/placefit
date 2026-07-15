@@ -24,7 +24,8 @@ const CATEGORY_ORDER = [
 
 const GROUP_FIELDS = [
   'categoria', 'subcategoria', 'tipo_anilha', 'tipo_furo', 'acabamento',
-  'barra_tipo', 'barra_acabamento', 'bojo_formato', 'dumbell_tipo',
+  'barra_formato', 'barra_acabamento', 'presilha_tipo', 'comprimento_m',
+  'barra_rolamento', 'bojo_formato', 'dumbell_tipo',
   'piso_espessura_mm', 'piso_formato', 'tijolinho_tipo', 'tijolinho_torre',
   'suporte_modelo', 'suporte_estrutura', 'suporte_degraus',
   'suporte_capacidade_pares', 'suporte_capacidade_unidades',

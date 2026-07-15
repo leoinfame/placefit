@@ -19,7 +19,8 @@ const CATEGORY_ORDER = [...CATEGORIAS];
 
 const GROUP_FIELDS = [
   'categoria', 'subcategoria', 'tipo_anilha', 'tipo_furo', 'acabamento',
-  'barra_acabamento', 'bojo_formato', 'dumbell_tipo',
+  'barra_formato', 'barra_acabamento', 'presilha_tipo', 'comprimento_m',
+  'barra_rolamento', 'bojo_formato', 'dumbell_tipo',
   'piso_espessura_mm', 'piso_formato', 'tijolinho_tipo', 'tijolinho_torre',
   'pegada', 'peso_faixa'
 ];
