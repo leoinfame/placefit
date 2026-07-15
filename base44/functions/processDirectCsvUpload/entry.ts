@@ -126,6 +126,34 @@ Deno.serve(async (req) => {
     const existingByPid = new Map();
     for (const sp of existingSps) existingByPid.set(sp.product_id, sp);
 
+    // --- Helpers para preço por kg (preço linear aplicado a todas as variações por peso) ---
+    // Extrai peso de um nome (ex: "Anilha Sport 20kg" → 20, "Anilha 1.5kg" → 1.5)
+    const extractWeight = (name) => {
+      if (!name) return null;
+      const match = name.toLowerCase().match(/(\d+(?:[.,]\d+)?)\s*kg/);
+      if (!match) return null;
+      return parseFloat(match[1].replace(",", "."));
+    };
+    // Nome base sem o peso (ex: "Anilha Sport 20kg" → "anilhasport")
+    const getBaseKey = (name) => {
+      if (!name) return "";
+      return normalizeName(name).replace(/\s*\d+(?:[.,]\d+)?\s*kg\s*/g, " ").replace(/\s+/g, " ").trim();
+    };
+    // Encontra variações irmãs (mesmo nome base, mesma categoria, diferente peso_kg)
+    const findWeightSiblings = (template) => {
+      if (!template || !template.peso_kg) return [];
+      const baseKey = getBaseKey(template.nome);
+      if (!baseKey) return [];
+      return templates.filter(t =>
+        t.peso_kg != null &&
+        t.categoria === template.categoria &&
+        getBaseKey(t.nome) === baseKey
+      );
+    };
+
+    // Rastreia product_ids já processados nesta execução (evita duplicação)
+    const processedPids = new Set();
+
     // 2. Buscar e fazer parse do CSV diretamente (sem IA)
     const csvRes = await fetch(file_url);
     if (!csvRes.ok) return Response.json({ error: 'Não foi possível baixar o arquivo.' }, { status: 400 });
@@ -266,13 +294,34 @@ Deno.serve(async (req) => {
       // codigo do fabricante é guardado como cod_origem (referência, não segue padrão)
       const codOrigem = codigo || null;
 
-      const existing = existingByPid.get(template.id);
-      if (existing) {
-        toUpdate.push({ id: existing.id, preco, disponivel, ...(codOrigem ? { cod_origem: codOrigem } : {}) });
-        results.updated.push({ codigo: codigo || template.cod, template_nome: template.nome, preco });
-      } else {
-        toCreate.push({ supplier_id: user.id, product_id: template.id, preco, disponivel, ...(codOrigem ? { cod_origem: codOrigem } : {}) });
-        results.created.push({ codigo: codigo || template.cod, template_nome: template.nome, preco });
+      // --- Detecta preço por kg: se o nome do CSV não tem peso e o template casado
+      // tem variações irmãs por peso, o preço informado é POR QUILO e deve ser
+      // distribuído a todas as variações (preco = precoKg * peso_kg). ---
+      const csvHasWeight = extractWeight(nome) != null || extractWeight(codigo) != null;
+      const siblings = findWeightSiblings(template);
+      const isPrecoKg = !csvHasWeight && template.peso_kg != null && siblings.length > 1;
+
+      // Lista de variações a processar: se for preço/kg, todas as irmãs; senão, só o casado
+      const variants = isPrecoKg
+        ? siblings
+        : [template];
+
+      for (const variant of variants) {
+        if (processedPids.has(variant.id)) continue; // já processado nesta execução
+        processedPids.add(variant.id);
+
+        const variantPreco = isPrecoKg
+          ? Math.round(preco * variant.peso_kg * 100) / 100
+          : preco;
+
+        const existing = existingByPid.get(variant.id);
+        if (existing) {
+          toUpdate.push({ id: existing.id, preco: variantPreco, disponivel, ...(codOrigem ? { cod_origem: codOrigem } : {}) });
+          results.updated.push({ codigo: variant.cod, template_nome: variant.nome, preco: variantPreco });
+        } else {
+          toCreate.push({ supplier_id: user.id, product_id: variant.id, preco: variantPreco, disponivel, ...(codOrigem ? { cod_origem: codOrigem } : {}) });
+          results.created.push({ codigo: variant.cod, template_nome: variant.nome, preco: variantPreco });
+        }
       }
     }
 

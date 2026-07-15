@@ -18,6 +18,31 @@ Deno.serve(async (req) => {
     const existingByPid = new Map();
     for (const sp of existingSps) existingByPid.set(sp.product_id, sp);
 
+    // --- Helpers para preço por kg (preço linear aplicado a todas as variações por peso) ---
+    const normalizeName = (name) => (name || "").trim().toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+    const extractWeight = (name) => {
+      if (!name) return null;
+      const match = name.toLowerCase().match(/(\d+(?:[.,]\d+)?)\s*kg/);
+      if (!match) return null;
+      return parseFloat(match[1].replace(",", "."));
+    };
+    const getBaseKey = (name) => {
+      if (!name) return "";
+      return normalizeName(name).replace(/\s*\d+(?:[.,]\d+)?\s*kg\s*/g, " ").replace(/\s+/g, " ").trim();
+    };
+    const findWeightSiblings = (template) => {
+      if (!template || !template.peso_kg) return [];
+      const baseKey = getBaseKey(template.nome);
+      if (!baseKey) return [];
+      return templates.filter(t =>
+        t.peso_kg != null &&
+        t.categoria === template.categoria &&
+        getBaseKey(t.nome) === baseKey
+      );
+    };
+    const processedPids = new Set();
+
     // Lista compacta de templates
     const templateList = templates.map(t => {
       const parts = [t.id, t.cod || "", t.nome || "", t.categoria || ""];
@@ -88,14 +113,30 @@ Retorne JSON com produtos encontrados. Regras:
         continue;
       }
 
-      const existing = existingByPid.get(p.template_id);
       const codOrigem = p.descricao_original || null;
-      if (existing) {
-        toUpdate.push({ id: existing.id, preco: p.preco, disponivel: true, ...(codOrigem ? { cod_origem: codOrigem } : {}) });
-        results.updated.push({ descricao: p.descricao_original, template_nome: tmpl.nome, template_cod: tmpl.cod, preco: p.preco });
-      } else {
-        toCreate.push({ supplier_id: user.id, product_id: p.template_id, preco: p.preco, disponivel: true, ...(codOrigem ? { cod_origem: codOrigem } : {}) });
-        results.created.push({ descricao: p.descricao_original, template_nome: tmpl.nome, template_cod: tmpl.cod, preco: p.preco });
+
+      // Detecta preço por kg: nome sem peso + template com variações irmãs por peso
+      const csvHasWeight = extractWeight(p.descricao_original) != null;
+      const siblings = findWeightSiblings(tmpl);
+      const isPrecoKg = !csvHasWeight && tmpl.peso_kg != null && siblings.length > 1;
+      const variants = isPrecoKg ? siblings : [tmpl];
+
+      for (const variant of variants) {
+        if (processedPids.has(variant.id)) continue;
+        processedPids.add(variant.id);
+
+        const variantPreco = isPrecoKg
+          ? Math.round(p.preco * variant.peso_kg * 100) / 100
+          : p.preco;
+
+        const existing = existingByPid.get(variant.id);
+        if (existing) {
+          toUpdate.push({ id: existing.id, preco: variantPreco, disponivel: true, ...(codOrigem ? { cod_origem: codOrigem } : {}) });
+          results.updated.push({ descricao: p.descricao_original, template_nome: variant.nome, template_cod: variant.cod, preco: variantPreco });
+        } else {
+          toCreate.push({ supplier_id: user.id, product_id: variant.id, preco: variantPreco, disponivel: true, ...(codOrigem ? { cod_origem: codOrigem } : {}) });
+          results.created.push({ descricao: p.descricao_original, template_nome: variant.nome, template_cod: variant.cod, preco: variantPreco });
+        }
       }
     }
 
