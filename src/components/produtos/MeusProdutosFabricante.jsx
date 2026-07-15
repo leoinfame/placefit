@@ -59,7 +59,9 @@ export default function MeusProdutosFabricante({ user }) {
   const [filterStatus, setFilterStatus] = useState("all"); // all | selected | notSelected
   const [expandedGroups, setExpandedGroups] = useState(new Set());
   const [editValues, setEditValues] = useState({}); // { groupKey: precoKg }
+  const [editValuesByTemplate, setEditValuesByTemplate] = useState({}); // { templateId: preco }
   const [savingGroups, setSavingGroups] = useState(new Set());
+  const [savingTemplates, setSavingTemplates] = useState(new Set());
   const [selectedGroups, setSelectedGroups] = useState(new Set());
   const [bulkPrecoKg, setBulkPrecoKg] = useState("");
   const [bulkLoading, setBulkLoading] = useState(false);
@@ -126,6 +128,52 @@ export default function MeusProdutosFabricante({ user }) {
     if (withWeights.length === 0) return null;
     const sorted = [...withWeights].sort((a, b) => a.peso_kg - b.peso_kg);
     return spMap[sorted[0].id].preco / sorted[0].peso_kg;
+  };
+
+  // Faixa de preços reais do grupo (mostra os preços efetivamente cadastrados, não preço/kg)
+  const getPriceRange = (g) => {
+    const priced = g.templates
+      .map(t => spMap[t.id]?.preco)
+      .filter(p => p != null && !isNaN(p));
+    if (priced.length === 0) return null;
+    const min = Math.min(...priced);
+    const max = Math.max(...priced);
+    if (min === max) return formatBRL(min);
+    return `${formatBRL(min)} – ${formatBRL(max)}`;
+  };
+
+  const handleTemplatePrecoChange = (templateId, value) => {
+    setEditValuesByTemplate(prev => ({ ...prev, [templateId]: value }));
+  };
+
+  const handleSaveTemplatePreco = async (t) => {
+    const val = editValuesByTemplate[t.id];
+    if (val == null || val === "" || isNaN(val)) {
+      toast({ title: "Erro", description: "Informe um preço válido.", variant: "destructive" });
+      return;
+    }
+    const preco = parseFloat(val);
+    setSavingTemplates(prev => new Set(prev).add(t.id));
+    try {
+      const existing = spMap[t.id];
+      if (existing) {
+        await base44.entities.SupplierProduct.update(existing.id, { preco, disponivel: true });
+      } else {
+        await base44.entities.SupplierProduct.create({
+          supplier_id: user.id,
+          product_id: t.id,
+          preco,
+          fabricante_nome: user.empresa || user.full_name,
+          disponivel: true,
+        });
+      }
+      toast({ title: "Preço atualizado!", description: `${t.cod || t.nome}: ${formatBRL(preco)}` });
+      setEditValuesByTemplate(prev => { const n = { ...prev }; delete n[t.id]; return n; });
+      loadData();
+    } catch (e) {
+      toast({ title: "Erro", description: e?.message || "Erro ao salvar.", variant: "destructive" });
+    }
+    setSavingTemplates(prev => { const n = new Set(prev); n.delete(t.id); return n; });
   };
 
   const getGroupStatus = (g) => {
@@ -599,6 +647,7 @@ export default function MeusProdutosFabricante({ user }) {
               const status = getGroupStatus(g);
               const isExpanded = expandedGroups.has(g.key);
               const currentPrecoKg = getCurrentPrecoKg(g);
+              const priceRange = getPriceRange(g);
               const editVal = editValues[g.key];
               const hasW = hasWeights(g);
               const isSaving = savingGroups.has(g.key);
@@ -625,8 +674,9 @@ export default function MeusProdutosFabricante({ user }) {
                         <p className="font-semibold text-gray-900 truncate">{g.baseName}</p>
                         <p className="text-xs text-gray-500">
                           {g.templates.length} {g.templates.length === 1 ? "variação" : "variações"}
-                          {hasW && currentPrecoKg != null && ` • Preço/kg atual: ${formatBRL(currentPrecoKg)}`}
-                          {hasW && currentPrecoKg == null && isSelected && ` • Sem preço definido`}
+                          {isSelected && priceRange != null && ` • ${priceRange}`}
+                          {isSelected && priceRange == null && ` • Sem preço definido`}
+                          {!isSelected && ` • Não selecionado`}
                         </p>
                       </div>
                     </button>
@@ -661,7 +711,8 @@ export default function MeusProdutosFabricante({ user }) {
                     <div className="flex items-end gap-2 flex-wrap">
                       <div className="flex-1 min-w-[180px]">
                         <Label className="text-xs text-gray-600 flex items-center gap-1">
-                          <DollarSign className="w-3 h-3" /> Preço por kg (R$)
+                          <DollarSign className="w-3 h-3" />
+                          {hasW ? "Preço por kg (R$) — aplica a todas as variações" : "Preço unitário (R$)"}
                         </Label>
                         <Input
                           type="number"
@@ -671,6 +722,11 @@ export default function MeusProdutosFabricante({ user }) {
                           onChange={(e) => handlePrecoKgChange(g.key, e.target.value)}
                           className="mt-1"
                         />
+                        {hasW && (
+                          <p className="text-[11px] text-gray-400 mt-1">
+                            Aplica preço linear (preço/kg × peso) a todas as variações. Para preços individuais, expanda e edite cada variação.
+                          </p>
+                        )}
                       </div>
                       <Button
                         onClick={() => handleSaveGroup(g)}
@@ -744,12 +800,14 @@ export default function MeusProdutosFabricante({ user }) {
                     )}
                   </div>
 
-                  {/* Expanded: list variations */}
+                  {/* Expanded: list variations with individual price editing */}
                   {isExpanded && (
                     <div className="border-t bg-white p-4 space-y-2">
-                      <p className="text-xs font-medium text-gray-500 mb-2">Variações deste produto:</p>
+                      <p className="text-xs font-medium text-gray-500 mb-2">Variações — edite o preço individual de cada uma:</p>
                       {g.templates.map(t => {
                         const sp = spMap[t.id];
+                        const tplEditVal = editValuesByTemplate[t.id];
+                        const tplSaving = savingTemplates.has(t.id);
                         return (
                           <div key={t.id} className="flex items-center gap-3 bg-gray-50 rounded-lg border p-2.5 flex-wrap">
                             {t.peso_kg != null && (
@@ -757,19 +815,36 @@ export default function MeusProdutosFabricante({ user }) {
                                 <Weight className="w-3 h-3" /> {t.peso_kg}kg
                               </Badge>
                             )}
-                            <span className="text-sm text-gray-700 truncate flex-1 min-w-[150px]">{t.nome}</span>
+                            <span className="text-sm text-gray-700 truncate flex-1 min-w-[120px]">{t.nome}</span>
                             <span className="text-xs text-gray-400 font-mono">{t.cod}</span>
-                            {sp ? (
-                              <>
-                                <Badge className="bg-green-100 text-green-700 text-xs">
-                                  {formatBRL(sp.preco)}
-                                </Badge>
-                                {sp.disponivel === false
-                                  ? <Badge variant="outline" className="text-gray-400 text-xs">Oculto</Badge>
-                                  : <Badge className="bg-green-50 text-green-600 text-xs">Ativo</Badge>
+                            {sp && (
+                              <span className="text-xs text-gray-500">
+                                Atual: <strong className="text-gray-700">{formatBRL(sp.preco)}</strong>
+                                {sp.disponivel === false && <Badge variant="outline" className="text-gray-400 text-xs ml-1">Oculto</Badge>}
+                              </span>
+                            )}
+                            <div className="flex items-center gap-1.5">
+                              <Input
+                                type="number"
+                                step="0.01"
+                                placeholder={sp ? sp.preco.toFixed(2) : "0.00"}
+                                value={tplEditVal ?? ""}
+                                onChange={(e) => handleTemplatePrecoChange(t.id, e.target.value)}
+                                className="h-8 w-24 text-sm"
+                              />
+                              <Button
+                                size="sm"
+                                onClick={() => handleSaveTemplatePreco(t)}
+                                disabled={tplSaving || tplEditVal == null || tplEditVal === ""}
+                                className="h-8"
+                              >
+                                {tplSaving
+                                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  : <Save className="w-3.5 h-3.5" />
                                 }
-                              </>
-                            ) : (
+                              </Button>
+                            </div>
+                            {!sp && (
                               <Badge variant="outline" className="text-gray-400 text-xs">Sem preço</Badge>
                             )}
                           </div>
