@@ -404,13 +404,12 @@ export default function AdminCatalogoGrouped({
                                 <TableCell></TableCell>
                                 <TableCell></TableCell>
                                 <TableCell className="pl-8">
-                                  <div className="flex items-center gap-2">
-                                    {t.peso_kg != null ? (
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-xs text-gray-600">{t.nome.replace(/Expositor/gi, "Suporte")}</span>
+                                    {t.peso_kg != null && (
                                       <Badge variant="outline" className="text-xs">
                                         <Weight className="w-3 h-3 mr-0.5" />{t.peso_kg}kg
                                       </Badge>
-                                    ) : (
-                                      <span className="text-xs text-gray-600">{t.nome.replace(/Expositor/gi, "Suporte")}</span>
                                     )}
                                     <span className="font-mono text-xs text-gray-500">{t.cod}</span>
                                   </div>
