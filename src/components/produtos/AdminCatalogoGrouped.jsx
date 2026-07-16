@@ -50,6 +50,9 @@ const getGroupKey = (tmpl) => {
     if (n.includes('dumbbell') && !n.includes('sextavado')) {
       return 'Suportes|__dumbbell__';
     }
+    if (n.includes('kettlebell')) {
+      return 'Suportes|__kettlebell__';
+    }
     if (n.startsWith('suporte para barras')) {
       if (n.includes('olímp') || n.includes('olimp')) {
         return 'Suportes|__barras_olimpicas__';
@@ -90,6 +93,9 @@ const getBaseName = (tmpl) => {
     }
     if (n.includes('dumbbell') && !n.includes('sextavado')) {
       return 'Suporte Dumbbell';
+    }
+    if (n.includes('kettlebell')) {
+      return 'Suporte para Kettlebells';
     }
     if (n.startsWith('suporte para barras')) {
       if (n.includes('olímp') || n.includes('olimp')) {
