@@ -44,6 +44,9 @@ const getGroupKey = (tmpl) => {
     if (n.includes('dumbbell') && n.includes('cal')) {
       return 'Suportes|__dumbbell_calco__';
     }
+    if (n.includes('dumbbell') && !n.includes('sextavado')) {
+      return 'Suportes|__dumbbell__';
+    }
   }
   return GROUP_FIELDS.map(f => tmpl[f] ?? '').join('|');
 };
@@ -59,6 +62,9 @@ const getBaseName = (tmpl) => {
     }
     if (n.includes('dumbbell') && n.includes('cal')) {
       return "Suporte Dumbbell (c/ cal\u00e7o)";
+    }
+    if (n.includes('dumbbell') && !n.includes('sextavado')) {
+      return 'Suporte Dumbbell';
     }
   }
   return (tmpl.nome || '')
