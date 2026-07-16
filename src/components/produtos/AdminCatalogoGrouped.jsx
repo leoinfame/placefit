@@ -53,6 +53,9 @@ const getGroupKey = (tmpl) => {
     if (n.includes('kettlebell')) {
       return 'Suportes|__kettlebell__';
     }
+    if (n.includes('montada') && n.includes('barras')) {
+      return 'Suportes|__barras_montadas__';
+    }
     if (n.startsWith('suporte para barras')) {
       if (n.includes('olímp') || n.includes('olimp')) {
         return 'Suportes|__barras_olimpicas__';
@@ -96,6 +99,9 @@ const getBaseName = (tmpl) => {
     }
     if (n.includes('kettlebell')) {
       return 'Suporte para Kettlebells';
+    }
+    if (n.includes('montada') && n.includes('barras')) {
+      return 'Suporte para Barras Montadas';
     }
     if (n.startsWith('suporte para barras')) {
       if (n.includes('olímp') || n.includes('olimp')) {
