@@ -71,6 +71,7 @@ const getGroupKey = (tmpl) => {
       }
       return 'Suportes|__barras__';
     }
+    return 'Suportes|' + (tmpl.nome || '');
   }
   const nc = (tmpl.nome || '').toLowerCase();
   if (nc.includes('corda de escalada')) {
