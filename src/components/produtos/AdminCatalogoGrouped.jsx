@@ -58,7 +58,7 @@ const getBaseName = (tmpl) => {
       return 'Suporte Halter';
     }
     if (n.includes('dumbbell') && n.includes('cal')) {
-      return 'Suporte Dumbbell (c/ calo)';
+      return "Suporte Dumbbell (c/ cal\u00e7o)";
     }
   }
   return (tmpl.nome || '')
