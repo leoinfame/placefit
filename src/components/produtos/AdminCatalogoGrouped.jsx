@@ -53,6 +53,7 @@ const getBaseName = (tmpl) => {
     .replace(/Expositor/gi, "Suporte")
     .replace(/\s+para\s+\d+\s+pares/gi, "")
     .replace(/\s+\d+\s*p[çc]s/gi, "")
+    .replace(/\s+\d+\s*(?:divis[õo]es|div\.?)\s*/gi, " ")
     .replace(/\s+p\/\s*\d+\s*kg/gi, "")
     .replace(/\s+\d+(?:[.,]\d+)?\s*kg/gi, "")
     .replace(/\s+\d+(?:[.,]\d+)?\s*lbs?/gi, "")
