@@ -35,7 +35,7 @@ const SEARCH_FIELDS = [
 const getGroupKey = (tmpl) => {
   if (tmpl.categoria === 'Suportes') {
     const n = (tmpl.nome || '').toLowerCase();
-    if (n.includes('anilha') && !n.includes('barra') && !n.includes('halter')) {
+    if (n.includes('anilha') && !n.includes('halter')) {
       return 'Suportes|__anilhas__';
     }
   }
@@ -45,11 +45,12 @@ const getGroupKey = (tmpl) => {
 const getBaseName = (tmpl) => {
   if (tmpl.categoria === 'Suportes') {
     const n = (tmpl.nome || '').toLowerCase();
-    if (n.includes('anilha') && !n.includes('barra') && !n.includes('halter')) {
+    if (n.includes('anilha') && !n.includes('halter')) {
       return 'Suporte de Anilhas';
     }
   }
   return (tmpl.nome || '')
+    .replace(/Expositor/gi, "Suporte")
     .replace(/\s+para\s+\d+\s+pares/gi, "")
     .replace(/\s+\d+\s*p[çc]s/gi, "")
     .replace(/\s+p\/\s*\d+\s*kg/gi, "")
@@ -345,7 +346,7 @@ export default function AdminCatalogoGrouped({
                               </button>
                             </TableCell>
                             <TableCell>
-                              <div className="font-medium text-sm">{isSingle ? first.nome : g.baseName}</div>
+                              <div className="font-medium text-sm">{isSingle ? first.nome.replace(/Expositor/gi, "Suporte") : g.baseName}</div>
                               <div className="flex flex-wrap gap-1 mt-1">
                                 {getAttrBadges(g).map(b => (
                                   <Badge key={b} variant="outline" className="text-xs">{b}</Badge>
@@ -409,7 +410,7 @@ export default function AdminCatalogoGrouped({
                                         <Weight className="w-3 h-3 mr-0.5" />{t.peso_kg}kg
                                       </Badge>
                                     ) : (
-                                      <span className="text-xs text-gray-600">{t.nome}</span>
+                                      <span className="text-xs text-gray-600">{t.nome.replace(/Expositor/gi, "Suporte")}</span>
                                     )}
                                     <span className="font-mono text-xs text-gray-500">{t.cod}</span>
                                   </div>
