@@ -41,6 +41,9 @@ const getGroupKey = (tmpl) => {
     if (n.includes('halter') && !n.includes('anilha')) {
       return 'Suportes|__halter__';
     }
+    if (n.includes('dumbbell') && n.includes('cal')) {
+      return 'Suportes|__dumbbell_calco__';
+    }
   }
   return GROUP_FIELDS.map(f => tmpl[f] ?? '').join('|');
 };
@@ -53,6 +56,9 @@ const getBaseName = (tmpl) => {
     }
     if (n.includes('halter') && !n.includes('anilha')) {
       return 'Suporte Halter';
+    }
+    if (n.includes('dumbbell') && n.includes('cal')) {
+      return 'Suporte Dumbbell (c/ calo)';
     }
   }
   return (tmpl.nome || '')
