@@ -56,6 +56,12 @@ const getGroupKey = (tmpl) => {
       }
       return 'Suportes|__barras__';
     }
+    if ((n.includes('fogueteiro') || n.includes('parede')) && n.includes('barras')) {
+      if (n.includes('olímp') || n.includes('olimp')) {
+        return 'Suportes|__barras_olimpicas__';
+      }
+      return 'Suportes|__barras__';
+    }
   }
   const nc = (tmpl.nome || '').toLowerCase();
   if (nc.includes('corda de escalada')) {
@@ -85,6 +91,12 @@ const getBaseName = (tmpl) => {
       }
       if (n.includes('montada')) {
         return 'Suporte para Barras Montadas';
+      }
+      return 'Suporte para Barras';
+    }
+    if ((n.includes('fogueteiro') || n.includes('parede')) && n.includes('barras')) {
+      if (n.includes('olímp') || n.includes('olimp')) {
+        return 'Suporte para Barras Olímpicas';
       }
       return 'Suporte para Barras';
     }
