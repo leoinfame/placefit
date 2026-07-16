@@ -51,6 +51,9 @@ const getGroupKey = (tmpl) => {
       if (n.includes('olímp') || n.includes('olimp')) {
         return 'Suportes|__barras_olimpicas__';
       }
+      if (n.includes('montada')) {
+        return 'Suportes|__barras_montadas__';
+      }
       return 'Suportes|__barras__';
     }
   }
@@ -75,6 +78,9 @@ const getBaseName = (tmpl) => {
     if (n.startsWith('suporte para barras')) {
       if (n.includes('olímp') || n.includes('olimp')) {
         return 'Suporte para Barras Olímpicas';
+      }
+      if (n.includes('montada')) {
+        return 'Suporte para Barras Montadas';
       }
       return 'Suporte para Barras';
     }
