@@ -57,6 +57,10 @@ const getGroupKey = (tmpl) => {
       return 'Suportes|__barras__';
     }
   }
+  const nc = (tmpl.nome || '').toLowerCase();
+  if (nc.includes('corda de escalada')) {
+    return (tmpl.categoria || 'Acessórios') + '|__corda_escalada__';
+  }
   return GROUP_FIELDS.map(f => tmpl[f] ?? '').join('|');
 };
 
@@ -84,6 +88,9 @@ const getBaseName = (tmpl) => {
       }
       return 'Suporte para Barras';
     }
+  }
+  if ((tmpl.nome || '').toLowerCase().includes('corda de escalada')) {
+    return 'Corda de Escalada';
   }
   return (tmpl.nome || '')
     .replace(/Expositor/gi, "Suporte")
