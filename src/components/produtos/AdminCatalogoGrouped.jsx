@@ -47,6 +47,12 @@ const getGroupKey = (tmpl) => {
     if (n.includes('dumbbell') && !n.includes('sextavado')) {
       return 'Suportes|__dumbbell__';
     }
+    if (n.startsWith('suporte para barras')) {
+      if (n.includes('olímp') || n.includes('olimp')) {
+        return 'Suportes|__barras_olimpicas__';
+      }
+      return 'Suportes|__barras__';
+    }
   }
   return GROUP_FIELDS.map(f => tmpl[f] ?? '').join('|');
 };
@@ -65,6 +71,12 @@ const getBaseName = (tmpl) => {
     }
     if (n.includes('dumbbell') && !n.includes('sextavado')) {
       return 'Suporte Dumbbell';
+    }
+    if (n.startsWith('suporte para barras')) {
+      if (n.includes('olímp') || n.includes('olimp')) {
+        return 'Suporte para Barras Olímpicas';
+      }
+      return 'Suporte para Barras';
     }
   }
   return (tmpl.nome || '')
