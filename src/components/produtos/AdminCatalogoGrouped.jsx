@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import {
   Search, Pencil, Trash2, Package, PackageSearch,
-  ChevronDown, ChevronRight, Upload, Weight,
+  ChevronDown, ChevronRight, Upload, Weight, Layers,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,7 +35,19 @@ const SEARCH_FIELDS = [
 const getGroupKey = (tmpl) => GROUP_FIELDS.map(f => tmpl[f] ?? '').join('|');
 
 const getBaseName = (tmpl) => {
-  return (tmpl.nome || '').replace(/\s+\d+([.,]\d+)?\s*kg$/i, '').trim();
+  return (tmpl.nome || '')
+    .replace(/\s+para\s+\d+\s+pares/gi, "")
+    .replace(/\s+\d+\s*p[çc]s/gi, "")
+    .replace(/\s+p\/\s*\d+\s*kg/gi, "")
+    .replace(/\s+\d+(?:[.,]\d+)?\s*kg/gi, "")
+    .replace(/\s+\d+(?:[.,]\d+)?\s*lbs?/gi, "")
+    .replace(/\s+\d+\s+libras?/gi, "")
+    .replace(/\s*\(?\d+\s+ao\s+\d+\)?/gi, "")
+    .replace(/\s+\d+\s*x\s*\d+(?:\s*x\s*\d+(?:[.,]\d+)?)?(?:\s*d\d+)?/gi, "")
+    .replace(/\s+\/\s*$/g, "")
+    .replace(/\s+p\/\s*$/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
 };
 
 const sortCategories = (cats) => {
@@ -329,10 +341,15 @@ export default function AdminCatalogoGrouped({
                             <TableCell>
                               {isSingle ? (
                                 <span className="text-xs text-gray-400">1 variação</span>
-                              ) : (
+                              ) : hasWeights ? (
                                 <Badge variant="secondary" className="text-xs gap-1">
                                   <Weight className="w-3 h-3" />
                                   {g.templates.length} pesos
+                                </Badge>
+                              ) : (
+                                <Badge variant="secondary" className="text-xs gap-1">
+                                  <Layers className="w-3 h-3" />
+                                  {g.templates.length} variações
                                 </Badge>
                               )}
                             </TableCell>
@@ -373,10 +390,12 @@ export default function AdminCatalogoGrouped({
                                 <TableCell></TableCell>
                                 <TableCell className="pl-8">
                                   <div className="flex items-center gap-2">
-                                    {t.peso_kg != null && (
+                                    {t.peso_kg != null ? (
                                       <Badge variant="outline" className="text-xs">
                                         <Weight className="w-3 h-3 mr-0.5" />{t.peso_kg}kg
                                       </Badge>
+                                    ) : (
+                                      <span className="text-xs text-gray-600">{t.nome}</span>
                                     )}
                                     <span className="font-mono text-xs text-gray-500">{t.cod}</span>
                                   </div>
