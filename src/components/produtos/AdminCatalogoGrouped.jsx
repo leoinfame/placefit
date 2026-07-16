@@ -32,9 +32,23 @@ const SEARCH_FIELDS = [
   'peso_faixa', 'ncm', 'gtin', 'google_category',
 ];
 
-const getGroupKey = (tmpl) => GROUP_FIELDS.map(f => tmpl[f] ?? '').join('|');
+const getGroupKey = (tmpl) => {
+  if (tmpl.categoria === 'Suportes') {
+    const n = (tmpl.nome || '').toLowerCase();
+    if (n.includes('anilha') && !n.includes('barra') && !n.includes('halter')) {
+      return 'Suportes|__anilhas__';
+    }
+  }
+  return GROUP_FIELDS.map(f => tmpl[f] ?? '').join('|');
+};
 
 const getBaseName = (tmpl) => {
+  if (tmpl.categoria === 'Suportes') {
+    const n = (tmpl.nome || '').toLowerCase();
+    if (n.includes('anilha') && !n.includes('barra') && !n.includes('halter')) {
+      return 'Suporte de Anilhas';
+    }
+  }
   return (tmpl.nome || '')
     .replace(/\s+para\s+\d+\s+pares/gi, "")
     .replace(/\s+\d+\s*p[çc]s/gi, "")
