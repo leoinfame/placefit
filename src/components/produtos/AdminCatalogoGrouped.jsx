@@ -73,6 +73,15 @@ const getGroupKey = (tmpl) => {
     }
     return 'Suportes|' + (tmpl.nome || '');
   }
+  if (tmpl.categoria === 'Acessórios') {
+    const n = (tmpl.nome || '').toLowerCase();
+    if (n.includes('wall ball') || n.includes('wallball')) {
+      return 'Acessórios|__wallball__';
+    }
+    if (n.includes('capa para colchonete') || n.includes('capa p/ colchonete')) {
+      return 'Acessórios|__capa_colchonete__';
+    }
+  }
   const nc = (tmpl.nome || '').toLowerCase();
   if (nc.includes('corda de escalada')) {
     return (tmpl.categoria || 'Acessórios') + '|__corda_escalada__';
@@ -118,6 +127,15 @@ const getBaseName = (tmpl) => {
         return 'Suporte para Barras Olímpicas';
       }
       return 'Suporte para Barras';
+    }
+  }
+  if (tmpl.categoria === 'Acessórios') {
+    const n = (tmpl.nome || '').toLowerCase();
+    if (n.includes('wall ball') || n.includes('wallball')) {
+      return 'Wall Ball';
+    }
+    if (n.includes('capa para colchonete') || n.includes('capa p/ colchonete')) {
+      return 'Capa Para Colchonete';
     }
   }
   if ((tmpl.nome || '').toLowerCase().includes('corda de escalada')) {
