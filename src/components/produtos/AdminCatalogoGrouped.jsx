@@ -12,7 +12,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 
 const CATEGORIAS = [
   "Anilhas", "Halteres", "Dumbells",
-  "Tijolinhos", "Pisos", "Kettlebells", "Kits", "Outros",
+  "Tijolinhos", "Pisos", "Colchonetes", "Kettlebells", "Kits", "Outros",
 ];
 
 const CATEGORY_ORDER = [...CATEGORIAS];

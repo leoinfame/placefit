@@ -19,7 +19,7 @@ const formatBRL = (v) => v != null && !isNaN(v) ? v.toLocaleString("pt-BR", { st
 
 const CATEGORY_ORDER = [
   "Anilhas", "Halteres", "Dumbells", "Barras Montadas",
-  "Tijolinhos", "Pisos", "Kettlebells", "Suportes", "Kits", "Outros"
+  "Tijolinhos", "Pisos", "Colchonetes", "Kettlebells", "Suportes", "Kits", "Outros"
 ];
 
 const GROUP_FIELDS = [
