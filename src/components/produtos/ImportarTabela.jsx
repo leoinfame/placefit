@@ -336,7 +336,7 @@ export default function ImportarTabela({ user }) {
               <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
                 <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                 <p>
-                  {plano.resumo.amarelo + plano.resumo.vermelho} linha(s) precisam de conanceão individual.
+                  {plano.resumo.amarelo + plano.resumo.vermelho} linha(s) precisam de conferência individual.
                   Use a tela de upload do catálogo do fabricante para revisar e escolher produto a produto.
                 </p>
               </div>
@@ -384,26 +384,26 @@ export default function ImportarTabela({ user }) {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div className="bg-green-50 rounded-lg p-3 text-center">
-                <p className="text-2xl font-bold text-green-600">{result.created || 0}</p>
+                <p className="text-2xl font-bold text-green-600">{result.criados || 0}</p>
                 <p className="text-xs text-gray-600">Criados</p>
               </div>
               <div className="bg-blue-50 rounded-lg p-3 text-center">
-                <p className="text-2xl font-bold text-blue-600">{result.updated || 0}</p>
+                <p className="text-2xl font-bold text-blue-600">{result.atualizados || 0}</p>
                 <p className="text-xs text-gray-600">Atualizados</p>
               </div>
-              <div className="bg-amber-50 rounded-lg p-3 text-center">
-                <p className="text-2xl font-bold text-amber-600">{result.unmatched || 0}</p>
-                <p className="text-xs text-gray-600">Não encontrados</p>
+              <div className="bg-purple-50 rounded-lg p-3 text-center">
+                <p className="text-2xl font-bold text-purple-600">{result.mapeamentos_salvos || 0}</p>
+                <p className="text-xs text-gray-600">Mapeamentos salvos</p>
               </div>
               <div className="bg-gray-50 rounded-lg p-3 text-center">
-                <p className="text-2xl font-bold text-gray-600">{(result.created || 0) + (result.updated || 0)}</p>
-                <p className="text-xs text-gray-600">Total importados</p>
+                <p className="text-2xl font-bold text-gray-600">{result.variacoes_afetadas || 0}</p>
+                <p className="text-xs text-gray-600">Variações afetadas</p>
               </div>
             </div>
-            {result.unmatched > 0 && (
+            {result.ignoradas?.length > 0 && (
               <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
                 <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <p>{result.unmatched} produtos não foram encontrados no catálogo. Verifique se os nomes no CSV correspondem aos produtos do catálogo padronizado.</p>
+                <p>{result.ignoradas.length} linha(s) foram ignoradas por preço inválido ou produto inexistente.</p>
               </div>
             )}
           </CardContent>
