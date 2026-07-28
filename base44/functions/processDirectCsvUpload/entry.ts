@@ -437,8 +437,8 @@ Deno.serve(async (req) => {
       item.origem_match = via === 'de_para' || via === 'sku_exato' ? 'sku_exato' : 'fuzzy_confirmado';
 
       // Verde só quando o casamento é determinístico E o preço não foi inferido como por quilo.
-      const determinístico = via === 'de_para' || via === 'sku_exato' || via === 'nome_exato';
-      if (determinístico && !precoKgInferido) {
+      const deterministico = via === 'de_para' || via === 'sku_exato' || via === 'nome_exato';
+      if (deterministico && !precoKgInferido) {
         item.status = 'verde';
         item.motivo = via === 'de_para'
           ? 'Mapeamento já confirmado numa importação anterior'
