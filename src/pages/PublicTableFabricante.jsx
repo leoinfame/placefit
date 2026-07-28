@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { getPublicFabricanteTable } from "@/functions/getPublicFabricanteTable";
 import { useLogoColors } from "@/components/export/useLogoColors";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -37,22 +37,19 @@ export default function PublicTableFabricante() {
         return;
       }
 
-      const users = await base44.entities.User.filter({ id: fabricanteId });
-      if (users.length === 0) {
-        setError("Fabricante não encontrado.");
+      // Dados servidos por função de backend (service role): a página é pública,
+      // mas as entidades User/Product exigem autenticação.
+      const response = await getPublicFabricanteTable({ fabricante_id: fabricanteId });
+      const data = response?.data;
+
+      if (!data || data.error || !data.fabricante) {
+        setError(data?.error || "Fabricante não encontrado.");
         setLoading(false);
         return;
       }
 
-      const fabricanteData = users[0];
-      setFabricante(fabricanteData);
-
-      const allProducts = await base44.entities.Product.filter({ ativo: true });
-      const fabricanteProducts = allProducts.filter(
-        p => p.fabricante_id === fabricanteId && p.aprovado_produto === true && p.preco_fabricante > 0
-      );
-
-      setProducts(fabricanteProducts);
+      setFabricante(data.fabricante);
+      setProducts(data.products || []);
     } catch (err) {
       setError("Erro ao carregar tabela. Tente novamente.");
     }
