@@ -253,14 +253,15 @@ export default function ImportarTabela({ user }) {
               disabled={(!file && !csvText.trim()) || preview.length === 0 || processing}
               className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
             >
-              {processing ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Processando...</> : <><Upload className="w-4 h-4 mr-2" />Processar e Importar</>}
+              {processing ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Processando...</> : <><Upload className="w-4 h-4 mr-2" />Analisar tabela</>}
             </Button>
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
             <p className="font-medium mb-1">Formato esperado do CSV:</p>
             <p>O arquivo deve conter ao menos a coluna <code className="bg-blue-100 px-1 rounded">nome</code> (descrição do produto) e <code className="bg-blue-100 px-1 rounded">preco</code> (valor numérico).</p>
-            <p className="mt-1">A coluna "codigo" é opcional — se presente, será guardada como código de origem para referência. O sistema casa seus produtos ao catálogo padronizado automaticamente.</p>
+            <p className="mt-1">A coluna "codigo" é opcional — se presente, vira o de-para do fornecedor e passa a casar sozinha nas próximas importações. A coluna "tipo_preco" aceita <code className="bg-blue-100 px-1 rounded">unitario</code> ou <code className="bg-blue-100 px-1 rounded">kg</code>.</p>
+            <p className="mt-1">A análise não grava nada: você vê o resultado antes de aplicar.</p>
           </div>
         </CardContent>
       </Card>
@@ -293,6 +294,82 @@ export default function ImportarTabela({ user }) {
               </div>
             </div>
             {preview.length > 100 && <p className="text-xs text-gray-400 mt-2">Mostrando as primeiras 100 linhas de {preview.length}.</p>}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Plano da análise */}
+      {plano && !result && (
+        <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-sm">
+          <CardContent className="p-5 space-y-3">
+            <h3 className="font-semibold text-gray-900">Análise da tabela — nada foi gravado ainda</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="bg-gray-50 rounded-lg p-3 text-center">
+                <p className="text-2xl font-bold text-gray-700">{plano.resumo.total}</p>
+                <p className="text-xs text-gray-600">Linhas</p>
+              </div>
+              <div className="bg-green-50 rounded-lg p-3 text-center">
+                <p className="text-2xl font-bold text-green-600">{plano.resumo.verde}</p>
+                <p className="text-xs text-gray-600">Seguras</p>
+              </div>
+              <div className="bg-amber-50 rounded-lg p-3 text-center">
+                <p className="text-2xl font-bold text-amber-600">{plano.resumo.amarelo}</p>
+                <p className="text-xs text-gray-600">Para conferir</p>
+              </div>
+              <div className="bg-red-50 rounded-lg p-3 text-center">
+                <p className="text-2xl font-bold text-red-600">{plano.resumo.vermelho}</p>
+                <p className="text-xs text-gray-600">Sem correspondência</p>
+              </div>
+            </div>
+
+            <Button
+              onClick={handleAplicarSeguras}
+              disabled={processing || plano.resumo.verde === 0}
+              className="bg-gradient-to-r from-blue-600 to-green-600"
+            >
+              {processing
+                ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Aplicando...</>
+                : <><CheckCircle className="w-4 h-4 mr-2" />Aplicar {plano.resumo.verde} linha(s) segura(s)</>}
+            </Button>
+
+            {(plano.resumo.amarelo > 0 || plano.resumo.vermelho > 0) && (
+              <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
+                <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <p>
+                  {plano.resumo.amarelo + plano.resumo.vermelho} linha(s) precisam de conanceão individual.
+                  Use a tela de upload do catálogo do fabricante para revisar e escolher produto a produto.
+                </p>
+              </div>
+            )}
+
+            <div className="rounded-lg border overflow-hidden">
+              <div className="overflow-x-auto max-h-72">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Linha do fornecedor</TableHead>
+                      <TableHead>Produto do catálogo</TableHead>
+                      <TableHead className="text-right">Preço</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {plano.itens.slice(0, 200).map((it) => (
+                      <TableRow key={it.linha}>
+                        <TableCell className="text-xs">
+                          {it.status === "verde" ? "✓ segura" : it.status === "amarelo" ? "⚠ conferir" : "✕ sem match"}
+                        </TableCell>
+                        <TableCell className="text-xs text-gray-600">
+                          {it.descricao_origem || it.cod_origem || "—"}
+                        </TableCell>
+                        <TableCell className="text-xs">{it.match ? `${it.match.cod} — ${it.match.nome}` : "—"}</TableCell>
+                        <TableCell className="text-right text-xs">{it.preco != null ? formatBRL(it.preco) : "—"}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}
