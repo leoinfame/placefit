@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import { UploadFile } from "@/integrations/Core";
 import { processDirectCsvUpload } from "@/functions/processDirectCsvUpload";
+import { confirmarImportacaoTabela } from "@/functions/confirmarImportacaoTabela";
 import { Upload, FileSpreadsheet, Eye, Loader2, CheckCircle, AlertCircle, Download, ClipboardPaste } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -69,6 +70,7 @@ export default function ImportarTabela({ user }) {
   const [inputMode, setInputMode] = useState("file");
   const [preview, setPreview] = useState([]);
   const [processing, setProcessing] = useState(false);
+  const [plano, setPlano] = useState(null);
   const [result, setResult] = useState(null);
   const fileInputRef = useRef(null);
   const { toast } = useToast();
@@ -131,9 +133,11 @@ export default function ImportarTabela({ user }) {
   // Normaliza código removendo tudo que não é alfanumérico, para matching flexível
   const normalizeCod = (cod) => (cod || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
 
+  // Etapa 1: analisar. Nada é gravado aqui.
   const handleProcess = async () => {
     setProcessing(true);
     setResult(null);
+    setPlano(null);
     try {
       let fileObj = file;
       if (!fileObj && csvText.trim()) {
@@ -142,10 +146,50 @@ export default function ImportarTabela({ user }) {
       if (!fileObj) return;
       const { file_url } = await UploadFile({ file: fileObj });
       const res = await processDirectCsvUpload({ file_url });
-      setResult(res.data);
-      toast({ title: "Importação concluída!", description: `${(res.data?.created || 0) + (res.data?.updated || 0)} produtos processados.` });
+      if (res.data?.error) throw new Error(res.data.error);
+      setPlano(res.data);
+      toast({
+        title: "Análise concluída",
+        description: `${res.data.resumo.verde} linha(s) seguras, ${res.data.resumo.amarelo} para conferir, ${res.data.resumo.vermelho} sem correspondência.`,
+      });
     } catch (e) {
-      toast({ title: "Erro", description: e?.message || "Erro ao processar CSV.", variant: "destructive" });
+      toast({ title: "Erro", description: e?.message || "Erro ao analisar CSV.", variant: "destructive" });
+    }
+    setProcessing(false);
+  };
+
+  // Etapa 2: aplicar apenas as linhas determinísticas (de-para confirmado, SKU ou nome exato).
+  const handleAplicarSeguras = async () => {
+    if (!plano) return;
+    const decisoes = plano.itens
+      .filter((it) => it.status === "verde" && it.match?.product_id)
+      .map((it) => ({
+        product_id: it.match.product_id,
+        preco: it.preco,
+        tipo_preco: it.tipo_preco || "unitario",
+        disponivel: it.disponivel !== false,
+        cod_origem: it.cod_origem,
+        descricao_origem: it.descricao_origem,
+        origem_match: it.origem_match || "sku_exato",
+        salvar_mapeamento: true,
+      }));
+
+    if (decisoes.length === 0) {
+      toast({ title: "Nada a aplicar", description: "Nenhuma linha segura nesta tabela.", variant: "destructive" });
+      return;
+    }
+
+    setProcessing(true);
+    try {
+      const res = await confirmarImportacaoTabela({ decisoes });
+      if (res.data?.error) throw new Error(res.data.error);
+      setResult(res.data);
+      toast({
+        title: "Importação concluída!",
+        description: `${(res.data?.criados || 0) + (res.data?.atualizados || 0)} preços gravados.`,
+      });
+    } catch (e) {
+      toast({ title: "Erro", description: e?.message || "Erro ao aplicar.", variant: "destructive" });
     }
     setProcessing(false);
   };
