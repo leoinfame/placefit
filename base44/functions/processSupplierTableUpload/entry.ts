@@ -1,5 +1,59 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
+/**
+ * ANÁLISE de tabela de preços em formato livre (PDF, Excel, JSON, CSV) via IA.
+ * Não grava nada — devolve um plano para conferência, igual ao caminho do CSV.
+ *
+ * O de-para do fornecedor (SupplierSkuMap) tem precedência sobre a sugestão da
+ * IA: se aquele código já foi resolvido antes, não se pergunta de novo.
+ *
+ * A gravação acontece em confirmarImportacaoTabela.
+ */
+
+const stripAccents = (s: string) =>
+  String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '');
+
+const normalizeCod = (cod: string) =>
+  String(cod ?? '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+const SINONIMOS: [RegExp, string][] = [
+  [/\bbamper\b/g, 'bumper'],
+  [/\bhalt\b/g, 'halter'],
+  [/\bdumbel{1,2}\b/g, 'dumbbell'],
+  [/\bkettle\s*bells?\b/g, 'kettlebell'],
+  [/\banilhas\b/g, 'anilha'],
+  [/\bolimpico\b/g, 'olimpica'],
+];
+
+const normalizeName = (name: string) => {
+  let n = stripAccents(String(name ?? '').trim().toLowerCase())
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  for (const [re, sub] of SINONIMOS) n = n.replace(re, sub);
+  return n;
+};
+
+const normalizeNameTokens = (name: string) =>
+  normalizeName(name).split(' ').filter((w) => w.length > 1).sort().join(' ');
+
+/** Peso extraído do texto ORIGINAL, antes de normalizar pontuação. */
+const extractWeight = (text: string): number | null => {
+  if (!text) return null;
+  const m = stripAccents(String(text).toLowerCase()).match(/(\d+(?:[.,]\d+)?)\s*kg\b/);
+  return m ? parseFloat(m[1].replace(',', '.')) : null;
+};
+
+/** Nome sem o peso, para agrupar variações irmãs. */
+const getBaseKey = (name: string) => {
+  if (!name) return '';
+  const semPeso = stripAccents(String(name).toLowerCase())
+    .replace(/\d+(?:[.,]\d+)?\s*kg\b/g, ' ');
+  let n = semPeso.replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  for (const [re, sub] of SINONIMOS) n = n.replace(re, sub);
+  return n;
+};
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -9,51 +63,41 @@ Deno.serve(async (req) => {
     const { file_url } = await req.json();
     if (!file_url) return Response.json({ error: 'file_url é obrigatório' }, { status: 400 });
 
-    // 1. Buscar templates ativos e SupplierProducts existentes em paralelo
-    const [templates, existingSps] = await Promise.all([
+    const [templates, skuMaps, existingSps] = await Promise.all([
       base44.asServiceRole.entities.ProductTemplate.filter({ ativo: true }),
-      base44.asServiceRole.entities.SupplierProduct.filter({ supplier_id: user.id })
+      base44.asServiceRole.entities.SupplierSkuMap.filter({ supplier_id: user.id, ativo: true }),
+      base44.asServiceRole.entities.SupplierProduct.filter({ supplier_id: user.id }),
     ]);
 
-    const existingByPid = new Map();
-    for (const sp of existingSps) existingByPid.set(sp.product_id, sp);
+    const templateById = new Map(templates.map((t: any) => [t.id, t]));
+    const templateByCod = new Map<string, any>();
+    for (const t of templates) {
+      const c = normalizeCod(t.cod);
+      if (c && !templateByCod.has(c)) templateByCod.set(c, t);
+    }
 
-    // --- Helpers para preço por kg (preço linear aplicado a todas as variações por peso) ---
-    const normalizeName = (name) => (name || "").trim().toLowerCase()
-      .normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
-    const extractWeight = (name) => {
-      if (!name) return null;
-      const match = name.toLowerCase().match(/(\d+(?:[.,]\d+)?)\s*kg/);
-      if (!match) return null;
-      return parseFloat(match[1].replace(",", "."));
-    };
-    const getBaseKey = (name) => {
-      if (!name) return "";
-      return normalizeName(name).replace(/\s*\d+(?:[.,]\d+)?\s*kg\s*/g, " ").replace(/\s+/g, " ").trim();
-    };
-    const findWeightSiblings = (template) => {
-      if (!template || !template.peso_kg) return [];
+    const existingByPid = new Map(existingSps.map((sp: any) => [sp.product_id, sp]));
+    const mapByChave = new Map<string, any>();
+    for (const m of skuMaps) if (m.chave) mapByChave.set(m.chave, m);
+
+    const findWeightSiblings = (template: any) => {
+      if (!template || template.peso_kg == null) return [];
       const baseKey = getBaseKey(template.nome);
       if (!baseKey) return [];
-      return templates.filter(t =>
-        t.peso_kg != null &&
-        t.categoria === template.categoria &&
-        getBaseKey(t.nome) === baseKey
+      return templates.filter(
+        (t: any) => t.peso_kg != null && t.categoria === template.categoria && getBaseKey(t.nome) === baseKey
       );
     };
-    const processedPids = new Set();
 
-    // Lista compacta de templates
-    const templateList = templates.map(t => {
-      const parts = [t.id, t.cod || "", t.nome || "", t.categoria || ""];
+    const templateList = templates.map((t: any) => {
+      const parts = [t.id, t.cod || '', t.nome || '', t.categoria || ''];
       if (t.peso_kg) parts.push(`${t.peso_kg}kg`);
       if (t.acabamento) parts.push(t.acabamento);
       if (t.tipo_furo) parts.push(t.tipo_furo);
       if (t.und) parts.push(t.und);
-      return parts.join("|");
-    }).join("\n");
+      return parts.join('|');
+    }).join('\n');
 
-    // 2. ÚNICA chamada LLM: lê o arquivo + extrai produtos + casa com templates
     const llmResult = await base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt: `Analise o arquivo enviado (tabela de preços de equipamentos de fitness) e extraia todos os produtos com seus preços.
 Para cada produto, case com o template mais similar do catálogo abaixo.
@@ -64,97 +108,151 @@ ${templateList}
 Retorne JSON com produtos encontrados. Regras:
 - Extraia TODOS os produtos com preço que encontrar
 - preco: apenas números (45.90, não "R$ 45,90")
+- codigo_fornecedor: o código do produto na tabela do fornecedor, se houver
+- descricao_original: a descrição do produto exatamente como aparece na tabela
 - template_id: ID exato do catálogo casado, ou null se não houver
+- confianca: número de 0 a 1 indicando o quanto você tem certeza do casamento
+- preco_por_kg: true se a tabela indicar que o preço é por quilo, false caso contrário
 - Use o código exato se houver match, senão compare nome/peso/acabamento/tipo`,
       file_urls: [file_url],
-      model: "gemini_3_flash",
+      model: 'gemini_3_flash',
       response_json_schema: {
-        type: "object",
+        type: 'object',
         properties: {
           produtos: {
-            type: "array",
+            type: 'array',
             items: {
-              type: "object",
+              type: 'object',
               properties: {
-                descricao_original: { type: "string" },
-                template_id: { type: "string" },
-                preco: { type: "number" },
-                motivo: { type: "string" }
-              }
-            }
-          }
-        }
-      }
+                descricao_original: { type: 'string' },
+                codigo_fornecedor: { type: 'string' },
+                template_id: { type: 'string' },
+                preco: { type: 'number' },
+                confianca: { type: 'number' },
+                preco_por_kg: { type: 'boolean' },
+                motivo: { type: 'string' },
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!llmResult.produtos || llmResult.produtos.length === 0) {
       return Response.json({ error: 'Nenhum produto encontrado no arquivo.' }, { status: 400 });
     }
 
-    // 3. Processar resultados
-    const toCreate = [];
-    const toUpdate = [];
-    const results = { created: [], updated: [], unmatched: [], divergencias: [] };
+    const resumoTmpl = (t: any) => ({
+      product_id: t.id, cod: t.cod, nome: t.nome, categoria: t.categoria, peso_kg: t.peso_kg,
+    });
+
+    const itens: any[] = [];
+    let linha = 1;
 
     for (const p of llmResult.produtos) {
-      if (!p.preco || p.preco <= 0) {
-        results.divergencias.push({ descricao: p.descricao_original || "?", motivo: "Produto sem preço" });
-        results.unmatched.push({ descricao: p.descricao_original || "?", motivo: "Sem preço na tabela" });
+      linha++;
+      const descricao = p.descricao_original || null;
+      const codigo = p.codigo_fornecedor || null;
+
+      const item: any = {
+        linha,
+        cod_origem: codigo,
+        descricao_origem: descricao,
+        candidatos: [],
+      };
+
+      const preco = Number(p.preco);
+      if (!preco || preco <= 0) {
+        itens.push({ ...item, status: 'vermelho', motivo: 'Produto sem preço na tabela' });
         continue;
       }
-      if (!p.template_id) {
-        results.unmatched.push({ descricao: p.descricao_original || "?", motivo: p.motivo || "Sem template" });
+      item.preco = preco;
+      item.disponivel = true;
+
+      // ---- casamento: de-para tem precedência sobre a IA
+      let template: any = null;
+      let via = '';
+
+      const chaveCod = codigo ? normalizeCod(codigo) : '';
+      const chaveNome = descricao ? normalizeNameTokens(descricao) : '';
+
+      const hit = (chaveCod && mapByChave.get(chaveCod)) || (chaveNome && mapByChave.get(chaveNome));
+      if (hit && templateById.has(hit.product_id)) {
+        template = templateById.get(hit.product_id);
+        via = 'de_para';
+      }
+
+      if (!template && chaveCod && templateByCod.has(chaveCod)) {
+        template = templateByCod.get(chaveCod);
+        via = 'sku_exato';
+      }
+
+      if (!template && p.template_id && templateById.has(p.template_id)) {
+        template = templateById.get(p.template_id);
+        via = 'ia';
+        item.score = typeof p.confianca === 'number' ? Math.round(p.confianca * 100) / 100 : null;
+      }
+
+      if (!template) {
+        itens.push({
+          ...item,
+          status: 'vermelho',
+          motivo: p.motivo || 'A IA não encontrou correspondência no catálogo',
+        });
         continue;
       }
 
-      const tmpl = templates.find(t => t.id === p.template_id);
-      if (!tmpl) {
-        results.unmatched.push({ descricao: p.descricao_original || "?", motivo: "Template ID inválido" });
-        continue;
+      // ---- preço unitário ou por quilo
+      const pesoNaLinha = extractWeight(descricao) ?? extractWeight(codigo);
+      const irmas = findWeightSiblings(template);
+
+      let tipoPreco: 'unitario' | 'kg' = 'unitario';
+      let precoKgInferido = false;
+      if (p.preco_por_kg === true) {
+        tipoPreco = 'kg';
+      } else if (pesoNaLinha == null && template.peso_kg != null && irmas.length > 1) {
+        tipoPreco = 'kg';
+        precoKgInferido = true;
       }
 
-      const codOrigem = p.descricao_original || null;
+      item.match = resumoTmpl(template);
+      item.via = via;
+      item.tipo_preco = tipoPreco;
+      item.preco_kg_inferido = precoKgInferido;
+      item.variacoes_afetadas = tipoPreco === 'kg' ? Math.max(irmas.length, 1) : 1;
+      item.ja_existe = existingByPid.has(template.id);
+      item.preco_atual = existingByPid.get(template.id)?.preco ?? null;
+      item.origem_match = (via === 'de_para' || via === 'sku_exato') ? 'sku_exato' : 'fuzzy_confirmado';
 
-      // Detecta preço por kg: nome sem peso + template com variações irmãs por peso
-      const csvHasWeight = extractWeight(p.descricao_original) != null;
-      const siblings = findWeightSiblings(tmpl);
-      const isPrecoKg = !csvHasWeight && tmpl.peso_kg != null && siblings.length > 1;
-      const variants = isPrecoKg ? siblings : [tmpl];
-
-      for (const variant of variants) {
-        if (processedPids.has(variant.id)) continue;
-        processedPids.add(variant.id);
-
-        const variantPreco = isPrecoKg
-          ? Math.round(p.preco * variant.peso_kg * 100) / 100
-          : p.preco;
-
-        const existing = existingByPid.get(variant.id);
-        if (existing) {
-          toUpdate.push({ id: existing.id, preco: variantPreco, disponivel: true, ...(codOrigem ? { cod_origem: codOrigem } : {}) });
-          results.updated.push({ descricao: p.descricao_original, template_nome: variant.nome, template_cod: variant.cod, preco: variantPreco });
-        } else {
-          toCreate.push({ supplier_id: user.id, product_id: variant.id, preco: variantPreco, disponivel: true, ...(codOrigem ? { cod_origem: codOrigem } : {}) });
-          results.created.push({ descricao: p.descricao_original, template_nome: variant.nome, template_cod: variant.cod, preco: variantPreco });
-        }
+      const deterministico = via === 'de_para' || via === 'sku_exato';
+      if (deterministico && !precoKgInferido) {
+        item.status = 'verde';
+        item.motivo = via === 'de_para'
+          ? 'Mapeamento já confirmado numa importação anterior'
+          : 'Código bate exatamente com o catálogo';
+      } else {
+        item.status = 'amarelo';
+        item.motivo = precoKgInferido
+          ? `Preço interpretado como POR QUILO e distribuído em ${Math.max(irmas.length, 1)} faixas de peso — confira`
+          : `Casamento sugerido pela IA${item.score != null ? ` (confiança ${Math.round(item.score * 100)}%)` : ''}`;
       }
+
+      itens.push(item);
     }
-
-    // 4. Operações em lote
-    if (toCreate.length > 0) await base44.asServiceRole.entities.SupplierProduct.bulkCreate(toCreate);
-    if (toUpdate.length > 0) await base44.asServiceRole.entities.SupplierProduct.bulkUpdate(toUpdate);
 
     return Response.json({
       success: true,
-      total_extracted: llmResult.produtos.length,
-      created: results.created.length,
-      updated: results.updated.length,
-      unmatched: results.unmatched.length,
-      divergencias: results.divergencias.length,
-      details: results
+      modo: 'analisar',
+      resumo: {
+        total: itens.length,
+        verde: itens.filter((x) => x.status === 'verde').length,
+        amarelo: itens.filter((x) => x.status === 'amarelo').length,
+        vermelho: itens.filter((x) => x.status === 'vermelho').length,
+      },
+      itens,
     });
   } catch (error) {
-    console.error("Erro:", error);
+    console.error('Erro processSupplierTableUpload:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
