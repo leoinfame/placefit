@@ -1,18 +1,15 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 /**
- * Importação de tabela de preços em CSV, em duas etapas.
+ * ANÁLISE de uma tabela de preços em CSV. Não grava nada.
  *
- *   { file_url }                          → modo "analisar" (padrão): devolve o plano, NÃO grava nada.
- *   { modo: "confirmar", decisoes: [...] } → aplica somente o que o usuário aprovou.
+ * Devolve um plano linha a linha para o usuário conferir. A gravação acontece
+ * depois, em confirmarImportacaoTabela, só com o que foi aprovado.
  *
- * Cada linha é classificada em:
- *   verde    — de-para já confirmado, ou SKU exato do catálogo. Aplica direto.
- *   amarelo  — casamento por semelhança, ou linha interpretada como preço por quilo. Precisa de conferência.
- *   vermelho — sem correspondência, ou empate entre candidatos. Precisa de escolha.
- *
- * Toda decisão tomada no amarelo/vermelho vira um SupplierSkuMap, para que a
- * próxima importação do mesmo fornecedor case direto, sem adivinhação.
+ * Classificação de cada linha:
+ *   verde    — de-para já confirmado, SKU exato ou nome exato. Pode aplicar direto.
+ *   amarelo  — casou por semelhança, ou o preço foi interpretado como por quilo. Confira.
+ *   vermelho — sem correspondência, ou empate entre candidatos. Precisa escolher.
  */
 
 // ---------------------------------------------------------------- normalização
@@ -42,9 +39,8 @@ const normalizeName = (name: string) => {
 };
 
 /**
- * Extrai o peso do texto ORIGINAL, antes de qualquer normalização de pontuação.
- * Fazer na ordem inversa quebrava pesos fracionados: "1,5kg" virava "1 5kg" e
- * o número era partido em dois.
+ * Extrai o peso do texto ORIGINAL, antes de normalizar a pontuação.
+ * Na ordem inversa, pesos fracionados quebravam: "1,5kg" virava "1 5kg".
  */
 const extractWeight = (text: string): number | null => {
   if (!text) return null;
@@ -52,10 +48,7 @@ const extractWeight = (text: string): number | null => {
   return m ? parseFloat(m[1].replace(',', '.')) : null;
 };
 
-/**
- * Nome sem o peso, usado para agrupar variações irmãs.
- * Remove o padrão de peso do texto original e só depois normaliza a pontuação.
- */
+/** Nome sem o peso, usado para agrupar variações irmãs. Mesma ordem corrigida. */
 const getBaseKey = (name: string) => {
   if (!name) return '';
   const semPeso = stripAccents(String(name).toLowerCase())
@@ -104,9 +97,8 @@ const scoreTokens = (csvTokens: string[], tmplTokens: string[]) => {
   return matches / Math.max(csvTokens.length, tmplTokens.length);
 };
 
-// Limiares do casamento por semelhança
 const SCORE_MINIMO = 0.70;   // abaixo disso não é candidato
-const MARGEM_MINIMA = 0.08;  // vantagem mínima sobre o 2º colocado para não ser considerado empate
+const MARGEM_MINIMA = 0.08;  // vantagem mínima sobre o 2º colocado; senão é empate
 
 // ---------------------------------------------------------------- CSV
 
@@ -161,10 +153,20 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Não autorizado' }, { status: 401 });
 
     const body = await req.json();
-    const modo = body?.modo === 'confirmar' ? 'confirmar' : 'analisar';
+    const file_url = body?.file_url;
+    if (!file_url) return Response.json({ error: 'file_url é obrigatório' }, { status: 400 });
 
-    const templates = await base44.asServiceRole.entities.ProductTemplate.filter({ ativo: true });
+    const [templates, skuMaps, existingSps] = await Promise.all([
+      base44.asServiceRole.entities.ProductTemplate.filter({ ativo: true }),
+      base44.asServiceRole.entities.SupplierSkuMap.filter({ supplier_id: user.id, ativo: true }),
+      base44.asServiceRole.entities.SupplierProduct.filter({ supplier_id: user.id }),
+    ]);
+
     const templateById = new Map(templates.map((t: any) => [t.id, t]));
+    const existingByPid = new Map(existingSps.map((sp: any) => [sp.product_id, sp]));
+
+    const mapByChave = new Map<string, any>();
+    for (const m of skuMaps) if (m.chave) mapByChave.set(m.chave, m);
 
     const findWeightSiblings = (template: any) => {
       if (!template || template.peso_kg == null) return [];
@@ -174,120 +176,6 @@ Deno.serve(async (req) => {
         (t: any) => t.peso_kg != null && t.categoria === template.categoria && getBaseKey(t.nome) === baseKey
       );
     };
-
-    // ============================================================ CONFIRMAR
-    if (modo === 'confirmar') {
-      const decisoes = Array.isArray(body?.decisoes) ? body.decisoes : [];
-      if (decisoes.length === 0) {
-        return Response.json({ error: 'Nenhuma decisão enviada.' }, { status: 400 });
-      }
-
-      const existingSps = await base44.asServiceRole.entities.SupplierProduct.filter({ supplier_id: user.id });
-      const existingByPid = new Map(existingSps.map((sp: any) => [sp.product_id, sp]));
-
-      const toCreate: any[] = [];
-      const toUpdate: any[] = [];
-      const mapsToCreate: any[] = [];
-      const processedPids = new Set<string>();
-      let variacoes = 0;
-
-      for (const d of decisoes) {
-        const tmpl = templateById.get(d?.product_id);
-        const preco = Number(d?.preco);
-        if (!tmpl || !preco || preco <= 0) continue;
-
-        const porKg = d?.tipo_preco === 'kg';
-        const disponivel = d?.disponivel !== false;
-        const codOrigem = d?.cod_origem || null;
-        const descricaoOrigem = d?.descricao_origem || null;
-
-        const variants = porKg ? findWeightSiblings(tmpl) : [tmpl];
-        const alvo = variants.length > 0 ? variants : [tmpl];
-
-        for (const variant of alvo) {
-          if (processedPids.has(variant.id)) continue;
-          processedPids.add(variant.id);
-          variacoes++;
-
-          const precoVariante = porKg && variant.peso_kg
-            ? Math.round(preco * variant.peso_kg * 100) / 100
-            : preco;
-
-          const existing = existingByPid.get(variant.id);
-          const campos = {
-            preco: precoVariante,
-            disponivel,
-            ...(codOrigem ? { cod_origem: codOrigem } : {}),
-          };
-          if (existing) toUpdate.push({ id: existing.id, ...campos });
-          else toCreate.push({ supplier_id: user.id, product_id: variant.id, ...campos });
-        }
-
-        // Aprende o casamento para as próximas importações.
-        if (d?.salvar_mapeamento !== false) {
-          const chaveCod = codOrigem ? normalizeCod(codOrigem) : '';
-          const chaveNome = descricaoOrigem ? normalizeNameTokens(descricaoOrigem) : '';
-          if (chaveCod) {
-            mapsToCreate.push({
-              supplier_id: user.id, chave: chaveCod, tipo_chave: 'codigo',
-              cod_origem: codOrigem, descricao_origem: descricaoOrigem,
-              product_id: tmpl.id, origem_match: d?.origem_match || 'manual',
-              confirmado_por: user.email, ativo: true,
-            });
-          }
-          if (chaveNome) {
-            mapsToCreate.push({
-              supplier_id: user.id, chave: chaveNome, tipo_chave: 'nome',
-              cod_origem: codOrigem, descricao_origem: descricaoOrigem,
-              product_id: tmpl.id, origem_match: d?.origem_match || 'manual',
-              confirmado_por: user.email, ativo: true,
-            });
-          }
-        }
-      }
-
-      if (toCreate.length) await base44.asServiceRole.entities.SupplierProduct.bulkCreate(toCreate);
-      if (toUpdate.length) await base44.asServiceRole.entities.SupplierProduct.bulkUpdate(toUpdate);
-
-      // Substitui mapeamentos anteriores das mesmas chaves antes de gravar os novos.
-      let mapeamentosSalvos = 0;
-      if (mapsToCreate.length) {
-        const chaves = [...new Set(mapsToCreate.map((m) => m.chave))];
-        const antigos = await base44.asServiceRole.entities.SupplierSkuMap.filter({
-          supplier_id: user.id, chave: { $in: chaves },
-        });
-        if (antigos.length) {
-          await base44.asServiceRole.entities.SupplierSkuMap.deleteMany({
-            _id: { $in: antigos.map((m: any) => m.id) },
-          });
-        }
-        await base44.asServiceRole.entities.SupplierSkuMap.bulkCreate(mapsToCreate);
-        mapeamentosSalvos = mapsToCreate.length;
-      }
-
-      return Response.json({
-        success: true,
-        modo: 'confirmar',
-        criados: toCreate.length,
-        atualizados: toUpdate.length,
-        variacoes_afetadas: variacoes,
-        mapeamentos_salvos: mapeamentosSalvos,
-      });
-    }
-
-    // ============================================================ ANALISAR
-    const file_url = body?.file_url;
-    if (!file_url) return Response.json({ error: 'file_url é obrigatório' }, { status: 400 });
-
-    const [skuMaps, existingSps] = await Promise.all([
-      base44.asServiceRole.entities.SupplierSkuMap.filter({ supplier_id: user.id, ativo: true }),
-      base44.asServiceRole.entities.SupplierProduct.filter({ supplier_id: user.id }),
-    ]);
-
-    const mapByChave = new Map<string, any>();
-    for (const m of skuMaps) if (m.chave) mapByChave.set(m.chave, m);
-
-    const existingByPid = new Map(existingSps.map((sp: any) => [sp.product_id, sp]));
 
     const templateByCod = new Map<string, any>();
     const templateByTokens = new Map<string, any>();
@@ -323,7 +211,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'CSV deve ter ao menos uma coluna "nome" ou "codigo".' }, { status: 400 });
     }
 
-    const resumo = (t: any) => ({ product_id: t.id, cod: t.cod, nome: t.nome, categoria: t.categoria, peso_kg: t.peso_kg });
+    const resumoTmpl = (t: any) => ({
+      product_id: t.id, cod: t.cod, nome: t.nome, categoria: t.categoria, peso_kg: t.peso_kg,
+    });
+
     const itens: any[] = [];
 
     for (let i = 1; i < rows.length; i++) {
@@ -349,13 +240,14 @@ Deno.serve(async (req) => {
         ? String(row[idxDisponivel]).trim().toUpperCase() !== 'NÃO'
         : true;
 
-      // --- casamento, em cascata
+      // ---- cascata de casamento
       let template: any = null;
       let via = '';
 
-      // 0) de-para já confirmado deste fornecedor
       const chaveCod = codigo ? normalizeCod(codigo) : '';
       const chaveNome = nome ? normalizeNameTokens(nome) : '';
+
+      // 0) de-para já confirmado por este fornecedor
       const hit = (chaveCod && mapByChave.get(chaveCod)) || (chaveNome && mapByChave.get(chaveNome));
       if (hit && templateById.has(hit.product_id)) {
         template = templateById.get(hit.product_id);
@@ -368,17 +260,19 @@ Deno.serve(async (req) => {
         via = 'sku_exato';
       }
 
-      // 2) tokens exatos / 3) sem palavras de acabamento
+      // 2/3) nome exato, com e sem palavras de acabamento
       if (!template && nome) {
-        if (templateByTokens.has(chaveNome)) { template = templateByTokens.get(chaveNome); via = 'nome_exato'; }
-        if (!template) {
+        if (templateByTokens.has(chaveNome)) {
+          template = templateByTokens.get(chaveNome);
+          via = 'nome_exato';
+        } else {
           const limpo = normalizeNameTokens(nome.replace(/\bbruto\b/gi, '').replace(/\bpintado\b/gi, ''));
           const alt = templateByCleanTokens.get(limpo) || templateByTokens.get(limpo);
           if (alt) { template = alt; via = 'nome_sem_acabamento'; }
         }
       }
 
-      // 4) semelhança, com controle de empate
+      // 4) semelhança, exigindo vantagem sobre o 2º colocado
       let empate = false;
       if (!template && nome) {
         const csvTokens = getTokens(nome);
@@ -387,7 +281,9 @@ Deno.serve(async (req) => {
           .filter((x) => x.score > 0)
           .sort((a, b) => b.score - a.score);
 
-        item.candidatos = scored.slice(0, 3).map((x) => ({ ...resumo(x.t), score: Math.round(x.score * 100) / 100 }));
+        item.candidatos = scored.slice(0, 3).map((x) => ({
+          ...resumoTmpl(x.t), score: Math.round(x.score * 100) / 100,
+        }));
 
         const melhor = scored[0];
         const segundo = scored[1];
@@ -407,63 +303,64 @@ Deno.serve(async (req) => {
           ...item,
           status: 'vermelho',
           motivo: empate
-            ? 'Mais de um produto do catálogo com a mesma semelhança — escolha qual é o correto'
+            ? 'Mais de um produto do catálogo com a mesma semelhança — escolha o correto'
             : 'Nenhum produto do catálogo corresponde a esta linha',
         });
         continue;
       }
 
-      // --- preço unitário ou por quilo
+      // ---- preço unitário ou por quilo
       const tipoDeclarado = idxTipoPreco !== -1 ? String(row[idxTipoPreco] || '').trim().toLowerCase() : '';
       const pesoNaLinha = extractWeight(nome) ?? extractWeight(codigo);
       const irmas = findWeightSiblings(template);
 
       let tipoPreco: 'unitario' | 'kg' = 'unitario';
       let precoKgInferido = false;
-      if (tipoDeclarado === 'kg' || tipoDeclarado === 'quilo' || tipoDeclarado === 'por_kg') {
+      if (['kg', 'quilo', 'por_kg', 'porkg'].includes(tipoDeclarado)) {
         tipoPreco = 'kg';
       } else if (!tipoDeclarado && pesoNaLinha == null && template.peso_kg != null && irmas.length > 1) {
         tipoPreco = 'kg';
         precoKgInferido = true;
       }
 
-      item.match = resumo(template);
+      item.match = resumoTmpl(template);
       item.via = via;
       item.tipo_preco = tipoPreco;
       item.preco_kg_inferido = precoKgInferido;
-      item.variacoes_afetadas = tipoPreco === 'kg' ? irmas.length : 1;
+      item.variacoes_afetadas = tipoPreco === 'kg' ? Math.max(irmas.length, 1) : 1;
       item.ja_existe = existingByPid.has(template.id);
       item.preco_atual = existingByPid.get(template.id)?.preco ?? null;
-      item.origem_match = via === 'de_para' || via === 'sku_exato' ? 'sku_exato' : 'fuzzy_confirmado';
+      item.origem_match = (via === 'de_para' || via === 'sku_exato') ? 'sku_exato' : 'fuzzy_confirmado';
 
-      // Verde só quando o casamento é determinístico E o preço não foi inferido como por quilo.
       const deterministico = via === 'de_para' || via === 'sku_exato' || via === 'nome_exato';
       if (deterministico && !precoKgInferido) {
         item.status = 'verde';
-        item.motivo = via === 'de_para'
-          ? 'Mapeamento já confirmado numa importação anterior'
+        item.motivo =
+          via === 'de_para' ? 'Mapeamento já confirmado numa importação anterior'
           : via === 'sku_exato' ? 'Código bate exatamente com o catálogo'
           : 'Nome bate exatamente com o catálogo';
       } else {
         item.status = 'amarelo';
         item.motivo = precoKgInferido
-          ? `Preço interpretado como POR QUILO e distribuído em ${irmas.length} faixas de peso — confira`
-          : via === 'nome_sem_acabamento'
-          ? 'Casou ignorando o acabamento (bruto/pintado)'
+          ? `Preço interpretado como POR QUILO e distribuído em ${Math.max(irmas.length, 1)} faixas de peso — confira`
+          : via === 'nome_sem_acabamento' ? 'Casou ignorando o acabamento (bruto/pintado)'
           : `Casamento por semelhança (${Math.round((item.score || 0) * 100)}%)`;
       }
 
       itens.push(item);
     }
 
-    const resumoGeral = {
-      total: itens.length,
-      verde: itens.filter((x) => x.status === 'verde').length,
-      amarelo: itens.filter((x) => x.status === 'amarelo').length,
-      vermelho: itens.filter((x) => x.status === 'vermelho').length,
-    };
-
-    return Response.json({ success: true, modo: 'analisar', resumo: resumoGeral, itens });
+    return Response.json({
+      success: true,
+      modo: 'analisar',
+      resumo: {
+        total: itens.length,
+        verde: itens.filter((x) => x.status === 'verde').length,
+        amarelo: itens.filter((x) => x.status === 'amarelo').length,
+        vermelho: itens.filter((x) => x.status === 'vermelho').length,
+      },
+      itens,
+    });
   } catch (error) {
     console.error('Erro processDirectCsvUpload:', error);
     return Response.json({ error: error.message }, { status: 500 });
