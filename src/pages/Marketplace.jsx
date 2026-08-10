@@ -41,12 +41,43 @@ export default function Marketplace() {
   const [searchValue, setSearchValue] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [authUser, setAuthUser] = useState(null);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
     loadData();
     registerMarketplaceVisit();
+    checkAuthStatus();
   }, []);
+
+  const checkAuthStatus = async () => {
+    try {
+      const isAuth = await base44.auth.isAuthenticated();
+      if (isAuth) {
+        const currentUser = await base44.auth.me();
+        setAuthUser(currentUser);
+      }
+    } catch (error) {
+      // Not authenticated — that's fine, stay on marketplace
+    }
+    setCheckingAuth(false);
+  };
+
+  const handleEntrarNoApp = async () => {
+    try {
+      const isAuth = await base44.auth.isAuthenticated();
+      if (isAuth) {
+        // Already logged in — go straight to the app
+        window.location.href = '/app';
+      } else {
+        // Not logged in — redirect to login, come back to /app
+        base44.auth.redirectToLogin('/app');
+      }
+    } catch (error) {
+      base44.auth.redirectToLogin('/app');
+    }
+  };
 
   const registerMarketplaceVisit = async () => {
     try {
@@ -220,11 +251,12 @@ export default function Marketplace() {
                 </Badge>
               )}
               <Button
-                onClick={() => base44.auth.redirectToLogin('/app')}
+                onClick={handleEntrarNoApp}
+                disabled={checkingAuth}
                 className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white"
                 size="sm"
               >
-                Entrar no App
+                {checkingAuth ? "..." : authUser ? "Ir para o Painel" : "Entrar no App"}
               </Button>
             </div>
           </div>

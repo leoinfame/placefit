@@ -154,6 +154,13 @@ export default function Layout({ children, currentPageName }) {
 
   const loadUser = async () => {
     try {
+      // Check if there's a token before calling me() — avoids unnecessary 401s
+      const isAuth = await base44.auth.isAuthenticated();
+      if (!isAuth) {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
@@ -169,6 +176,12 @@ export default function Layout({ children, currentPageName }) {
         }
       }
     } catch (error) {
+      console.error("Erro ao carregar usuário:", error);
+      // Only clear the session on auth errors (401/403), not on network errors.
+      // This prevents users from being logged out due to temporary connectivity issues.
+      if (error?.status === 401 || error?.status === 403) {
+        try { await base44.auth.logout(); } catch (e) {}
+      }
       setUser(null);
     }
     setLoading(false);
