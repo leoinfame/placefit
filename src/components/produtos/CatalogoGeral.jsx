@@ -307,7 +307,7 @@ export default function CatalogoGeral({ user }) {
       for (const g of eligibleGroups) {
         const fabs = getGroupFabricantes(g);
         if (fabs.length === 0) continue;
-        const fabName = fabs[0].fabricante_nome;
+        const fabName = bulkModal.choices?.[g.key] || fabs[0].fabricante_nome;
         const variations = getGroupFabricanteVariations(g, fabName);
         for (const v of variations) {
           records.push({
@@ -397,7 +397,18 @@ export default function CatalogoGeral({ user }) {
               <Button
                 size="sm"
                 className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
-                onClick={() => setBulkModal({ margem: 0 })}
+                onClick={() => {
+                  const choices = {};
+                  for (const g of groups) {
+                    if (selected.has(g.key) && !isGroupMine(g)) {
+                      const fabs = getGroupFabricantes(g);
+                      if (fabs.length > 0) {
+                        choices[g.key] = fabs[0].fabricante_nome;
+                      }
+                    }
+                  }
+                  setBulkModal({ margem: 0, choices });
+                }}
               >
                 <Plus className="w-4 h-4 mr-1" /> Adicionar Selecionados
               </Button>
@@ -623,7 +634,7 @@ export default function CatalogoGeral({ user }) {
       {/* Modal Adicionar em Massa */}
       {bulkModal && (
         <Dialog open onOpenChange={() => setBulkModal(null)}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Layers className="w-5 h-5 text-blue-600" /> Adicionar em Massa
@@ -632,11 +643,43 @@ export default function CatalogoGeral({ user }) {
             <div className="space-y-4 pt-2">
               <div className="bg-blue-50 rounded-lg p-3">
                 <p className="text-sm text-blue-700">
-                  {selected.size} produto(s) selecionado(s).
+                  {selected.size} produto(s) selecionado(s). Escolha o fabricante de cada produto:
                 </p>
-                <p className="text-xs text-blue-600 mt-1">
-                  Serão adicionadas todas as variações de cada produto, usando o primeiro fabricante disponível.
-                </p>
+              </div>
+
+              <div className="space-y-2 max-h-[45vh] overflow-y-auto pr-1">
+                {groups.filter(g => selected.has(g.key) && !isGroupMine(g) && getGroupFabricantes(g).length > 0).map(g => {
+                  const fabs = getGroupFabricantes(g);
+                  const chosen = bulkModal.choices?.[g.key] || fabs[0].fabricante_nome;
+                  const hasWeights = g.templates.some(t => t.peso_kg != null);
+                  return (
+                    <div key={g.key} className="border rounded-lg p-3 bg-white">
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <p className="font-semibold text-sm text-gray-900 truncate">{g.baseName}</p>
+                        <Badge variant="outline" className="text-xs flex-shrink-0">{g.categoria}</Badge>
+                      </div>
+                      {fabs.length === 1 ? (
+                        <div className="text-xs text-gray-500">
+                          Único fabricante: <span className="font-medium text-gray-700">{fabs[0].fabricante_nome}</span> — {formatBRL(hasWeights ? fabs[0].precoKg : fabs[0].preco)}{hasWeights ? "/kg" : ""}
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">{fabs.length} fabricantes disponíveis — escolha um:</p>
+                          <Select value={chosen} onValueChange={(v) => setBulkModal(m => ({ ...m, choices: { ...m.choices, [g.key]: v } }))}>
+                            <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {fabs.map(f => (
+                                <SelectItem key={f.fabricante_nome} value={f.fabricante_nome} className="text-xs">
+                                  {f.fabricante_nome} — {formatBRL(hasWeights ? f.precoKg : f.preco)}{hasWeights ? "/kg" : ""}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
 
               <div>
