@@ -412,34 +412,42 @@ export default function Fabricantes() {
         }
       }
     }
-    if (supplierId) {
-      const [supplierProducts, allTemplates] = await Promise.all([
-        base44.entities.SupplierProduct.filter({ supplier_id: supplierId }),
-        base44.entities.ProductTemplate.list()
-      ]);
-      const templateById = new Map(allTemplates.map(t => [t.id, t]));
-      templateProducts = supplierProducts
-        .map(sp => {
-          const t = templateById.get(sp.product_id);
-          if (!t) return null;
-          return {
-            id: sp.id,
-            _source: "supplier_product",
-            nome: t.nome,
-            cod: t.cod,
-            categoria: t.categoria,
-            und: t.und,
-            foto: t.foto,
-            peso: t.peso_kg,
-            dimensoes: "",
-            preco_fabricante: sp.preco,
-            aprovado_produto: true,
-            ativo: sp.disponivel !== false,
-            observacoes: sp.observacoes
-          };
-        })
-        .filter(Boolean);
-    }
+    // Busca SupplierProduct por supplier_id (user_id) OU fabricante_id (ID da entidade Fabricante).
+    // O admin pode importar a tabela de um fabricante via backend, que grava fabricante_id em vez de supplier_id.
+    const [allSupplierProducts, allTemplates] = await Promise.all([
+      base44.entities.SupplierProduct.list(),
+      base44.entities.ProductTemplate.list()
+    ]);
+    const templateById = new Map(allTemplates.map(t => [t.id, t]));
+    const spMatches = allSupplierProducts.filter(sp =>
+      (supplierId && sp.supplier_id === supplierId) ||
+      sp.fabricante_id === fabricante.id
+    );
+    // Deduplica por product_id (supplier_id e fabricante_id podem apontar para o mesmo registro)
+    const seenPids = new Set();
+    templateProducts = spMatches
+      .map(sp => {
+        if (seenPids.has(sp.product_id)) return null;
+        seenPids.add(sp.product_id);
+        const t = templateById.get(sp.product_id);
+        if (!t) return null;
+        return {
+          id: sp.id,
+          _source: "supplier_product",
+          nome: t.nome,
+          cod: t.cod,
+          categoria: t.categoria,
+          und: t.und,
+          foto: t.foto,
+          peso: t.peso_kg,
+          dimensoes: "",
+          preco_fabricante: sp.preco,
+          aprovado_produto: true,
+          ativo: sp.disponivel !== false,
+          observacoes: sp.observacoes
+        };
+      })
+      .filter(Boolean);
 
     let legacyProducts = [];
     try {
