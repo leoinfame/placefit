@@ -316,10 +316,10 @@ export default function Marketplace() {
               <Search className="w-12 h-12 text-blue-600" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Comece a comparar preços!
+              O preço do fabricante!
             </h2>
             <p className="text-gray-600 max-w-md mx-auto">
-              Use a barra de busca acima para encontrar produtos e comparar preços entre diferentes fornecedores.
+              Gere pedidos direto na fabrica.
             </p>
           </div>
         ) : (
