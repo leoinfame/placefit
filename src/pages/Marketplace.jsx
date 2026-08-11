@@ -308,19 +308,6 @@ export default function Marketplace() {
           </Button>
         </div>
 
-        {/* Chamada para Fornecedores - Minimalista */}
-        <div className="text-center mb-8">
-          <p className="text-sm text-gray-600">
-            Você é fornecedor? {' '}
-            <a
-              href="/PublicRegister"
-              className="text-blue-600 hover:text-blue-700 font-medium underline"
-            >
-              Cadastre-se aqui
-            </a>
-            {' '} e apareça no marketplace
-          </p>
-        </div>
 
         {/* Selected Products */}
         {selectedProducts.length === 0 ? (
