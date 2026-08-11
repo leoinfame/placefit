@@ -390,15 +390,62 @@ export default function Fabricantes() {
     }
   };
 
+  // Carrega os produtos reais do fabricante:
+  // - SupplierProduct + ProductTemplate (fluxo principal: fabricante define preços sobre o catálogo padronizado)
+  // - Product (fluxo legado/admin: produtos criados diretamente pelo admin nesta página)
+  const loadFabricanteProducts = async (fabricante, onlyActiveApproved) => {
+    let templateProducts = [];
+    if (fabricante.user_id) {
+      const [supplierProducts, allTemplates] = await Promise.all([
+        base44.entities.SupplierProduct.filter({ supplier_id: fabricante.user_id }),
+        base44.entities.ProductTemplate.list()
+      ]);
+      const templateById = new Map(allTemplates.map(t => [t.id, t]));
+      templateProducts = supplierProducts
+        .map(sp => {
+          const t = templateById.get(sp.product_id);
+          if (!t) return null;
+          return {
+            id: sp.id,
+            _source: "supplier_product",
+            nome: t.nome,
+            cod: t.cod,
+            categoria: t.categoria,
+            und: t.und,
+            foto: t.foto,
+            peso: t.peso_kg,
+            dimensoes: "",
+            preco_fabricante: sp.preco,
+            aprovado_produto: true,
+            ativo: sp.disponivel !== false,
+            observacoes: sp.observacoes
+          };
+        })
+        .filter(Boolean);
+    }
+
+    let legacyProducts = [];
+    try {
+      const allProducts = await base44.entities.Product.list();
+      legacyProducts = allProducts
+        .filter(p => p.fabricante_id === fabricante.id || p.fabricante_id === fabricante.user_id)
+        .map(p => ({ ...p, _source: "product" }));
+    } catch (e) {
+      console.error("Erro ao carregar Product legado:", e);
+    }
+
+    let combined = [...templateProducts, ...legacyProducts];
+    if (onlyActiveApproved) {
+      combined = combined.filter(p => p.aprovado_produto === true && p.ativo !== false);
+    }
+    return combined;
+  };
+
   const viewFabricanteDetails = async (fabricante) => {
     setSelectedFabricante(fabricante);
     setSelectedProducts([]);
     try {
-      const allProducts = await base44.entities.Product.list();
-      // Match by Fabricante ID OR by user_id (for migrated fabricantes with old products)
-      const products = allProducts.filter(p => 
-        p.fabricante_id === fabricante.id || p.fabricante_id === fabricante.user_id
-      );
+      const products = await loadFabricanteProducts(fabricante, false);
       setFabricanteProducts(products);
     } catch (error) {
       console.error("Erro ao carregar produtos do fabricante:", error);
@@ -411,12 +458,7 @@ export default function Fabricantes() {
   const viewFabricanteTable = async (fabricante) => {
     setSelectedFabricante(fabricante);
     try {
-      const allProducts = await base44.entities.Product.list();
-      const products = allProducts.filter(p => 
-        (p.fabricante_id === fabricante.id || p.fabricante_id === fabricante.user_id) && 
-        p.aprovado_produto === true && 
-        p.ativo !== false
-      );
+      const products = await loadFabricanteProducts(fabricante, true);
       setFabricanteProducts(products);
     } catch (error) {
       console.error("Erro ao carregar produtos do fabricante:", error);
@@ -657,7 +699,11 @@ export default function Fabricantes() {
   const handleDeleteProduct = async (product) => {
     if (confirm(`Tem certeza que deseja excluir "${product.nome}"?`)) {
       try {
-        await base44.entities.Product.delete(product.id);
+        if (product._source === "supplier_product") {
+          await base44.entities.SupplierProduct.delete(product.id);
+        } else {
+          await base44.entities.Product.delete(product.id);
+        }
         viewFabricanteDetails(selectedFabricante);
         toast({
           title: "Produto excluido",
@@ -690,7 +736,11 @@ export default function Fabricantes() {
       
       for (const product of fabricanteProducts) {
         try {
-          await base44.entities.Product.delete(product.id);
+          if (product._source === "supplier_product") {
+            await base44.entities.SupplierProduct.delete(product.id);
+          } else {
+            await base44.entities.Product.delete(product.id);
+          }
           deleted++;
         } catch (error) {
           console.error(`Erro ao excluir produto ${product.id}:`, error);
@@ -748,6 +798,8 @@ export default function Fabricantes() {
 
     for (const productId of selectedProducts) {
       const product = fabricanteProducts.find(p => p.id === productId);
+      // Produtos do fabricante (SupplierProduct) já estão disponíveis — não precisam de aprovação
+      if (!product || product._source === "supplier_product") continue;
       try {
         await base44.entities.Product.update(productId, { aprovado_produto: true });
         approved++;
@@ -1591,14 +1643,16 @@ export default function Fabricantes() {
                                 </Badge>
                               </div>
                               <div className="flex gap-1">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => openProductDialog(selectedFabricante, product)}
-                                  className="hover:bg-blue-50 hover:text-blue-700"
-                                >
-                                  <Edit3 className="w-4 h-4" />
-                                </Button>
+                                {product._source !== "supplier_product" && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => openProductDialog(selectedFabricante, product)}
+                                    className="hover:bg-blue-50 hover:text-blue-700"
+                                  >
+                                    <Edit3 className="w-4 h-4" />
+                                  </Button>
+                                )}
                                 <Button
                                   variant="ghost"
                                   size="sm"
