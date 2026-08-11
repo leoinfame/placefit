@@ -20,7 +20,6 @@ import {
   Linkedin
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -28,6 +27,7 @@ import { Badge } from "@/components/ui/badge";
 
 
 import { useToast } from "@/components/ui/use-toast";
+import MarketplaceSearch from "@/components/marketplace/MarketplaceSearch";
 
 // Logo da PlaceFit
 const PLACEFIT_LOGO = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68c9d5dd3cf0f8fd8a834875/b1ab9fc90_WhatsAppImage2025-10-16at023605.jpeg";
@@ -37,8 +37,6 @@ export default function Marketplace() {
   const [fabricantes, setFabricantes] = useState([]);
   const [supplierProducts, setSupplierProducts] = useState([]);
   const [selectedProducts, setSelectedProducts] = useState([]);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [authUser, setAuthUser] = useState(null);
@@ -124,8 +122,6 @@ export default function Marketplace() {
     if (!selectedProducts.find(p => p.id === product.id)) {
       setSelectedProducts([...selectedProducts, product]);
     }
-    setSearchOpen(false);
-    setSearchValue("");
   };
 
   const handleRemoveProduct = (productId) => {
@@ -150,14 +146,6 @@ export default function Marketplace() {
 
     return prices;
   };
-
-  const filteredProducts = products.filter(product => {
-    const searchLower = searchValue.toLowerCase();
-    return (
-      product.nome.toLowerCase().includes(searchLower) ||
-      product.cod.toLowerCase().includes(searchLower)
-    );
-  });
 
   const copyMarketplaceLink = () => {
     const link = `${window.location.origin}/Marketplace`;
@@ -264,59 +252,12 @@ export default function Marketplace() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Search Bar - Estilo Google (PRIMEIRO) */}
-        <div className="mb-8">
-          <div className="max-w-3xl mx-auto">
-            <div className="relative">
-              <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-400 z-10" />
-              <Input
-                placeholder="Busque por nome ou código do produto..."
-                value={searchValue}
-                onChange={(e) => {
-                  setSearchValue(e.target.value);
-                  setSearchOpen(e.target.value.length > 0);
-                }}
-                onFocus={() => searchValue.length > 0 && setSearchOpen(true)}
-                className="w-full pl-16 pr-6 py-7 text-lg rounded-full border-2 border-gray-200 focus:border-blue-500 shadow-lg hover:shadow-xl transition-all"
-              />
-              {searchOpen && filteredProducts.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border z-50 max-h-[400px] overflow-y-auto">
-                  {filteredProducts.slice(0, 10).map((product) => (
-                    <div
-                      key={product.id}
-                      onClick={() => handleSelectProduct(product)}
-                      className="p-4 hover:bg-blue-50 cursor-pointer border-b last:border-b-0 transition-colors"
-                    >
-                      <div className="flex items-center gap-4 w-full">
-                        <Package className="w-8 h-8 text-gray-400" />
-                        <div className="flex-1">
-                          <p className="font-semibold text-gray-900">{product.nome}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge variant="outline" className="text-xs">
-                              {product.cod}
-                            </Badge>
-                            <Badge variant="secondary" className="text-xs">
-                              {product.categoria}
-                            </Badge>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm text-gray-500">
-                            {getProductPrices(product.id).length > 0 ? "Ver fabricante" : "Sem fabricante"}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="text-center mt-4 text-sm text-gray-600">
-              <p>🔍 Busque produtos por nome ou código SKU</p>
-            </div>
-          </div>
-        </div>
+        {/* Search Bar - Busca moderna */}
+        <MarketplaceSearch
+          products={products}
+          onSelectProduct={handleSelectProduct}
+          getProductPrices={getProductPrices}
+        />
 
         {/* Compartilhar Marketplace - Ícones apenas */}
         <div className="flex items-center justify-center gap-2 mb-4">
