@@ -319,7 +319,7 @@ export default function Marketplace() {
               O preço do fabricante!
             </h2>
             <p className="text-gray-600 max-w-md mx-auto">
-              Gere pedidos direto na fabrica.
+              Os maiores fabricantes do Brasil estão aqui!
             </p>
           </div>
         ) : (
