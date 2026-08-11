@@ -324,51 +324,36 @@ export default function Fabricantes() {
         return;
       }
 
-      const [fabData, usersData, categoriesData, unitsData] = await Promise.all([
+      // A página de Fabricantes é independente de usuários.
+      // Carrega apenas a entidade Fabricante (categorias/unidades para o formulário).
+      const [fabData, categoriesData, unitsData] = await Promise.all([
         base44.entities.Fabricante.list(),
-        base44.entities.User.filter({ tipo_usuario: 'fabricante' }),
         base44.entities.Category.list(),
         base44.entities.Unit.list()
       ]);
 
-      // Auto-migrate existing User-fabricantes that don't have a Fabricante record yet
-      for (const u of usersData) {
-        const hasFab = fabData.some(f => f.user_id === u.id);
-        if (!hasFab) {
-          await base44.entities.Fabricante.create({
-            razao_social: u.empresa || u.full_name,
-            nome_fantasia: u.empresa || "",
-            cnpj: u.cnpj || "",
-            user_id: u.id,
-            email: u.email || "",
-            contato_nome: u.full_name || "",
-            whatsapp: u.whatsapp || "",
-            site: u.site || "",
-            endereco: u.endereco || "",
-            logomarca: u.logomarca || "",
-            historia_empresa: u.historia_empresa || "",
-            formas_pagamento: u.formas_pagamento || "",
-            politica_troca: u.politica_troca || "",
-            prazo_entrega: u.prazo_entrega || "",
-            aprovado: u.aprovado ?? false,
-            ativo: true,
-          });
-        }
-      }
-
-      // Reload after potential migrations
-      const finalFabs = fabData.length < usersData.length
-        ? await base44.entities.Fabricante.list()
-        : fabData;
-
-      setFabricantes(finalFabs);
-      setUnlinkedUsers(usersData.filter(u => !finalFabs.some(f => f.user_id === u.id)));
+      setFabricantes(fabData);
       setCategories(categoriesData.filter(c => c.ativo).map(c => c.nome));
       setUnits(unitsData.filter(u => u.ativo).sort((a, b) => (a.ordem || 0) - (b.ordem || 0)).map(u => u.nome));
     } catch (error) {
       console.error("Erro ao carregar fabricantes:", error);
     }
     setLoading(false);
+  };
+
+  // Carrega usuários fabricante não vinculados apenas quando o diálogo de vínculo abre (lazy)
+  const loadUnlinkedUsers = async () => {
+    try {
+      const [usersData, fabData] = await Promise.all([
+        base44.entities.User.filter({ tipo_usuario: 'fabricante' }),
+        base44.entities.Fabricante.list()
+      ]);
+      const linkedIds = new Set(fabData.filter(f => f.user_id).map(f => f.user_id));
+      setUnlinkedUsers(usersData.filter(u => !linkedIds.has(u.id)));
+    } catch (error) {
+      console.error("Erro ao carregar usuários não vinculados:", error);
+      setUnlinkedUsers([]);
+    }
   };
 
   const filterFabricantes = () => {
@@ -699,7 +684,7 @@ export default function Fabricantes() {
       return;
     }
 
-    if (confirm(`Tem certeza que deseja excluir TODOS os ${fabricanteProducts.length} produtos de ${selectedFabricante?.empresa || selectedFabricante?.full_name}? Esta acao nao pode ser desfeita.`)) {
+    if (confirm(`Tem certeza que deseja excluir TODOS os ${fabricanteProducts.length} produtos de ${selectedFabricante?.nome_fantasia || selectedFabricante?.razao_social}? Esta acao nao pode ser desfeita.`)) {
       let deleted = 0;
       let errors = 0;
       
@@ -1186,7 +1171,7 @@ export default function Fabricantes() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => { setVincularFabricante(fabricante); setShowVincularDialog(true); }}
+                              onClick={() => { setVincularFabricante(fabricante); loadUnlinkedUsers(); setShowVincularDialog(true); }}
                               className="hover:bg-cyan-50 hover:text-cyan-700"
                               title="Vincular usuário"
                             >
@@ -1330,7 +1315,7 @@ export default function Fabricantes() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => { setVincularFabricante(fabricante); setShowVincularDialog(true); }}
+                        onClick={() => { setVincularFabricante(fabricante); loadUnlinkedUsers(); setShowVincularDialog(true); }}
                         className="flex-1 h-7 text-xs text-cyan-600 hover:bg-cyan-50"
                       >
                         <UserPlus className="w-3 h-3 mr-1" />
@@ -1442,7 +1427,7 @@ export default function Fabricantes() {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => { setVincularFabricante(selectedFabricante); setShowVincularDialog(true); }}
+                              onClick={() => { setVincularFabricante(selectedFabricante); loadUnlinkedUsers(); setShowVincularDialog(true); }}
                               className="text-cyan-600 border-cyan-200 hover:bg-cyan-50"
                             >
                               <UserPlus className="w-3.5 h-3.5 mr-1" />
