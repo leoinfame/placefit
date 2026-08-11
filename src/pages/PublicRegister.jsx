@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Building, Mail, Phone, MapPin, CheckCircle } from "lucide-react";
 
-const PLACEFIT_LOGO = "https://storage.googleapis.com/base44-platform-prod-uploaded-files/apps/fitconnect/fitconnect-email-files/0ffca2ca-85c4-4a4e-a0bc-e6c8ce5e7d1c.png";
+const PLACEFIT_LOGO = "https://media.base44.com/images/public/68c9d5dd3cf0f8fd8a834875/574e5a0a6_logo-ico-removebg-preview1.png";
 
 export default function PublicRegister() {
   const [formData, setFormData] = useState({
