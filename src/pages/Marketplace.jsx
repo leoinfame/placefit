@@ -316,7 +316,7 @@ export default function Marketplace() {
               <Search className="w-12 h-12 text-blue-600" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              O preço do fabricante!
+              Sem atravessador!
             </h2>
             <p className="text-gray-600 max-w-md mx-auto">
               Os maiores fabricantes do Brasil estão aqui!
