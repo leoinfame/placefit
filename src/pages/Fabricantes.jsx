@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Users, Search, Mail, Phone, Building, Eye, Package, CheckCircle, Copy, Share2, Plus, Edit3, Trash2, Upload, Download, FileSpreadsheet, Globe, Printer, FileDown } from "lucide-react";
+import { Users, Search, Mail, Phone, Building, Eye, Package, CheckCircle, Copy, Share2, Plus, Edit3, Trash2, Upload, Download, FileSpreadsheet, Globe, Printer, FileDown, UserPlus, Unlink } from "lucide-react";
+import VincularUsuarioDialog from "@/components/fabricantes/VincularUsuarioDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -50,21 +51,33 @@ export default function Fabricantes() {
   const [importing, setImporting] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [showTableDialog, setShowTableDialog] = useState(false);
+  const [unlinkedUsers, setUnlinkedUsers] = useState([]);
+  const [showVincularDialog, setShowVincularDialog] = useState(false);
+  const [vincularFabricante, setVincularFabricante] = useState(null);
   const [fabricanteFormData, setFabricanteFormData] = useState({
-    full_name: "",
-    email: "",
-    empresa: "",
+    razao_social: "",
+    nome_fantasia: "",
     cnpj: "",
+    email: "",
+    contato_nome: "",
     whatsapp: "",
-    endereco: "",
+    telefone: "",
     site: "",
+    endereco: "",
+    cidade: "",
+    estado: "",
     logomarca: "",
     historia_empresa: "",
     formas_pagamento: "",
-    politica_troca: "",
+    condicoes_pagamento: "",
     prazo_entrega: "",
-    tipo_usuario: "fabricante",
-    aprovado: true
+    prazo_producao: "",
+    informacoes_frete: "",
+    politica_troca: "",
+    instrucoes_agente_ia: "",
+    aprovado: false,
+    ativo: true,
+    observacoes_admin: "",
   });
   const [productFormData, setProductFormData] = useState({
     nome: "",
@@ -109,7 +122,7 @@ export default function Fabricantes() {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `template_produtos_${selectedFabricante?.empresa?.replace(/\s+/g, '_') || 'fabricante'}_${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `template_produtos_${(selectedFabricante?.nome_fantasia || selectedFabricante?.razao_social || 'fabricante')?.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -154,7 +167,7 @@ export default function Fabricantes() {
       const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `produtos_${selectedFabricante?.empresa?.replace(/\s+/g, '_') || 'fabricante'}_${new Date().toISOString().split('T')[0]}.csv`;
+      link.download = `produtos_${(selectedFabricante?.nome_fantasia || selectedFabricante?.razao_social || 'fabricante')?.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -311,12 +324,45 @@ export default function Fabricantes() {
         return;
       }
 
-      const [data, categoriesData, unitsData] = await Promise.all([
+      const [fabData, usersData, categoriesData, unitsData] = await Promise.all([
+        base44.entities.Fabricante.list(),
         base44.entities.User.filter({ tipo_usuario: 'fabricante' }),
         base44.entities.Category.list(),
         base44.entities.Unit.list()
       ]);
-      setFabricantes(data);
+
+      // Auto-migrate existing User-fabricantes that don't have a Fabricante record yet
+      for (const u of usersData) {
+        const hasFab = fabData.some(f => f.user_id === u.id);
+        if (!hasFab) {
+          await base44.entities.Fabricante.create({
+            razao_social: u.empresa || u.full_name,
+            nome_fantasia: u.empresa || "",
+            cnpj: u.cnpj || "",
+            user_id: u.id,
+            email: u.email || "",
+            contato_nome: u.full_name || "",
+            whatsapp: u.whatsapp || "",
+            site: u.site || "",
+            endereco: u.endereco || "",
+            logomarca: u.logomarca || "",
+            historia_empresa: u.historia_empresa || "",
+            formas_pagamento: u.formas_pagamento || "",
+            politica_troca: u.politica_troca || "",
+            prazo_entrega: u.prazo_entrega || "",
+            aprovado: u.aprovado ?? false,
+            ativo: true,
+          });
+        }
+      }
+
+      // Reload after potential migrations
+      const finalFabs = fabData.length < usersData.length
+        ? await base44.entities.Fabricante.list()
+        : fabData;
+
+      setFabricantes(finalFabs);
+      setUnlinkedUsers(usersData.filter(u => !finalFabs.some(f => f.user_id === u.id)));
       setCategories(categoriesData.filter(c => c.ativo).map(c => c.nome));
       setUnits(unitsData.filter(u => u.ativo).sort((a, b) => (a.ordem || 0) - (b.ordem || 0)).map(u => u.nome));
     } catch (error) {
@@ -330,8 +376,8 @@ export default function Fabricantes() {
     
     if (searchTerm) {
       filtered = filtered.filter(fabricante =>
-        (fabricante.empresa?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-        (fabricante.full_name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (fabricante.razao_social?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (fabricante.nome_fantasia?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
         (fabricante.email?.toLowerCase() || '').includes(searchTerm.toLowerCase())
       );
     }
@@ -341,7 +387,7 @@ export default function Fabricantes() {
 
   const handleApprovalToggle = async (fabricante) => {
     try {
-      await base44.entities.User.update(fabricante.id, { 
+      await base44.entities.Fabricante.update(fabricante.id, { 
         aprovado: !fabricante.aprovado 
       });
       loadData();
@@ -364,7 +410,10 @@ export default function Fabricantes() {
     setSelectedProducts([]);
     try {
       const allProducts = await base44.entities.Product.list();
-      const products = allProducts.filter(p => p.fabricante_id === fabricante.id);
+      // Match by Fabricante ID OR by user_id (for migrated fabricantes with old products)
+      const products = allProducts.filter(p => 
+        p.fabricante_id === fabricante.id || p.fabricante_id === fabricante.user_id
+      );
       setFabricanteProducts(products);
     } catch (error) {
       console.error("Erro ao carregar produtos do fabricante:", error);
@@ -379,7 +428,7 @@ export default function Fabricantes() {
     try {
       const allProducts = await base44.entities.Product.list();
       const products = allProducts.filter(p => 
-        p.fabricante_id === fabricante.id && 
+        (p.fabricante_id === fabricante.id || p.fabricante_id === fabricante.user_id) && 
         p.aprovado_produto === true && 
         p.ativo !== false
       );
@@ -405,7 +454,7 @@ export default function Fabricantes() {
       <html>
         <head>
           <meta charset="UTF-8">
-          <title>Tabela de Produtos - ${selectedFabricante?.empresa || selectedFabricante?.full_name}</title>
+          <title>Tabela de Produtos - ${selectedFabricante?.nome_fantasia || selectedFabricante?.razao_social}</title>
           <style>
             body { font-family: Arial, sans-serif; padding: 20px; }
             .header { display: flex; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #3B82F6; padding-bottom: 15px; }
@@ -433,7 +482,7 @@ export default function Fabricantes() {
           <div class="header">
             ${logoHtml}
             <div class="header-info">
-              <h1>${selectedFabricante?.empresa || selectedFabricante?.full_name}</h1>
+              <h1>${selectedFabricante?.nome_fantasia || selectedFabricante?.razao_social}</h1>
               ${selectedFabricante.whatsapp ? `<p>📱 ${selectedFabricante.whatsapp}</p>` : ''}
               ${selectedFabricante.email ? `<p>✉️ ${selectedFabricante.email}</p>` : ''}
               ${selectedFabricante.site ? `<p>🌐 ${selectedFabricante.site}</p>` : ''}
@@ -501,7 +550,7 @@ export default function Fabricantes() {
       const productData = {
         ...productFormData,
         fabricante_id: selectedFabricante.id,
-        fabricante_nome: selectedFabricante.empresa || selectedFabricante.full_name,
+        fabricante_nome: selectedFabricante.nome_fantasia || selectedFabricante.razao_social,
         aprovado_produto: true // Admin cria como aprovado
       };
 
@@ -726,7 +775,7 @@ export default function Fabricantes() {
             produto_id: product.id,
             produto_nome: product.nome,
             fabricante_id: selectedFabricante.id,
-            fabricante_nome: selectedFabricante.empresa || selectedFabricante.full_name,
+            fabricante_nome: selectedFabricante.nome_fantasia || selectedFabricante.razao_social,
             preco_novo: product.preco_fabricante,
             mensagem: `Seu produto "${product.nome}" foi aprovado e está disponível no catálogo!`,
             lida: false
@@ -797,20 +846,11 @@ export default function Fabricantes() {
 
   const resetFabricanteForm = () => {
     setFabricanteFormData({
-      full_name: "",
-      email: "",
-      empresa: "",
-      cnpj: "",
-      whatsapp: "",
-      endereco: "",
-      site: "",
-      logomarca: "",
-      historia_empresa: "",
-      formas_pagamento: "",
-      politica_troca: "",
-      prazo_entrega: "",
-      tipo_usuario: "fabricante",
-      aprovado: true
+      razao_social: "", nome_fantasia: "", cnpj: "", email: "", contato_nome: "",
+      whatsapp: "", telefone: "", site: "", endereco: "", cidade: "", estado: "",
+      logomarca: "", historia_empresa: "", formas_pagamento: "", condicoes_pagamento: "",
+      prazo_entrega: "", prazo_producao: "", informacoes_frete: "", politica_troca: "",
+      instrucoes_agente_ia: "", aprovado: false, ativo: true, observacoes_admin: "",
     });
     setEditingFabricante(null);
   };
@@ -818,11 +858,13 @@ export default function Fabricantes() {
   const handleFabricanteSubmit = async (e) => {
     e.preventDefault();
     try {
-      await base44.entities.User.update(editingFabricante.id, fabricanteFormData);
-      toast({
-        title: "Fabricante atualizado!",
-        description: "Dados do fabricante foram atualizados.",
-      });
+      if (editingFabricante) {
+        await base44.entities.Fabricante.update(editingFabricante.id, fabricanteFormData);
+        toast({ title: "Fabricante atualizado!", description: "Dados do fabricante foram atualizados." });
+      } else {
+        await base44.entities.Fabricante.create(fabricanteFormData);
+        toast({ title: "Fabricante criado!", description: "Fabricante cadastrado sem vínculo de usuário. Você poderá vincular um usuário depois." });
+      }
       setShowFabricanteDialog(false);
       resetFabricanteForm();
       loadData();
@@ -833,6 +875,32 @@ export default function Fabricantes() {
         description: error.message || "Erro ao salvar fabricante. Tente novamente.",
         variant: "destructive"
       });
+    }
+  };
+
+  const handleVincularUsuario = async (user) => {
+    try {
+      await base44.entities.Fabricante.update(vincularFabricante.id, { user_id: user.id });
+      toast({ title: "Usuário vinculado!", description: `${user.full_name || user.email} agora pode gerenciar este fabricante.` });
+      setShowVincularDialog(false);
+      setVincularFabricante(null);
+      loadData();
+    } catch (error) {
+      console.error("Erro ao vincular usuário:", error);
+      toast({ title: "Erro", description: "Erro ao vincular usuário. Tente novamente.", variant: "destructive" });
+    }
+  };
+
+  const handleDesvincularUsuario = async (fabricante) => {
+    if (confirm(`Desvincular o usuário deste fabricante? O fabricante continuará cadastrado, mas sem login próprio.`)) {
+      try {
+        await base44.entities.Fabricante.update(fabricante.id, { user_id: "" });
+        toast({ title: "Usuário desvinculado", description: "O fabricante agora é gerenciado apenas pelo admin." });
+        loadData();
+      } catch (error) {
+        console.error("Erro ao desvincular:", error);
+        toast({ title: "Erro", description: "Erro ao desvincular usuário.", variant: "destructive" });
+      }
     }
   };
 
@@ -862,40 +930,48 @@ export default function Fabricantes() {
   const handleEditFabricante = (fabricante) => {
     setEditingFabricante(fabricante);
     setFabricanteFormData({
-      full_name: fabricante.full_name || "",
-      email: fabricante.email || "",
-      empresa: fabricante.empresa || "",
+      razao_social: fabricante.razao_social || "",
+      nome_fantasia: fabricante.nome_fantasia || "",
       cnpj: fabricante.cnpj || "",
+      email: fabricante.email || "",
+      contato_nome: fabricante.contato_nome || "",
       whatsapp: fabricante.whatsapp || "",
-      endereco: fabricante.endereco || "",
+      telefone: fabricante.telefone || "",
       site: fabricante.site || "",
+      endereco: fabricante.endereco || "",
+      cidade: fabricante.cidade || "",
+      estado: fabricante.estado || "",
       logomarca: fabricante.logomarca || "",
       historia_empresa: fabricante.historia_empresa || "",
       formas_pagamento: fabricante.formas_pagamento || "",
-      politica_troca: fabricante.politica_troca || "",
+      condicoes_pagamento: fabricante.condicoes_pagamento || "",
       prazo_entrega: fabricante.prazo_entrega || "",
-      tipo_usuario: "fabricante",
-      aprovado: fabricante.aprovado
+      prazo_producao: fabricante.prazo_producao || "",
+      informacoes_frete: fabricante.informacoes_frete || "",
+      politica_troca: fabricante.politica_troca || "",
+      instrucoes_agente_ia: fabricante.instrucoes_agente_ia || "",
+      aprovado: fabricante.aprovado ?? false,
+      ativo: fabricante.ativo ?? true,
+      observacoes_admin: fabricante.observacoes_admin || "",
     });
     setShowFabricanteDialog(true);
   };
 
+  const handleNewFabricante = () => {
+    setEditingFabricante(null);
+    resetFabricanteForm();
+    setShowFabricanteDialog(true);
+  };
+
   const handleDeleteFabricante = async (fabricante) => {
-    if (confirm(`Tem certeza que deseja excluir o fabricante "${fabricante.empresa || fabricante.full_name}"? Esta acao nao pode ser desfeita.`)) {
+    if (confirm(`Tem certeza que deseja excluir o fabricante "${fabricante.nome_fantasia || fabricante.razao_social}"? Esta acao nao pode ser desfeita.`)) {
       try {
-        await base44.entities.User.delete(fabricante.id);
+        await base44.entities.Fabricante.delete(fabricante.id);
         loadData();
-        toast({
-          title: "Fabricante excluido",
-          description: "Fabricante removido com sucesso.",
-        });
+        toast({ title: "Fabricante excluido", description: "Fabricante removido com sucesso." });
       } catch (error) {
         console.error("Erro ao excluir fabricante:", error);
-        toast({
-          title: "Erro",
-          description: "Erro ao excluir fabricante. Tente novamente.",
-          variant: "destructive"
-        });
+        toast({ title: "Erro", description: "Erro ao excluir fabricante. Tente novamente.", variant: "destructive" });
       }
     }
   };
@@ -934,9 +1010,18 @@ export default function Fabricantes() {
     <div className="p-4 md:p-8 min-h-screen w-full max-w-full overflow-x-hidden">
       <div className="max-w-7xl mx-auto space-y-6 w-full max-w-full">
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Fabricantes</h1>
-          <p className="text-gray-600">Gerencie todos os fabricantes e seus produtos</p>
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Fabricantes</h1>
+            <p className="text-gray-600">Gerencie todos os fabricantes e seus produtos</p>
+          </div>
+          <Button
+            onClick={handleNewFabricante}
+            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Fabricante
+          </Button>
         </div>
 
         {/* Link de Cadastro */}
@@ -1031,9 +1116,9 @@ export default function Fabricantes() {
                       className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-purple-50 transition-colors`}
                     >
                       <TableCell className="font-medium">
-                        {fabricante.empresa || '-'}
+                        {fabricante.nome_fantasia || fabricante.razao_social || '-'}
                       </TableCell>
-                      <TableCell>{fabricante.full_name}</TableCell>
+                      <TableCell>{fabricante.contato_nome}</TableCell>
                       <TableCell className="text-sm">{fabricante.email}</TableCell>
                       <TableCell className="text-sm">
                         {fabricante.whatsapp || '-'}
@@ -1087,6 +1172,27 @@ export default function Fabricantes() {
                           >
                             <Edit3 className="w-4 h-4" />
                           </Button>
+                          {fabricante.user_id ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDesvincularUsuario(fabricante)}
+                              className="hover:bg-orange-50 hover:text-orange-700"
+                              title="Desvincular usuário"
+                            >
+                              <Unlink className="w-4 h-4" />
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => { setVincularFabricante(fabricante); setShowVincularDialog(true); }}
+                              className="hover:bg-cyan-50 hover:text-cyan-700"
+                              title="Vincular usuário"
+                            >
+                              <UserPlus className="w-4 h-4" />
+                            </Button>
+                          )}
                           <Button
                             variant="ghost"
                             size="sm"
@@ -1142,9 +1248,9 @@ export default function Fabricantes() {
                     )}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-sm break-words">
-                        {fabricante.empresa || fabricante.full_name}
+                        {fabricante.nome_fantasia || fabricante.razao_social}
                       </h3>
-                      <p className="text-xs text-gray-500 truncate">{fabricante.full_name}</p>
+                      <p className="text-xs text-gray-500 truncate">{fabricante.contato_nome}</p>
                     </div>
                     <Badge 
                       variant={fabricante.aprovado ? "success" : "secondary"}
@@ -1210,6 +1316,27 @@ export default function Fabricantes() {
                       <Edit3 className="w-3 h-3 mr-1" />
                       Editar
                     </Button>
+                    {fabricante.user_id ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDesvincularUsuario(fabricante)}
+                        className="flex-1 h-7 text-xs text-orange-600 hover:bg-orange-50"
+                      >
+                        <Unlink className="w-3 h-3 mr-1" />
+                        Desvinc.
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => { setVincularFabricante(fabricante); setShowVincularDialog(true); }}
+                        className="flex-1 h-7 text-xs text-cyan-600 hover:bg-cyan-50"
+                      >
+                        <UserPlus className="w-3 h-3 mr-1" />
+                        Vincular
+                      </Button>
+                    )}
                     <Button
                       variant="outline"
                       size="sm"
@@ -1249,7 +1376,7 @@ export default function Fabricantes() {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Building className="w-5 h-5" />
-                Detalhes do Fabricante: {selectedFabricante?.empresa || selectedFabricante?.full_name}
+                Detalhes do Fabricante: {selectedFabricante?.nome_fantasia || selectedFabricante?.razao_social}
               </DialogTitle>
             </DialogHeader>
             
@@ -1263,7 +1390,7 @@ export default function Fabricantes() {
                   <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label className="text-sm font-medium text-gray-500">Empresa</Label>
-                      <p className="font-medium">{selectedFabricante.empresa || "Não informado"}</p>
+                      <p className="font-medium">{selectedFabricante.nome_fantasia || selectedFabricante.razao_social || "Não informado"}</p>
                     </div>
                     <div>
                       <Label className="text-sm font-medium text-gray-500">CNPJ</Label>
@@ -1271,7 +1398,7 @@ export default function Fabricantes() {
                     </div>
                     <div>
                       <Label className="text-sm font-medium text-gray-500">Responsavel</Label>
-                      <p className="font-medium">{selectedFabricante.full_name}</p>
+                      <p className="font-medium">{selectedFabricante.contato_nome}</p>
                     </div>
                     <div>
                       <Label className="text-sm font-medium text-gray-500">E-mail</Label>
@@ -1292,6 +1419,38 @@ export default function Fabricantes() {
                       >
                         {selectedFabricante.aprovado ? "Aprovado" : "Aguardando Aprovacao"}
                       </Badge>
+                    </div>
+                    <div className="md:col-span-2">
+                      <Label className="text-sm font-medium text-gray-500">Vínculo de Usuário</Label>
+                      <div className="flex items-center gap-3 mt-1">
+                        {selectedFabricante.user_id ? (
+                          <>
+                            <Badge className="bg-blue-100 text-blue-700">Vinculado</Badge>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDesvincularUsuario(selectedFabricante)}
+                              className="text-orange-600 border-orange-200 hover:bg-orange-50"
+                            >
+                              <Unlink className="w-3.5 h-3.5 mr-1" />
+                              Desvincular Usuário
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Badge variant="outline" className="text-gray-500">Sem usuário vinculado (gerenciado pelo admin)</Badge>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => { setVincularFabricante(selectedFabricante); setShowVincularDialog(true); }}
+                              className="text-cyan-600 border-cyan-200 hover:bg-cyan-50"
+                            >
+                              <UserPlus className="w-3.5 h-3.5 mr-1" />
+                              Vincular Usuário
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -1675,7 +1834,7 @@ export default function Fabricantes() {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Building className="w-5 h-5" />
-                Editar Fabricante
+                {editingFabricante ? "Editar Fabricante" : "Novo Fabricante"}
               </DialogTitle>
             </DialogHeader>
 
@@ -1733,18 +1892,28 @@ export default function Fabricantes() {
               {/* Dados Básicos */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="empresa">Nome da Empresa *</Label>
+                  <Label htmlFor="razao_social">Razão Social *</Label>
                   <Input
-                    id="empresa"
-                    value={fabricanteFormData.empresa}
-                    onChange={(e) => setFabricanteFormData({ ...fabricanteFormData, empresa: e.target.value })}
+                    id="razao_social"
+                    value={fabricanteFormData.razao_social}
+                    onChange={(e) => setFabricanteFormData({ ...fabricanteFormData, razao_social: e.target.value })}
                     required
-                    placeholder="Ex: FitTech Equipamentos"
+                    placeholder="Ex: FitTech Equipamentos Ltda"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="cnpj">CNPJ *</Label>
+                  <Label htmlFor="nome_fantasia">Nome Fantasia</Label>
+                  <Input
+                    id="nome_fantasia"
+                    value={fabricanteFormData.nome_fantasia}
+                    onChange={(e) => setFabricanteFormData({ ...fabricanteFormData, nome_fantasia: e.target.value })}
+                    placeholder="Ex: FitTech (nome comercial)"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="cnpj">CNPJ</Label>
                   <Input
                     id="cnpj"
                     value={fabricanteFormData.cnpj}
@@ -1753,31 +1922,28 @@ export default function Fabricantes() {
                       const formatted = value.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
                       setFabricanteFormData({ ...fabricanteFormData, cnpj: formatted });
                     }}
-                    required
                     placeholder="00.000.000/0000-00"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="full_name">Nome do Responsavel *</Label>
+                  <Label htmlFor="contato_nome">Nome do Responsável</Label>
                   <Input
-                    id="full_name"
-                    value={fabricanteFormData.full_name}
-                    onChange={(e) => setFabricanteFormData({ ...fabricanteFormData, full_name: e.target.value })}
-                    required
+                    id="contato_nome"
+                    value={fabricanteFormData.contato_nome}
+                    onChange={(e) => setFabricanteFormData({ ...fabricanteFormData, contato_nome: e.target.value })}
                     placeholder="Ex: João Silva"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="email">E-mail *</Label>
+                  <Label htmlFor="email">E-mail Comercial</Label>
                   <Input
                     id="email"
                     type="email"
                     value={fabricanteFormData.email}
                     onChange={(e) => setFabricanteFormData({ ...fabricanteFormData, email: e.target.value })}
-                    required
-                    placeholder="contato@empresa.com"
+                    placeholder="contato@empresa.com (opcional)"
                   />
                 </div>
 
@@ -1899,9 +2065,8 @@ export default function Fabricantes() {
                 <Button
                   type="submit"
                   className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
-                  disabled={!editingFabricante}
                 >
-                  Salvar Alteracoes
+                  {editingFabricante ? "Salvar Alterações" : "Criar Fabricante"}
                 </Button>
               </div>
             </form>
@@ -1915,7 +2080,7 @@ export default function Fabricantes() {
               <div className="flex items-center justify-between no-print">
                 <DialogTitle className="flex items-center gap-2">
                   <FileSpreadsheet className="w-5 h-5" />
-                  Tabela de Produtos - {selectedFabricante?.empresa || selectedFabricante?.full_name}
+                  Tabela de Produtos - {selectedFabricante?.nome_fantasia || selectedFabricante?.razao_social}
                 </DialogTitle>
                 <div className="flex gap-2">
                   <Button
@@ -1989,7 +2154,7 @@ export default function Fabricantes() {
                       )}
                       <div className="flex-1">
                         <h2 className="text-lg font-bold text-gray-900 mb-1">
-                          {selectedFabricante.empresa || selectedFabricante.full_name}
+                          {selectedFabricante.nome_fantasia || selectedFabricante.razao_social}
                         </h2>
                         <div className="text-xs text-gray-600 space-y-0.5">
                           {selectedFabricante.whatsapp && (
@@ -2075,6 +2240,16 @@ export default function Fabricantes() {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Dialog de Vincular Usuário */}
+        {showVincularDialog && vincularFabricante && (
+          <VincularUsuarioDialog
+            fabricante={vincularFabricante}
+            unlinkedUsers={unlinkedUsers}
+            onVincular={handleVincularUsuario}
+            onClose={() => { setShowVincularDialog(false); setVincularFabricante(null); }}
+          />
+        )}
         </div>
         </div>
         );
