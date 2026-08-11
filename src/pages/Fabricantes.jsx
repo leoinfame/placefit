@@ -395,9 +395,26 @@ export default function Fabricantes() {
   // - Product (fluxo legado/admin: produtos criados diretamente pelo admin nesta página)
   const loadFabricanteProducts = async (fabricante, onlyActiveApproved) => {
     let templateProducts = [];
-    if (fabricante.user_id) {
+    // Resolve o supplier_id: user_id vinculado, ou busca um usuário fabricante cuja empresa bate com o nome
+    let supplierId = fabricante.user_id;
+    if (!supplierId) {
+      const nomeFab = (fabricante.nome_fantasia || fabricante.razao_social || "").trim().toLowerCase();
+      if (nomeFab) {
+        try {
+          const users = await base44.entities.User.filter({ tipo_usuario: "fabricante" });
+          const match = users.find(u =>
+            (u.empresa || "").trim().toLowerCase() === nomeFab ||
+            (u.full_name || "").trim().toLowerCase() === nomeFab
+          );
+          if (match) supplierId = match.id;
+        } catch (e) {
+          console.error("Erro ao buscar usuário fabricante pelo nome:", e);
+        }
+      }
+    }
+    if (supplierId) {
       const [supplierProducts, allTemplates] = await Promise.all([
-        base44.entities.SupplierProduct.filter({ supplier_id: fabricante.user_id }),
+        base44.entities.SupplierProduct.filter({ supplier_id: supplierId }),
         base44.entities.ProductTemplate.list()
       ]);
       const templateById = new Map(allTemplates.map(t => [t.id, t]));
@@ -428,7 +445,7 @@ export default function Fabricantes() {
     try {
       const allProducts = await base44.entities.Product.list();
       legacyProducts = allProducts
-        .filter(p => p.fabricante_id === fabricante.id || p.fabricante_id === fabricante.user_id)
+        .filter(p => p.fabricante_id === fabricante.id || p.fabricante_id === fabricante.user_id || p.fabricante_id === supplierId)
         .map(p => ({ ...p, _source: "product" }));
     } catch (e) {
       console.error("Erro ao carregar Product legado:", e);
