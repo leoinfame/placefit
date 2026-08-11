@@ -73,17 +73,32 @@ export default function Clientes() {
       setUser(currentUser);
 
       if (currentUser.role === 'admin') {
-        // Admin vê todos os clientes do marketplace
-        const allUsers = await base44.entities.User.list('-created_date');
-        
-        const clientesData = allUsers.filter(u => {
-          if (u.role === 'admin') return false;
-          if (u.role === 'user' && u.aprovado) return false;
-          if (u.ultima_visita_marketplace) return true;
-          return u.role !== 'user';
-        });
-        
-        setClientes(clientesData);
+        // Admin vê todos os clientes cadastrados no app:
+        // 1) Visitantes do marketplace (entidade User)
+        // 2) Clientes cadastrados pelos revendedores (entidade Cliente)
+        const [allUsers, clientesData] = await Promise.all([
+          base44.entities.User.list('-created_date'),
+          base44.entities.Cliente.list('-created_date').catch(() => [])
+        ]);
+
+        const marketplaceClients = allUsers
+          .filter(u => {
+            if (u.role === 'admin') return false;
+            if (u.role === 'user' && u.aprovado) return false;
+            if (u.ultima_visita_marketplace) return true;
+            return u.role !== 'user';
+          })
+          .map(u => ({ ...u, origem: 'marketplace' }));
+
+        const revendedorClients = (clientesData || []).map(c => ({
+          ...c,
+          full_name: c.nome,
+          whatsapp: c.telefone || c.whatsapp,
+          ultima_visita_marketplace: null,
+          origem: 'revendedor'
+        }));
+
+        setClientes([...marketplaceClients, ...revendedorClients]);
       } else if (currentUser.role === 'user') {
         // Revendedor ou usuário comum vê seus clientes específicos (da entidade Cliente)
         try {
@@ -736,7 +751,14 @@ export default function Clientes() {
                     <TableRow key={cliente.id} className="hover:bg-blue-50/40 border-b border-gray-50">
                       {user?.role === 'admin' ? (
                         <>
-                          <TableCell className="font-semibold text-gray-900">{cliente.full_name || '—'}</TableCell>
+                          <TableCell className="font-semibold text-gray-900">
+                            <div className="flex items-center gap-2">
+                              {cliente.full_name || '—'}
+                              {cliente.origem === 'revendedor'
+                                ? <Badge variant="outline" className="text-[10px] py-0 px-1.5 border-amber-200 text-amber-700 bg-amber-50">Revendedor</Badge>
+                                : <Badge variant="outline" className="text-[10px] py-0 px-1.5 border-blue-200 text-blue-700 bg-blue-50">Marketplace</Badge>}
+                            </div>
+                          </TableCell>
                           <TableCell className="text-sm text-gray-600">{cliente.email || '—'}</TableCell>
                           <TableCell className="text-sm text-gray-600">{cliente.whatsapp || '—'}</TableCell>
                           <TableCell className="text-sm text-gray-500">{formatDate(cliente.created_date)}</TableCell>
