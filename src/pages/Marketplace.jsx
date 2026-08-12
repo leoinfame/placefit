@@ -312,6 +312,7 @@ export default function Marketplace() {
 
         {/* Selected Products */}
         {selectedProducts.length === 0 ? (
+          <>
           <div className="text-center py-16">
             <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <Search className="w-12 h-12 text-blue-600" />
@@ -323,6 +324,8 @@ export default function Marketplace() {
               Os maiores fabricantes do Brasil estão aqui!
             </p>
           </div>
+          <FabricantesTrust fabricantes={fabricantes} />
+          </>
         ) : (
           <div className="space-y-8">
             <div className="flex items-center justify-between">
