@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Users, Search, Mail, Phone, Building, Eye, Package, CheckCircle, Copy, Share2, Plus, Edit3, Trash2, Upload, Download, FileSpreadsheet, Globe, Printer, FileDown, UserPlus, Unlink } from "lucide-react";
 import VincularUsuarioDialog from "@/components/fabricantes/VincularUsuarioDialog";
+import AcordoComercialCard from "@/components/fabricantes/AcordoComercialCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -1516,6 +1517,9 @@ export default function Fabricantes() {
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Acordo Comercial (Comissão vs Margem) */}
+                <AcordoComercialCard fabricante={selectedFabricante} />
 
                 {/* Produtos do Fabricante */}
                 <Card>
