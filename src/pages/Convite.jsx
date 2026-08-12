@@ -310,7 +310,7 @@ export default function Convite() {
       <div className="bg-white border-t mt-16">
         <div className="max-w-7xl mx-auto px-4 py-8 text-center text-gray-600">
           <p className="text-sm mb-2">
-            © 2024 PlaceFit - Conectando o mercado fitness
+            © 2026 PlaceFit - Conectando o mercado fitness
           </p>
           <p className="text-xs">
             Cadastro gratuito • Suporte dedicado • Resultados garantidos

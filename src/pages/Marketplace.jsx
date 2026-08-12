@@ -594,7 +594,7 @@ export default function Marketplace() {
       <div className="bg-white border-t mt-16">
         <div className="max-w-7xl mx-auto px-4 py-8 text-center text-gray-600">
           <p className="text-sm">
-            © 2024 PlaceFit - Marketplace de Equipamentos Fitness
+            © 2026 PlaceFit - Marketplace de Equipamentos Fitness
           </p>
           <p className="text-xs mt-2">
             Compare preços e encontre os melhores fornecedores
