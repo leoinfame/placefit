@@ -594,8 +594,6 @@ export default function Marketplace() {
         )}
       </div>
 
-      <FabricantesTrust fabricantes={fabricantes} />
-
       {/* Footer */}
       <div className="bg-white border-t mt-16">
         <div className="max-w-7xl mx-auto px-4 py-8 text-center text-gray-600">
