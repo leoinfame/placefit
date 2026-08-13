@@ -32,7 +32,7 @@ const GROUP_FIELDS = [
   'pegada', 'peso_faixa'
 ];
 
-const getGroupKey = (tmpl) => GROUP_FIELDS.map(f => tmpl[f] ?? '').join('|');
+const getGroupKey = (tmpl) => getBaseName(tmpl) + '|' + GROUP_FIELDS.map(f => tmpl[f] ?? '').join('|');
 
 const getBaseName = (tmpl) => {
   return (tmpl.nome || '').replace(/\s+\d+([.,]\d+)?\s*kg$/i, '').trim();
