@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import { loadMargemMap, applyMargem } from "../../shared/margem.ts";
 
 // Short field name mapping to reduce response size (~70% smaller payload)
 const FIELD_MAP = {
@@ -82,12 +83,22 @@ Deno.serve(async (req) => {
     // 3. pricesByProduct — apenas para revendedores
     let pricesByProduct = {};
     if (mode === 'catalogo' && !isFabricante) {
-      const fabricantes = await base44.asServiceRole.entities.User.filter({ tipo_usuario: 'fabricante' });
-      const fabNameById = {};
+      // Carrega fabricantes-usuário (subiram preço com login próprio via supplier_id)
+      const [fabricanteUsers, fabricanteEntities, margemMaps] = await Promise.all([
+        base44.asServiceRole.entities.User.filter({ tipo_usuario: 'fabricante' }),
+        base44.asServiceRole.entities.Fabricante.list(),
+        loadMargemMap(base44),
+      ]);
+      const fabNameByUserId = {};
       const fabIds = new Set();
-      for (const u of fabricantes) {
-        fabNameById[u.id] = u.empresa || u.full_name || 'Fabricante';
+      for (const u of fabricanteUsers) {
+        fabNameByUserId[u.id] = u.empresa || u.full_name || 'Fabricante';
         fabIds.add(u.id);
+      }
+      // Fabricante entity (importadas pelo admin via fabricante_id, sem user_id)
+      const fabNameByEntityId = {};
+      for (const f of fabricanteEntities) {
+        fabNameByEntityId[f.id] = f.nome_fantasia || f.razao_social || 'Fabricante';
       }
 
       const allSpsRaw = await fetchAll((sort, limit, skip) =>
@@ -95,12 +106,19 @@ Deno.serve(async (req) => {
       );
 
       for (const sp of allSpsRaw) {
-        if (!fabIds.has(sp.supplier_id)) continue;
+        // Resolve o nome do fabricante: supplier_id (user) ou fabricante_id (entidade)
+        let fabNome = null;
+        if (sp.supplier_id && fabIds.has(sp.supplier_id)) {
+          fabNome = fabNameByUserId[sp.supplier_id];
+        } else if (sp.fabricante_id && fabNameByEntityId[sp.fabricante_id]) {
+          fabNome = fabNameByEntityId[sp.fabricante_id];
+        }
+        if (!fabNome) continue;
         if (!sp.preco || sp.preco <= 0) continue;
         if (!pricesByProduct[sp.product_id]) pricesByProduct[sp.product_id] = [];
         pricesByProduct[sp.product_id].push({
-          preco: sp.preco,
-          fabricante_nome: fabNameById[sp.supplier_id] || 'Fabricante',
+          preco: applyMargem(sp.preco, margemMaps, sp.fabricante_id, sp.supplier_id),
+          fabricante_nome: fabNome,
         });
       }
     }

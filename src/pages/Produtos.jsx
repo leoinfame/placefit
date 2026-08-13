@@ -69,10 +69,16 @@ export default function Produtos() {
     try {
       const res = await getProdutosData({ mode: "catalogo" });
       const data = res.data || res;
+      const fabSet = new Set();
+      for (const prices of Object.values(data.pricesByProduct || {})) {
+        for (const p of prices) {
+          if (p.fabricante_nome) fabSet.add(p.fabricante_nome);
+        }
+      }
       setStats({
         templates: data.templates?.length || 0,
         supplierProducts: Object.values(data.pricesByProduct || {}).flat().length,
-        fabricantes: 0,
+        fabricantes: fabSet.size,
       });
     } catch (e) { console.error(e); }
   };
