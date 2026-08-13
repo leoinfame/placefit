@@ -14,22 +14,6 @@ Deno.serve(async (req) => {
             loadMargemMap(base44)
         ]);
 
-        // Fabricantes aprovados da entidade Fabricante (gerenciados pelo admin, sem login próprio)
-        const fabricanteEntities = allFabricantes
-            .filter(f => f.aprovado === true && f.ativo !== false)
-            .map(f => ({
-                id: f.id,
-                full_name: f.nome_fantasia || f.razao_social,
-                empresa: f.nome_fantasia || f.razao_social,
-                logomarca: f.logomarca,
-                whatsapp: f.whatsapp,
-                email: f.email,
-                site: f.site,
-                endereco: f.endereco,
-                cidade: f.cidade,
-                estado: f.estado
-            }));
-
         // Fabricantes aprovados da entidade User (com login próprio)
         const fabricanteUsers = allUsers
             .filter(u => u.aprovado === true && u.role === 'user' && u.tipo_usuario === 'fabricante')
@@ -46,10 +30,30 @@ Deno.serve(async (req) => {
                 estado: u.estado
             }));
 
+        // IDs de Users fabricantes já incluídos (para evitar duplicação com entidades)
+        const fabricanteUserIds = new Set(fabricanteUsers.map(f => f.id));
+
+        // Fabricantes aprovados da entidade Fabricante (gerenciados pelo admin, sem login próprio)
+        // Inclui apenas entidades SEM user_id vinculado a um User fabricante já listado
+        const fabricanteEntities = allFabricantes
+            .filter(f => f.aprovado === true && f.ativo !== false)
+            .filter(f => !f.user_id || !fabricanteUserIds.has(f.user_id))
+            .map(f => ({
+                id: f.id,
+                full_name: f.nome_fantasia || f.razao_social,
+                empresa: f.nome_fantasia || f.razao_social,
+                logomarca: f.logomarca,
+                whatsapp: f.whatsapp,
+                email: f.email,
+                site: f.site,
+                endereco: f.endereco,
+                cidade: f.cidade,
+                estado: f.estado
+            }));
+
         const fabricantes = [...fabricanteUsers, ...fabricanteEntities];
 
-        // IDs de fabricantes aprovados (users e entidades)
-        const fabricanteUserIds = new Set(fabricanteUsers.map(f => f.id));
+        // IDs de entidades fabricantes aprovadas
         const fabricanteEntityIds = new Set(fabricanteEntities.map(f => f.id));
 
         // Templates ativos
