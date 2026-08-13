@@ -43,7 +43,7 @@ export default function FabricanteCatalogoPublic() {
       }
 
       const supplierProds = (result.supplierProducts || []).filter(
-        sp => sp.supplier_id === id || sp.fabricante_id === id
+        sp => sp.fabricante_id_display === id || sp.supplier_id === id || sp.fabricante_id === id
       );
       const tplIds = new Set(supplierProds.map(sp => sp.product_id));
       const fabProducts = (result.products || []).filter(p => tplIds.has(p.id));

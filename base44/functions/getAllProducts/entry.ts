@@ -56,6 +56,20 @@ Deno.serve(async (req) => {
 
         const fabricantes = [...fabricanteUsers, ...fabricanteEntities];
 
+        // Resolver: mapeia o id "bruto" (supplier_id de User ou fabricante_id de entidade)
+        // para o id de exibição usado na lista `fabricantes` acima.
+        // Necessário porque, quando um fabricante tem User próprio, ele é exibido pelo id do User
+        // mas seus SupplierProducts podem estar vinculados ao id da entidade Fabricante.
+        const entityIdToDisplay = {};
+        allApprovedFabricanteEntities.forEach(f => {
+            entityIdToDisplay[f.id] = (f.user_id && fabricanteUserIds.has(f.user_id)) ? f.user_id : f.id;
+        });
+        const resolveDisplayId = (sp) => {
+            if (sp.supplier_id && fabricanteUserIds.has(sp.supplier_id)) return sp.supplier_id;
+            if (sp.fabricante_id && entityIdToDisplay[sp.fabricante_id]) return entityIdToDisplay[sp.fabricante_id];
+            return null;
+        };
+
         // Templates ativos
         const activeTemplates = templates.filter(t => t.ativo !== false);
 
@@ -74,6 +88,7 @@ Deno.serve(async (req) => {
           .map(sp => ({
               ...sp,
               preco: applyMargem(sp.preco, margemMaps, sp.fabricante_id, sp.supplier_id),
+              fabricante_id_display: resolveDisplayId(sp),
           }));
 
         // Templates que possuem pelo menos um SupplierProduct válido
