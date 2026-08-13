@@ -30,13 +30,16 @@ Deno.serve(async (req) => {
                 estado: u.estado
             }));
 
-        // IDs de Users fabricantes já incluídos (para evitar duplicação com entidades)
+        // IDs de Users fabricantes aprovados (usado para filtrar SupplierProducts por supplier_id)
         const fabricanteUserIds = new Set(fabricanteUsers.map(f => f.id));
 
-        // Fabricantes aprovados da entidade Fabricante (gerenciados pelo admin, sem login próprio)
-        // Inclui apenas entidades SEM user_id vinculado a um User fabricante já listado
-        const fabricanteEntities = allFabricantes
-            .filter(f => f.aprovado === true && f.ativo !== false)
+        // TODAS as entidades Fabricante aprovadas (usado para filtrar SupplierProducts por fabricante_id).
+        // Não deduplica aqui: SPs podem estar vinculados à entidade mesmo quando o fabricante também tem User.
+        const allApprovedFabricanteEntities = allFabricantes.filter(f => f.aprovado === true && f.ativo !== false);
+        const fabricanteEntityIds = new Set(allApprovedFabricanteEntities.map(f => f.id));
+
+        // Lista de exibição (deduplicada): inclui a entidade apenas se NÃO tem User fabricante vinculado
+        const fabricanteEntities = allApprovedFabricanteEntities
             .filter(f => !f.user_id || !fabricanteUserIds.has(f.user_id))
             .map(f => ({
                 id: f.id,
@@ -52,9 +55,6 @@ Deno.serve(async (req) => {
             }));
 
         const fabricantes = [...fabricanteUsers, ...fabricanteEntities];
-
-        // IDs de entidades fabricantes aprovadas
-        const fabricanteEntityIds = new Set(fabricanteEntities.map(f => f.id));
 
         // Templates ativos
         const activeTemplates = templates.filter(t => t.ativo !== false);
