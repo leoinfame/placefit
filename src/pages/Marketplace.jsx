@@ -134,7 +134,7 @@ export default function Marketplace() {
     if (supplierProds.length === 0) return [];
 
     const prices = supplierProds.map(sp => {
-      const fabricante = fabricantes.find(f => f.id === sp.supplier_id);
+      const fabricante = fabricantes.find(f => f.id === sp.supplier_id || f.id === sp.fabricante_id);
       const price = sp.preco && parseFloat(sp.preco) > 0 ? parseFloat(sp.preco) : null;
       return fabricante ? { supplier: fabricante, price, observacoes: sp.observacoes } : null;
     }).filter(Boolean);

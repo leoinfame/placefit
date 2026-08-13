@@ -6,15 +6,32 @@ Deno.serve(async (req) => {
         const base44 = createClientFromRequest(req);
 
         // Buscar dados usando service role (sem exigir autenticação)
-        const [templates, supplierProducts, allUsers, margemMaps] = await Promise.all([
+        const [templates, supplierProducts, allUsers, allFabricantes, margemMaps] = await Promise.all([
             base44.asServiceRole.entities.ProductTemplate.list(),
             base44.asServiceRole.entities.SupplierProduct.list(),
             base44.asServiceRole.entities.User.list(),
+            base44.asServiceRole.entities.Fabricante.list(),
             loadMargemMap(base44)
         ]);
 
-        // Filtrar apenas fabricantes aprovados
-        const fabricantes = allUsers
+        // Fabricantes aprovados da entidade Fabricante (gerenciados pelo admin, sem login próprio)
+        const fabricanteEntities = allFabricantes
+            .filter(f => f.aprovado === true && f.ativo !== false)
+            .map(f => ({
+                id: f.id,
+                full_name: f.nome_fantasia || f.razao_social,
+                empresa: f.nome_fantasia || f.razao_social,
+                logomarca: f.logomarca,
+                whatsapp: f.whatsapp,
+                email: f.email,
+                site: f.site,
+                endereco: f.endereco,
+                cidade: f.cidade,
+                estado: f.estado
+            }));
+
+        // Fabricantes aprovados da entidade User (com login próprio)
+        const fabricanteUsers = allUsers
             .filter(u => u.aprovado === true && u.role === 'user' && u.tipo_usuario === 'fabricante')
             .map(u => ({
                 id: u.id,
@@ -29,19 +46,25 @@ Deno.serve(async (req) => {
                 estado: u.estado
             }));
 
-        // Fabricante IDs aprovados para filtrar SupplierProducts
-        const fabricanteIds = new Set(fabricantes.map(f => f.id));
+        const fabricantes = [...fabricanteUsers, ...fabricanteEntities];
+
+        // IDs de fabricantes aprovados (users e entidades)
+        const fabricanteUserIds = new Set(fabricanteUsers.map(f => f.id));
+        const fabricanteEntityIds = new Set(fabricanteEntities.map(f => f.id));
 
         // Templates ativos
         const activeTemplates = templates.filter(t => t.ativo !== false);
 
         // SupplierProducts de fabricantes aprovados, com preço e disponíveis
+        // Aceita SPs vinculados a um User fabricante (supplier_id) ou a uma entidade Fabricante (fabricante_id)
         // Aplica a margem da PlaceFit quando o acordo do fabricante é do tipo "margem"
         const validSupplierProducts = supplierProducts
           .filter(sp => {
               if (sp.disponivel === false) return false;
-              if (!fabricanteIds.has(sp.supplier_id)) return false;
               if (!sp.preco || sp.preco <= 0) return false;
+              const hasUser = sp.supplier_id && fabricanteUserIds.has(sp.supplier_id);
+              const hasEntity = sp.fabricante_id && fabricanteEntityIds.has(sp.fabricante_id);
+              if (!hasUser && !hasEntity) return false;
               return true;
           })
           .map(sp => ({
