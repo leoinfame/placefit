@@ -9,6 +9,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import PublicTableFabricante from './pages/PublicTableFabricante';
 import Marketplace from './pages/Marketplace';
+import FabricanteCatalogoPublic from './pages/FabricanteCatalogoPublic';
 import AdminTools from './pages/AdminTools';
 import CatalogoWhatsApp from './pages/CatalogoWhatsApp';
 import AdminServicos from './pages/AdminServicos';
@@ -30,7 +31,7 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   <Layout currentPageName={currentPageName}>{children}</Layout>
   : <>{children}</>;
 
-const PUBLIC_PATHS = ['/', '/Marketplace', '/PublicTableFabricante', '/PublicRegister', '/PublicRegisterFabricante', '/PublicRegisterTransportador'];
+const PUBLIC_PATHS = ['/', '/Marketplace', '/PublicTableFabricante', '/PublicRegister', '/PublicRegisterFabricante', '/PublicRegisterTransportador', '/FabricanteCatalogoPublic'];
 
 const isPublicPath = () => {
   const path = window.location.pathname;
@@ -47,6 +48,7 @@ const AuthenticatedApp = () => {
         <Route path="/" element={<Marketplace />} />
         <Route path="/Marketplace" element={<Marketplace />} />
         <Route path="/PublicTableFabricante" element={<PublicTableFabricante />} />
+        <Route path="/FabricanteCatalogoPublic/:id" element={<FabricanteCatalogoPublic />} />
         <Route path="*" element={<Marketplace />} />
       </Routes>
     );

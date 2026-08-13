@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { Award, MapPin } from "lucide-react";
 
 export default function FabricantesTrust({ fabricantes }) {
@@ -28,9 +29,10 @@ export default function FabricantesTrust({ fabricantes }) {
         {lista.map(fab => {
           const nome = fab.empresa || fab.full_name || 'Fabricante';
           return (
-            <div
+            <Link
               key={fab.id}
-              className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col items-center text-center hover:shadow-lg hover:border-blue-300 transition-all duration-300"
+              to={`/FabricanteCatalogoPublic/${fab.id}`}
+              className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col items-center text-center hover:shadow-lg hover:border-blue-300 transition-all duration-300 cursor-pointer"
             >
               <div className="w-16 h-16 flex items-center justify-center mb-3 bg-gray-50 rounded-lg overflow-hidden flex-shrink-0">
                 {fab.logomarca ? (
@@ -55,7 +57,7 @@ export default function FabricantesTrust({ fabricantes }) {
                   <span className="truncate">{[fab.cidade, fab.estado].filter(Boolean).join(' - ')}</span>
                 </div>
               )}
-            </div>
+            </Link>
           );
         })}
       </div>
