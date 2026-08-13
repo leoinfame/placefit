@@ -1,14 +1,16 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import { loadMargemMap, applyMargem } from "../../shared/margem.ts";
 
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
 
         // Buscar dados usando service role (sem exigir autenticação)
-        const [templates, supplierProducts, allUsers] = await Promise.all([
+        const [templates, supplierProducts, allUsers, margemMaps] = await Promise.all([
             base44.asServiceRole.entities.ProductTemplate.list(),
             base44.asServiceRole.entities.SupplierProduct.list(),
-            base44.asServiceRole.entities.User.list()
+            base44.asServiceRole.entities.User.list(),
+            loadMargemMap(base44)
         ]);
 
         // Filtrar apenas fabricantes aprovados
@@ -34,12 +36,18 @@ Deno.serve(async (req) => {
         const activeTemplates = templates.filter(t => t.ativo !== false);
 
         // SupplierProducts de fabricantes aprovados, com preço e disponíveis
-        const validSupplierProducts = supplierProducts.filter(sp => {
-            if (sp.disponivel === false) return false;
-            if (!fabricanteIds.has(sp.supplier_id)) return false;
-            if (!sp.preco || sp.preco <= 0) return false;
-            return true;
-        });
+        // Aplica a margem da PlaceFit quando o acordo do fabricante é do tipo "margem"
+        const validSupplierProducts = supplierProducts
+          .filter(sp => {
+              if (sp.disponivel === false) return false;
+              if (!fabricanteIds.has(sp.supplier_id)) return false;
+              if (!sp.preco || sp.preco <= 0) return false;
+              return true;
+          })
+          .map(sp => ({
+              ...sp,
+              preco: applyMargem(sp.preco, margemMaps, sp.fabricante_id, sp.supplier_id),
+          }));
 
         // Templates que possuem pelo menos um SupplierProduct válido
         const templatesWithPrices = new Set(validSupplierProducts.map(sp => sp.product_id));
