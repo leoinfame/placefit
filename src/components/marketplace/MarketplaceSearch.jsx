@@ -280,9 +280,9 @@ export default function MarketplaceSearch({
                             <Badge variant="secondary" className="text-[10px] py-0">
                               {product.categoria}
                             </Badge>
-                            {product.peso && (
+                            {product.templates?.length > 1 && (
                               <Badge variant="outline" className="text-[10px] py-0">
-                                {product.peso} kg
+                                {product.templates.length} pesos
                               </Badge>
                             )}
                           </div>
@@ -298,7 +298,7 @@ export default function MarketplaceSearch({
                               </p>
                               {prices[0].price !== null && (
                                 <p className="text-sm font-bold text-green-600">
-                                  a partir de R$ {prices[0].price.toFixed(2)}
+                                  a partir de R$ {prices[0].price.toFixed(2)}{prices[0].perKg && <span className="text-xs font-medium text-gray-500">/kg</span>}
                                 </p>
                               )}
                             </>

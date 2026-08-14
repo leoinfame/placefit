@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { getAllProducts } from "@/functions/getAllProducts";
 import {
@@ -37,7 +37,7 @@ export default function Marketplace() {
   const [products, setProducts] = useState([]);
   const [fabricantes, setFabricantes] = useState([]);
   const [supplierProducts, setSupplierProducts] = useState([]);
-  const [selectedProducts, setSelectedProducts] = useState([]);
+  const [selectedGroups, setSelectedGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [authUser, setAuthUser] = useState(null);
@@ -119,33 +119,86 @@ export default function Marketplace() {
     setLoading(false);
   };
 
-  const handleSelectProduct = (product) => {
-    if (!selectedProducts.find(p => p.id === product.id)) {
-      setSelectedProducts([...selectedProducts, product]);
+  const getBaseName = (p) => (p.nome || '').replace(/\s+\d+([.,]\d+)?\s*kg$/i, '').trim();
+
+  const getGroupKey = (p) => [
+    getBaseName(p), p.categoria, p.subcategoria, p.tipo_anilha, p.tipo_furo,
+    p.acabamento, p.pegada, p.barra_acabamento, p.bojo_formato, p.dumbell_tipo,
+    p.piso_formato, p.tijolinho_tipo
+  ].map(v => v ?? '').join('|');
+
+  // Agrupa variações de peso do mesmo produto em um único item (nome + preço por kg),
+  // igual ao catálogo — evita listar cada peso separadamente na busca.
+  const groups = useMemo(() => {
+    const map = new Map();
+    for (const p of products) {
+      const key = getGroupKey(p);
+      if (!map.has(key)) {
+        map.set(key, {
+          id: key,
+          nome: getBaseName(p),
+          cod: p.cod,
+          categoria: p.categoria,
+          subcategoria: p.subcategoria,
+          tipo_anilha: p.tipo_anilha,
+          tipo_furo: p.tipo_furo,
+          acabamento: p.acabamento,
+          pegada: p.pegada,
+          barra_acabamento: p.barra_acabamento,
+          bojo_formato: p.bojo_formato,
+          dumbell_tipo: p.dumbell_tipo,
+          piso_formato: p.piso_formato,
+          tijolinho_tipo: p.tijolinho_tipo,
+          foto: p.foto,
+          und: p.und,
+          templates: [],
+        });
+      }
+      map.get(key).templates.push(p);
+    }
+    for (const g of map.values()) g.templates.sort((a, b) => (a.peso || 0) - (b.peso || 0));
+    return [...map.values()];
+  }, [products]);
+
+  const handleSelectGroup = (group) => {
+    if (!selectedGroups.find(g => g.id === group.id)) {
+      setSelectedGroups([...selectedGroups, group]);
     }
   };
 
-  const handleRemoveProduct = (productId) => {
-    setSelectedProducts(selectedProducts.filter(p => p.id !== productId));
+  const handleRemoveGroup = (groupId) => {
+    setSelectedGroups(selectedGroups.filter(g => g.id !== groupId));
   };
 
-  const getProductPrices = (productId) => {
-    const supplierProds = (supplierProducts || []).filter(sp => sp.product_id === productId);
-    if (supplierProds.length === 0) return [];
-
-    const prices = supplierProds.map(sp => {
-      const fabricante = fabricantes.find(f => f.id === sp.fabricante_id_display || f.id === sp.supplier_id || f.id === sp.fabricante_id);
-      const price = sp.preco && parseFloat(sp.preco) > 0 ? parseFloat(sp.preco) : null;
-      return fabricante ? { supplier: fabricante, price, observacoes: sp.observacoes } : null;
-    }).filter(Boolean);
-
-    prices.sort((a, b) => {
-      if (a.price === null) return 1;
-      if (b.price === null) return -1;
-      return a.price - b.price;
-    });
-
-    return prices;
+  // Preços por fabricante para um grupo: preço/kg quando há variações de peso,
+  // preço unitário caso contrário.
+  const getGroupPrices = (groupId) => {
+    const group = groups.find(g => g.id === groupId);
+    if (!group) return [];
+    const hasWeights = group.templates.some(t => t.peso != null && t.peso > 0);
+    const fabData = {};
+    for (const tmpl of group.templates) {
+      const sps = (supplierProducts || []).filter(sp => sp.product_id === tmpl.id);
+      for (const sp of sps) {
+        const fabricante = fabricantes.find(f => f.id === sp.fabricante_id_display || f.id === sp.supplier_id || f.id === sp.fabricante_id);
+        if (!fabricante) continue;
+        const price = sp.preco && parseFloat(sp.preco) > 0 ? parseFloat(sp.preco) : null;
+        if (price == null) continue;
+        if (!fabData[fabricante.id]) fabData[fabricante.id] = { supplier: fabricante, sum: 0, count: 0, preco: null, observacoes: sp.observacoes };
+        if (hasWeights && tmpl.peso) {
+          fabData[fabricante.id].sum += price / tmpl.peso;
+          fabData[fabricante.id].count++;
+        } else {
+          fabData[fabricante.id].preco = price;
+        }
+      }
+    }
+    return Object.values(fabData).map(d => ({
+      supplier: d.supplier,
+      price: hasWeights ? (d.count > 0 ? d.sum / d.count : null) : d.preco,
+      perKg: hasWeights,
+      observacoes: d.observacoes,
+    })).filter(d => d.price != null).sort((a, b) => a.price - b.price);
   };
 
   const copyMarketplaceLink = () => {
@@ -233,10 +286,10 @@ export default function Marketplace() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              {selectedProducts.length > 0 && (
+              {selectedGroups.length > 0 && (
                 <Badge variant="secondary" className="bg-blue-100 text-blue-700 px-4 py-2">
                   <ShoppingCart className="w-4 h-4 mr-2" />
-                  {selectedProducts.length} {selectedProducts.length === 1 ? 'produto' : 'produtos'}
+                  {selectedGroups.length} {selectedGroups.length === 1 ? 'produto' : 'produtos'}
                 </Badge>
               )}
               <Button
@@ -255,9 +308,9 @@ export default function Marketplace() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Search Bar - Busca moderna */}
         <MarketplaceSearch
-          products={products}
-          onSelectProduct={handleSelectProduct}
-          getProductPrices={getProductPrices}
+          products={groups}
+          onSelectProduct={handleSelectGroup}
+          getProductPrices={getGroupPrices}
         />
 
         {/* Compartilhar Marketplace - Ícones apenas */}
@@ -311,7 +364,7 @@ export default function Marketplace() {
 
 
         {/* Selected Products */}
-        {selectedProducts.length === 0 ? (
+        {selectedGroups.length === 0 ? (
           <>
           <div className="text-center py-16">
             <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -335,7 +388,7 @@ export default function Marketplace() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setSelectedProducts([])}
+                onClick={() => setSelectedGroups([])}
                 className="text-red-600 hover:bg-red-50 hover:text-red-700"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
@@ -343,29 +396,31 @@ export default function Marketplace() {
               </Button>
             </div>
 
-            {selectedProducts.map((product) => {
-              const prices = getProductPrices(product.id);
+            {selectedGroups.map((group) => {
+              const prices = getGroupPrices(group.id);
               const lowestPrice = prices.length > 0 ? prices[0].price : null;
 
               return (
-                <Card key={product.id} className="bg-white shadow-xl border-0">
+                <Card key={group.id} className="bg-white shadow-xl border-0">
                   <CardHeader className="border-b bg-gradient-to-r from-blue-50 to-green-50">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <CardTitle className="text-2xl mb-2">{product.nome}</CardTitle>
+                        <CardTitle className="text-2xl mb-2">{group.nome}</CardTitle>
                         <div className="flex flex-wrap items-center gap-2">
-                          <Badge variant="outline">{product.cod}</Badge>
-                          <Badge variant="secondary">{product.categoria}</Badge>
-                          <Badge variant="outline">{product.und}</Badge>
-                          {product.peso && (
-                            <Badge variant="outline">{product.peso} kg</Badge>
+                          <Badge variant="secondary">{group.categoria}</Badge>
+                          <Badge variant="outline">{group.und}</Badge>
+                          {group.templates.length > 1 && (
+                            <Badge variant="outline">{group.templates.length} pesos</Badge>
+                          )}
+                          {prices[0]?.perKg && (
+                            <Badge variant="outline" className="text-blue-700">preço por kg</Badge>
                           )}
                         </div>
                       </div>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleRemoveProduct(product.id)}
+                        onClick={() => handleRemoveGroup(group.id)}
                         className="text-red-600 hover:bg-red-50"
                       >
                         <X className="w-5 h-5" />
@@ -428,12 +483,12 @@ export default function Marketplace() {
                                       {item.price !== null ? (
                                         <>
                                           <p className="text-2xl font-bold text-gray-900">
-                                            R$ {item.price.toFixed(2)}
+                                            R$ {item.price.toFixed(2)}{item.perKg && <span className="text-base font-medium text-gray-500">/kg</span>}
                                           </p>
                                           {lowestPrice && item.price > lowestPrice && (
                                             <div className="flex items-center justify-end gap-1 text-xs text-red-600 mt-1">
                                               <TrendingDown className="w-3 h-3" />
-                                              +R$ {(item.price - lowestPrice).toFixed(2)}
+                                              +R$ {(item.price - lowestPrice).toFixed(2)}{item.perKg && '/kg'}
                                             </div>
                                           )}
                                         </>
@@ -526,12 +581,12 @@ export default function Marketplace() {
                                 {item.price !== null ? (
                                   <>
                                     <p className="text-2xl font-bold text-gray-900">
-                                      R$ {item.price.toFixed(2)}
+                                      R$ {item.price.toFixed(2)}{item.perKg && <span className="text-base font-medium text-gray-500">/kg</span>}
                                     </p>
                                     {lowestPrice && item.price > lowestPrice && (
                                       <div className="flex items-center gap-1 text-xs text-red-600 mt-1">
                                         <TrendingDown className="w-3 h-3" />
-                                        +R$ {(item.price - lowestPrice).toFixed(2)}
+                                        +R$ {(item.price - lowestPrice).toFixed(2)}{item.perKg && '/kg'}
                                       </div>
                                     )}
                                   </>
