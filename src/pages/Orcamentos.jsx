@@ -36,6 +36,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Table,
   TableBody,
   TableCell,
@@ -74,6 +84,7 @@ export default function Orcamentos() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [selectedOrcamento, setSelectedOrcamento] = useState(null);
   const [editingOrcamento, setEditingOrcamento] = useState(null);
+  const [convertingOrcamento, setConvertingOrcamento] = useState(null);
   const [productSearchTerm, setProductSearchTerm] = useState("");
   
   // Novo orçamento
@@ -424,9 +435,13 @@ export default function Orcamentos() {
   });
 
   const handleConverterParaVenda = (orcamento) => {
-    if (confirm("Converter este orçamento em venda concluída?")) {
-      converterParaVendaMutation.mutate(orcamento);
-    }
+    setConvertingOrcamento(orcamento);
+  };
+
+  const confirmConverterParaVenda = () => {
+    const orcamento = convertingOrcamento;
+    setConvertingOrcamento(null);
+    if (orcamento) converterParaVendaMutation.mutate(orcamento);
   };
 
   const generatePDF = async (orcamento) => {
@@ -1183,6 +1198,27 @@ export default function Orcamentos() {
             </DialogContent>
           </Dialog>
         )}
+
+        {/* Confirmar conversão em venda */}
+        <AlertDialog open={!!convertingOrcamento} onOpenChange={(open) => { if (!open) setConvertingOrcamento(null); }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Converter em venda</AlertDialogTitle>
+              <AlertDialogDescription>
+                Deseja converter este orçamento em venda concluída?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={confirmConverterParaVenda}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                Confirmar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
