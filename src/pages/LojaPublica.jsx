@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
-import { ShoppingCart, Search, Loader2, Store, MessageCircle } from "lucide-react";
+import { ShoppingCart, Search, Loader2, Store, MessageCircle, User } from "lucide-react";
+import { Link } from "react-router-dom";
 import { getStoreData } from "@/functions/getStoreData";
 import LojaProductCard from "@/components/loja/LojaProductCard";
 import LojaCart from "@/components/loja/LojaCart";
@@ -16,6 +17,7 @@ export default function LojaPublica() {
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [categoria, setCategoria] = useState("Todos");
 
   useEffect(() => { load(); }, [slug]);
 
@@ -55,11 +57,19 @@ export default function LojaPublica() {
   }, [cart, config, subtotal]);
   const total = subtotal + frete;
 
+  const categorias = useMemo(() => {
+    const set = new Set(products.map((p) => p.categoria).filter(Boolean));
+    return ["Todos", ...Array.from(set).sort()];
+  }, [products]);
+
   const filtered = useMemo(() => {
-    if (!search) return products;
     const s = search.toLowerCase();
-    return products.filter((p) => (p.nome || "").toLowerCase().includes(s) || (p.categoria || "").toLowerCase().includes(s));
-  }, [products, search]);
+    return products.filter((p) => {
+      const okCat = categoria === "Todos" || p.categoria === categoria;
+      const okSearch = !s || (p.nome || "").toLowerCase().includes(s) || (p.categoria || "").toLowerCase().includes(s);
+      return okCat && okSearch;
+    });
+  }, [products, search, categoria]);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin" style={{ color: primary }} /></div>;
   if (error) return <div className="min-h-screen flex flex-col items-center justify-center gap-3"><Store className="w-12 h-12 text-gray-300" /><p className="text-gray-500">{error}</p></div>;
@@ -78,6 +88,9 @@ export default function LojaPublica() {
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar produtos..." className="pl-9 pr-3 py-2 rounded-lg text-sm w-56" />
           </div>
+          <Link to={`/loja/${slug}/conta`} className="relative text-white p-2" title="Minha Conta">
+            <User className="w-6 h-6" />
+          </Link>
           <button onClick={() => setCartOpen(true)} className="relative text-white p-2">
             <ShoppingCart className="w-6 h-6" />
             {cart.length > 0 && <span className="absolute -top-1 -right-1 bg-white text-xs font-bold rounded-full h-5 min-w-5 px-1 flex items-center justify-center" style={{ color: primary }}>{cart.reduce((s, i) => s + i.quantidade, 0)}</span>}
@@ -95,6 +108,15 @@ export default function LojaPublica() {
 
       <main className="max-w-6xl mx-auto px-4 py-6">
         <h2 className="font-bold text-gray-900 mb-3">Produtos</h2>
+        {categorias.length > 1 && (
+          <div className="flex gap-2 overflow-x-auto pb-3 mb-2 -mx-1 px-1">
+            {categorias.map((c) => (
+              <button key={c} onClick={() => setCategoria(c)} className={`px-4 py-1.5 rounded-full text-sm whitespace-nowrap font-medium transition-colors ${categoria === c ? "text-white" : "bg-white border text-gray-600 hover:bg-gray-100"}`} style={categoria === c ? { backgroundColor: primary } : {}}>
+                {c}
+              </button>
+            ))}
+          </div>
+        )}
         {filtered.length === 0 ? (
           <p className="text-gray-400 text-center py-20">Nenhum produto encontrado.</p>
         ) : (
