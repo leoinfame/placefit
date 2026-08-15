@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { ShoppingCart, Search, Loader2, Store, MessageCircle, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getStoreData } from "@/functions/getStoreData";
+import { getSession, clearSession } from "@/lib/lojaSession";
 import LojaProductCard from "@/components/loja/LojaProductCard";
 import LojaCart from "@/components/loja/LojaCart";
 import LojaCheckout from "@/components/loja/LojaCheckout";
@@ -18,8 +19,13 @@ export default function LojaPublica() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [categoria, setCategoria] = useState("Todos");
+  const [sessao, setSessao] = useState(null);
 
-  useEffect(() => { load(); }, [slug]);
+  useEffect(() => { load(); refreshSessao(); }, [slug]);
+  useEffect(() => { refreshSessao(); }, [checkoutOpen]);
+
+  const refreshSessao = () => setSessao(getSession(slug));
+  const logout = () => { clearSession(slug); setSessao(null); };
 
   const load = async () => {
     setLoading(true); setError("");
@@ -88,9 +94,18 @@ export default function LojaPublica() {
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar produtos..." className="pl-9 pr-3 py-2 rounded-lg text-sm w-56" />
           </div>
-          <Link to={`/loja/${slug}/conta`} className="relative text-white p-2" title="Minha Conta">
-            <User className="w-6 h-6" />
-          </Link>
+          {sessao ? (
+            <div className="flex items-center gap-2">
+              <Link to={`/loja/${slug}/conta`} className="text-white text-sm font-medium hidden sm:flex items-center gap-1" title={sessao.cliente.nome}>
+                <User className="w-5 h-5" /> <span className="max-w-24 truncate">Olá, {sessao.cliente.nome?.split(" ")[0]}</span>
+              </Link>
+              <button onClick={logout} className="text-white/70 hover:text-white text-xs hidden sm:block">Sair</button>
+            </div>
+          ) : (
+            <Link to={`/loja/${slug}/conta`} className="text-white text-sm font-medium flex items-center gap-1" title="Entrar / Criar conta">
+              <User className="w-5 h-5" /> <span className="hidden sm:inline">Entrar</span>
+            </Link>
+          )}
           <button onClick={() => setCartOpen(true)} className="relative text-white p-2">
             <ShoppingCart className="w-6 h-6" />
             {cart.length > 0 && <span className="absolute -top-1 -right-1 bg-white text-xs font-bold rounded-full h-5 min-w-5 px-1 flex items-center justify-center" style={{ color: primary }}>{cart.reduce((s, i) => s + i.quantidade, 0)}</span>}
@@ -132,7 +147,7 @@ export default function LojaPublica() {
       </footer>
 
       <LojaCart open={cartOpen} onClose={() => setCartOpen(false)} items={cart} onInc={inc} onDec={dec} onRemove={remove} subtotal={subtotal} frete={frete} total={total} onCheckout={() => { setCartOpen(false); setCheckoutOpen(true); }} primaryColor={primary} />
-      <LojaCheckout open={checkoutOpen} onClose={() => setCheckoutOpen(false)} config={config} cart={cart} subtotal={subtotal} frete={frete} total={total} primaryColor={primary} onClear={() => setCart([])} />
+      <LojaCheckout open={checkoutOpen} onClose={() => setCheckoutOpen(false)} config={config} cart={cart} subtotal={subtotal} frete={frete} total={total} primaryColor={primary} sessao={sessao} slug={slug} onLogin={() => setCheckoutOpen(false)} onOrdered={refreshSessao} onClear={() => setCart([])} />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 {
   "name": "LojaCliente",
   "type": "object",
-  "description": "Cliente final cadastrado na loja online de um revendedor. Criado durante o checkout da vitrine publica.",
+  "description": "Cliente final cadastrado na loja online de um revendedor (e-commerce). Criado durante o cadastro/login da vitrine publica.",
   "properties": {
     "revendedor_id": {
       "type": "string",
@@ -22,6 +22,14 @@
     "telefone": {
       "type": "string",
       "description": "Telefone/WhatsApp do cliente"
+    },
+    "senha": {
+      "type": "string",
+      "description": "Hash da senha do cliente (SHA-256 + salt)"
+    },
+    "token": {
+      "type": "string",
+      "description": "Token de sessao gerado no login"
     },
     "cep": {
       "type": "string"

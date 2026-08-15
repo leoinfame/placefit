@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { X, Loader2, CheckCircle2 } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { X, Loader2, CheckCircle2, Lock } from "lucide-react";
 import { createStoreOrder } from "@/functions/createStoreOrder";
 
 const Field = ({ label, value, onChange, className = "", textarea }) => (
@@ -17,37 +18,47 @@ const PayBtn = ({ active, onClick, label, primaryColor }) => (
   <button onClick={onClick} className={`px-4 py-2 rounded-lg border text-sm ${active ? "text-white" : "bg-white"}`} style={active ? { backgroundColor: primaryColor, borderColor: primaryColor } : {}}>{label}</button>
 );
 
-export default function LojaCheckout({ open, onClose, config, cart, subtotal, frete, total, primaryColor, onClear }) {
+export default function LojaCheckout({ open, onClose, config, cart, subtotal, frete, total, primaryColor, sessao, slug, onLogin, onOrdered, onClear }) {
   const [step, setStep] = useState("form");
   const [numero, setNumero] = useState("");
+  const c = sessao?.cliente;
   const [form, setForm] = useState({
-    nome: "", email: "", cpf: "", telefone: "",
     cep: "", logradouro: "", numero: "", complemento: "", bairro: "", cidade: "", estado: "",
     pagamento_metodo: config?.aceita_pix ? "pix" : "dinheiro",
     observacoes: "",
   });
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    if (c) setForm((f) => ({
+      ...f,
+      cep: c.cep || "", logradouro: c.endereco || "", numero: c.numero || "",
+      complemento: c.complemento || "", bairro: c.bairro || "", cidade: c.cidade || "", estado: c.estado || "",
+    }));
+  }, [c?.id]);
+
   if (!open) return null;
   const fmt = (v) => Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 2 });
 
   const submit = async () => {
     setError("");
-    if (!form.nome || !form.email || !form.cep || !form.logradouro || !form.cidade || !form.estado) {
-      setError("Preencha nome, e-mail e endereço de entrega."); return;
+    if (!form.cep || !form.logradouro || !form.cidade || !form.estado) {
+      setError("Preencha o endereço de entrega."); return;
     }
     setStep("loading");
     try {
       const itens = cart.map((it) => ({ sp_id: it.sp_id, quantidade: it.quantidade }));
       const res = await createStoreOrder({
         slug: config.slug,
-        cliente: { nome: form.nome, email: form.email, cpf: form.cpf, telefone: form.telefone },
+        cliente_id: sessao.cliente.id,
+        token: sessao.token,
         endereco: { cep: form.cep, logradouro: form.logradouro, numero: form.numero, complemento: form.complemento, bairro: form.bairro, cidade: form.cidade, estado: form.estado },
         itens, pagamento_metodo: form.pagamento_metodo, frete, observacoes: form.observacoes,
       });
       setNumero(res.data?.numero_pedido || "");
       setStep("success");
       onClear();
+      onOrdered?.();
     } catch (e) {
       setError(e?.response?.data?.error || e?.message || "Erro ao finalizar pedido");
       setStep("form");
@@ -63,23 +74,34 @@ export default function LojaCheckout({ open, onClose, config, cart, subtotal, fr
           <h3 className="font-bold text-lg">{step === "success" ? "Pedido Confirmado!" : "Finalizar Compra"}</h3>
           <button onClick={close} disabled={step === "loading"}><X className="w-5 h-5" /></button>
         </div>
-        {step === "success" ? (
+
+        {!sessao ? (
+          <div className="p-8 text-center">
+            <div className="w-14 h-14 rounded-full mx-auto flex items-center justify-center mb-3" style={{ backgroundColor: primaryColor }}>
+              <Lock className="w-7 h-7 text-white" />
+            </div>
+            <p className="font-semibold text-gray-900">Faça login para comprar</p>
+            <p className="text-sm text-gray-400 mt-1 mb-5">Você precisa de uma conta para finalizar a compra e acompanhar seu pedido.</p>
+            <Link to={`/loja/${slug}/conta`} onClick={onLogin} className="inline-block text-white font-semibold px-6 py-2.5 rounded-lg" style={{ backgroundColor: primaryColor }}>
+              Entrar / Criar conta
+            </Link>
+          </div>
+        ) : step === "success" ? (
           <div className="p-8 text-center">
             <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
             <p className="font-semibold text-lg">Obrigado pela sua compra!</p>
             <p className="text-gray-500 mt-1">Pedido <span className="font-bold">{numero}</span> registrado.</p>
-            <p className="text-sm text-gray-400 mt-2">Você receberá o contato do vendedor em breve para confirmação e pagamento.</p>
-            <button onClick={close} className="mt-6 text-white font-semibold px-6 py-2 rounded-lg" style={{ backgroundColor: primaryColor }}>Fechar</button>
+            <p className="text-sm text-gray-400 mt-2">Acompanhe o status do seu pedido em "Minha Conta".</p>
+            <Link to={`/loja/${slug}/conta`} onClick={close} className="mt-6 inline-block text-white font-semibold px-6 py-2 rounded-lg" style={{ backgroundColor: primaryColor }}>Ver meus pedidos</Link>
           </div>
         ) : step === "loading" ? (
           <div className="p-12 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto" style={{ color: primaryColor }} /><p className="mt-3 text-gray-500">Processando pedido...</p></div>
         ) : (
           <div className="p-4 space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Nome*" value={form.nome} onChange={(v) => setForm({ ...form, nome: v })} className="col-span-2" />
-              <Field label="E-mail*" value={form.email} onChange={(v) => setForm({ ...form, email: v })} className="col-span-2" />
-              <Field label="CPF" value={form.cpf} onChange={(v) => setForm({ ...form, cpf: v })} />
-              <Field label="Telefone/WhatsApp" value={form.telefone} onChange={(v) => setForm({ ...form, telefone: v })} />
+            <div className="bg-gray-50 rounded-lg p-3 flex items-center gap-2 text-sm">
+              <span className="text-gray-400">Comprando como:</span>
+              <span className="font-medium text-gray-900">{c?.nome}</span>
+              <span className="text-gray-400 text-xs">({c?.email})</span>
             </div>
             <p className="font-semibold text-sm pt-2">Endereço de Entrega</p>
             <div className="grid grid-cols-3 gap-3">

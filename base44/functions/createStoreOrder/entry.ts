@@ -16,15 +16,21 @@ export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
     const body = req.method === 'POST' ? await req.json().catch(() => ({})) : {};
-    const { slug, cliente, itens, endereco, pagamento_metodo, frete, observacoes } = body;
+    const { slug, cliente_id, token, itens, endereco, pagamento_metodo, frete, observacoes } = body;
 
     if (!slug) return Response.json({ error: 'slug obrigatorio' }, { status: 400 });
-    if (!cliente || !cliente.nome || !cliente.email) return Response.json({ error: 'Dados do cliente incompletos' }, { status: 400 });
+    if (!cliente_id || !token) return Response.json({ error: 'Voce precisa estar logado para comprar. Faca login na sua conta.' }, { status: 401 });
     if (!Array.isArray(itens) || itens.length === 0) return Response.json({ error: 'Carrinho vazio' }, { status: 400 });
 
     const configs = await base44.asServiceRole.entities.LojaConfig.filter({ slug });
     const config = configs[0];
     if (!config || !config.ativo) return Response.json({ error: 'Loja nao encontrada ou inativa' }, { status: 404 });
+
+    // Validar sessao do cliente
+    const cliente = await base44.asServiceRole.entities.LojaCliente.get(cliente_id).catch(() => null);
+    if (!cliente) return Response.json({ error: 'Cliente nao encontrado' }, { status: 404 });
+    if (cliente.token !== token) return Response.json({ error: 'Sessao expirada. Faca login novamente.' }, { status: 401 });
+    if (cliente.revendedor_id !== config.revendedor_id) return Response.json({ error: 'Cliente nao pertence a esta loja' }, { status: 403 });
 
     // Validar itens e precos contra os SupplierProducts reais do revendedor
     const sps = await fetchAll((sort, limit, skip) =>
@@ -62,25 +68,13 @@ export default async function(req) {
     const freteVal = Number(frete) || 0;
     const total = Math.round((subtotal + freteVal) * 100) / 100;
 
-    // Criar ou atualizar cliente
-    let clienteId = null;
-    const existing = await base44.asServiceRole.entities.LojaCliente.filter({ revendedor_id: config.revendedor_id, email: cliente.email });
-    if (existing[0]) {
-      clienteId = existing[0].id;
-      await base44.asServiceRole.entities.LojaCliente.update(clienteId, {
-        nome: cliente.nome, cpf: cliente.cpf, telefone: cliente.telefone,
-        cep: endereco?.cep, endereco: endereco?.logradouro, numero: endereco?.numero,
-        complemento: endereco?.complemento, bairro: endereco?.bairro, cidade: endereco?.cidade, estado: endereco?.estado,
-      });
-    } else {
-      const created = await base44.asServiceRole.entities.LojaCliente.create({
-        revendedor_id: config.revendedor_id,
-        nome: cliente.nome, email: cliente.email, cpf: cliente.cpf, telefone: cliente.telefone,
-        cep: endereco?.cep, endereco: endereco?.logradouro, numero: endereco?.numero,
-        complemento: endereco?.complemento, bairro: endereco?.bairro, cidade: endereco?.cidade, estado: endereco?.estado,
-      });
-      clienteId = created.id;
-    }
+    // Atualizar endereco do cliente a partir do checkout
+    const clienteId = cliente.id;
+    await base44.asServiceRole.entities.LojaCliente.update(clienteId, {
+      cpf: cliente.cpf, telefone: cliente.telefone,
+      cep: endereco?.cep, endereco: endereco?.logradouro, numero: endereco?.numero,
+      complemento: endereco?.complemento, bairro: endereco?.bairro, cidade: endereco?.cidade, estado: endereco?.estado,
+    });
 
     const numero_pedido = 'LOJA-' + Date.now().toString().slice(-8);
     const pedido = await base44.asServiceRole.entities.LojaPedido.create({

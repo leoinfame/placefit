@@ -15,42 +15,33 @@ export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
     const body = req.method === 'POST' ? await req.json().catch(() => ({})) : {};
-    const { slug, email, cpf } = body;
-    if (!slug || !email) return Response.json({ error: 'slug e email obrigatorios' }, { status: 400 });
+    const { slug, cliente_id, token } = body;
+    if (!slug || !cliente_id || !token) return Response.json({ error: 'slug, cliente_id e token obrigatorios' }, { status: 400 });
 
     const configs = await base44.asServiceRole.entities.LojaConfig.filter({ slug: String(slug).trim().toLowerCase() });
     const config = configs[0];
     if (!config) return Response.json({ error: 'Loja nao encontrada' }, { status: 404 });
 
-    const revendedor_id = config.revendedor_id;
-    const emailNorm = String(email).trim().toLowerCase();
+    const cliente = await base44.asServiceRole.entities.LojaCliente.get(cliente_id).catch(() => null);
+    if (!cliente) return Response.json({ error: 'Cliente nao encontrado' }, { status: 404 });
+    if (cliente.token !== token) return Response.json({ error: 'Sessao invalida. Faca login novamente.' }, { status: 401 });
+    if (cliente.revendedor_id !== config.revendedor_id) return Response.json({ error: 'Cliente nao pertence a esta loja' }, { status: 403 });
 
-    // Buscar cliente por email
-    const clientes = await fetchAll((sort, limit, skip) =>
-      base44.asServiceRole.entities.LojaCliente.filter({ revendedor_id, email: emailNorm }, sort, limit, skip)
-    );
-    let cliente = clientes[0] || null;
-    if (cliente && cpf) {
-      const cpfNorm = String(cpf).replace(/\D/g, '');
-      const cpfDb = String(cliente.cpf || '').replace(/\D/g, '');
-      if (cpfDb && cpfNorm && cpfDb !== cpfNorm) return Response.json({ error: 'CPF incorreto' }, { status: 403 });
-    }
-
-    // Buscar pedidos do cliente
     const pedidos = await fetchAll((sort, limit, skip) =>
-      base44.asServiceRole.entities.LojaPedido.filter({ revendedor_id, cliente_email: emailNorm }, sort, limit, skip)
+      base44.asServiceRole.entities.LojaPedido.filter({ revendedor_id: config.revendedor_id, cliente_id }, sort, limit, skip)
     );
 
     return Response.json({
-      cliente: cliente ? {
+      cliente: {
         id: cliente.id, nome: cliente.nome, email: cliente.email, cpf: cliente.cpf, telefone: cliente.telefone,
         cep: cliente.cep, endereco: cliente.endereco, numero: cliente.numero, complemento: cliente.complemento,
         bairro: cliente.bairro, cidade: cliente.cidade, estado: cliente.estado,
-      } : null,
+      },
       pedidos: pedidos.map((p) => ({
         id: p.id, numero_pedido: p.numero_pedido, created_date: p.created_date,
-        itens: p.itens, total: p.total, status: p.status, pagamento_status: p.pagamento_status,
-        pagamento_metodo: p.pagamento_metodo,
+        itens: p.itens, subtotal: p.subtotal, frete: p.frete, total: p.total,
+        status: p.status, pagamento_status: p.pagamento_status, pagamento_metodo: p.pagamento_metodo,
+        endereco_entrega: p.endereco_entrega, observacoes: p.observacoes,
       })),
     });
   } catch (error) {
