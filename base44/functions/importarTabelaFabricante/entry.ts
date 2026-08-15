@@ -221,14 +221,20 @@ Deno.serve(async (req) => {
       usosPorTemplate.set(t.id, (usosPorTemplate.get(t.id) ?? 0) + 1);
       const atual = existentePorPid.get(t.id);
       const deterministico = DETERMINISTICO.includes(r.via);
+      // Apenas categorias vendidas por peso usam preço por kg; Pisos, Tijolinhos,
+      // Colchonetes, Kits etc. são sempre por unidade, mesmo se a origem veio como por_kg.
+      const WEIGHT_CATEGORIES = ['Anilhas', 'Halteres', 'Dumbells', 'Kettlebells'];
+      const isWeightCategory = t.categoria && WEIGHT_CATEGORIES.includes(t.categoria);
+      const precoFinal = isWeightCategory ? l.preco_final : l.preco_origem;
       plano.push({
         ...l,
+        preco_final: precoFinal,
         product_id: t.id, cod: t.cod, nome_catalogo: t.nome, categoria: t.categoria,
         template_peso_kg: t.peso_kg,
         via: r.via, score: r.score,
         ja_existe: !!atual,
         preco_atual: atual?.preco ?? null,
-        delta: atual?.preco != null ? Math.round((l.preco_final - atual.preco) * 100) / 100 : null,
+        delta: atual?.preco != null ? Math.round((precoFinal - atual.preco) * 100) / 100 : null,
         status: deterministico ? 'verde' : 'amarelo',
         motivo: deterministico ? `Casado por ${r.via}` : `Casado por similaridade (${r.score})`,
       });

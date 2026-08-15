@@ -310,15 +310,20 @@ Deno.serve(async (req) => {
       }
 
       // ---- preço unitário ou por quilo
+      // Apenas categorias vendidas por peso usam preço por kg; Pisos, Tijolinhos,
+      // Colchonetes, Kits etc. são sempre por unidade (m²/peça/kit), mesmo com peso_kg.
+      const WEIGHT_CATEGORIES = ['Anilhas', 'Halteres', 'Dumbells', 'Kettlebells'];
+      const isWeightCategory = template.categoria && WEIGHT_CATEGORIES.includes(template.categoria);
+
       const tipoDeclarado = idxTipoPreco !== -1 ? String(row[idxTipoPreco] || '').trim().toLowerCase() : '';
       const pesoNaLinha = extractWeight(nome) ?? extractWeight(codigo);
       const irmas = findWeightSiblings(template);
 
       let tipoPreco: 'unitario' | 'kg' = 'unitario';
       let precoKgInferido = false;
-      if (['kg', 'quilo', 'por_kg', 'porkg'].includes(tipoDeclarado)) {
+      if (isWeightCategory && ['kg', 'quilo', 'por_kg', 'porkg'].includes(tipoDeclarado)) {
         tipoPreco = 'kg';
-      } else if (!tipoDeclarado && pesoNaLinha == null && template.peso_kg != null && irmas.length > 1) {
+      } else if (isWeightCategory && !tipoDeclarado && pesoNaLinha == null && template.peso_kg != null && irmas.length > 1) {
         tipoPreco = 'kg';
         precoKgInferido = true;
       }

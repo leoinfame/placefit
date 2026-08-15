@@ -101,7 +101,11 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      const porKg = d?.tipo_preco === 'kg';
+      // Apenas categorias vendidas por peso usam preço por kg; Pisos, Tijolinhos,
+      // Colchonetes, Kits etc. são sempre por unidade, mesmo com peso_kg no template.
+      const WEIGHT_CATEGORIES = ['Anilhas', 'Halteres', 'Dumbells', 'Kettlebells'];
+      const isWeightCategory = tmpl.categoria && WEIGHT_CATEGORIES.includes(tmpl.categoria);
+      const porKg = isWeightCategory && d?.tipo_preco === 'kg';
       const disponivel = d?.disponivel !== false;
       const codOrigem = d?.cod_origem || null;
       const descricaoOrigem = d?.descricao_origem || null;
