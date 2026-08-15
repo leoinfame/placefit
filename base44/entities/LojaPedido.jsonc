@@ -136,9 +136,35 @@
     "total"
   ],
   "x-security": {
-    "read": "admin",
+    "read": "authenticated",
     "create": "public",
-    "update": "admin",
+    "update": "authenticated",
     "delete": "admin"
+  },
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.revendedor_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.revendedor_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
   }
 }

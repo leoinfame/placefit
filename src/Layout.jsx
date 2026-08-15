@@ -456,6 +456,11 @@ export default function Layout({ children, currentPageName }) {
           icon: Download,
         },
         {
+          title: "Minha Loja Online",
+          url: createPageUrl("LojaRevendedor"),
+          icon: Store,
+        },
+        {
           title: "Meus Clientes",
           url: createPageUrl("Clientes"),
           icon: Users,

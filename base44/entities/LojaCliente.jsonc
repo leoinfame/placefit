@@ -53,9 +53,23 @@
     "email"
   ],
   "x-security": {
-    "read": "admin",
+    "read": "authenticated",
     "create": "public",
     "update": "admin",
     "delete": "admin"
+  },
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.revendedor_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
   }
 }

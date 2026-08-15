@@ -80,9 +80,59 @@
     "nome_loja"
   ],
   "x-security": {
-    "read": "public",
-    "create": "admin",
-    "update": "admin",
-    "delete": "admin"
+    "read": "authenticated",
+    "create": "authenticated",
+    "update": "authenticated",
+    "delete": "authenticated"
+  },
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.revendedor_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "data.revendedor_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.revendedor_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.revendedor_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
   }
 }

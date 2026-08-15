@@ -12,6 +12,7 @@ import Marketplace from './pages/Marketplace';
 import FabricanteCatalogoPublic from './pages/FabricanteCatalogoPublic';
 import LojaPublica from './pages/LojaPublica';
 import LojaEcommerce from './pages/LojaEcommerce';
+import LojaRevendedor from './pages/LojaRevendedor';
 import AdminTools from './pages/AdminTools';
 import CatalogoWhatsApp from './pages/CatalogoWhatsApp';
 import AdminServicos from './pages/AdminServicos';
@@ -111,6 +112,7 @@ const AuthenticatedApp = () => {
       <Route path="/Atributos" element={<LayoutWrapper currentPageName="Atributos"><Atributos /></LayoutWrapper>} />
       <Route path="/Produtos" element={<LayoutWrapper currentPageName="Produtos"><Produtos /></LayoutWrapper>} />
       <Route path="/LojaEcommerce" element={<LayoutWrapper currentPageName="LojaEcommerce"><LojaEcommerce /></LayoutWrapper>} />
+      <Route path="/LojaRevendedor" element={<LayoutWrapper currentPageName="LojaRevendedor"><LojaRevendedor /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
