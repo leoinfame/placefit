@@ -60,7 +60,9 @@ export default async function(req) {
     }
     const products = [...gmap.values()].map(g => {
       g.variacoes.sort((a, b) => (a.peso_kg || 0) - (b.peso_kg || 0));
-      const withWeight = g.variacoes.filter(v => v.peso_kg > 0);
+      const WEIGHT_CATEGORIES = ["Anilhas", "Halteres", "Dumbells", "Kettlebells"];
+      const isWeightCategory = WEIGHT_CATEGORIES.includes(g.categoria);
+      const withWeight = isWeightCategory ? g.variacoes.filter(v => v.peso_kg > 0) : [];
       if (withWeight.length > 0) {
         g.tem_pesos = true;
         g.preco_por_kg = Math.min(...withWeight.map(v => v.preco / v.peso_kg));
