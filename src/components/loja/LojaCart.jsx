@@ -1,12 +1,15 @@
 import React from "react";
 import { X, Plus, Minus, Trash2, ShoppingCart } from "lucide-react";
 
-export default function LojaCart({ open, onClose, items, onInc, onDec, onRemove, subtotal, frete, total, onCheckout, primaryColor }) {
+export default function LojaCart({ open, onClose, items, onInc, onDec, onRemove, subtotal, frete, total, onCheckout, primaryColor, embedTop, embedHeight }) {
   const fmt = (v) => Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+  const embedded = embedTop != null && embedHeight != null;
+  const overlayStyle = embedded ? { position: "absolute", top: embedTop, left: 0, right: 0, height: embedHeight } : undefined;
+  const panelStyle = embedded ? { position: "absolute", top: embedTop, height: embedHeight } : undefined;
   return (
     <>
-      {open && <div className="fixed inset-0 bg-black/40 z-40" onClick={onClose} />}
-      <div className={`fixed top-0 right-0 h-full w-full max-w-md bg-white z-50 shadow-2xl transform transition-transform flex flex-col ${open ? 'translate-x-0' : 'translate-x-full'}`}>
+      {open && <div className={embedded ? "bg-black/40 z-40" : "fixed inset-0 bg-black/40 z-40"} style={overlayStyle} onClick={onClose} />}
+      <div className={`${embedded ? '' : 'fixed top-0 h-full'} right-0 w-full max-w-md bg-white z-50 shadow-2xl transform transition-transform flex flex-col ${open ? 'translate-x-0' : 'translate-x-full'}`} style={panelStyle}>
         <div className="flex items-center justify-between p-4 border-b" style={{ backgroundColor: primaryColor }}>
           <h3 className="text-white font-bold flex items-center gap-2"><ShoppingCart className="w-5 h-5" /> Seu Carrinho</h3>
           <button onClick={onClose} className="text-white"><X className="w-5 h-5" /></button>
