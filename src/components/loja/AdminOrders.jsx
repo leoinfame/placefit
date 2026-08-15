@@ -1,16 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { confirmarPagamentoLoja } from "@/functions/confirmarPagamentoLoja";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { Loader2, ShoppingCart } from "lucide-react";
+import { Loader2, ShoppingCart, CheckCircle2 } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 const STATUS = ["pendente", "confirmado", "pago", "enviado", "entregue", "cancelado"];
 
 export default function AdminOrders({ stores }) {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [confirming, setConfirming] = useState(null);
   const [filterStore, setFilterStore] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
+  const { toast } = useToast();
 
   const load = async () => {
     setLoading(true);
@@ -21,6 +26,19 @@ export default function AdminOrders({ stores }) {
     setLoading(false);
   };
   useEffect(() => { load(); }, []);
+
+  const confirmarPagamento = async (o) => {
+    setConfirming(o.id);
+    try {
+      const res = await confirmarPagamentoLoja({ loja_pedido_id: o.id });
+      const n = res?.data?.total_pedidos_compra ?? 0;
+      toast({ title: "Pagamento confirmado!", description: `Pedido virou venda${n > 0 ? ` e ${n} pedido(s) de compra gerado(s)` : ""}.` });
+      await load();
+    } catch (e) {
+      toast({ title: "Erro ao confirmar pagamento", description: e?.response?.data?.error || e?.message || "Tente novamente", variant: "destructive" });
+    }
+    setConfirming(null);
+  };
 
   const storeName = (rid) => stores.find((s) => s.revendedor_id === rid)?.nome_loja || "—";
   const filtered = orders.filter((o) => (filterStore === "all" || o.revendedor_id === filterStore) && (filterStatus === "all" || o.status === filterStatus));
@@ -48,7 +66,7 @@ export default function AdminOrders({ stores }) {
             <thead className="bg-gray-50 text-gray-500">
               <tr>
                 <th className="text-left p-2">Pedido</th><th className="text-left p-2">Loja</th><th className="text-left p-2">Cliente</th>
-                <th className="text-left p-2">Itens</th><th className="text-right p-2">Total</th><th className="text-left p-2">Pagamento</th><th className="text-left p-2">Status</th><th className="text-left p-2">Data</th>
+                <th className="text-left p-2">Itens</th><th className="text-right p-2">Total</th><th className="text-left p-2">Pagamento</th><th className="text-left p-2">Status</th><th className="text-left p-2">Data</th><th className="text-left p-2">Ação</th>
               </tr>
             </thead>
             <tbody>
@@ -62,6 +80,15 @@ export default function AdminOrders({ stores }) {
                   <td className="p-2"><Badge variant="outline">{o.pagamento_metodo}</Badge></td>
                   <td className="p-2"><Badge variant="secondary">{o.status}</Badge></td>
                   <td className="p-2 text-xs text-gray-400">{o.created_date?.slice(0, 10)}</td>
+                  <td className="p-2">
+                    {o.pagamento_status === "pago" ? (
+                      <Badge className="bg-green-100 text-green-700"><CheckCircle2 className="w-3 h-3 mr-1" />Pago</Badge>
+                    ) : (
+                      <Button size="sm" disabled={confirming === o.id} onClick={() => confirmarPagamento(o)} className="h-7 text-xs">
+                        {confirming === o.id ? <Loader2 className="w-3 h-3 animate-spin" /> : "Confirmar Pagamento"}
+                      </Button>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

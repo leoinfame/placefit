@@ -102,7 +102,35 @@ export default async function(req) {
       observacoes: observacoes || '',
     });
 
-    return Response.json({ pedido_id: pedido.id, numero_pedido, total });
+    // Gerar o orcamento interno (Pedido tipo=orcamento) para o revendedor
+    let pedidoInternoId = null;
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const itensPedido = orderItens.map((it) => ({
+        product_id: it.product_id, cod: it.cod, nome: it.nome,
+        quantidade: it.quantidade, preco_unitario: it.preco_unitario, subtotal: it.subtotal,
+      }));
+      const pedidoInterno = await base44.asServiceRole.entities.Pedido.create({
+        fornecedor_id: config.revendedor_id,
+        cliente_id: clienteId,
+        cliente_nome: cliente.nome,
+        numero_pedido,
+        data_pedido: today,
+        tipo: 'orcamento',
+        itens: itensPedido,
+        subtotal,
+        frete: freteVal,
+        total,
+        status: 'pendente',
+        observacoes: 'Pedido via loja online ' + numero_pedido,
+      });
+      pedidoInternoId = pedidoInterno.id;
+      await base44.asServiceRole.entities.LojaPedido.update(pedido.id, { pedido_interno_id: pedidoInternoId });
+    } catch (e) {
+      console.error('Erro ao gerar orcamento interno:', e);
+    }
+
+    return Response.json({ pedido_id: pedido.id, numero_pedido, total, pedido_interno_id: pedidoInternoId });
   } catch (error) {
     console.error('createStoreOrder:', error);
     return Response.json({ error: error.message }, { status: 500 });

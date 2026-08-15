@@ -128,6 +128,17 @@
     },
     "observacoes": {
       "type": "string"
+    },
+    "pedido_interno_id": {
+      "type": "string",
+      "description": "ID do Pedido (orcamento/venda) interno gerado a partir deste pedido da loja"
+    },
+    "pedidos_compra_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs dos PedidoCompra gerados ao confirmar o pagamento"
     }
   },
   "required": [
