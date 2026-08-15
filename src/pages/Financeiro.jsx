@@ -349,7 +349,7 @@ export default function Financeiro() {
     </div>
     <div class="resumo-item">
       <span>Margem de Lucro:</span>
-      <span>${totais.totalVendas > 0 ? ((totais.totalLucro / totais.totalVendas) * 100).toFixed(1) : 0}%</span>
+      <span>${(() => { const totalProdutos = totais.totalVendas - totais.totalFrete; return totalProdutos > 0 ? ((totais.totalLucro / totalProdutos) * 100).toFixed(1) : 0; })()}%</span>
     </div>
   </div>
 </body>
@@ -630,7 +630,7 @@ export default function Financeiro() {
               <div className="flex justify-between text-sm">
                 <span className="text-gray-700">Margem de Lucro:</span>
                 <span className="font-semibold text-green-600">
-                  {totais.totalVendas > 0 ? ((totais.totalLucro / totais.totalVendas) * 100).toFixed(1) : 0}%
+                  {(() => { const totalProdutos = totais.totalVendas - totais.totalFrete; return totalProdutos > 0 ? ((totais.totalLucro / totalProdutos) * 100).toFixed(1) : 0; })()}%
                 </span>
               </div>
             </CardContent>
