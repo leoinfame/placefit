@@ -175,7 +175,8 @@ export default function Marketplace() {
   const getGroupPrices = (groupId) => {
     const group = groups.find(g => g.id === groupId);
     if (!group) return [];
-    const hasWeights = group.templates.some(t => t.peso != null && t.peso > 0);
+    const WEIGHT_CATEGORIES = ["Anilhas", "Halteres", "Dumbells", "Kettlebells"];
+    const hasWeights = WEIGHT_CATEGORIES.includes(group.categoria) && group.templates.some(t => t.peso != null && t.peso > 0);
     const fabData = {};
     for (const tmpl of group.templates) {
       const sps = (supplierProducts || []).filter(sp => sp.product_id === tmpl.id);
