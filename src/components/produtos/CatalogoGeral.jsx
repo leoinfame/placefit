@@ -465,7 +465,7 @@ export default function CatalogoGeral({ user }) {
                 const fabs = getGroupFabricantes(g);
                 const alreadyMine = isGroupMine(g);
                 const isSelected = selected.has(g.key);
-                const hasWeights = g.templates.some(t => t.peso_kg != null);
+                const hasWeights = WEIGHT_CATEGORIES.includes(g.categoria) && g.templates.some(t => t.peso_kg != null);
                 const minPreco = fabs.length > 0 ? (hasWeights ? fabs[0].precoKg : fabs[0].preco) : null;
 
                 return (
@@ -652,7 +652,7 @@ export default function CatalogoGeral({ user }) {
                 {groups.filter(g => selected.has(g.key) && !isGroupMine(g) && getGroupFabricantes(g).length > 0).map(g => {
                   const fabs = getGroupFabricantes(g);
                   const chosen = bulkModal.choices?.[g.key] || fabs[0].fabricante_nome;
-                  const hasWeights = g.templates.some(t => t.peso_kg != null);
+                  const hasWeights = WEIGHT_CATEGORIES.includes(g.categoria) && g.templates.some(t => t.peso_kg != null);
                   return (
                     <div key={g.key} className="border rounded-lg p-3 bg-white">
                       <div className="flex items-center justify-between gap-2 mb-2">
