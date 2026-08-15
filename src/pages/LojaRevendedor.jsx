@@ -36,6 +36,7 @@ export default function LojaRevendedor() {
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
           <TabsTrigger value="loja">Minha Loja</TabsTrigger>
+          <TabsTrigger value="visualizar">Visualizar Loja</TabsTrigger>
           <TabsTrigger value="pedidos">Meus Pedidos</TabsTrigger>
         </TabsList>
 
@@ -48,6 +49,21 @@ export default function LojaRevendedor() {
           <div className="border rounded-xl p-4">
             <AdminStoreForm resellers={[user]} config={config} onSaved={load} lockReseller />
           </div>
+        </TabsContent>
+
+        <TabsContent value="visualizar">
+          {config?.slug ? (
+            <div className="space-y-2">
+              <a href={`/loja/${config.slug}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline">
+                <ExternalLink className="w-4 h-4" /> Abrir em nova aba
+              </a>
+              <div className="rounded-xl overflow-hidden border shadow-sm">
+                <iframe src={`/loja/${config.slug}?preview=1`} title="Preview da loja" className="w-full" style={{ height: "70vh", border: 0 }} />
+              </div>
+            </div>
+          ) : (
+            <p className="text-gray-500 text-sm">Salve sua loja (defina o slug) para visualizar.</p>
+          )}
         </TabsContent>
 
         <TabsContent value="pedidos">

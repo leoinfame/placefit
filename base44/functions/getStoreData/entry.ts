@@ -19,9 +19,10 @@ export default async function(req) {
     const slug = (body.slug || '').trim().toLowerCase();
     if (!slug) return Response.json({ error: 'slug obrigatorio' }, { status: 400 });
 
+    const preview = !!body.preview;
     const configs = await base44.asServiceRole.entities.LojaConfig.filter({ slug });
     const config = configs[0];
-    if (!config || !config.ativo) return Response.json({ error: 'Loja nao encontrada ou inativa' }, { status: 404 });
+    if (!config || (!config.ativo && !preview)) return Response.json({ error: 'Loja nao encontrada ou inativa' }, { status: 404 });
 
     let revendedor = null;
     try { revendedor = await base44.asServiceRole.entities.User.get(config.revendedor_id); } catch (e) {}

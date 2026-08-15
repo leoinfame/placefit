@@ -22,7 +22,8 @@ export default function LojaPublica() {
   const load = async () => {
     setLoading(true); setError("");
     try {
-      const res = await getStoreData({ slug });
+      const preview = new URLSearchParams(window.location.search).get("preview") === "1";
+      const res = await getStoreData({ slug, preview });
       const data = res.data || res;
       setConfig(data.config);
       setProducts(data.products || []);
