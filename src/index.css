@@ -39,11 +39,22 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
-  /* Hide Base44 edit button */
+  /* Hide platform dev-tools / edit widget and any base44 branding overlay */
   [data-testid="devTools.openEditorButton"],
+  [data-testid*="base44" i],
+  [data-testid*="Base44"],
+  [data-base44],
   [class*="base44"],
+  [class*="Base44"],
+  [class*="BASE44"],
   [id*="base44"],
-  button:has(svg[data-icon="pencil"]) {
+  [id*="Base44"],
+  [id*="BASE44"],
+  button:has(svg[data-icon="pencil"]),
+  [aria-label*="base44" i],
+  [aria-label*="Base44"],
+  [title*="base44" i],
+  [title*="Base44"] {
     display: none !important;
   }
 
