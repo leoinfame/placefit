@@ -21,6 +21,8 @@ export default function LojaPublica() {
   const [categoria, setCategoria] = useState("Todos");
   const [sessao, setSessao] = useState(null);
 
+  const isEmbedded = typeof window !== "undefined" && window.self !== window.top;
+
   useEffect(() => { load(); refreshSessao(); }, [slug]);
   useEffect(() => { refreshSessao(); }, [checkoutOpen]);
 
@@ -77,12 +79,30 @@ export default function LojaPublica() {
     });
   }, [products, search, categoria]);
 
+  // Reporta a altura real do conteúdo ao site que embutiu esta loja via iframe,
+  // para que o iframe possa crescer/encolher sem barra de rolagem interna.
+  useEffect(() => {
+    if (!isEmbedded) return;
+    let raf = null;
+    const postHeight = () => {
+      if (raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const h = document.documentElement.scrollHeight;
+        window.parent.postMessage({ type: "placefit-loja-resize", slug, height: h }, "*");
+      });
+    };
+    const ro = new ResizeObserver(postHeight);
+    ro.observe(document.documentElement);
+    postHeight();
+    return () => { ro.disconnect(); if (raf) cancelAnimationFrame(raf); };
+  }, [isEmbedded, loading, filtered.length, slug]);
+
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin" style={{ color: primary }} /></div>;
   if (error) return <div className="min-h-screen flex flex-col items-center justify-center gap-3"><Store className="w-12 h-12 text-gray-300" /><p className="text-gray-500">{error}</p></div>;
   if (!config) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={isEmbedded ? "bg-gray-50" : "min-h-screen bg-gray-50"}>
       <header className="shadow-sm" style={{ backgroundColor: primary }}>
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
           {config.logo_url ? <img src={config.logo_url} className="h-10 w-10 rounded-lg object-cover" alt={config.nome_loja} /> : <Store className="w-8 h-8 text-white" />}
