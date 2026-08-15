@@ -112,7 +112,7 @@ export default function LojaPublica() {
     <div className={isEmbedded ? "bg-gray-50" : "min-h-screen bg-gray-50"}>
       <header className="shadow-sm" style={{ backgroundColor: primary }}>
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
-          {config.logo_url ? <img src={config.logo_url} className="h-10 w-10 rounded-lg object-cover" alt={config.nome_loja} /> : <Store className="w-8 h-8 text-white" />}
+          {!isEmbedded && (config.logo_url ? <img src={config.logo_url} className="h-10 w-10 rounded-lg object-cover" alt={config.nome_loja} /> : <Store className="w-8 h-8 text-white" />)}
           <div className="relative flex-1 hidden sm:block">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar produtos..." className="pl-9 pr-3 py-2 rounded-lg text-sm w-full" />
