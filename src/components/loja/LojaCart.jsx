@@ -35,8 +35,8 @@ export default function LojaCart({ open, onClose, items, onInc, onDec, onRemove,
         </div>
         <div className="border-t p-4 space-y-2 bg-gray-50">
           <div className="flex justify-between text-sm"><span>Subtotal</span><span>R$ {fmt(subtotal)}</span></div>
-          <div className="flex justify-between text-sm"><span>Frete</span><span>{frete === 0 ? 'Grátis' : 'R$ ' + fmt(frete)}</span></div>
-          <div className="flex justify-between font-bold text-lg"><span>Total</span><span>R$ {fmt(total)}</span></div>
+          <div className="flex justify-between text-sm"><span>Frete</span><span>{frete == null ? 'A calcular no checkout' : 'R$ ' + fmt(frete)}</span></div>
+          <div className="flex justify-between font-bold text-lg"><span>Total</span><span>R$ {fmt(frete == null ? subtotal : total)}</span></div>
           <button disabled={items.length === 0} onClick={onCheckout} className="w-full text-white font-semibold py-3 rounded-lg disabled:opacity-50" style={{ backgroundColor: primaryColor }}>Finalizar Compra</button>
         </div>
       </div>

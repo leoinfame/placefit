@@ -8,7 +8,7 @@ export default function LojaProductCard({ group, onAdd, primaryColor }) {
   const sel = group.variacoes[idx] || group.variacoes[0];
 
   const add = () => {
-    onAdd({ id: sel.sp_id, sp_id: sel.sp_id, product_id: sel.product_id, nome: sel.nome, preco: sel.preco, foto: group.foto, und: group.und });
+    onAdd({ id: sel.sp_id, sp_id: sel.sp_id, product_id: sel.product_id, nome: sel.nome, preco: sel.preco, foto: group.foto, und: group.und, peso_kg: sel.peso_kg });
   };
 
   return (

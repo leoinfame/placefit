@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { X, Loader2, CheckCircle2, Lock } from "lucide-react";
 import { createStoreOrder } from "@/functions/createStoreOrder";
+import { computeFreteLoja } from "@/utils/freteLoja";
 
 const Field = ({ label, value, onChange, className = "", textarea }) => (
   <div className={className}>
@@ -18,7 +19,7 @@ const PayBtn = ({ active, onClick, label, primaryColor }) => (
   <button onClick={onClick} className={`px-4 py-2 rounded-lg border text-sm ${active ? "text-white" : "bg-white"}`} style={active ? { backgroundColor: primaryColor, borderColor: primaryColor } : {}}>{label}</button>
 );
 
-export default function LojaCheckout({ open, onClose, config, cart, subtotal, frete, total, primaryColor, sessao, slug, onLogin, onOrdered, onClear }) {
+export default function LojaCheckout({ open, onClose, config, cart, subtotal, primaryColor, sessao, slug, onLogin, onOrdered, onClear }) {
   const [step, setStep] = useState("form");
   const [numero, setNumero] = useState("");
   const c = sessao?.cliente;
@@ -28,6 +29,14 @@ export default function LojaCheckout({ open, onClose, config, cart, subtotal, fr
     observacoes: "",
   });
   const [error, setError] = useState("");
+
+  // Frete pela tabela MuscularFit: estado + peso total do carrinho.
+  const pesoTotal = useMemo(() => cart.reduce((s, it) => s + (Number(it.product?.peso_kg) || 0) * it.quantidade, 0), [cart]);
+  const freteCalc = useMemo(() => {
+    if (!form.estado) return null;
+    return computeFreteLoja(form.estado, pesoTotal, form.cidade);
+  }, [form.estado, form.cidade, pesoTotal]);
+  const totalCalc = subtotal + (freteCalc || 0);
 
   useEffect(() => {
     if (c) setForm((f) => ({
@@ -53,7 +62,7 @@ export default function LojaCheckout({ open, onClose, config, cart, subtotal, fr
         cliente_id: sessao.cliente.id,
         token: sessao.token,
         endereco: { cep: form.cep, logradouro: form.logradouro, numero: form.numero, complemento: form.complemento, bairro: form.bairro, cidade: form.cidade, estado: form.estado },
-        itens, pagamento_metodo: form.pagamento_metodo, frete, observacoes: form.observacoes,
+        itens, pagamento_metodo: form.pagamento_metodo, frete: freteCalc || 0, observacoes: form.observacoes,
       });
       setNumero(res.data?.numero_pedido || "");
       setStep("success");
@@ -123,8 +132,8 @@ export default function LojaCheckout({ open, onClose, config, cart, subtotal, fr
             <Field label="Observações" value={form.observacoes} onChange={(v) => setForm({ ...form, observacoes: v })} textarea />
             <div className="bg-gray-50 rounded-lg p-3 space-y-1 text-sm">
               <div className="flex justify-between"><span>Subtotal</span><span>R$ {fmt(subtotal)}</span></div>
-              <div className="flex justify-between"><span>Frete</span><span>{frete === 0 ? "Grátis" : "R$ " + fmt(frete)}</span></div>
-              <div className="flex justify-between font-bold"><span>Total</span><span>R$ {fmt(total)}</span></div>
+              <div className="flex justify-between"><span>Frete</span><span>{freteCalc == null ? "Informe o estado" : "R$ " + fmt(freteCalc)}</span></div>
+              <div className="flex justify-between font-bold"><span>Total</span><span>R$ {fmt(totalCalc)}</span></div>
             </div>
             {error && <p className="text-red-600 text-sm">{error}</p>}
             <button onClick={submit} className="w-full text-white font-semibold py-3 rounded-lg" style={{ backgroundColor: primaryColor }}>Confirmar Pedido</button>

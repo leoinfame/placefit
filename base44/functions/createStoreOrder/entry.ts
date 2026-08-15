@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.41';
 import { computeStorePrice } from "../../shared/loja.ts";
+import { computeFreteLoja } from "../../shared/freteLoja.ts";
 
 const fetchAll = async (fn, sort = '-created_date', pageSize = 500) => {
   let all = []; let skip = 0;
@@ -48,6 +49,7 @@ export default async function(req) {
 
     const orderItens = [];
     let subtotal = 0;
+    let pesoTotal = 0;
     for (const it of itens) {
       const sp = spById[it.sp_id];
       if (!sp) continue;
@@ -58,6 +60,7 @@ export default async function(req) {
       if (qty <= 0) continue;
       const line = Math.round(price * qty * 100) / 100;
       subtotal += line;
+      pesoTotal += (Number(t.peso_kg) || 0) * qty;
       orderItens.push({
         sp_id: sp.id, product_id: sp.product_id, nome: t.nome, cod: t.cod, und: t.und,
         quantidade: qty, preco_unitario: price, subtotal: line,
@@ -65,7 +68,9 @@ export default async function(req) {
     }
     if (orderItens.length === 0) return Response.json({ error: 'Itens invalidos' }, { status: 400 });
 
-    const freteVal = Number(frete) || 0;
+    // Frete recalculado server-side pela tabela MuscularFit (estado + peso). Sem frete gratis.
+    const freteVal = computeFreteLoja(endereco?.estado, pesoTotal, endereco?.cidade);
+    if (freteVal == null) return Response.json({ error: 'Frete nao disponivel para o estado informado. Contate o revendedor.' }, { status: 400 });
     const total = Math.round((subtotal + freteVal) * 100) / 100;
 
     // Atualizar endereco do cliente a partir do checkout

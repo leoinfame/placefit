@@ -58,12 +58,7 @@ export default function LojaPublica() {
   const remove = (id) => setCart((p) => p.filter((i) => i.sp_id !== id));
 
   const subtotal = useMemo(() => cart.reduce((s, i) => s + i.product.preco * i.quantidade, 0), [cart]);
-  const frete = useMemo(() => {
-    if (!config) return 0;
-    if (config.frete_gratis_valor > 0 && subtotal >= config.frete_gratis_valor) return 0;
-    return config.frete_fixo_valor || 0;
-  }, [cart, config, subtotal]);
-  const total = subtotal + frete;
+  // Frete calculado no checkout pela tabela MuscularFit (estado + peso). Sem frete gratis.
 
   const categorias = useMemo(() => {
     const set = new Set(products.map((p) => p.categoria).filter(Boolean));
@@ -174,8 +169,8 @@ export default function LojaPublica() {
         {config.whatsapp_contato && <p className="flex items-center justify-center gap-1 mt-1"><MessageCircle className="w-3 h-3" /> {config.whatsapp_contato}</p>}
       </footer>
 
-      <LojaCart open={cartOpen} onClose={() => setCartOpen(false)} items={cart} onInc={inc} onDec={dec} onRemove={remove} subtotal={subtotal} frete={frete} total={total} onCheckout={() => { setCartOpen(false); setCheckoutOpen(true); }} primaryColor={primary} />
-      <LojaCheckout open={checkoutOpen} onClose={() => setCheckoutOpen(false)} config={config} cart={cart} subtotal={subtotal} frete={frete} total={total} primaryColor={primary} sessao={sessao} slug={slug} onLogin={() => setCheckoutOpen(false)} onOrdered={refreshSessao} onClear={() => setCart([])} />
+      <LojaCart open={cartOpen} onClose={() => setCartOpen(false)} items={cart} onInc={inc} onDec={dec} onRemove={remove} subtotal={subtotal} frete={null} total={subtotal} onCheckout={() => { setCartOpen(false); setCheckoutOpen(true); }} primaryColor={primary} />
+      <LojaCheckout open={checkoutOpen} onClose={() => setCheckoutOpen(false)} config={config} cart={cart} subtotal={subtotal} primaryColor={primary} sessao={sessao} slug={slug} onLogin={() => setCheckoutOpen(false)} onOrdered={refreshSessao} onClear={() => setCart([])} />
     </div>
   );
 }
