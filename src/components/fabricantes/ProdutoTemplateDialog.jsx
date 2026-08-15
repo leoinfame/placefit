@@ -126,7 +126,8 @@ export default function ProdutoTemplateDialog({ open, fabricante, onClose, onSav
     return sortCategories([...map.keys()]).map(cat => ({ categoria: cat, groups: map.get(cat) }));
   }, [groups]);
 
-  const hasWeights = (g) => g.templates.some(t => t.peso_kg != null);
+  const WEIGHT_CATEGORIES = ["Anilhas", "Halteres", "Dumbells", "Kettlebells"];
+  const hasWeights = (g) => WEIGHT_CATEGORIES.includes(g.categoria) && g.templates.some(t => t.peso_kg != null);
   const isGroupLinked = (g) => g.templates.some(t => linkedProductIds.has(t.id));
 
   const handleSelectGroup = (g) => {
