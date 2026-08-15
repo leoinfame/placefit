@@ -51,6 +51,15 @@ import { generateProfessionalPDF } from "@/components/ProfessionalPDF";
 import { expandTemplates } from "@/utils/expandTemplates";
 import { sugerirFrete } from "@/utils/frete";
 
+// Preco de venda do revendedor: promocional (sale_price) tem prioridade,
+// caso contrario aplica a margem (%) sobre o preco de fabrica.
+const precoVendaRevendedor = (product) => {
+  const base = parseFloat(product.preco_fornecedor) || 0;
+  const margem = parseFloat(product.margem) || 0;
+  const sale = parseFloat(product.sale_price) || 0;
+  return sale > 0 ? sale : Math.round(base * (1 + margem / 100) * 100) / 100;
+};
+
 export default function Orcamentos() {
   const [user, setUser] = useState(null);
   const [clientes, setClientes] = useState([]);
@@ -139,6 +148,8 @@ export default function Orcamentos() {
               return {
                 ...template,
                 preco_fornecedor: mySp.preco || 0,
+                margem: mySp.margem || 0,
+                sale_price: mySp.sale_price || 0,
                 fabricante_nome: mySp.fabricante_nome || '',
                 supplier_product_id: mySp.id
               };
@@ -208,7 +219,7 @@ export default function Orcamentos() {
 
   const handleProductSelect = (index, product) => {
     const isFabricante = user.tipo_usuario === 'fabricante';
-    const preco = isFabricante ? parseFloat(product.preco_fabricante) : parseFloat(product.preco_fornecedor);
+    const preco = isFabricante ? parseFloat(product.preco_fabricante) : precoVendaRevendedor(product);
 
     setNewOrcamento(prev => {
       const updatedItens = [...prev.itens];
@@ -386,7 +397,13 @@ export default function Orcamentos() {
           };
         }
         
-        const itemParaFabricante = { ...item };
+        // O pedido de compra ao fabricante usa o preco de fabrica (custo), nao o preco de venda com margem.
+        const custoUnit = parseFloat(produto.preco_fornecedor) || item.preco_unitario;
+        const itemParaFabricante = {
+          ...item,
+          preco_unitario: custoUnit,
+          subtotal: custoUnit * (item.quantidade || 1),
+        };
         produtosPorFabricante[fabricanteNome].itens.push(itemParaFabricante);
       }
 
@@ -915,7 +932,7 @@ export default function Orcamentos() {
                         selectedProductData={item.product_id ? item : null}
                         onSelect={(product) => {
                           const isFabricante = user.tipo_usuario === 'fabricante';
-                          const preco = isFabricante ? parseFloat(product.preco_fabricante) : parseFloat(product.preco_fornecedor);
+                          const preco = isFabricante ? parseFloat(product.preco_fabricante) : precoVendaRevendedor(product);
                           setEditingOrcamento(prev => {
                             const updatedItens = [...prev.itens];
                             const existing = updatedItens[idx];
