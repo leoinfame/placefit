@@ -3,6 +3,7 @@ import { X, Plus, Minus, Trash2, ShoppingCart } from "lucide-react";
 
 export default function LojaCart({ open, onClose, items, onInc, onDec, onRemove, subtotal, frete, total, onCheckout, primaryColor, embedTop, embedHeight }) {
   const fmt = (v) => Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+  const pesoTotal = items.reduce((s, it) => s + (Number(it.product?.peso_kg) || 0) * it.quantidade, 0);
   const embedded = embedTop != null && embedHeight != null;
   const overlayStyle = embedded ? { position: "absolute", top: embedTop, left: 0, right: 0, height: embedHeight } : undefined;
   const panelStyle = embedded ? { position: "absolute", top: embedTop, height: embedHeight } : undefined;
@@ -38,6 +39,7 @@ export default function LojaCart({ open, onClose, items, onInc, onDec, onRemove,
         </div>
         <div className="border-t p-4 space-y-2 bg-gray-50">
           <div className="flex justify-between text-sm"><span>Subtotal</span><span>R$ {fmt(subtotal)}</span></div>
+          <div className="flex justify-between text-sm"><span>Peso total</span><span>{pesoTotal.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} kg</span></div>
           <div className="flex justify-between text-sm"><span>Frete</span><span>{frete == null ? 'A calcular no checkout' : 'R$ ' + fmt(frete)}</span></div>
           <div className="flex justify-between font-bold text-lg"><span>Total</span><span>R$ {fmt(frete == null ? subtotal : total)}</span></div>
           <button disabled={items.length === 0} onClick={onCheckout} className="w-full text-white font-semibold py-3 rounded-lg disabled:opacity-50" style={{ backgroundColor: primaryColor }}>Finalizar Compra</button>
