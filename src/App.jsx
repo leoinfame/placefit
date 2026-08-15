@@ -10,6 +10,8 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import PublicTableFabricante from './pages/PublicTableFabricante';
 import Marketplace from './pages/Marketplace';
 import FabricanteCatalogoPublic from './pages/FabricanteCatalogoPublic';
+import LojaPublica from './pages/LojaPublica';
+import LojaEcommerce from './pages/LojaEcommerce';
 import AdminTools from './pages/AdminTools';
 import CatalogoWhatsApp from './pages/CatalogoWhatsApp';
 import AdminServicos from './pages/AdminServicos';
@@ -31,7 +33,7 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   <Layout currentPageName={currentPageName}>{children}</Layout>
   : <>{children}</>;
 
-const PUBLIC_PATHS = ['/', '/Marketplace', '/PublicTableFabricante', '/PublicRegister', '/PublicRegisterFabricante', '/PublicRegisterTransportador', '/FabricanteCatalogoPublic'];
+const PUBLIC_PATHS = ['/', '/Marketplace', '/PublicTableFabricante', '/PublicRegister', '/PublicRegisterFabricante', '/PublicRegisterTransportador', '/FabricanteCatalogoPublic', '/loja'];
 
 const isPublicPath = () => {
   const path = window.location.pathname;
@@ -49,6 +51,7 @@ const AuthenticatedApp = () => {
         <Route path="/Marketplace" element={<Marketplace />} />
         <Route path="/PublicTableFabricante" element={<PublicTableFabricante />} />
         <Route path="/FabricanteCatalogoPublic/:id" element={<FabricanteCatalogoPublic />} />
+        <Route path="/loja/:slug" element={<LojaPublica />} />
         <Route path="*" element={<Marketplace />} />
       </Routes>
     );
@@ -107,6 +110,7 @@ const AuthenticatedApp = () => {
       <Route path="/CatalogoFabricante" element={<LayoutWrapper currentPageName="CatalogoFabricante"><CatalogoFabricante /></LayoutWrapper>} />
       <Route path="/Atributos" element={<LayoutWrapper currentPageName="Atributos"><Atributos /></LayoutWrapper>} />
       <Route path="/Produtos" element={<LayoutWrapper currentPageName="Produtos"><Produtos /></LayoutWrapper>} />
+      <Route path="/LojaEcommerce" element={<LayoutWrapper currentPageName="LojaEcommerce"><LojaEcommerce /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

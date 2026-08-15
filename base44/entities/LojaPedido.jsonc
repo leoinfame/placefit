@@ -1,0 +1,144 @@
+{
+  "name": "LojaPedido",
+  "type": "object",
+  "description": "Pedido originado na vitrine publica de um revendedor (e-commerce). Cai automaticamente no PlaceFit para o revendedor/admin processar.",
+  "properties": {
+    "revendedor_id": {
+      "type": "string",
+      "description": "ID do revendedor dono da loja"
+    },
+    "numero_pedido": {
+      "type": "string",
+      "description": "Numero do pedido (ex: LOJA-12345678)"
+    },
+    "cliente_id": {
+      "type": "string",
+      "description": "ID do LojaCliente"
+    },
+    "cliente_nome": {
+      "type": "string"
+    },
+    "cliente_email": {
+      "type": "string"
+    },
+    "cliente_telefone": {
+      "type": "string"
+    },
+    "cliente_cpf": {
+      "type": "string"
+    },
+    "itens": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "sp_id": {
+            "type": "string"
+          },
+          "product_id": {
+            "type": "string"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "cod": {
+            "type": "string"
+          },
+          "und": {
+            "type": "string"
+          },
+          "quantidade": {
+            "type": "number"
+          },
+          "preco_unitario": {
+            "type": "number"
+          },
+          "subtotal": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Itens do pedido"
+    },
+    "subtotal": {
+      "type": "number"
+    },
+    "frete": {
+      "type": "number",
+      "default": 0
+    },
+    "total": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pendente",
+        "confirmado",
+        "pago",
+        "enviado",
+        "entregue",
+        "cancelado"
+      ],
+      "default": "pendente"
+    },
+    "pagamento_metodo": {
+      "type": "string",
+      "enum": [
+        "pix",
+        "cartao",
+        "boleto",
+        "dinheiro"
+      ]
+    },
+    "pagamento_status": {
+      "type": "string",
+      "enum": [
+        "pendente",
+        "pago",
+        "estornado"
+      ],
+      "default": "pendente"
+    },
+    "endereco_entrega": {
+      "type": "object",
+      "properties": {
+        "cep": {
+          "type": "string"
+        },
+        "logradouro": {
+          "type": "string"
+        },
+        "numero": {
+          "type": "string"
+        },
+        "complemento": {
+          "type": "string"
+        },
+        "bairro": {
+          "type": "string"
+        },
+        "cidade": {
+          "type": "string"
+        },
+        "estado": {
+          "type": "string"
+        }
+      }
+    },
+    "observacoes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "revendedor_id",
+    "itens",
+    "total"
+  ],
+  "x-security": {
+    "read": "admin",
+    "create": "public",
+    "update": "admin",
+    "delete": "admin"
+  }
+}

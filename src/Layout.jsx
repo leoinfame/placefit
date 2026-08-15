@@ -333,6 +333,11 @@ export default function Layout({ children, currentPageName }) {
           icon: Store,
         },
         {
+          title: "E-commerce Lojas",
+          url: createPageUrl("LojaEcommerce"),
+          icon: ShoppingCart,
+        },
+        {
           title: "Convites",
           url: createPageUrl("Convite"),
           icon: Users,

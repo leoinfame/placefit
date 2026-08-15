@@ -1,0 +1,61 @@
+{
+  "name": "LojaCliente",
+  "type": "object",
+  "description": "Cliente final cadastrado na loja online de um revendedor. Criado durante o checkout da vitrine publica.",
+  "properties": {
+    "revendedor_id": {
+      "type": "string",
+      "description": "ID do revendedor dono da loja"
+    },
+    "nome": {
+      "type": "string",
+      "description": "Nome do cliente"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email do cliente"
+    },
+    "cpf": {
+      "type": "string",
+      "description": "CPF do cliente"
+    },
+    "telefone": {
+      "type": "string",
+      "description": "Telefone/WhatsApp do cliente"
+    },
+    "cep": {
+      "type": "string"
+    },
+    "endereco": {
+      "type": "string",
+      "description": "Logradouro"
+    },
+    "numero": {
+      "type": "string"
+    },
+    "complemento": {
+      "type": "string"
+    },
+    "bairro": {
+      "type": "string"
+    },
+    "cidade": {
+      "type": "string"
+    },
+    "estado": {
+      "type": "string",
+      "description": "UF"
+    }
+  },
+  "required": [
+    "revendedor_id",
+    "nome",
+    "email"
+  ],
+  "x-security": {
+    "read": "admin",
+    "create": "public",
+    "update": "admin",
+    "delete": "admin"
+  }
+}

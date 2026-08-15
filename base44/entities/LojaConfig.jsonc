@@ -1,0 +1,88 @@
+{
+  "name": "LojaConfig",
+  "type": "object",
+  "description": "Configuracao da loja online de um revendedor (e-commerce embed). A loja publica e servida via /loja/:slug e pode ser embutida no site do revendedor via iframe (plugin).",
+  "properties": {
+    "revendedor_id": {
+      "type": "string",
+      "description": "ID do User revendedor dono da loja"
+    },
+    "slug": {
+      "type": "string",
+      "description": "Identificador unico na URL publica (ex: fitness-suply)"
+    },
+    "nome_loja": {
+      "type": "string",
+      "description": "Nome da loja exibido ao cliente final"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "URL da logomarca"
+    },
+    "banner_url": {
+      "type": "string",
+      "description": "URL do banner do topo"
+    },
+    "cor_primaria": {
+      "type": "string",
+      "description": "Cor primaria (hex) do tema da loja",
+      "default": "#1e40af"
+    },
+    "cor_secundaria": {
+      "type": "string",
+      "description": "Cor secundaria (hex)",
+      "default": "#059669"
+    },
+    "descricao": {
+      "type": "string",
+      "description": "Descricao/sobre a loja"
+    },
+    "frete_fixo_valor": {
+      "type": "number",
+      "description": "Valor fixo de frete em R$. 0 = frete gratis.",
+      "default": 0
+    },
+    "frete_gratis_valor": {
+      "type": "number",
+      "description": "Subtotal minimo para frete gratis em R$. 0 = nao aplica.",
+      "default": 0
+    },
+    "aceita_pix": {
+      "type": "boolean",
+      "default": true
+    },
+    "aceita_cartao": {
+      "type": "boolean",
+      "default": false
+    },
+    "aceita_boleto": {
+      "type": "boolean",
+      "default": false
+    },
+    "aceita_dinheiro": {
+      "type": "boolean",
+      "default": false,
+      "description": "Pagamento na entrega"
+    },
+    "whatsapp_contato": {
+      "type": "string",
+      "description": "WhatsApp de contato exibido na loja"
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se a loja esta publicada e acessivel publicamente"
+    }
+  },
+  "required": [
+    "revendedor_id",
+    "slug",
+    "nome_loja"
+  ],
+  "x-security": {
+    "read": "public",
+    "create": "admin",
+    "update": "admin",
+    "delete": "admin"
+  }
+}
