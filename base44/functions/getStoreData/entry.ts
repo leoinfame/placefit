@@ -41,26 +41,35 @@ export default async function(req) {
     const tplById = {};
     for (const t of templates) tplById[t.id] = t;
 
-    const products = available.map(sp => {
+    const baseName = (nome) => (nome || '').replace(/\s+\d+([.,]\d+)?\s*kg$/i, '').trim();
+    const groupKey = (t) => [baseName(t.nome), t.categoria, t.subcategoria, t.tipo_anilha, t.tipo_furo, t.acabamento, t.pegada, t.barra_acabamento, t.bojo_formato, t.dumbell_tipo, t.piso_formato, t.tijolinho_tipo].map(v => v ?? '').join('|');
+
+    const items = available.map(sp => {
       const t = tplById[sp.product_id];
       if (!t || t.ativo === false) return null;
       const price = computeStorePrice(sp);
       if (!price || price <= 0) return null;
-      return {
-        id: sp.id,
-        product_id: sp.product_id,
-        nome: t.nome,
-        cod: t.cod,
-        categoria: t.categoria,
-        subcategoria: t.subcategoria,
-        foto: t.foto,
-        und: t.und,
-        peso_kg: t.peso_kg,
-        descricao: t.descricao_padrao,
-        preco: price,
-        cod_origem: sp.cod_origem,
-      };
+      return { sp_id: sp.id, product_id: sp.product_id, t, price, cod_origem: sp.cod_origem };
     }).filter(Boolean);
+
+    const gmap = new Map();
+    for (const it of items) {
+      const key = groupKey(it.t);
+      if (!gmap.has(key)) gmap.set(key, { id: key, nome: baseName(it.t.nome), categoria: it.t.categoria, subcategoria: it.t.subcategoria, foto: it.t.foto, und: it.t.und, descricao: it.t.descricao_padrao, variacoes: [] });
+      gmap.get(key).variacoes.push({ sp_id: it.sp_id, product_id: it.product_id, peso_kg: it.t.peso_kg, preco: it.price, nome: it.t.nome, cod: it.t.cod, cod_origem: it.cod_origem });
+    }
+    const products = [...gmap.values()].map(g => {
+      g.variacoes.sort((a, b) => (a.peso_kg || 0) - (b.peso_kg || 0));
+      const withWeight = g.variacoes.filter(v => v.peso_kg > 0);
+      if (withWeight.length > 0) {
+        g.tem_pesos = true;
+        g.preco_por_kg = Math.min(...withWeight.map(v => v.preco / v.peso_kg));
+      } else {
+        g.tem_pesos = false;
+        g.preco = g.variacoes[0].preco;
+      }
+      return g;
+    });
 
     return Response.json({
       config: {

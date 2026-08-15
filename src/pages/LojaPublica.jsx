@@ -99,7 +99,7 @@ export default function LojaPublica() {
           <p className="text-gray-400 text-center py-20">Nenhum produto encontrado.</p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {filtered.map((p) => <LojaProductCard key={p.id} product={p} onAdd={addToCart} primaryColor={primary} />)}
+            {filtered.map((p) => <LojaProductCard key={p.id} group={p} onAdd={addToCart} primaryColor={primary} />)}
           </div>
         )}
       </main>
