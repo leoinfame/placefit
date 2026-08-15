@@ -80,7 +80,9 @@ export default function LojaPublica() {
     if (!isEmbedded) return;
     // Oculta a barra de rolagem vertical dentro do iframe: o pai rola a página.
     document.documentElement.style.overflow = "hidden";
+    document.documentElement.style.margin = "0";
     document.body.style.overflow = "hidden";
+    document.body.style.margin = "0";
     let raf = null;
     const postHeight = () => {
       if (raf) cancelAnimationFrame(raf);
@@ -96,7 +98,9 @@ export default function LojaPublica() {
       ro.disconnect();
       if (raf) cancelAnimationFrame(raf);
       document.documentElement.style.overflow = "";
+      document.documentElement.style.margin = "";
       document.body.style.overflow = "";
+      document.body.style.margin = "";
     };
   }, [isEmbedded, loading, filtered.length, slug]);
 
@@ -109,13 +113,9 @@ export default function LojaPublica() {
       <header className="shadow-sm" style={{ backgroundColor: primary }}>
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
           {config.logo_url ? <img src={config.logo_url} className="h-10 w-10 rounded-lg object-cover" alt={config.nome_loja} /> : <Store className="w-8 h-8 text-white" />}
-          <div className="flex-1 min-w-0">
-            <h1 className="text-white font-bold text-lg leading-tight truncate">{config.nome_loja}</h1>
-            {config.descricao && <p className="text-white/80 text-xs truncate">{config.descricao}</p>}
-          </div>
-          <div className="relative hidden sm:block">
+          <div className="relative flex-1 hidden sm:block">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar produtos..." className="pl-9 pr-3 py-2 rounded-lg text-sm w-56" />
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar produtos..." className="pl-9 pr-3 py-2 rounded-lg text-sm w-full" />
           </div>
           {sessao ? (
             <div className="flex items-center gap-2">
