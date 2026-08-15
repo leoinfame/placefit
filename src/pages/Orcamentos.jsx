@@ -139,34 +139,19 @@ export default function Orcamentos() {
           })
           .filter(Boolean);
       } else {
-        // Revendedor: TODOS os templates do catálogo + preços de fabricantes
+        // Revendedor: SOMENTE produtos marcados como "Meus Produtos"
         productsData = allTemplates
           .map(template => {
             const mySp = spByProductId.get(template.id);
-            if (mySp) {
-              // Revendedor já tem o produto na sua tabela — usa seu preço
-              return {
-                ...template,
-                preco_fornecedor: mySp.preco || 0,
-                margem: mySp.margem || 0,
-                sale_price: mySp.sale_price || 0,
-                fabricante_nome: mySp.fabricante_nome || '',
-                supplier_product_id: mySp.id
-              };
-            }
-            // Revendedor não tem o produto — usa o menor preço de fabricante disponível
-            const fabricantePrices = pricesByProduct[template.id];
-            if (fabricantePrices && fabricantePrices.length > 0) {
-              const bestPrice = fabricantePrices.reduce((min, p) => p.preco < min.preco ? p : min, fabricantePrices[0]);
-              return {
-                ...template,
-                preco_fornecedor: bestPrice.preco,
-                fabricante_nome: bestPrice.fabricante_nome || '',
-                supplier_product_id: null
-              };
-            }
-            // Sem preço de fabricante — não mostra o produto
-            return null;
+            if (!mySp) return null; // não está nos Meus Produtos: não aparece no orçamento
+            return {
+              ...template,
+              preco_fornecedor: mySp.preco || 0,
+              margem: mySp.margem || 0,
+              sale_price: mySp.sale_price || 0,
+              fabricante_nome: mySp.fabricante_nome || '',
+              supplier_product_id: mySp.id
+            };
           })
           .filter(Boolean);
       }
