@@ -46,7 +46,7 @@ export default function LojaRevendedor() {
             </a>
           )}
           <div className="border rounded-xl p-4">
-            <AdminStoreForm resellers={[user]} config={config} onSaved={load} />
+            <AdminStoreForm resellers={[user]} config={config} onSaved={load} lockReseller />
           </div>
         </TabsContent>
 

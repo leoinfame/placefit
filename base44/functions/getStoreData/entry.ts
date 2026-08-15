@@ -23,6 +23,9 @@ export default async function(req) {
     const config = configs[0];
     if (!config || !config.ativo) return Response.json({ error: 'Loja nao encontrada ou inativa' }, { status: 404 });
 
+    let revendedor = null;
+    try { revendedor = await base44.asServiceRole.entities.User.get(config.revendedor_id); } catch (e) {}
+
     const sps = await fetchAll((sort, limit, skip) =>
       base44.asServiceRole.entities.SupplierProduct.filter({ supplier_id: config.revendedor_id }, sort, limit, skip)
     );
@@ -61,7 +64,7 @@ export default async function(req) {
     return Response.json({
       config: {
         nome_loja: config.nome_loja,
-        logo_url: config.logo_url,
+        logo_url: revendedor?.logomarca || config.logo_url || '',
         banner_url: config.banner_url,
         cor_primaria: config.cor_primaria || '#1e40af',
         cor_secundaria: config.cor_secundaria || '#059669',
@@ -72,7 +75,7 @@ export default async function(req) {
         aceita_cartao: !!config.aceita_cartao,
         aceita_boleto: !!config.aceita_boleto,
         aceita_dinheiro: !!config.aceita_dinheiro,
-        whatsapp_contato: config.whatsapp_contato,
+        whatsapp_contato: revendedor?.whatsapp || config.whatsapp_contato || '',
         slug: config.slug,
       },
       products,
