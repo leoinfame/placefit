@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
+import { computeLucroPedido } from "@/utils/lucro";
 
 export default function Vendas() {
   const [user, setUser] = useState(null);
@@ -143,20 +144,7 @@ export default function Vendas() {
         for (const p of myProductsList) produtoMap[p.id] = p;
 
         pedidosData = pedidosData.map(pedido => {
-          let lucroTotal = 0;
-          (pedido.itens || []).forEach(item => {
-            const produto = produtoMap[item.product_id];
-            if (!produto) return; // item legado / produto nao encontrado: nao estima lucro
-            const precoVenda = parseFloat(item.preco_unitario) || 0;
-            const qtd = parseFloat(item.quantidade) || 0;
-            const acordo = comissaoMap[produto.fabricante_nome];
-            if (acordo && acordo.paga_comissao) {
-              lucroTotal += ((parseFloat(acordo.percentual_comissao) || 0) / 100) * (precoVenda * qtd);
-            } else {
-              const custo = parseFloat(produto.custo_fabricante) || 0;
-              lucroTotal += (precoVenda - custo) * qtd;
-            }
-          });
+          const { lucroTotal } = computeLucroPedido(pedido.itens, produtoMap, comissaoMap);
           return { ...pedido, lucro_total: lucroTotal };
         });
       }

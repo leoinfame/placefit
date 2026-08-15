@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/components/ui/use-toast";
+import { computeLucroPedido } from "@/utils/lucro";
 
 export default function Financeiro() {
   const [user, setUser] = useState(null);
@@ -44,26 +45,59 @@ export default function Financeiro() {
         p => p.fornecedor_id === currentUser.id && p.tipo === 'venda'
       );
 
-      // Calcular lucro para cada venda
-      const vendasComLucro = vendasData.map(venda => {
-        let lucroTotal = 0;
-        let custoTotal = 0;
-        
-        venda.itens.forEach(item => {
-          const produto = productsData.find(p => p.id === item.product_id);
-          if (produto && produto.preco_fabricante) {
-            const precoFabricante = parseFloat(produto.preco_fabricante);
-            const precoVenda = parseFloat(item.preco_unitario);
-            const custoItem = precoFabricante * item.quantidade;
-            const lucroItem = (precoVenda - precoFabricante) * item.quantidade;
-            
-            custoTotal += custoItem;
-            lucroTotal += lucroItem;
-          }
+      const isRevendedor = currentUser.role !== 'admin' && !currentUser.tipo_usuario;
+
+      let vendasComLucro;
+      if (isRevendedor) {
+        // Resolver produtos via SupplierProduct -> ProductTemplate (igual à tela Vendas)
+        // e aplicar o acordo de comissão por fabricante quando paga_comissao=true.
+        const supplierProductsData = await base44.entities.SupplierProduct.filter({
+          supplier_id: currentUser.id, disponivel: true
         });
-        
-        return { ...venda, lucro_total: lucroTotal, custo_total: custoTotal };
-      });
+        const tplIds = [...new Set(supplierProductsData.map(sp => sp.product_id).filter(Boolean))];
+        const tplMap = {};
+        for (let i = 0; i < tplIds.length; i += 100) {
+          const chunk = tplIds.slice(i, i + 100);
+          const tpls = await base44.entities.ProductTemplate.filter({ id: { $in: chunk } });
+          for (const t of tpls) tplMap[t.id] = t;
+        }
+        const produtoMap = {};
+        for (const sp of supplierProductsData) {
+          produtoMap[sp.product_id] = {
+            fabricante_nome: sp.fabricante_nome || '',
+            custo_fabricante: sp.preco || 0,
+          };
+        }
+        let acordos = [];
+        try {
+          acordos = await base44.entities.AcordoComissao.filter({ revendedor_id: currentUser.id });
+        } catch (e) { console.warn('Nao foi possivel carregar acordos de comissao:', e); }
+        const comissaoMap = {};
+        for (const a of (acordos || [])) comissaoMap[a.fabricante_nome] = a;
+
+        vendasComLucro = vendasData.map(venda => {
+          const { lucroTotal, custoTotal } = computeLucroPedido(venda.itens, produtoMap, comissaoMap);
+          return { ...venda, lucro_total: lucroTotal, custo_total: custoTotal };
+        });
+      } else {
+        // Admin/fabricante: markup simples sobre preco_fabricante
+        vendasComLucro = vendasData.map(venda => {
+          let lucroTotal = 0;
+          let custoTotal = 0;
+          venda.itens.forEach(item => {
+            const produto = productsData.find(p => p.id === item.product_id);
+            if (produto && produto.preco_fabricante) {
+              const precoFabricante = parseFloat(produto.preco_fabricante);
+              const precoVenda = parseFloat(item.preco_unitario);
+              const custoItem = precoFabricante * item.quantidade;
+              const lucroItem = (precoVenda - precoFabricante) * item.quantidade;
+              custoTotal += custoItem;
+              lucroTotal += lucroItem;
+            }
+          });
+          return { ...venda, lucro_total: lucroTotal, custo_total: custoTotal };
+        });
+      }
 
       setVendas(vendasComLucro);
       setProdutos(productsData);
