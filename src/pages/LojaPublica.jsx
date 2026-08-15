@@ -83,6 +83,9 @@ export default function LojaPublica() {
   // para que o iframe possa crescer/encolher sem barra de rolagem interna.
   useEffect(() => {
     if (!isEmbedded) return;
+    // Oculta a barra de rolagem vertical dentro do iframe: o pai rola a página.
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
     let raf = null;
     const postHeight = () => {
       if (raf) cancelAnimationFrame(raf);
@@ -94,7 +97,12 @@ export default function LojaPublica() {
     const ro = new ResizeObserver(postHeight);
     ro.observe(document.documentElement);
     postHeight();
-    return () => { ro.disconnect(); if (raf) cancelAnimationFrame(raf); };
+    return () => {
+      ro.disconnect();
+      if (raf) cancelAnimationFrame(raf);
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    };
   }, [isEmbedded, loading, filtered.length, slug]);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin" style={{ color: primary }} /></div>;
