@@ -19,7 +19,7 @@ const PayBtn = ({ active, onClick, label, primaryColor }) => (
   <button onClick={onClick} className={`px-4 py-2 rounded-lg border text-sm ${active ? "text-white" : "bg-white"}`} style={active ? { backgroundColor: primaryColor, borderColor: primaryColor } : {}}>{label}</button>
 );
 
-export default function LojaCheckout({ open, onClose, config, cart, subtotal, primaryColor, sessao, slug, onLogin, onOrdered, onClear }) {
+export default function LojaCheckout({ open, onClose, config, cart, subtotal, primaryColor, sessao, slug, onLogin, onOrdered, onClear, embedTop, embedHeight }) {
   const [step, setStep] = useState("form");
   const [numero, setNumero] = useState("");
   const c = sessao?.cliente;
@@ -76,8 +76,11 @@ export default function LojaCheckout({ open, onClose, config, cart, subtotal, pr
 
   const close = () => { if (step !== "loading") { setStep("form"); onClose(); } };
 
+  const embedded = embedTop != null && embedHeight != null;
+  const backdropStyle = embedded ? { position: "absolute", top: embedTop, left: 0, right: 0, height: embedHeight } : undefined;
+
   return (
-    <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+    <div className={embedded ? "bg-black/50 z-[60] flex items-center justify-center p-4" : "fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4"} style={backdropStyle}>
       <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-auto">
         <div className="flex items-center justify-between p-4 border-b sticky top-0 bg-white z-10">
           <h3 className="font-bold text-lg">{step === "success" ? "Pedido Confirmado!" : "Finalizar Compra"}</h3>
