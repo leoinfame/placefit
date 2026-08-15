@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Users, Search, Mail, Phone, Building, Eye, Package, CheckCircle, Copy, Share2, Plus, Edit3, Trash2, Upload, Download, FileSpreadsheet, Globe, Printer, FileDown, UserPlus, Unlink } from "lucide-react";
 import VincularUsuarioDialog from "@/components/fabricantes/VincularUsuarioDialog";
 import AcordoComercialCard from "@/components/fabricantes/AcordoComercialCard";
+import ProdutoTemplateDialog from "@/components/fabricantes/ProdutoTemplateDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +45,7 @@ export default function Fabricantes() {
   const [selectedFabricante, setSelectedFabricante] = useState(null);
   const [showDialog, setShowDialog] = useState(false);
   const [showProductDialog, setShowProductDialog] = useState(false);
+  const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   const [fabricanteProducts, setFabricanteProducts] = useState([]);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -590,13 +592,16 @@ export default function Fabricantes() {
   const openProductDialog = (fabricante, product = null) => {
     setSelectedFabricante(fabricante);
     if (product) {
+      // Edição de produto legado (Product) — mantém o formulário antigo
       setEditingProduct(product);
       setProductFormData(product);
+      setShowDialog(false);
+      setShowProductDialog(true);
     } else {
-      resetProductForm();
+      // Novo produto — fluxo guiado por template
+      setShowDialog(false);
+      setShowTemplateDialog(true);
     }
-    setShowDialog(false);
-    setShowProductDialog(true);
   };
 
   const handleProductSubmit = async (e) => {
@@ -2322,6 +2327,18 @@ export default function Fabricantes() {
             unlinkedUsers={unlinkedUsers}
             onVincular={handleVincularUsuario}
             onClose={() => { setShowVincularDialog(false); setVincularFabricante(null); }}
+          />
+        )}
+
+        {/* Dialog de Novo Produto (guiado por template) */}
+        {showTemplateDialog && selectedFabricante && (
+          <ProdutoTemplateDialog
+            fabricante={selectedFabricante}
+            onClose={() => setShowTemplateDialog(false)}
+            onSaved={() => {
+              setShowTemplateDialog(false);
+              viewFabricanteDetails(selectedFabricante);
+            }}
           />
         )}
 
