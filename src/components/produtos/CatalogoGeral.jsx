@@ -170,8 +170,9 @@ export default function CatalogoGeral({ user }) {
   }, [groups]);
 
   // Compute fabricante prices for a group (preço/kg for weight products, unit price otherwise)
+  const WEIGHT_CATEGORIES = ["Anilhas", "Halteres", "Dumbells", "Kettlebells"];
   const getGroupFabricantes = (group) => {
-    const hasWeights = group.templates.some(t => t.peso_kg != null);
+    const hasWeights = WEIGHT_CATEGORIES.includes(group.categoria) && group.templates.some(t => t.peso_kg != null);
     const fabData = {};
 
     for (const tmpl of group.templates) {
@@ -236,7 +237,7 @@ export default function CatalogoGeral({ user }) {
   // Returns ALL variations in the group — for variations without an explicit
   // fabricante price, the price is interpolated from the average preço/kg.
   const getGroupFabricanteVariations = (group, fabricanteNome) => {
-    const hasWeights = group.templates.some(t => t.peso_kg != null);
+    const hasWeights = WEIGHT_CATEGORIES.includes(group.categoria) && group.templates.some(t => t.peso_kg != null);
 
     // First pass: collect explicit prices and compute avg preço/kg
     let precoKgSum = 0;

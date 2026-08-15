@@ -118,7 +118,8 @@ export default function MeusProdutos({ user }) {
     setLoading(false);
   };
 
-  const hasWeights = (g) => g.variations.some(v => v.tmpl.peso_kg != null);
+  const WEIGHT_CATEGORIES = ["Anilhas", "Halteres", "Dumbells", "Kettlebells"];
+  const hasWeights = (g) => WEIGHT_CATEGORIES.includes(g.categoria) && g.variations.some(v => v.tmpl.peso_kg != null);
 
   // Compute preço/kg for the group (using smallest weight variation with price)
   const getGroupPrecoKg = (g) => {
