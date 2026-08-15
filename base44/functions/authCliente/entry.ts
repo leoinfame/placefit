@@ -37,8 +37,31 @@ export default async function (req) {
       if (!nome) return Response.json({ error: 'nome obrigatorio no cadastro' }, { status: 400 });
       const hash = await hashPassword(senha);
       const token = genToken();
+
+      // Espelhar o cliente da loja no cadastro de "Meus Clientes" do revendedor (entidade Cliente).
+      // Reaproveita registro existente com mesmo e-mail ou cria um novo, e guarda o vinculo.
+      let clienteInternoId = null;
+      try {
+        const internos = await fetchAll((sort, limit, skip) =>
+          base44.asServiceRole.entities.Cliente.filter({ fornecedor_id: revendedor_id, email: emailNorm }, sort, limit, skip)
+        );
+        if (internos[0]) {
+          clienteInternoId = internos[0].id;
+        } else {
+          const criadoInterno = await base44.asServiceRole.entities.Cliente.create({
+            fornecedor_id: revendedor_id,
+            nome, cpf_cnpj: cpf || '', email: emailNorm, telefone: telefone || '',
+            ativo: true,
+          });
+          clienteInternoId = criadoInterno?.id || null;
+        }
+      } catch (e) {
+        console.error('Erro ao espelhar cliente em Meus Clientes:', e);
+      }
+
       const criado = await base44.asServiceRole.entities.LojaCliente.create({
         revendedor_id, nome, email: emailNorm, cpf, telefone, senha: hash, token,
+        cliente_interno_id: clienteInternoId,
       });
       return Response.json({ cliente: publicCliente(criado), token });
     }

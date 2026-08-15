@@ -1,7 +1,7 @@
 {
   "name": "LojaCliente",
   "type": "object",
-  "description": "Cliente final cadastrado na loja online de um revendedor (e-commerce). Criado durante o cadastro/login da vitrine publica.",
+  "description": "Cliente final cadastrado na loja online de um revendedor (e-commerce). Criado durante o cadastro/login da vitrine publica. Eh espelhado na entidade Cliente (Meus Clientes) do revendedor via cliente_interno_id.",
   "properties": {
     "revendedor_id": {
       "type": "string",
@@ -30,6 +30,10 @@
     "token": {
       "type": "string",
       "description": "Token de sessao gerado no login"
+    },
+    "cliente_interno_id": {
+      "type": "string",
+      "description": "ID do registro espelhado na entidade Cliente (Meus Clientes) do revendedor"
     },
     "cep": {
       "type": "string"

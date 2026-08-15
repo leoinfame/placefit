@@ -81,6 +81,24 @@ export default async function(req) {
       complemento: endereco?.complemento, bairro: endereco?.bairro, cidade: endereco?.cidade, estado: endereco?.estado,
     });
 
+    // Sincronizar os dados no cadastro de "Meus Clientes" (entidade Cliente) espelhado do cliente da loja
+    try {
+      const clienteInternoId = cliente.cliente_interno_id;
+      if (clienteInternoId) {
+        const enderecoCompleto = [endereco?.logradouro, endereco?.numero, endereco?.bairro].filter(Boolean).join(', ');
+        await base44.asServiceRole.entities.Cliente.update(clienteInternoId, {
+          cpf_cnpj: cliente.cpf || '',
+          telefone: cliente.telefone || '',
+          cep: endereco?.cep || '',
+          endereco: enderecoCompleto,
+          cidade: endereco?.cidade || '',
+          estado: endereco?.estado || '',
+        });
+      }
+    } catch (e) {
+      console.error('Erro ao sincronizar cliente em Meus Clientes:', e);
+    }
+
     const numero_pedido = 'LOJA-' + Date.now().toString().slice(-8);
     const pedido = await base44.asServiceRole.entities.LojaPedido.create({
       revendedor_id: config.revendedor_id,
