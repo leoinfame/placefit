@@ -57,6 +57,7 @@ export default function MeusProdutos({ user }) {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterCategoria, setFilterCategoria] = useState("all");
+  const [filterFabricante, setFilterFabricante] = useState("all");
   const [expandedGroups, setExpandedGroups] = useState(new Set());
   const [selected, setSelected] = useState(new Set()); // group keys
   const [editModal, setEditModal] = useState(null); // { groupKey, margem, fabricante_nome }
@@ -169,13 +170,15 @@ export default function MeusProdutos({ user }) {
   const filteredGroups = useMemo(() => {
     return groups.filter(g => {
       if (filterCategoria !== "all" && g.categoria !== filterCategoria) return false;
+      if (filterFabricante !== "all" && getGroupFabricante(g) !== filterFabricante) return false;
       if (search) {
         const s = search.toLowerCase();
-        if (!g.baseName.toLowerCase().includes(s) && !g.categoria.toLowerCase().includes(s)) return false;
+        const fab = getGroupFabricante(g).toLowerCase();
+        if (!g.baseName.toLowerCase().includes(s) && !g.categoria.toLowerCase().includes(s) && !fab.includes(s)) return false;
       }
       return true;
     });
-  }, [groups, search, filterCategoria]);
+  }, [groups, search, filterCategoria, filterFabricante]);
 
   // Group by categoria
   const byCategoria = useMemo(() => {
@@ -190,6 +193,11 @@ export default function MeusProdutos({ user }) {
   const categoriasDisponiveis = useMemo(() => {
     const set = new Set(groups.map(g => g.categoria));
     return sortCategories([...set]);
+  }, [groups]);
+
+  const fabricantesDisponiveis = useMemo(() => {
+    const set = new Set(groups.map(g => getGroupFabricante(g)).filter(f => f && f !== "—"));
+    return [...set].sort((a, b) => a.localeCompare(b));
   }, [groups]);
 
   const toggleExpand = (key) => {
@@ -407,8 +415,17 @@ export default function MeusProdutos({ user }) {
                   {categoriasDisponiveis.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                 </SelectContent>
               </Select>
-              {(search || filterCategoria !== "all") && (
-                <Button variant="ghost" size="sm" onClick={() => { setSearch(""); setFilterCategoria("all"); }} className="text-gray-500">
+              <Select value={filterFabricante} onValueChange={setFilterFabricante}>
+                <SelectTrigger className="w-[200px] h-9">
+                  <SelectValue placeholder="Fabricante" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos fabricantes</SelectItem>
+                  {fabricantesDisponiveis.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              {(search || filterCategoria !== "all" || filterFabricante !== "all") && (
+                <Button variant="ghost" size="sm" onClick={() => { setSearch(""); setFilterCategoria("all"); setFilterFabricante("all"); }} className="text-gray-500">
                   <X className="w-4 h-4 mr-1" /> Limpar
                 </Button>
               )}
