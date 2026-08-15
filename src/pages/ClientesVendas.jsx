@@ -22,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
+import ConfirmDialog from "@/components/ui/confirm-dialog";
 
 export default function ClientesVendas() {
   const [user, setUser] = useState(null);
@@ -33,6 +34,7 @@ export default function ClientesVendas() {
   const [editingCliente, setEditingCliente] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFornecedor, setSelectedFornecedor] = useState("all");
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [formData, setFormData] = useState({
     nome: "",
     cpf_cnpj: "",
@@ -149,23 +151,28 @@ export default function ClientesVendas() {
     setShowDialog(true);
   };
 
-  const handleDelete = async (cliente) => {
-    if (confirm(`Tem certeza que deseja excluir "${cliente.nome}"?`)) {
-      try {
-        await base44.entities.Cliente.delete(cliente.id);
-        loadData();
-        toast({
-          title: "Cliente excluído",
-          description: `${cliente.nome} foi removido do cadastro.`,
-        });
-      } catch (error) {
-        console.error("Erro ao excluir cliente:", error);
-        toast({
-          title: "Erro",
-          description: "Erro ao excluir cliente. Tente novamente.",
-          variant: "destructive"
-        });
-      }
+  const handleDelete = (cliente) => {
+    setDeleteConfirm(cliente);
+  };
+
+  const confirmDelete = async () => {
+    const cliente = deleteConfirm;
+    setDeleteConfirm(null);
+    if (!cliente) return;
+    try {
+      await base44.entities.Cliente.delete(cliente.id);
+      loadData();
+      toast({
+        title: "Cliente excluído",
+        description: `${cliente.nome} foi removido do cadastro.`,
+      });
+    } catch (error) {
+      console.error("Erro ao excluir cliente:", error);
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir cliente. Tente novamente.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -461,8 +468,17 @@ export default function ClientesVendas() {
               </div>
             </form>
           </DialogContent>
-        </Dialog>
-      </div>
-    </div>
-  );
-}
+          </Dialog>
+
+          <ConfirmDialog
+            open={!!deleteConfirm}
+            title="Excluir cliente"
+            description={deleteConfirm ? `Tem certeza que deseja excluir "${deleteConfirm.nome}"?` : ""}
+            confirmLabel="Excluir"
+            onConfirm={confirmDelete}
+            onCancel={() => setDeleteConfirm(null)}
+          />
+          </div>
+          </div>
+          );
+          }

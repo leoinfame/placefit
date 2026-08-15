@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { expandTemplates } from "@/utils/expandTemplates";
+import ConfirmDialog from "@/components/ui/confirm-dialog";
 
 const formatBRL = (v) => v != null && !isNaN(v) ? v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "—";
 
@@ -61,6 +62,7 @@ export default function MeusProdutos({ user }) {
   const [editModal, setEditModal] = useState(null); // { groupKey, margem, fabricante_nome }
   const [bulkModal, setBulkModal] = useState(null); // { type: 'margin'|'enable'|'disable'|'delete', margem }
   const [saving, setSaving] = useState(false);
+  const [removeConfirm, setRemoveConfirm] = useState(null);
   const { toast } = useToast();
 
   useEffect(() => { loadData(); }, []);
@@ -256,8 +258,14 @@ export default function MeusProdutos({ user }) {
   };
 
   // Remove a group (all variations) — uses deleteMany to be resilient to already-deleted records
-  const handleRemoveGroup = async (g) => {
-    if (!confirm(`Remover "${g.baseName}" da sua tabela?`)) return;
+  const handleRemoveGroup = (g) => {
+    setRemoveConfirm(g);
+  };
+
+  const confirmRemoveGroup = async () => {
+    const g = removeConfirm;
+    setRemoveConfirm(null);
+    if (!g) return;
     try {
       const spIds = g.variations.map(v => v.sp.id);
       await base44.entities.SupplierProduct.deleteMany({ _id: { $in: spIds } });
@@ -669,6 +677,15 @@ export default function MeusProdutos({ user }) {
           </DialogContent>
         </Dialog>
       )}
+
+      <ConfirmDialog
+        open={!!removeConfirm}
+        title="Remover produto"
+        description={removeConfirm ? `Remover "${removeConfirm.baseName}" da sua tabela?` : ""}
+        confirmLabel="Remover"
+        onConfirm={confirmRemoveGroup}
+        onCancel={() => setRemoveConfirm(null)}
+      />
 
       {/* Modal Ação em Massa */}
       {bulkModal && (

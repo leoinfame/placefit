@@ -55,6 +55,7 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
+import ConfirmDialog from "@/components/ui/confirm-dialog";
 import ProductAutoComplete from "@/components/ProductAutoComplete";
 import ClienteAutoComplete from "@/components/ClienteAutoComplete";
 import { generateProfessionalPDF } from "@/components/ProfessionalPDF";
@@ -336,10 +337,16 @@ export default function Orcamentos() {
     },
   });
 
+  const [deleteOrcamentoId, setDeleteOrcamentoId] = useState(null);
+
   const handleDeleteOrcamento = (id) => {
-    if (confirm("Tem certeza que deseja excluir este orçamento?")) {
-      deleteOrcamentoMutation.mutate(id);
-    }
+    setDeleteOrcamentoId(id);
+  };
+
+  const confirmDeleteOrcamento = () => {
+    const id = deleteOrcamentoId;
+    setDeleteOrcamentoId(null);
+    if (id) deleteOrcamentoMutation.mutate(id);
   };
 
   const converterParaVendaMutation = useMutation({
@@ -1219,6 +1226,15 @@ export default function Orcamentos() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <ConfirmDialog
+          open={!!deleteOrcamentoId}
+          title="Excluir orçamento"
+          description="Tem certeza que deseja excluir este orçamento?"
+          confirmLabel="Excluir"
+          onConfirm={confirmDeleteOrcamento}
+          onCancel={() => setDeleteOrcamentoId(null)}
+        />
       </div>
     </div>
   );

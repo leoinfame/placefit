@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/table";
 import { useToast } from "@/components/ui/use-toast";
 import { CAPITAIS_POR_UF } from "@/utils/frete";
+import ConfirmDialog from "@/components/ui/confirm-dialog";
 
 const ESTADOS = [
   "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA",
@@ -70,6 +71,7 @@ export default function TabelaFrete() {
     ativo: true,
   });
   const { toast } = useToast();
+  const [padraoConfirm, setPadraoConfirm] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -136,10 +138,12 @@ export default function TabelaFrete() {
     }
   };
 
-  const handleCarregarPadrao = async () => {
-    if (!confirm(`Isso vai criar/atualizar ${TABELA_PADRAO.length} estados com os valores da tabela oficial do site (muscularfit.com.br/categorias/frete.html). Estados já configurados manualmente serão sobrescritos. Continuar?`)) {
-      return;
-    }
+  const handleCarregarPadrao = () => {
+    setPadraoConfirm(true);
+  };
+
+  const confirmCarregarPadrao = async () => {
+    setPadraoConfirm(false);
     setLoading(true);
     try {
       for (const item of TABELA_PADRAO) {
@@ -353,6 +357,16 @@ export default function TabelaFrete() {
             </form>
           </DialogContent>
         </Dialog>
+
+        <ConfirmDialog
+          open={padraoConfirm}
+          title="Carregar tabela padrão"
+          description={`Isso vai criar/atualizar ${TABELA_PADRAO.length} estados com os valores da tabela oficial do site (muscularfit.com.br/categorias/frete.html). Estados já configurados manualmente serão sobrescritos. Continuar?`}
+          confirmLabel="Continuar"
+          destructive={false}
+          onConfirm={confirmCarregarPadrao}
+          onCancel={() => setPadraoConfirm(false)}
+        />
       </div>
     </div>
   );

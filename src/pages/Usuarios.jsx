@@ -18,6 +18,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
+import ConfirmDialog from "@/components/ui/confirm-dialog";
 
 export default function Usuarios() {
   const [user, setUser] = useState(null);
@@ -42,6 +43,7 @@ export default function Usuarios() {
     cnpj: ""
   });
   const [submittingCadastro, setSubmittingCadastro] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   const { toast } = useToast();
 
@@ -198,7 +200,7 @@ export default function Usuarios() {
     setSubmittingCadastro(false);
   };
 
-  const handleDeleteUser = async (usuario) => {
+  const handleDeleteUser = (usuario) => {
     if (usuario.role === 'admin') {
       toast({
         title: "Ação não permitida",
@@ -207,23 +209,27 @@ export default function Usuarios() {
       });
       return;
     }
+    setDeleteConfirm(usuario);
+  };
 
-    if (confirm(`Tem certeza que deseja excluir o usuário "${usuario.full_name || usuario.email}"? Esta ação não pode ser desfeita.`)) {
-      try {
-        await base44.entities.User.delete(usuario.id);
-        loadData();
-        toast({
-          title: "Usuário excluído",
-          description: "Usuário removido com sucesso.",
-        });
-      } catch (error) {
-        console.error("Erro ao excluir usuário:", error);
-        toast({
-          title: "Erro",
-          description: "Erro ao excluir usuário. Tente novamente.",
-          variant: "destructive"
-        });
-      }
+  const confirmDeleteUser = async () => {
+    const usuario = deleteConfirm;
+    setDeleteConfirm(null);
+    if (!usuario) return;
+    try {
+      await base44.entities.User.delete(usuario.id);
+      loadData();
+      toast({
+        title: "Usuário excluído",
+        description: "Usuário removido com sucesso.",
+      });
+    } catch (error) {
+      console.error("Erro ao excluir usuário:", error);
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir usuário. Tente novamente.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -622,6 +628,15 @@ export default function Usuarios() {
         onOpenChange={setShowProfileDialog}
         usuario={profileUser}
         onSaved={loadData}
+      />
+
+      <ConfirmDialog
+        open={!!deleteConfirm}
+        title="Excluir usuário"
+        description={deleteConfirm ? `Tem certeza que deseja excluir o usuário "${deleteConfirm.full_name || deleteConfirm.email}"? Esta ação não pode ser desfeita.` : ""}
+        confirmLabel="Excluir"
+        onConfirm={confirmDeleteUser}
+        onCancel={() => setDeleteConfirm(null)}
       />
     </div>
   );

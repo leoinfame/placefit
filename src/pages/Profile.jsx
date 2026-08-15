@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
+import ConfirmDialog from "@/components/ui/confirm-dialog";
 
 const ESTADOS = [
   "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA",
@@ -64,7 +65,8 @@ export default function Profile() {
     new: false,
     confirm: false
   });
-  
+  const [rotaDeleteConfirm, setRotaDeleteConfirm] = useState(null);
+
   const { toast } = useToast();
 
   useEffect(() => {
@@ -278,23 +280,28 @@ export default function Profile() {
     });
   };
 
-  const handleDeleteRota = async (rotaId) => {
-    if (confirm("Tem certeza que deseja excluir esta rota?")) {
-      try {
-        await base44.entities.TransportadorRota.delete(rotaId);
-        toast({
-          title: "Rota excluída",
-          description: "A rota foi removida com sucesso."
-        });
-        loadUser();
-      } catch (error) {
-        console.error("Erro ao excluir rota:", error);
-        toast({
-          title: "Erro",
-          description: "Erro ao excluir rota. Tente novamente.",
-          variant: "destructive"
-        });
-      }
+  const handleDeleteRota = (rotaId) => {
+    setRotaDeleteConfirm(rotaId);
+  };
+
+  const confirmDeleteRota = async () => {
+    const rotaId = rotaDeleteConfirm;
+    setRotaDeleteConfirm(null);
+    if (!rotaId) return;
+    try {
+      await base44.entities.TransportadorRota.delete(rotaId);
+      toast({
+        title: "Rota excluída",
+        description: "A rota foi removida com sucesso."
+      });
+      loadUser();
+    } catch (error) {
+      console.error("Erro ao excluir rota:", error);
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir rota. Tente novamente.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -887,7 +894,16 @@ export default function Profile() {
                   </form>
                   </CardContent>
                   </Card>
-      </div>
-    </div>
-  );
-}
+
+                  <ConfirmDialog
+                  open={!!rotaDeleteConfirm}
+                  title="Excluir rota"
+                  description="Tem certeza que deseja excluir esta rota?"
+                  confirmLabel="Excluir"
+                  onConfirm={confirmDeleteRota}
+                  onCancel={() => setRotaDeleteConfirm(null)}
+                  />
+                  </div>
+                  </div>
+                  );
+                  }

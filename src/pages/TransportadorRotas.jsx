@@ -29,6 +29,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/components/ui/use-toast";
+import ConfirmDialog from "@/components/ui/confirm-dialog";
 
 const ESTADOS_BR = [
   "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA",
@@ -42,6 +43,7 @@ export default function TransportadorRotas() {
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [editingRota, setEditingRota] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [formData, setFormData] = useState({
     cidade: "",
     estado: "",
@@ -132,23 +134,28 @@ export default function TransportadorRotas() {
     setShowDialog(true);
   };
 
-  const handleDelete = async (rota) => {
-    if (confirm(`Tem certeza que deseja excluir a rota para ${rota.cidade}/${rota.estado}?`)) {
-      try {
-        await base44.entities.FreightOffer.delete(rota.id);
-        loadData();
-        toast({
-          title: "Rota excluída",
-          description: "Rota removida com sucesso.",
-        });
-      } catch (error) {
-        console.error("Erro ao excluir rota:", error);
-        toast({
-          title: "Erro",
-          description: "Erro ao excluir rota. Tente novamente.",
-          variant: "destructive"
-        });
-      }
+  const handleDelete = (rota) => {
+    setDeleteConfirm(rota);
+  };
+
+  const confirmDelete = async () => {
+    const rota = deleteConfirm;
+    setDeleteConfirm(null);
+    if (!rota) return;
+    try {
+      await base44.entities.FreightOffer.delete(rota.id);
+      loadData();
+      toast({
+        title: "Rota excluída",
+        description: "Rota removida com sucesso.",
+      });
+    } catch (error) {
+      console.error("Erro ao excluir rota:", error);
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir rota. Tente novamente.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -423,6 +430,15 @@ export default function TransportadorRotas() {
             </form>
           </DialogContent>
         </Dialog>
+
+        <ConfirmDialog
+          open={!!deleteConfirm}
+          title="Excluir rota"
+          description={deleteConfirm ? `Tem certeza que deseja excluir a rota para ${deleteConfirm.cidade}/${deleteConfirm.estado}?` : ""}
+          confirmLabel="Excluir"
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteConfirm(null)}
+        />
       </div>
     </div>
   );

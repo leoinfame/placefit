@@ -30,6 +30,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
+import ConfirmDialog from "@/components/ui/confirm-dialog";
 
 export default function Suppliers() {
   const [user, setUser] = useState(null);
@@ -41,6 +42,7 @@ export default function Suppliers() {
   const [showDialog, setShowDialog] = useState(false);
   const [supplierProducts, setSupplierProducts] = useState([]);
   const [products, setProducts] = useState([]);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   const { toast } = useToast();
 
@@ -124,23 +126,28 @@ export default function Suppliers() {
     setShowDialog(true);
   };
 
-  const handleDeleteSupplier = async (supplier) => {
-    if (confirm(`Tem certeza que deseja excluir o revendedor "${supplier.empresa || supplier.full_name}"? Esta ação não pode ser desfeita.`)) {
-      try {
-        await User.delete(supplier.id);
-        loadSuppliers();
-        toast({
-          title: "Revendedor excluído",
-          description: "Revendedor removido com sucesso.",
-        });
-      } catch (error) {
-        console.error("Erro ao excluir revendedor:", error);
-        toast({
-          title: "Erro",
-          description: "Erro ao excluir revendedor. Tente novamente.",
-          variant: "destructive"
-        });
-      }
+  const handleDeleteSupplier = (supplier) => {
+    setDeleteConfirm(supplier);
+  };
+
+  const confirmDeleteSupplier = async () => {
+    const supplier = deleteConfirm;
+    setDeleteConfirm(null);
+    if (!supplier) return;
+    try {
+      await User.delete(supplier.id);
+      loadSuppliers();
+      toast({
+        title: "Revendedor excluído",
+        description: "Revendedor removido com sucesso.",
+      });
+    } catch (error) {
+      console.error("Erro ao excluir revendedor:", error);
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir revendedor. Tente novamente.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -599,6 +606,15 @@ export default function Suppliers() {
             )}
           </DialogContent>
         </Dialog>
+
+        <ConfirmDialog
+          open={!!deleteConfirm}
+          title="Excluir revendedor"
+          description={deleteConfirm ? `Tem certeza que deseja excluir o revendedor "${deleteConfirm.empresa || deleteConfirm.full_name}"? Esta ação não pode ser desfeita.` : ""}
+          confirmLabel="Excluir"
+          onConfirm={confirmDeleteSupplier}
+          onCancel={() => setDeleteConfirm(null)}
+        />
       </div>
     </div>
   );

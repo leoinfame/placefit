@@ -29,6 +29,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import ConfirmDialog from "@/components/ui/confirm-dialog";
 
 export default function Clientes() {
   const [user, setUser] = useState(null);
@@ -44,6 +45,7 @@ export default function Clientes() {
   const [showDialog, setShowDialog] = useState(false);
   const [editingCliente, setEditingCliente] = useState(null);
   const [searchingCNPJ, setSearchingCNPJ] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [formData, setFormData] = useState({
     nome: "",
     cpf_cnpj: "",
@@ -413,23 +415,28 @@ export default function Clientes() {
     setShowDialog(true);
   };
 
-  const handleDeleteCliente = async (cliente) => {
-    if (confirm(`Tem certeza que deseja excluir "${cliente.nome}"?`)) {
-      try {
-        await base44.entities.Cliente.delete(cliente.id);
-        loadData();
-        toast({
-          title: "Cliente excluído",
-          description: `${cliente.nome} foi removido do cadastro.`,
-        });
-      } catch (error) {
-        console.error("Erro ao excluir cliente:", error);
-        toast({
-          title: "Erro",
-          description: "Erro ao excluir cliente. Tente novamente.",
-          variant: "destructive"
-        });
-      }
+  const handleDeleteCliente = (cliente) => {
+    setDeleteConfirm(cliente);
+  };
+
+  const confirmDeleteCliente = async () => {
+    const cliente = deleteConfirm;
+    setDeleteConfirm(null);
+    if (!cliente) return;
+    try {
+      await base44.entities.Cliente.delete(cliente.id);
+      loadData();
+      toast({
+        title: "Cliente excluído",
+        description: `${cliente.nome} foi removido do cadastro.`,
+      });
+    } catch (error) {
+      console.error("Erro ao excluir cliente:", error);
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir cliente. Tente novamente.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -1174,6 +1181,15 @@ export default function Clientes() {
            </form>
           </DialogContent>
           </Dialog>
+
+          <ConfirmDialog
+            open={!!deleteConfirm}
+            title="Excluir cliente"
+            description={deleteConfirm ? `Tem certeza que deseja excluir "${deleteConfirm.nome}"?` : ""}
+            confirmLabel="Excluir"
+            onConfirm={confirmDeleteCliente}
+            onCancel={() => setDeleteConfirm(null)}
+          />
           </div>
           </div>
           );

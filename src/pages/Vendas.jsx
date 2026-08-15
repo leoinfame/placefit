@@ -26,6 +26,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { computeLucroPedido } from "@/utils/lucro";
+import ConfirmDialog from "@/components/ui/confirm-dialog";
 
 export default function Vendas() {
   const [user, setUser] = useState(null);
@@ -50,6 +51,7 @@ export default function Vendas() {
   const [nfeData, setNfeData] = useState(null);
   const [emittingNFe, setEmittingNFe] = useState(false);
   const [configFiscal, setConfigFiscal] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   // Novo Pedido
   const [selectedCliente, setSelectedCliente] = useState("");
@@ -480,23 +482,28 @@ export default function Vendas() {
     setShowDialog(true);
   };
 
-  const handleDeletePedido = async (pedido) => {
-    if (confirm(`Tem certeza que deseja excluir o pedido ${pedido.numero_pedido}?`)) {
-      try {
-        await base44.entities.Pedido.delete(pedido.id);
-        loadData();
-        toast({
-          title: "Pedido excluído",
-          description: `Pedido ${pedido.numero_pedido} foi removido.`,
-        });
-      } catch (error) {
-        console.error("Erro ao excluir pedido:", error);
-        toast({
-          title: "Erro",
-          description: "Erro ao excluir pedido.",
-          variant: "destructive"
-        });
-      }
+  const handleDeletePedido = (pedido) => {
+    setDeleteConfirm(pedido);
+  };
+
+  const confirmDeletePedido = async () => {
+    const pedido = deleteConfirm;
+    setDeleteConfirm(null);
+    if (!pedido) return;
+    try {
+      await base44.entities.Pedido.delete(pedido.id);
+      loadData();
+      toast({
+        title: "Pedido excluído",
+        description: `Pedido ${pedido.numero_pedido} foi removido.`,
+      });
+    } catch (error) {
+      console.error("Erro ao excluir pedido:", error);
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir pedido.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -1826,6 +1833,15 @@ export default function Vendas() {
             )}
           </DialogContent>
         </Dialog>
+
+        <ConfirmDialog
+          open={!!deleteConfirm}
+          title="Excluir pedido"
+          description={deleteConfirm ? `Tem certeza que deseja excluir o pedido ${deleteConfirm.numero_pedido}?` : ""}
+          confirmLabel="Excluir"
+          onConfirm={confirmDeletePedido}
+          onCancel={() => setDeleteConfirm(null)}
+        />
       </div>
     </div>
   );

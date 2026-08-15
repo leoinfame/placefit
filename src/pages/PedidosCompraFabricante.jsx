@@ -39,6 +39,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/components/ui/use-toast";
+import ConfirmDialog from "@/components/ui/confirm-dialog";
 
 export default function PedidosCompraFabricante() {
   const [user, setUser] = useState(null);
@@ -47,6 +48,7 @@ export default function PedidosCompraFabricante() {
   const [loading, setLoading] = useState(true);
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [selectedPedido, setSelectedPedido] = useState(null);
+  const [confirmarPedidoTarget, setConfirmarPedidoTarget] = useState(null);
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -120,13 +122,18 @@ export default function PedidosCompraFabricante() {
   });
 
   const handleConfirmarPedido = (pedido) => {
-    if (confirm(`Confirmar o recebimento do pedido ${pedido.numero_pedido}?`)) {
-      confirmarPedidoMutation.mutate({
-        pedidoId: pedido.id,
-        revendedorId: pedido.revendedor_id,
-        numeroPedido: pedido.numero_pedido
-      });
-    }
+    setConfirmarPedidoTarget(pedido);
+  };
+
+  const confirmConfirmarPedido = () => {
+    const pedido = confirmarPedidoTarget;
+    setConfirmarPedidoTarget(null);
+    if (!pedido) return;
+    confirmarPedidoMutation.mutate({
+      pedidoId: pedido.id,
+      revendedorId: pedido.revendedor_id,
+      numeroPedido: pedido.numero_pedido
+    });
   };
 
   const handleViewPedido = (pedido) => {
@@ -737,6 +744,16 @@ export default function PedidosCompraFabricante() {
             </DialogContent>
           </Dialog>
         )}
+
+        <ConfirmDialog
+          open={!!confirmarPedidoTarget}
+          title="Confirmar recebimento"
+          description={confirmarPedidoTarget ? `Confirmar o recebimento do pedido ${confirmarPedidoTarget.numero_pedido}?` : ""}
+          confirmLabel="Confirmar"
+          destructive={false}
+          onConfirm={confirmConfirmarPedido}
+          onCancel={() => setConfirmarPedidoTarget(null)}
+        />
       </div>
     </div>
   );

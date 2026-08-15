@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { Separator } from "@/components/ui/separator";
+import ConfirmDialog from "@/components/ui/confirm-dialog";
 
 export default function Fabricantes() {
   const [user, setUser] = useState(null);
@@ -55,6 +56,7 @@ export default function Fabricantes() {
   const [unlinkedUsers, setUnlinkedUsers] = useState([]);
   const [showVincularDialog, setShowVincularDialog] = useState(false);
   const [vincularFabricante, setVincularFabricante] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState(null);
   const [fabricanteFormData, setFabricanteFormData] = useState({
     razao_social: "",
     nome_fantasia: "",
@@ -722,28 +724,26 @@ export default function Fabricantes() {
     }
   };
 
-  const handleDeleteProduct = async (product) => {
-    if (confirm(`Tem certeza que deseja excluir "${product.nome}"?`)) {
-      try {
-        if (product._source === "supplier_product") {
-          await base44.entities.SupplierProduct.delete(product.id);
-        } else {
-          await base44.entities.Product.delete(product.id);
+  const handleDeleteProduct = (product) => {
+    setConfirmDialog({
+      title: "Excluir produto",
+      description: `Tem certeza que deseja excluir "${product.nome}"?`,
+      onConfirm: async () => {
+        setConfirmDialog(null);
+        try {
+          if (product._source === "supplier_product") {
+            await base44.entities.SupplierProduct.delete(product.id);
+          } else {
+            await base44.entities.Product.delete(product.id);
+          }
+          viewFabricanteDetails(selectedFabricante);
+          toast({ title: "Produto excluido", description: "Produto removido com sucesso." });
+        } catch (error) {
+          console.error("Erro ao excluir produto:", error);
+          toast({ title: "Erro", description: "Erro ao excluir produto. Tente novamente.", variant: "destructive" });
         }
-        viewFabricanteDetails(selectedFabricante);
-        toast({
-          title: "Produto excluido",
-          description: "Produto removido com sucesso.",
-        });
-      } catch (error) {
-        console.error("Erro ao excluir produto:", error);
-        toast({
-          title: "Erro",
-          description: "Erro ao excluir produto. Tente novamente.",
-          variant: "destructive"
-        });
-      }
-    }
+      },
+    });
   };
 
   const handleDeleteAllProducts = async () => {
@@ -756,39 +756,34 @@ export default function Fabricantes() {
       return;
     }
 
-    if (confirm(`Tem certeza que deseja excluir TODOS os ${fabricanteProducts.length} produtos de ${selectedFabricante?.nome_fantasia || selectedFabricante?.razao_social}? Esta acao nao pode ser desfeita.`)) {
-      let deleted = 0;
-      let errors = 0;
-      
-      for (const product of fabricanteProducts) {
-        try {
-          if (product._source === "supplier_product") {
-            await base44.entities.SupplierProduct.delete(product.id);
-          } else {
-            await base44.entities.Product.delete(product.id);
+    setConfirmDialog({
+      title: "Excluir todos os produtos",
+      description: `Tem certeza que deseja excluir TODOS os ${fabricanteProducts.length} produtos de ${selectedFabricante?.nome_fantasia || selectedFabricante?.razao_social}? Esta acao nao pode ser desfeita.`,
+      onConfirm: async () => {
+        setConfirmDialog(null);
+        let deleted = 0;
+        let errors = 0;
+        for (const product of fabricanteProducts) {
+          try {
+            if (product._source === "supplier_product") {
+              await base44.entities.SupplierProduct.delete(product.id);
+            } else {
+              await base44.entities.Product.delete(product.id);
+            }
+            deleted++;
+          } catch (error) {
+            console.error(`Erro ao excluir produto ${product.id}:`, error);
+            errors++;
           }
-          deleted++;
-        } catch (error) {
-          console.error(`Erro ao excluir produto ${product.id}:`, error);
-          errors++;
         }
-      }
-      
-      viewFabricanteDetails(selectedFabricante);
-      
-      if (errors === 0) {
-        toast({
-          title: "Produtos excluidos",
-          description: `${deleted} produto(s) removido(s) com sucesso.`,
-        });
-      } else {
-        toast({
-          title: "Exclusao concluida com avisos",
-          description: `${deleted} produto(s) excluido(s). ${errors} erro(s).`,
-          variant: "destructive"
-        });
-      }
-    }
+        viewFabricanteDetails(selectedFabricante);
+        if (errors === 0) {
+          toast({ title: "Produtos excluidos", description: `${deleted} produto(s) removido(s) com sucesso.` });
+        } else {
+          toast({ title: "Exclusao concluida com avisos", description: `${deleted} produto(s) excluido(s). ${errors} erro(s).`, variant: "destructive" });
+        }
+      },
+    });
   };
 
   const handleSelectProduct = (productId) => {
@@ -954,17 +949,23 @@ export default function Fabricantes() {
     }
   };
 
-  const handleDesvincularUsuario = async (fabricante) => {
-    if (confirm(`Desvincular o usuário deste fabricante? O fabricante continuará cadastrado, mas sem login próprio.`)) {
-      try {
-        await base44.entities.Fabricante.update(fabricante.id, { user_id: "" });
-        toast({ title: "Usuário desvinculado", description: "O fabricante agora é gerenciado apenas pelo admin." });
-        loadData();
-      } catch (error) {
-        console.error("Erro ao desvincular:", error);
-        toast({ title: "Erro", description: "Erro ao desvincular usuário.", variant: "destructive" });
-      }
-    }
+  const handleDesvincularUsuario = (fabricante) => {
+    setConfirmDialog({
+      title: "Desvincular usuário",
+      description: `Desvincular o usuário deste fabricante? O fabricante continuará cadastrado, mas sem login próprio.`,
+      destructive: false,
+      onConfirm: async () => {
+        setConfirmDialog(null);
+        try {
+          await base44.entities.Fabricante.update(fabricante.id, { user_id: "" });
+          toast({ title: "Usuário desvinculado", description: "O fabricante agora é gerenciado apenas pelo admin." });
+          loadData();
+        } catch (error) {
+          console.error("Erro ao desvincular:", error);
+          toast({ title: "Erro", description: "Erro ao desvincular usuário.", variant: "destructive" });
+        }
+      },
+    });
   };
 
   const handleLogoUpload = async (e) => {
@@ -1026,17 +1027,22 @@ export default function Fabricantes() {
     setShowFabricanteDialog(true);
   };
 
-  const handleDeleteFabricante = async (fabricante) => {
-    if (confirm(`Tem certeza que deseja excluir o fabricante "${fabricante.nome_fantasia || fabricante.razao_social}"? Esta acao nao pode ser desfeita.`)) {
-      try {
-        await base44.entities.Fabricante.delete(fabricante.id);
-        loadData();
-        toast({ title: "Fabricante excluido", description: "Fabricante removido com sucesso." });
-      } catch (error) {
-        console.error("Erro ao excluir fabricante:", error);
-        toast({ title: "Erro", description: "Erro ao excluir fabricante. Tente novamente.", variant: "destructive" });
-      }
-    }
+  const handleDeleteFabricante = (fabricante) => {
+    setConfirmDialog({
+      title: "Excluir fabricante",
+      description: `Tem certeza que deseja excluir o fabricante "${fabricante.nome_fantasia || fabricante.razao_social}"? Esta acao nao pode ser desfeita.`,
+      onConfirm: async () => {
+        setConfirmDialog(null);
+        try {
+          await base44.entities.Fabricante.delete(fabricante.id);
+          loadData();
+          toast({ title: "Fabricante excluido", description: "Fabricante removido com sucesso." });
+        } catch (error) {
+          console.error("Erro ao excluir fabricante:", error);
+          toast({ title: "Erro", description: "Erro ao excluir fabricante. Tente novamente.", variant: "destructive" });
+        }
+      },
+    });
   };
 
   const copyRegistrationLink = () => {
@@ -2318,6 +2324,16 @@ export default function Fabricantes() {
             onClose={() => { setShowVincularDialog(false); setVincularFabricante(null); }}
           />
         )}
+
+        <ConfirmDialog
+          open={!!confirmDialog}
+          title={confirmDialog?.title || ""}
+          description={confirmDialog?.description || ""}
+          confirmLabel={confirmDialog?.confirmLabel || "Confirmar"}
+          destructive={confirmDialog?.destructive !== false}
+          onConfirm={confirmDialog?.onConfirm}
+          onCancel={() => setConfirmDialog(null)}
+        />
         </div>
         </div>
         );
