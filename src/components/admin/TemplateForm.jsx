@@ -46,7 +46,7 @@ const CAMPOS_POR_CATEGORIA = {
   Halteres: ["peso_kg", "acabamento", "bojo_formato", "barra_acabamento"],
   Dumbells: ["peso_kg", "acabamento", "bojo_formato", "dumbell_tipo"],
   Tijolinhos: ["tijolinho_tipo", "tijolinho_torre"],
-  Pisos: ["piso_espessura_mm", "piso_formato"],
+  Pisos: ["piso_espessura_mm", "piso_formato", "peso_peca"],
   Kettlebells: ["peso_kg", "acabamento"],
   Outros: ["subcategoria"],
   Kits: ["subcategoria", "acabamento", "pegada", "peso_faixa"],
@@ -63,6 +63,7 @@ const CAMPO_LABELS = {
   dumbell_tipo: "Tipo de Dumbell",
   piso_espessura_mm: "Espessura do Piso (mm)",
   piso_formato: "Formato do Piso",
+  peso_peca: "Peso por peça (kg)",
   tijolinho_tipo: "Tipo de Tijolinho",
   tijolinho_torre: "Torre Compatível",
   subcategoria: "Subcategoria",
@@ -83,6 +84,7 @@ const SELECT_FIELDS = [
 const NUMBER_FIELDS = [
   "peso_kg",
   "piso_espessura_mm",
+  "peso_peca",
 ];
 
 const BOOLEAN_FIELDS = ["peso_fracionado"];
@@ -103,6 +105,7 @@ const EMPTY_FORM = {
   peso_fracionado: false,
   piso_espessura_mm: "",
   piso_formato: "N/A",
+  peso_peca: "",
   tijolinho_tipo: "N/A",
   tijolinho_torre: "N/A",
   foto: "",

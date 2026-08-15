@@ -79,6 +79,10 @@
       "type": "string",
       "description": "Formato de montagem do piso"
     },
+    "peso_peca": {
+      "type": "number",
+      "description": "Peso por pe\u00e7a em kg (usado para c\u00e1lculo de frete em produtos vendidos por pe\u00e7a/m\u00b2, ex: Pisos)"
+    },
     "tijolinho_tipo": {
       "type": "string",
       "description": "Tipo de tijolinho - padr\u00e3o ou guia"
