@@ -81,9 +81,28 @@ export default async function(req) {
       complemento: endereco?.complemento, bairro: endereco?.bairro, cidade: endereco?.cidade, estado: endereco?.estado,
     });
 
-    // Sincronizar os dados no cadastro de "Meus Clientes" (entidade Cliente) espelhado do cliente da loja
+    // Resolver/criar o espelho em "Meus Clientes" (entidade Cliente) e sincronizar os dados.
+    // Garante que clientes antigos (sem cliente_interno_id) tambem sejam espelhados no pedido.
+    let clienteInternoId = cliente.cliente_interno_id || null;
     try {
-      const clienteInternoId = cliente.cliente_interno_id;
+      if (!clienteInternoId) {
+        const existentes = await fetchAll((sort, limit, skip) =>
+          base44.asServiceRole.entities.Cliente.filter({ fornecedor_id: config.revendedor_id, email: cliente.email }, sort, limit, skip)
+        );
+        if (existentes[0]) {
+          clienteInternoId = existentes[0].id;
+        } else {
+          const criadoInterno = await base44.asServiceRole.entities.Cliente.create({
+            fornecedor_id: config.revendedor_id,
+            nome: cliente.nome, cpf_cnpj: cliente.cpf || '', email: cliente.email, telefone: cliente.telefone || '',
+            ativo: true,
+          });
+          clienteInternoId = criadoInterno?.id || null;
+        }
+        if (clienteInternoId) {
+          await base44.asServiceRole.entities.LojaCliente.update(clienteId, { cliente_interno_id: clienteInternoId });
+        }
+      }
       if (clienteInternoId) {
         const enderecoCompleto = [endereco?.logradouro, endereco?.numero, endereco?.bairro].filter(Boolean).join(', ');
         await base44.asServiceRole.entities.Cliente.update(clienteInternoId, {
@@ -129,7 +148,7 @@ export default async function(req) {
       }));
       const pedidoInterno = await base44.asServiceRole.entities.Pedido.create({
         fornecedor_id: config.revendedor_id,
-        cliente_id: clienteId,
+        cliente_id: clienteInternoId || clienteId,
         cliente_nome: cliente.nome,
         numero_pedido,
         data_pedido: today,
