@@ -182,7 +182,7 @@ export default function LojaPublica() {
       </footer>
 
       <LojaCart open={cartOpen} onClose={() => setCartOpen(false)} items={cart} onInc={inc} onDec={dec} onRemove={remove} subtotal={subtotal} frete={null} total={subtotal} onCheckout={() => { setCartOpen(false); setCheckoutOpen(true); }} primaryColor={primary} embedTop={isEmbedded ? embedScroll?.top : undefined} embedHeight={isEmbedded ? embedScroll?.height : undefined} />
-      <LojaCheckout open={checkoutOpen} onClose={() => setCheckoutOpen(false)} config={config} cart={cart} subtotal={subtotal} primaryColor={primary} sessao={sessao} slug={slug} onLogin={() => setCheckoutOpen(false)} onOrdered={refreshSessao} onClear={() => setCart([])} />
+      <LojaCheckout open={checkoutOpen} onClose={() => setCheckoutOpen(false)} config={config} cart={cart} subtotal={subtotal} primaryColor={primary} sessao={sessao} slug={slug} onLogin={() => setCheckoutOpen(false)} onOrdered={refreshSessao} onClear={() => setCart([])} embedTop={isEmbedded ? embedScroll?.top : undefined} embedHeight={isEmbedded ? embedScroll?.height : undefined} />
     </div>
   );
 }
