@@ -81,6 +81,9 @@ const getGroupKey = (tmpl) => {
     if (n.includes('capa para colchonete') || n.includes('capa p/ colchonete')) {
       return 'Acessórios|__capa_colchonete__';
     }
+    if (n.includes('corda naval')) {
+      return 'Acessórios|__corda_naval__';
+    }
   }
   const nc = (tmpl.nome || '').toLowerCase();
   if (nc.includes('corda de escalada')) {
@@ -136,6 +139,9 @@ const getBaseName = (tmpl) => {
     }
     if (n.includes('capa para colchonete') || n.includes('capa p/ colchonete')) {
       return 'Capa Para Colchonete';
+    }
+    if (n.includes('corda naval')) {
+      return 'Corda Naval Fitness';
     }
   }
   if ((tmpl.nome || '').toLowerCase().includes('corda de escalada')) {
