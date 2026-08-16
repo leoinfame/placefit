@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import {
   Search, Plus, Pencil, Trash2, Loader2, Package, PackageSearch,
-  DollarSign, AlertTriangle, ShieldCheck, Layers, Power, PowerOff, Check, Upload,
+  DollarSign, AlertTriangle, ShieldCheck, Layers, Power, PowerOff, Check, Upload, GitMerge,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,7 @@ import TemplateForm from "@/components/admin/TemplateForm";
 import ImportarTemplatesCsv from "@/components/produtos/ImportarTemplatesCsv";
 import FotoUploadModal from "@/components/produtos/FotoUploadModal";
 import AdminCatalogoGrouped from "@/components/produtos/AdminCatalogoGrouped";
+import MergeTemplatesDialog from "@/components/admin/MergeTemplatesDialog";
 
 const CATEGORIAS = [
   "Anilhas", "Halteres", "Dumbells", "Barras Montadas",
@@ -41,6 +42,7 @@ export default function AdminProdutos() {
   const [selectedTpls, setSelectedTpls] = useState(new Set());
   const [bulkTplAction, setBulkTplAction] = useState(null); // null | 'delete' | 'activate' | 'deactivate'
   const [importOpen, setImportOpen] = useState(false);
+  const [mergeOpen, setMergeOpen] = useState(false);
 
   // Supplier products state
   const [allSps, setAllSps] = useState([]);
@@ -273,6 +275,9 @@ export default function AdminProdutos() {
         {/* === ABA: CATÁLOGO === */}
         <TabsContent value="catalogo" className="space-y-4">
           <div className="flex items-center justify-end gap-2">
+            <Button variant="outline" onClick={() => setMergeOpen(true)}>
+              <GitMerge className="w-4 h-4 mr-2" /> Unir Templates
+            </Button>
             <Button variant="outline" onClick={() => setImportOpen(true)}>
               <Upload className="w-4 h-4 mr-2" /> Importar CSV
             </Button>
@@ -664,8 +669,18 @@ export default function AdminProdutos() {
            onClose={() => setImportOpen(false)}
            onImported={loadData}
          />
-        </DialogContent>
-        </Dialog>
-        </div>
+         </DialogContent>
+         </Dialog>
+
+         {/* === MODAL: UNIR TEMPLATES === */}
+         {mergeOpen && (
+         <MergeTemplatesDialog
+           templates={templates}
+           supplierProducts={allSps}
+           onClose={() => setMergeOpen(false)}
+           onMerged={() => { setMergeOpen(false); loadData(); }}
+         />
+         )}
+         </div>
         );
         }
