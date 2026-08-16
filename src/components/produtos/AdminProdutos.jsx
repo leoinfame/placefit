@@ -278,10 +278,10 @@ export default function AdminProdutos() {
             <Button
               variant="outline"
               onClick={() => setMergeOpen(true)}
-              disabled={selectedTpls.size !== 2}
-              title={selectedTpls.size !== 2 ? "Selecione exatamente 2 templates" : "Unir os 2 templates selecionados"}
+              disabled={selectedTpls.size < 2}
+              title={selectedTpls.size < 2 ? "Selecione 2 ou mais templates" : `Unir ${selectedTpls.size} templates selecionados`}
             >
-              <GitMerge className="w-4 h-4 mr-2" /> Unir Templates
+              <GitMerge className="w-4 h-4 mr-2" /> Unir Templates ({selectedTpls.size})
             </Button>
             <Button variant="outline" onClick={() => setImportOpen(true)}>
               <Upload className="w-4 h-4 mr-2" /> Importar CSV

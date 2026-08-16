@@ -12,24 +12,26 @@ export default function MergeTemplatesDialog({ selectedTemplates, supplierProduc
   const [saving, setSaving] = useState(false);
 
   const keepTpl = selectedTemplates.find(t => t.id === keepId);
-  const removeTpl = selectedTemplates.find(t => t.id !== keepId);
-  const removeId = removeTpl?.id;
-  const spsToMove = removeId ? supplierProducts.filter(sp => sp.product_id === removeId) : [];
+  const removeTpls = selectedTemplates.filter(t => t.id !== keepId);
+  const removeIds = removeTpls.map(t => t.id);
+  const spsToMove = removeIds.length > 0 ? supplierProducts.filter(sp => removeIds.includes(sp.product_id)) : [];
 
   const handleConfirm = async () => {
-    if (!keepId || !removeId) return;
+    if (!keepId || removeIds.length === 0) return;
     setSaving(true);
     try {
+      // Migrar todos os preços dos templates removidos para o mantido
       if (spsToMove.length > 0) {
         await base44.entities.SupplierProduct.updateMany(
-          { product_id: removeId },
+          { product_id: { $in: removeIds } },
           { $set: { product_id: keepId } }
         );
       }
-      await base44.entities.ProductTemplate.delete(removeId);
+      // Excluir todos os templates duplicados
+      await base44.entities.ProductTemplate.deleteMany({ id: { $in: removeIds } });
       toast({
         title: "Templates unidos!",
-        description: `${spsToMove.length} preço(s) migrado(s) para "${keepTpl.nome}". "${removeTpl.nome}" foi removido.`,
+        description: `${spsToMove.length} preço(s) migrado(s) para "${keepTpl.nome}". ${removeTpls.length} template(s) removido(s).`,
       });
       onMerged();
     } catch (e) {
@@ -44,17 +46,17 @@ export default function MergeTemplatesDialog({ selectedTemplates, supplierProduc
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <GitMerge className="w-5 h-5 text-purple-600" /> Unir Templates
+            <GitMerge className="w-5 h-5 text-purple-600" /> Unir {selectedTemplates.length} Templates
           </DialogTitle>
           <DialogDescription>
-            Escolha qual dos dois templates selecionados deve ser mantido. O outro será removido e seus preços migrados.
+            Escolha qual template deve ser mantido. Todos os outros serão removidos e seus preços migrados para o mantido.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 pt-2">
           <div>
             <Label>Qual template manter?</Label>
-            <div className="mt-2 space-y-2">
+            <div className="mt-2 max-h-64 space-y-2 overflow-y-auto pr-1">
               {selectedTemplates.map(t => (
                 <label
                   key={t.id}
@@ -77,15 +79,22 @@ export default function MergeTemplatesDialog({ selectedTemplates, supplierProduc
             </div>
           </div>
 
-          {keepId && removeTpl && (
+          {keepId && removeTpls.length > 0 && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-2">
-              <div className="flex items-center gap-2 text-sm">
-                <span className="font-medium text-gray-700 line-clamp-1 flex-1">{removeTpl.nome}</span>
-                <ArrowRight className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                <span className="font-medium text-blue-700 line-clamp-1 flex-1">{keepTpl.nome}</span>
+              <div className="text-sm font-medium text-blue-700">
+                {removeTpls.length} template(s) serão removidos:
               </div>
-              <p className="text-xs text-gray-600">
-                {spsToMove.length} preço(s) de fornecedor serão migrados. O template "{removeTpl.nome}" será excluído.
+              <div className="max-h-32 overflow-y-auto space-y-1">
+                {removeTpls.map(t => (
+                  <div key={t.id} className="flex items-center gap-2 text-xs text-gray-700">
+                    <span className="line-clamp-1 flex-1">{t.nome}</span>
+                    <ArrowRight className="w-3 h-3 text-blue-600 flex-shrink-0" />
+                    <span className="font-medium text-blue-700 line-clamp-1">{keepTpl.nome}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-gray-600 pt-1">
+                {spsToMove.length} preço(s) de fornecedor serão migrados.
               </p>
             </div>
           )}
@@ -98,7 +107,7 @@ export default function MergeTemplatesDialog({ selectedTemplates, supplierProduc
               className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
             >
               {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <GitMerge className="w-4 h-4 mr-2" />}
-              Unir Templates
+              Unir {removeTpls.length || ""} em 1
             </Button>
           </div>
         </div>
