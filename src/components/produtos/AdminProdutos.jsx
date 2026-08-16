@@ -275,7 +275,12 @@ export default function AdminProdutos() {
         {/* === ABA: CATÁLOGO === */}
         <TabsContent value="catalogo" className="space-y-4">
           <div className="flex items-center justify-end gap-2">
-            <Button variant="outline" onClick={() => setMergeOpen(true)}>
+            <Button
+              variant="outline"
+              onClick={() => setMergeOpen(true)}
+              disabled={selectedTpls.size !== 2}
+              title={selectedTpls.size !== 2 ? "Selecione exatamente 2 templates" : "Unir os 2 templates selecionados"}
+            >
               <GitMerge className="w-4 h-4 mr-2" /> Unir Templates
             </Button>
             <Button variant="outline" onClick={() => setImportOpen(true)}>
@@ -674,12 +679,12 @@ export default function AdminProdutos() {
 
          {/* === MODAL: UNIR TEMPLATES === */}
          {mergeOpen && (
-         <MergeTemplatesDialog
-           templates={templates}
-           supplierProducts={allSps}
-           onClose={() => setMergeOpen(false)}
-           onMerged={() => { setMergeOpen(false); loadData(); }}
-         />
+           <MergeTemplatesDialog
+             selectedTemplates={templates.filter(t => selectedTpls.has(t.id))}
+             supplierProducts={allSps}
+             onClose={() => setMergeOpen(false)}
+             onMerged={() => { setMergeOpen(false); setSelectedTpls(new Set()); loadData(); }}
+           />
          )}
          </div>
         );
