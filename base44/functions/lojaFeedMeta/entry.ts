@@ -13,6 +13,18 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.41";
 import { buildCatalogoMeta, itemsToCsv, itemsToXml } from "../../shared/metaCatalog.ts";
 
+// CUIDADO: dentro da funcao, req.url e o endereco INTERNO do dispatcher
+// (base44-dispatcher-production...workers.dev/run/<hash>), que responde 401 pra quem
+// vem de fora. Nao da pra derivar a URL publica dele -- por isso as duas constantes.
+const APP_ID = "68c9d5dd3cf0f8fd8a834875";
+const FEED_URL_PUBLICA =
+  Deno.env.get("APP_FEED_BASE_URL") ||
+  `https://base44.app/api/apps/${APP_ID}/functions/lojaFeedMeta`;
+const LOJA_URL_PUBLICA = (Deno.env.get("APP_PUBLIC_URL") || "https://placefit.base44.app").replace(
+  /\/+$/,
+  "",
+);
+
 export default async function (req) {
   try {
     const url = new URL(req.url);
@@ -24,7 +36,7 @@ export default async function (req) {
     // revendedor montar o link do feed sem precisar adivinhar o dominio do app.
     // Nao expoe token nem dado de loja, entao pode ser publico.
     if (param("info")) {
-      return Response.json({ feed_base_url: `${url.origin}${url.pathname}` });
+      return Response.json({ feed_base_url: FEED_URL_PUBLICA });
     }
 
     const slug = param("slug").toLowerCase();
@@ -51,8 +63,7 @@ export default async function (req) {
       return Response.json({ error: "Sincronizacao pausada pelo revendedor" }, { status: 403 });
     }
 
-    const baseUrl = (Deno.env.get("APP_PUBLIC_URL") || url.origin).replace(/\/+$/, "");
-    const { items, stats } = await buildCatalogoMeta(base44, config, baseUrl);
+    const { items, stats } = await buildCatalogoMeta(base44, config, LOJA_URL_PUBLICA);
 
     // Registra a passagem da Meta para o painel do revendedor.
     try {
