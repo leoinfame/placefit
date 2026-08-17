@@ -1,5 +1,13 @@
 // Testes do mapeamento PlaceFit -> catalogo Meta (WhatsApp).
-// Rodar:  node base44/shared/metaCatalog.test.mjs
+// Rodar (Node < 22 nao carrega .ts direto, entao copiamos os dois modulos como .mjs):
+//
+//   cd /app && mkdir -p /tmp/mc \
+//     && sed 's#\./loja\.ts#./loja.mjs#' base44/shared/metaCatalog.ts > /tmp/mc/metaCatalog.mjs \
+//     && cp base44/shared/loja.ts /tmp/mc/loja.mjs \
+//     && sed 's#\./metaCatalog\.ts#/tmp/mc/metaCatalog.mjs#' base44/shared/metaCatalog.test.mjs > /tmp/mc/t.mjs \
+//     && node /tmp/mc/t.mjs
+//
+// (Em Node 22+ da pra rodar direto: node base44/shared/metaCatalog.test.mjs)
 //
 // Cobre as regras que, se quebrarem, publicam preco errado no WhatsApp do revendedor:
 // preco cheio x promocional, foto obrigatoria em https, agrupamento por variacao de peso
