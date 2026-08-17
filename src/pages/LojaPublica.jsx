@@ -4,6 +4,7 @@ import { ShoppingCart, Search, Loader2, Store, MessageCircle, User } from "lucid
 import { Link } from "react-router-dom";
 import { getStoreData } from "@/functions/getStoreData";
 import { getSession, clearSession } from "@/lib/lojaSession";
+import { getStoredCart, setStoredCart } from "@/lib/lojaCart";
 import LojaProductCard from "@/components/loja/LojaProductCard";
 import LojaCart from "@/components/loja/LojaCart";
 import LojaCheckout from "@/components/loja/LojaCheckout";
@@ -14,7 +15,7 @@ export default function LojaPublica() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(() => getStoredCart(slug));
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -37,6 +38,7 @@ export default function LojaPublica() {
 
   useEffect(() => { load(); refreshSessao(); }, [slug]);
   useEffect(() => { refreshSessao(); }, [checkoutOpen]);
+  useEffect(() => { setStoredCart(slug, cart); }, [cart, slug]);
 
   const refreshSessao = () => setSessao(getSession(slug));
   const logout = () => { clearSession(slug); setSessao(null); };
@@ -171,7 +173,7 @@ export default function LojaPublica() {
           <p className="text-gray-400 text-center py-20">Nenhum produto encontrado.</p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {filtered.map((p) => <LojaProductCard key={p.id} group={p} onAdd={addToCart} primaryColor={primary} />)}
+            {filtered.map((p) => <LojaProductCard key={p.id} group={p} onAdd={addToCart} primaryColor={primary} slug={slug} />)}
           </div>
         )}
       </main>

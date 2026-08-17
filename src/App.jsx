@@ -11,6 +11,7 @@ import PublicTableFabricante from './pages/PublicTableFabricante';
 import Marketplace from './pages/Marketplace';
 import FabricanteCatalogoPublic from './pages/FabricanteCatalogoPublic';
 import LojaPublica from './pages/LojaPublica';
+import LojaProduto from './pages/LojaProduto';
 import LojaClienteArea from './pages/LojaClienteArea';
 import LojaEcommerce from './pages/LojaEcommerce';
 import LojaRevendedor from './pages/LojaRevendedor';
@@ -53,6 +54,7 @@ const AuthenticatedApp = () => {
         <Route path="/Marketplace" element={<Marketplace />} />
         <Route path="/PublicTableFabricante" element={<PublicTableFabricante />} />
         <Route path="/FabricanteCatalogoPublic/:id" element={<FabricanteCatalogoPublic />} />
+        <Route path="/loja/:slug/produto/:cod" element={<LojaProduto />} />
         <Route path="/loja/:slug/conta" element={<LojaClienteArea />} />
         <Route path="/loja/:slug" element={<LojaPublica />} />
         <Route path="*" element={<Marketplace />} />

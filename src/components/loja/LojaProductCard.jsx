@@ -1,24 +1,32 @@
 import React, { useState } from "react";
 import { ShoppingCart, Package } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const fmt = (v) => Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 2 });
 
-export default function LojaProductCard({ group, onAdd, primaryColor }) {
+export default function LojaProductCard({ group, onAdd, primaryColor, slug }) {
   const [idx, setIdx] = useState(0);
   const sel = group.variacoes[idx] || group.variacoes[0];
+  const produtoUrl = `/loja/${slug}/produto/${sel.cod}`;
 
-  const add = () => {
+  const add = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     onAdd({ id: sel.sp_id, sp_id: sel.sp_id, product_id: sel.product_id, nome: sel.nome, preco: sel.preco, foto: group.foto, und: group.und, peso_kg: sel.peso_kg });
   };
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 overflow-hidden flex flex-col hover:shadow-lg transition-shadow">
-      <div className="aspect-square bg-gray-50 flex items-center justify-center overflow-hidden">
-        {group.foto ? <img src={group.foto} alt={group.nome} className="w-full h-full object-cover" /> : <Package className="w-12 h-12 text-gray-300" />}
-      </div>
+      <Link to={produtoUrl} className="block">
+        <div className="aspect-square bg-gray-50 flex items-center justify-center overflow-hidden">
+          {group.foto ? <img src={group.foto} alt={group.nome} className="w-full h-full object-cover" /> : <Package className="w-12 h-12 text-gray-300" />}
+        </div>
+      </Link>
       <div className="p-3 flex flex-col flex-1">
-        <p className="text-[10px] uppercase text-gray-400">{group.categoria}</p>
-        <p className="font-semibold text-sm text-gray-900 leading-tight line-clamp-2">{group.nome}</p>
+        <Link to={produtoUrl}>
+          <p className="text-[10px] uppercase text-gray-400">{group.categoria}</p>
+          <p className="font-semibold text-sm text-gray-900 leading-tight line-clamp-2">{group.nome}</p>
+        </Link>
         {group.tem_pesos ? (
           <p className="text-xs text-gray-500 mt-0.5">a partir de <span className="font-bold" style={{ color: primaryColor }}>R$ {fmt(group.preco_por_kg)}/kg</span></p>
         ) : (
