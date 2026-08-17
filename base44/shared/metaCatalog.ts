@@ -114,15 +114,25 @@ export function buildItemMeta(sp, t, config, baseUrl) {
 
   const loja = `${baseUrl}/loja/${config.slug}`;
   const marca = clean(sp.fabricante_nome || config.nome_loja || "PlaceFit", 100);
+
+  // O nome do fabricante NAO vai na descricao que o cliente final le (Leandro, 16/08/2026).
+  // Alem de nao montar mais o trecho, removemos ele de descricao_padrao que ja o tenha,
+  // por casamento literal com o nome do fabricante -- nada de regex, que comeria
+  // razao social com ponto no meio ("Ind. e Com. Ltda").
+  const semFabricante = (s) => {
+    let out = String(s ?? "");
+    if (sp.fabricante_nome) {
+      for (const alvo of [`Fabricante: ${sp.fabricante_nome}.`, `Fabricante: ${sp.fabricante_nome}`]) {
+        out = out.split(alvo).join(" ");
+      }
+    }
+    return out;
+  };
+
   const descricao = clean(
-    t.descricao_padrao ||
-      [
-        t.nome,
-        sp.fabricante_nome ? `Fabricante: ${sp.fabricante_nome}` : "",
-        `Vendido por ${config.nome_loja}`,
-      ]
-        .filter(Boolean)
-        .join(". "),
+    semFabricante(
+      t.descricao_padrao || [t.nome, `Vendido por ${config.nome_loja}`].filter(Boolean).join(". "),
+    ),
     9000,
   );
 
