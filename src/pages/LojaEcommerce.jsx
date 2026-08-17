@@ -5,6 +5,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Loader2, Store, Plus, Pencil, ExternalLink } from "lucide-react";
 import AdminStoreForm from "@/components/loja/AdminStoreForm";
 import AdminOrders from "@/components/loja/AdminOrders";
+import WhatsappCatalogo from "@/components/loja/WhatsappCatalogo";
 
 export default function LojaEcommerce() {
   const [tab, setTab] = useState("lojas");
@@ -73,6 +74,19 @@ export default function LojaEcommerce() {
                 <Button variant="ghost" size="sm" onClick={() => setShowForm(false)}>Voltar</Button>
               </div>
               <AdminStoreForm resellers={resellers} config={editing} onSaved={() => { setShowForm(false); load(); }} />
+              {editing?.id && (
+                <div className="border-t pt-4">
+                  <h4 className="font-semibold mb-3">Catálogo do WhatsApp</h4>
+                  <WhatsappCatalogo
+                    config={editing}
+                    onSaved={async () => {
+                      const atualizados = await base44.entities.LojaConfig.filter({ id: editing.id });
+                      if (atualizados[0]) setEditing(atualizados[0]);
+                      load();
+                    }}
+                  />
+                </div>
+              )}
             </div>
           )}
         </TabsContent>
