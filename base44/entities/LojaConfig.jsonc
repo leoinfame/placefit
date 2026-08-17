@@ -72,6 +72,44 @@
       "type": "boolean",
       "default": false,
       "description": "Se a loja esta publicada e acessivel publicamente"
+    },
+    "wa_feed_token": {
+      "type": "string",
+      "description": "Segredo da URL publica do feed Meta (lojaFeedMeta?slug=..&token=..). Gerado no painel do revendedor. Vazio = catalogo do WhatsApp nao ativado."
+    },
+    "wa_sync_ativo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Se false, o feed responde 403 e a Meta para de atualizar o catalogo (pausa sem perder a URL)"
+    },
+    "wa_ultima_sync": {
+      "type": "string",
+      "description": "ISO datetime da ultima vez que a Meta buscou o feed"
+    },
+    "wa_itens_publicados": {
+      "type": "number",
+      "description": "Quantos itens sairam no ultimo feed entregue a Meta"
+    },
+    "wa_itens_sem_foto": {
+      "type": "number",
+      "description": "Quantos produtos ativos ficaram de fora do catalogo por nao terem foto"
+    },
+    "wa_catalog_id": {
+      "type": "string",
+      "description": "ID do catalogo Meta (Commerce Manager) do revendedor. Necessario para o push instantaneo."
+    },
+    "wa_access_token": {
+      "type": "string",
+      "description": "Token de acesso ao catalogo desta loja. Vazio = usa o secret global META_CATALOG_TOKEN."
+    },
+    "wa_push_ativo": {
+      "type": "boolean",
+      "default": false,
+      "description": "Fase 2: envia cada alteracao de produto na hora para o catalogo Meta, alem do feed agendado"
+    },
+    "wa_ultimo_push": {
+      "type": "string",
+      "description": "ISO datetime do ultimo push instantaneo aceito pela Meta"
     }
   },
   "required": [
