@@ -85,6 +85,72 @@ const precoCheio = (sp) => {
   return Math.round(base * (1 + margem / 100) * 100) / 100;
 };
 
+// Motivos pelos quais um vinculo NAO vira item de catalogo.
+export const MOTIVO = {
+  OK: "ok",
+  INDISPONIVEL: "indisponivel",
+  TEMPLATE_INATIVO: "template_inativo",
+  SEM_PRECO: "sem_preco",
+  SEM_FOTO: "sem_foto",
+};
+
+/**
+ * Converte UM par (SupplierProduct, ProductTemplate) em item de catalogo Meta.
+ * Retorna { item: null, motivo } quando o produto nao pode ser publicado.
+ * Usada tanto pelo feed quanto pelo push instantaneo, para que os dois nunca divirjam.
+ */
+export function buildItemMeta(sp, t, config, baseUrl) {
+  if (!sp || sp.disponivel === false || !sp.product_id) {
+    return { item: null, motivo: MOTIVO.INDISPONIVEL };
+  }
+  if (!t || t.ativo === false) return { item: null, motivo: MOTIVO.TEMPLATE_INATIVO };
+
+  const cheio = precoCheio(sp);
+  const efetivo = computeStorePrice(sp);
+  if (!cheio || cheio <= 0 || !efetivo || efetivo <= 0) {
+    return { item: null, motivo: MOTIVO.SEM_PRECO };
+  }
+  if (!isHttps(t.foto)) return { item: null, motivo: MOTIVO.SEM_FOTO };
+
+  const loja = `${baseUrl}/loja/${config.slug}`;
+  const marca = clean(sp.fabricante_nome || config.nome_loja || "PlaceFit", 100);
+  const descricao = clean(
+    t.descricao_padrao ||
+      [
+        t.nome,
+        sp.fabricante_nome ? `Fabricante: ${sp.fabricante_nome}` : "",
+        `Vendido por ${config.nome_loja}`,
+      ]
+        .filter(Boolean)
+        .join(". "),
+    9000,
+  );
+
+  // price = preco cheio; sale_price = promocional, so quando realmente menor.
+  // A Meta mostra o riscado corretamente e o preco efetivo bate com a vitrine.
+  const temPromo = efetivo < cheio;
+
+  return {
+    motivo: MOTIVO.OK,
+    item: {
+      id: sp.id,
+      title: clean(t.nome, 200),
+      description: descricao,
+      availability: "in stock",
+      condition: "new",
+      price: `${cheio.toFixed(2)} BRL`,
+      sale_price: temPromo ? `${efetivo.toFixed(2)} BRL` : "",
+      link: `${loja}?produto=${encodeURIComponent(sp.id)}`,
+      image_link: t.foto.trim(),
+      brand: marca,
+      item_group_id: shortHash(groupKey(t)),
+      product_type: clean([t.categoria, t.subcategoria].filter(Boolean).join(" > "), 750),
+      google_product_category: clean(t.google_category || "", 250),
+      quantity_to_sell_on_facebook: "100",
+    },
+  };
+}
+
 /**
  * Constroi os itens do catalogo Meta de um revendedor.
  *
@@ -136,59 +202,24 @@ export async function buildCatalogoMeta(base44, config, baseUrl) {
   const tplById = {};
   for (const t of templates) tplById[t.id] = t;
 
-  const loja = `${baseUrl}/loja/${config.slug}`;
   const items = [];
   const semFoto = [];
 
   for (const sp of available) {
     const t = tplById[sp.product_id];
-    if (!t || t.ativo === false) {
-      stats.template_inativo++;
+    const { item, motivo } = buildItemMeta(sp, t, config, baseUrl);
+    if (item) {
+      items.push(item);
       continue;
     }
-
-    const cheio = precoCheio(sp);
-    const efetivo = computeStorePrice(sp);
-    if (!cheio || cheio <= 0 || !efetivo || efetivo <= 0) {
-      stats.sem_preco++;
-      continue;
-    }
-
-    if (!isHttps(t.foto)) {
+    if (motivo === MOTIVO.TEMPLATE_INATIVO) stats.template_inativo++;
+    else if (motivo === MOTIVO.SEM_PRECO) stats.sem_preco++;
+    else if (motivo === MOTIVO.SEM_FOTO) {
       stats.sem_foto++;
-      if (semFoto.length < 200) semFoto.push({ cod: t.cod, nome: t.nome, product_id: t.id });
-      continue;
-    }
-
-    const marca = clean(sp.fabricante_nome || config.nome_loja || "PlaceFit", 100);
-    const descricao = clean(
-      t.descricao_padrao ||
-        [t.nome, sp.fabricante_nome ? `Fabricante: ${sp.fabricante_nome}` : "", `Vendido por ${config.nome_loja}`]
-          .filter(Boolean)
-          .join(". "),
-      9000,
-    );
-
-    // price = preco cheio; sale_price = promocional, so quando realmente menor.
-    // A Meta mostra o riscado corretamente e o preco efetivo bate com a vitrine.
-    const temPromo = efetivo < cheio;
-
-    items.push({
-      id: sp.id,
-      title: clean(t.nome, 200),
-      description: descricao,
-      availability: "in stock",
-      condition: "new",
-      price: `${cheio.toFixed(2)} BRL`,
-      sale_price: temPromo ? `${efetivo.toFixed(2)} BRL` : "",
-      link: `${loja}?produto=${encodeURIComponent(sp.id)}`,
-      image_link: t.foto.trim(),
-      brand: marca,
-      item_group_id: shortHash(groupKey(t)),
-      product_type: clean([t.categoria, t.subcategoria].filter(Boolean).join(" > "), 750),
-      google_product_category: clean(t.google_category || "", 250),
-      quantity_to_sell_on_facebook: "100",
-    });
+      if (semFoto.length < 200 && t) {
+        semFoto.push({ cod: t.cod, nome: t.nome, product_id: t.id });
+      }
+    } else stats.indisponiveis++;
   }
 
   stats.publicados = items.length;
