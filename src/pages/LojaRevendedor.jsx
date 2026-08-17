@@ -4,6 +4,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Loader2, Store, ExternalLink } from "lucide-react";
 import AdminStoreForm from "@/components/loja/AdminStoreForm";
 import AdminOrders from "@/components/loja/AdminOrders";
+import WhatsappCatalogo from "@/components/loja/WhatsappCatalogo";
 
 export default function LojaRevendedor() {
   const [user, setUser] = useState(null);
@@ -37,6 +38,7 @@ export default function LojaRevendedor() {
         <TabsList>
           <TabsTrigger value="loja">Minha Loja</TabsTrigger>
           <TabsTrigger value="visualizar">Visualizar Loja</TabsTrigger>
+          <TabsTrigger value="whatsapp">Catálogo WhatsApp</TabsTrigger>
           <TabsTrigger value="pedidos">Meus Pedidos</TabsTrigger>
         </TabsList>
 
@@ -64,6 +66,10 @@ export default function LojaRevendedor() {
           ) : (
             <p className="text-gray-500 text-sm">Salve sua loja (defina o slug) para visualizar.</p>
           )}
+        </TabsContent>
+
+        <TabsContent value="whatsapp">
+          <WhatsappCatalogo config={config} onSaved={load} />
         </TabsContent>
 
         <TabsContent value="pedidos">
