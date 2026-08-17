@@ -16,9 +16,20 @@ import { buildCatalogoMeta, itemsToCsv, itemsToXml } from "../../shared/metaCata
 export default async function (req) {
   try {
     const url = new URL(req.url);
-    const slug = (url.searchParams.get("slug") || "").trim().toLowerCase();
-    const token = (url.searchParams.get("token") || "").trim();
-    const format = (url.searchParams.get("format") || "csv").trim().toLowerCase();
+    const body = req.method === "POST" ? await req.json().catch(() => ({})) : {};
+    const param = (k, def = "") =>
+      String(body[k] ?? url.searchParams.get(k) ?? def).trim();
+
+    // Modo info: devolve APENAS a URL publica desta propria funcao, para o painel do
+    // revendedor montar o link do feed sem precisar adivinhar o dominio do app.
+    // Nao expoe token nem dado de loja, entao pode ser publico.
+    if (param("info")) {
+      return Response.json({ feed_base_url: `${url.origin}${url.pathname}` });
+    }
+
+    const slug = param("slug").toLowerCase();
+    const token = param("token");
+    const format = param("format", "csv").toLowerCase();
 
     if (!slug) return Response.json({ error: "slug obrigatorio" }, { status: 400 });
 
