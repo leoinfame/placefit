@@ -90,6 +90,31 @@ eq(
   eq("batch omite google_product_category vazio", "google_product_category" in req.data, false);
 }
 
+// O cliente final nao pode ler o nome do fabricante na descricao.
+{
+  const semDescr = buildItemMeta(S(), T(), cfg, base).item.description;
+  eq("descricao montada nao cita fabricante", /Fabricante/i.test(semDescr), false);
+  eq("descricao montada mantem 'Vendido por'", semDescr, "Anilha Sport Emborrachada Olímpica 20kg. Vendido por MuscularFit");
+
+  const comDescr = buildItemMeta(
+    S(),
+    T({ descricao_padrao: "Anilha 20kg. Fabricante: Metal Forma. Ideal para academia." }),
+    cfg,
+    base,
+  ).item.description;
+  eq("descricao_padrao tem o fabricante removido", /Fabricante/i.test(comDescr), false);
+  eq("resto da descricao_padrao sobrevive", comDescr, "Anilha 20kg. Ideal para academia.");
+
+  // Razao social com ponto no meio nao pode ser cortada pela metade.
+  const pontos = buildItemMeta(
+    S({ fabricante_nome: "Ind. e Com. Muscular Ltda" }),
+    T({ descricao_padrao: "Anilha 20kg. Fabricante: Ind. e Com. Muscular Ltda. Pronta entrega." }),
+    cfg,
+    base,
+  ).item.description;
+  eq("razao social com ponto sai inteira", pontos, "Anilha 20kg. Pronta entrega.");
+}
+
 eq("titulo cortado em 200", buildItemMeta(S(), T({ nome: "A".repeat(400) }), cfg, base).item.title.length <= 200, true);
 
 console.log(falhas === 0 ? "\nTODOS OS TESTES PASSARAM" : `\n${falhas} FALHA(S)`);
