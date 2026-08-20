@@ -10,6 +10,7 @@
 
 import { computeStorePrice } from "./loja.ts";
 
+// Colunas do feed da Meta (catalogo do WhatsApp / Commerce Manager).
 export const FEED_COLUMNS = [
   "id",
   "title",
@@ -25,6 +26,31 @@ export const FEED_COLUMNS = [
   "product_type",
   "google_product_category",
   "quantity_to_sell_on_facebook",
+];
+
+// Colunas do feed do Google Merchant Center.
+// Duas diferencas que importam em relacao ao da Meta:
+//   - sem `quantity_to_sell_on_facebook`, que e campo da Meta;
+//   - com `mpn` + `identifier_exists`. O Google exige gtin OU mpn; quando o produto
+//     nao tem nenhum dos dois, `identifier_exists: no` e OBRIGATORIO, senao ele
+//     reprova o item por "identificador ausente". Nenhum ProductTemplate tem gtin hoje.
+export const FEED_COLUMNS_GOOGLE = [
+  "id",
+  "title",
+  "description",
+  "availability",
+  "condition",
+  "price",
+  "sale_price",
+  "link",
+  "image_link",
+  "brand",
+  "item_group_id",
+  "product_type",
+  "google_product_category",
+  "gtin",
+  "mpn",
+  "identifier_exists",
 ];
 
 export const fetchAllPaged = async (fn, sort = "-created_date", pageSize = 500) => {
@@ -161,6 +187,11 @@ export function buildItemMeta(sp, t, config, baseUrl) {
       product_type: clean([t.categoria, t.subcategoria].filter(Boolean).join(" > "), 750),
       google_product_category: clean(t.google_category || "", 250),
       quantity_to_sell_on_facebook: "100",
+      // Identificadores para o Google. O cod_origem e o SKU do proprio fabricante,
+      // que e exatamente o que o campo mpn quer dizer.
+      gtin: clean(t.gtin || "", 50),
+      mpn: clean(sp.cod_origem || "", 70),
+      identifier_exists: t.gtin || sp.cod_origem ? "yes" : "no",
     },
   };
 }
@@ -245,9 +276,9 @@ const csvCell = (v) => {
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 };
 
-export function itemsToCsv(items) {
-  const linhas = [FEED_COLUMNS.join(",")];
-  for (const it of items) linhas.push(FEED_COLUMNS.map((c) => csvCell(it[c])).join(","));
+export function itemsToCsv(items, colunas = FEED_COLUMNS) {
+  const linhas = [colunas.join(",")];
+  for (const it of items) linhas.push(colunas.map((c) => csvCell(it[c])).join(","));
   return linhas.join("\n") + "\n";
 }
 
@@ -258,10 +289,10 @@ const xmlEsc = (v) =>
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
-export function itemsToXml(items, nomeLoja) {
+export function itemsToXml(items, nomeLoja, colunas = FEED_COLUMNS) {
   const entradas = items
     .map((it) => {
-      const campos = FEED_COLUMNS.filter((c) => it[c] !== "" && it[c] != null)
+      const campos = colunas.filter((c) => it[c] !== "" && it[c] != null)
         .map((c) => `      <g:${c}>${xmlEsc(it[c])}</g:${c}>`)
         .join("\n");
       return `    <item>\n${campos}\n    </item>`;
