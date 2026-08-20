@@ -27,6 +27,7 @@ import ConfiguracaoFiscal from './pages/ConfiguracaoFiscal';
 import CatalogoFabricante from './pages/CatalogoFabricante';
 import Atributos from './pages/Atributos';
 import Produtos from './pages/Produtos';
+import FabricantePublico from './pages/FabricantePublico';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -36,7 +37,7 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   <Layout currentPageName={currentPageName}>{children}</Layout>
   : <>{children}</>;
 
-const PUBLIC_PATHS = ['/', '/Marketplace', '/PublicTableFabricante', '/PublicRegister', '/PublicRegisterFabricante', '/PublicRegisterTransportador', '/FabricanteCatalogoPublic', '/loja'];
+const PUBLIC_PATHS = ['/', '/Marketplace', '/PublicTableFabricante', '/PublicRegister', '/PublicRegisterFabricante', '/PublicRegisterTransportador', '/FabricanteCatalogoPublic', '/fabricantes', '/loja'];
 
 const isPublicPath = () => {
   const path = window.location.pathname;
@@ -54,10 +55,11 @@ const AuthenticatedApp = () => {
         <Route path="/Marketplace" element={<Marketplace />} />
         <Route path="/PublicTableFabricante" element={<PublicTableFabricante />} />
         <Route path="/FabricanteCatalogoPublic/:id" element={<FabricanteCatalogoPublic />} />
+        <Route path="/fabricantes/:slug" element={<FabricantePublico />} />
         <Route path="/loja/:slug/produto/:cod" element={<LojaProduto />} />
         <Route path="/loja/:slug/conta" element={<LojaClienteArea />} />
         <Route path="/loja/:slug" element={<LojaPublica />} />
-        <Route path="*" element={<Marketplace />} />
+        <Route path="*" element={<PageNotFound />} />
       </Routes>
     );
   }
