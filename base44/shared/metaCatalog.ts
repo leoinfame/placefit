@@ -112,7 +112,11 @@ export function buildItemMeta(sp, t, config, baseUrl) {
   }
   if (!isHttps(t.foto)) return { item: null, motivo: MOTIVO.SEM_FOTO };
 
+  // Pagina do produto: rota /loja/:slug/produto/:cod em App.jsx, onde :cod e o COD DO
+  // TEMPLATE (LojaProduto.jsx casa com v.cod), nao o id do SupplierProduct.
+  // Sem o cod nao ha pagina individual -- cai na vitrine, entao mandamos para a loja.
   const loja = `${baseUrl}/loja/${config.slug}`;
+  const link = t.cod ? `${loja}/produto/${encodeURIComponent(t.cod)}` : loja;
   const marca = clean(sp.fabricante_nome || config.nome_loja || "PlaceFit", 100);
 
   // O nome do fabricante NAO vai na descricao que o cliente final le (Leandro, 16/08/2026).
@@ -150,7 +154,7 @@ export function buildItemMeta(sp, t, config, baseUrl) {
       condition: "new",
       price: `${cheio.toFixed(2)} BRL`,
       sale_price: temPromo ? `${efetivo.toFixed(2)} BRL` : "",
-      link: `${loja}?produto=${encodeURIComponent(sp.id)}`,
+      link,
       image_link: t.foto.trim(),
       brand: marca,
       item_group_id: shortHash(groupKey(t)),
