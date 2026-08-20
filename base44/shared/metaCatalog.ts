@@ -9,6 +9,7 @@
 // Os que ficam de fora sao contados em stats.sem_foto e aparecem no painel do revendedor.
 
 import { computeStorePrice } from "./loja.ts";
+import { FRETE_TABELA } from "./freteLoja.ts";
 
 // Colunas do feed da Meta (catalogo do WhatsApp / Commerce Manager).
 export const FEED_COLUMNS = [
@@ -51,7 +52,21 @@ export const FEED_COLUMNS_GOOGLE = [
   "gtin",
   "mpn",
   "identifier_exists",
+  "shipping",
+  "shipping_weight",
 ];
+
+// Frete por estado para o feed do Google, a partir da MESMA tabela da vitrine
+// (shared/freteLoja.ts, origem Claudio/MG). A regra la e: ate 500kg paga a tarifa
+// minima do estado; acima disso, por kg. Uma peca sozinha sempre cai na faixa de ate
+// 500kg, entao o que vai no feed e a tarifa minima -- exatamente o que o cliente
+// pagaria levando aquele item. Carrinho acima de 500kg e recalculado no checkout pela
+// mesma funcao, entao os dois nunca divergem no caso que importa.
+const FRETE_POR_ESTADO = Object.entries(FRETE_TABELA).map(([uf, t]) => ({
+  country: "BR",
+  region: uf,
+  price: `${t.min.toFixed(2)} BRL`,
+}));
 
 export const fetchAllPaged = async (fn, sort = "-created_date", pageSize = 500) => {
   let all = [];
@@ -143,7 +158,9 @@ export function buildItemMeta(sp, t, config, baseUrl) {
   // Sem o cod nao ha pagina individual -- cai na vitrine, entao mandamos para a loja.
   const loja = `${baseUrl}/loja/${config.slug}`;
   const link = t.cod ? `${loja}/produto/${encodeURIComponent(t.cod)}` : loja;
-  const marca = clean(sp.fabricante_nome || config.nome_loja || "PlaceFit", 100);
+  // A marca exibida ao cliente final e a LOJA, nunca o fabricante (Leandro, 20/08/2026).
+  // No Google isso aparece dentro do anuncio, mais visivel ainda que no WhatsApp.
+  const marca = clean(config.nome_loja || "PlaceFit", 100);
 
   // O nome do fabricante NAO vai na descricao que o cliente final le (Leandro, 16/08/2026).
   // Alem de nao montar mais o trecho, removemos ele de descricao_padrao que ja o tenha,
@@ -192,6 +209,8 @@ export function buildItemMeta(sp, t, config, baseUrl) {
       gtin: clean(t.gtin || "", 50),
       mpn: clean(sp.cod_origem || "", 70),
       identifier_exists: t.gtin || sp.cod_origem ? "yes" : "no",
+      shipping: FRETE_POR_ESTADO,
+      shipping_weight: t.peso_kg > 0 ? `${Number(t.peso_kg)} kg` : "",
     },
   };
 }
