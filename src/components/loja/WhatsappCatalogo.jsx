@@ -30,8 +30,10 @@ export default function WhatsappCatalogo({ config, onSaved }) {
   const [teste, setTeste] = useState(null);
 
   useEffect(() => {
+    // catalogoFeedMeta substituiu lojaFeedMeta em 20/08/2026 (o deploy da antiga
+    // congelou e ela seguia servindo o link errado do produto).
     base44.functions
-      .invoke("lojaFeedMeta", { info: 1 })
+      .invoke("catalogoFeedMeta", { info: 1 })
       .then((r) => setFeedBase(r?.data?.feed_base_url || r?.feed_base_url || ""))
       .catch(() => setFeedBase(""));
   }, []);
