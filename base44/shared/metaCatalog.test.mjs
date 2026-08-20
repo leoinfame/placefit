@@ -13,7 +13,13 @@
 // preco cheio x promocional, foto obrigatoria em https, agrupamento por variacao de peso
 // e escape de CSV.
 
-import { buildItemMeta, itemsToCsv, itemsToBatchRequests, MOTIVO } from "./metaCatalog.ts";
+import {
+  buildItemMeta,
+  itemsToCsv,
+  itemsToBatchRequests,
+  MOTIVO,
+  FEED_COLUMNS_GOOGLE,
+} from "./metaCatalog.ts";
 
 const cfg = { slug: "muscularfitcombr", nome_loja: "MuscularFit" };
 const base = "https://placefit.base44.app";
@@ -125,6 +131,28 @@ eq(
     base,
   ).item.description;
   eq("razao social com ponto sai inteira", pontos, "Anilha 20kg. Pronta entrega.");
+}
+
+// Google Merchant Center: sem gtin nem mpn, `identifier_exists: no` e obrigatorio,
+// senao ele reprova o item por identificador ausente.
+{
+  const semId = buildItemMeta(S({ cod_origem: "" }), T(), cfg, base).item;
+  eq("sem gtin/mpn marca identifier_exists=no", semId.identifier_exists, "no");
+  eq("sem gtin/mpn deixa mpn vazio", semId.mpn, "");
+
+  const comMpn = buildItemMeta(S({ cod_origem: "MF-4477" }), T(), cfg, base).item;
+  eq("cod_origem do fabricante vira mpn", comMpn.mpn, "MF-4477");
+  eq("com mpn marca identifier_exists=yes", comMpn.identifier_exists, "yes");
+
+  const comGtin = buildItemMeta(S({ cod_origem: "" }), T({ gtin: "7891234567895" }), cfg, base).item;
+  eq("gtin do template entra no feed", comGtin.gtin, "7891234567895");
+  eq("com gtin marca identifier_exists=yes", comGtin.identifier_exists, "yes");
+
+  // O feed do Google nao pode carregar coluna da Meta.
+  const cab = itemsToCsv([semId], FEED_COLUMNS_GOOGLE).split("\n")[0];
+  eq("feed Google sem coluna da Meta", cab.includes("quantity_to_sell_on_facebook"), false);
+  eq("feed Google tem identifier_exists", cab.includes("identifier_exists"), true);
+  eq("feed Meta mantem a coluna dela", itemsToCsv([semId]).split("\n")[0].includes("quantity_to_sell_on_facebook"), true);
 }
 
 eq("titulo cortado em 200", buildItemMeta(S(), T({ nome: "A".repeat(400) }), cfg, base).item.title.length <= 200, true);
