@@ -295,9 +295,19 @@ const csvCell = (v) => {
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 };
 
+// `shipping` e o unico campo composto e repetido do feed. No CSV vira um grupo por
+// estado, no formato pais:regiao:servico:preco, separados por virgula -- por isso a
+// celula inteira sai entre aspas.
+const celulaFeed = (v) => {
+  if (Array.isArray(v)) {
+    return csvCell(v.map((s) => [s.country, s.region, s.service || "", s.price].join(":")).join(","));
+  }
+  return csvCell(v);
+};
+
 export function itemsToCsv(items, colunas = FEED_COLUMNS) {
   const linhas = [colunas.join(",")];
-  for (const it of items) linhas.push(colunas.map((c) => csvCell(it[c])).join(","));
+  for (const it of items) linhas.push(colunas.map((c) => celulaFeed(it[c])).join(","));
   return linhas.join("\n") + "\n";
 }
 
