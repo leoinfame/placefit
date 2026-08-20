@@ -1,0 +1,140 @@
+{
+  "name": "FabricantePerfilPublico",
+  "type": "object",
+  "description": "Perfil editorial publico e indexavel de fabricantes aprovados na PlaceFit. Separa dados publicos de SEO/GEO/AEO dos campos internos da entidade Fabricante.",
+  "properties": {
+    "fabricante_id": {
+      "type": "string",
+      "description": "ID da entidade Fabricante relacionada"
+    },
+    "slug": {
+      "type": "string",
+      "description": "Slug publico unico, ex: cpfit"
+    },
+    "nome": {
+      "type": "string",
+      "description": "Nome publico da marca"
+    },
+    "razao_social": {
+      "type": "string",
+      "description": "Razao social quando desejado publicamente"
+    },
+    "cnpj": {
+      "type": "string",
+      "description": "CNPJ publico da empresa"
+    },
+    "data_fundacao": {
+      "type": "string",
+      "description": "Data de fundacao/abertura no formato YYYY-MM-DD"
+    },
+    "cidade": {
+      "type": "string"
+    },
+    "estado": {
+      "type": "string"
+    },
+    "site": {
+      "type": "string"
+    },
+    "instagram": {
+      "type": "string"
+    },
+    "logo_url": {
+      "type": "string"
+    },
+    "responsavel_nome": {
+      "type": "string"
+    },
+    "responsavel_cargo": {
+      "type": "string"
+    },
+    "responsavel_foto": {
+      "type": "string"
+    },
+    "resumo": {
+      "type": "string",
+      "description": "Resumo factual curto para SEO e introducao"
+    },
+    "historia": {
+      "type": "string",
+      "description": "Historia factual da empresa"
+    },
+    "capacidades": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Capacidades reais do fabricante"
+    },
+    "produtos_destaque": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nome": {
+            "type": "string"
+          },
+          "categoria": {
+            "type": "string"
+          },
+          "descricao": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "nome"
+        ]
+      }
+    },
+    "fontes_externas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "titulo": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          },
+          "veiculo": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "titulo",
+          "url"
+        ]
+      }
+    },
+    "seo_title": {
+      "type": "string"
+    },
+    "seo_description": {
+      "type": "string"
+    },
+    "publicado": {
+      "type": "boolean",
+      "default": false
+    },
+    "revisado_em": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "fabricante_id",
+    "slug",
+    "nome",
+    "resumo",
+    "publicado"
+  ],
+  "x-security": {
+    "read": "public",
+    "create": "admin",
+    "update": "admin",
+    "delete": "admin"
+  }
+}
