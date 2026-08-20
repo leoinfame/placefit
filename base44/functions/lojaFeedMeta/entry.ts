@@ -16,6 +16,11 @@ import { buildCatalogoMeta, itemsToCsv, itemsToXml } from "../../shared/metaCata
 // CUIDADO: dentro da funcao, req.url e o endereco INTERNO do dispatcher
 // (base44-dispatcher-production...workers.dev/run/<hash>), que responde 401 pra quem
 // vem de fora. Nao da pra derivar a URL publica dele -- por isso as duas constantes.
+// Marcador de versao do codigo publicado. Serve para saber, de fora, se o deploy da
+// funcao pegou a ultima alteracao do modulo compartilhado -- ja aconteceu de
+// mudanca em shared/metaCatalog.ts nao subir junto.
+const BUILD = "2026-08-20-link-produto";
+
 const APP_ID = "68c9d5dd3cf0f8fd8a834875";
 const FEED_URL_PUBLICA =
   Deno.env.get("APP_FEED_BASE_URL") ||
@@ -36,7 +41,7 @@ export default async function (req) {
     // revendedor montar o link do feed sem precisar adivinhar o dominio do app.
     // Nao expoe token nem dado de loja, entao pode ser publico.
     if (param("info")) {
-      return Response.json({ feed_base_url: FEED_URL_PUBLICA });
+      return Response.json({ feed_base_url: FEED_URL_PUBLICA, build: BUILD });
     }
 
     const slug = param("slug").toLowerCase();
@@ -80,6 +85,7 @@ export default async function (req) {
       "Cache-Control": "public, max-age=300",
       "X-PlaceFit-Itens": String(stats.publicados),
       "X-PlaceFit-Sem-Foto": String(stats.sem_foto),
+      "X-PlaceFit-Build": BUILD,
     };
 
     if (format === "json") {
