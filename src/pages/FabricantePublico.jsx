@@ -29,6 +29,7 @@ function PublicSeo({ perfil }) {
     setMeta("og:description", perfil.seo_description || perfil.resumo, true);
     setMeta("og:url", canonicalUrl, true);
     setMeta("og:site_name", "PlaceFit", true);
+    setMeta("og:image", perfil.logo_url || `${PLACEFIT}/cpfit-logo.svg`, true);
     let canonical = document.head.querySelector('link[rel="canonical"]');
     if (!canonical) {
       canonical = document.createElement("link");
@@ -62,6 +63,7 @@ function PublicSeo({ perfil }) {
           taxID: perfil.cnpj || undefined,
           description: perfil.resumo,
           logo: perfil.logo_url || undefined,
+          image: perfil.logo_url || undefined,
           sameAs,
           address: perfil.cidade ? {
             "@type": "PostalAddress",
@@ -164,6 +166,7 @@ export default function FabricantePublico() {
               </div>
             </div>
             <div className="rounded-3xl bg-white p-8 text-neutral-950 shadow-2xl">
+              {perfil.logo_url && <img src={perfil.logo_url} alt={`Logo oficial ${perfil.nome}`} className="w-full h-20 object-contain object-left mb-6" />}
               <div className="text-xs uppercase tracking-widest font-bold text-neutral-400">Identidade oficial</div>
               <div className="mt-4 text-3xl font-black">{perfil.nome}</div>
               {perfil.cnpj && <div className="mt-2 text-sm text-neutral-500">CNPJ {perfil.cnpj}</div>}
@@ -177,7 +180,7 @@ export default function FabricantePublico() {
 
         <section className="max-w-6xl mx-auto px-5 py-16 md:py-24 grid md:grid-cols-[.8fr_1.2fr] gap-12">
           <div><div className="text-green-700 font-black text-xs uppercase tracking-widest">Quem é a CPFit</div><h2 className="mt-3 text-4xl font-black tracking-tight">Fabricação, catálogo e desenvolvimento sob medida.</h2></div>
-          <div><p className="text-lg text-neutral-700 leading-8">{perfil.historia}</p>{perfil.responsavel_nome && <div className="mt-8 border-l-4 border-green-600 pl-5"><div className="font-bold">{perfil.responsavel_nome}</div><div className="text-sm text-neutral-500">{perfil.responsavel_cargo}</div></div>}</div>
+          <div><p className="text-lg text-neutral-700 leading-8">{perfil.historia}</p>{perfil.responsavel_nome && <div className="mt-8 flex items-center gap-4"><img src={perfil.responsavel_foto || "/ricardo-cpfit.svg"} alt={`${perfil.responsavel_nome} - ${perfil.responsavel_cargo || perfil.nome}`} className="w-20 h-20 rounded-2xl object-cover bg-neutral-100"/><div className="border-l-4 border-green-600 pl-5"><div className="font-bold">{perfil.responsavel_nome}</div><div className="text-sm text-neutral-500">{perfil.responsavel_cargo}</div></div></div>}</div>
         </section>
 
         <section className="border-y border-neutral-200 bg-white"><div className="max-w-6xl mx-auto px-5 py-16 md:py-20"><div className="text-green-700 font-black text-xs uppercase tracking-widest">Capacidades do fabricante</div><div className="mt-7 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">{(perfil.capacidades || []).map((c,i)=><div key={i} className="rounded-2xl border border-neutral-200 p-6"><Factory className="w-6 h-6 text-green-600"/><h3 className="mt-4 font-bold text-lg">{c}</h3></div>)}</div></div></section>
