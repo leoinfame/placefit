@@ -318,6 +318,23 @@ const xmlEsc = (v) =>
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
+// No XML, `shipping` e um bloco aninhado e repetido -- um por estado. E o formato
+// nativo do Merchant Center e o unico que expressa varias regioes sem ambiguidade.
+const campoXml = (c, v) => {
+  if (!Array.isArray(v)) return `      <g:${c}>${xmlEsc(v)}</g:${c}>`;
+  return v
+    .map((s) =>
+      [
+        `      <g:${c}>`,
+        `        <g:country>${xmlEsc(s.country)}</g:country>`,
+        `        <g:region>${xmlEsc(s.region)}</g:region>`,
+        `        <g:price>${xmlEsc(s.price)}</g:price>`,
+        `      </g:${c}>`,
+      ].join("\n"),
+    )
+    .join("\n");
+};
+
 export function itemsToXml(items, nomeLoja, colunas = FEED_COLUMNS) {
   const entradas = items
     .map((it) => {
@@ -344,8 +361,12 @@ ${entradas}
 // que usa os mesmos nomes de campo do feed, com "id" fazendo papel de retailer_id.
 export function itemsToBatchRequests(items, method = "UPDATE") {
   return items.map((it) => {
-    const data = { ...it };
-    for (const k of Object.keys(data)) if (data[k] === "" || data[k] == null) delete data[k];
+    // So os campos que a Meta conhece -- os do Google (shipping, mpn, ...) ficariam
+    // sobrando no payload, e `shipping` e array, que a API nao aceita nesse formato.
+    const data = {};
+    for (const c of FEED_COLUMNS) {
+      if (it[c] !== "" && it[c] != null) data[c] = it[c];
+    }
     return { method, data };
   });
 }
