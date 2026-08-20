@@ -19,6 +19,7 @@ import {
   itemsToBatchRequests,
   MOTIVO,
   FEED_COLUMNS_GOOGLE,
+  itemsToXml,
 } from "./metaCatalog.ts";
 
 const cfg = { slug: "muscularfitcombr", nome_loja: "MuscularFit" };
@@ -153,6 +154,41 @@ eq(
   eq("feed Google sem coluna da Meta", cab.includes("quantity_to_sell_on_facebook"), false);
   eq("feed Google tem identifier_exists", cab.includes("identifier_exists"), true);
   eq("feed Meta mantem a coluna dela", itemsToCsv([semId]).split("\n")[0].includes("quantity_to_sell_on_facebook"), true);
+}
+
+// A marca e a loja, nunca o fabricante -- vale mesmo quando o vinculo tem fabricante.
+eq("marca e a loja", buildItemMeta(S(), T(), cfg, base).item.brand, "MuscularFit");
+eq(
+  "marca ignora o fabricante do vinculo",
+  buildItemMeta(S({ fabricante_nome: "Metal Forma" }), T(), cfg, base).item.brand,
+  "MuscularFit",
+);
+
+// Frete: mesma tabela da vitrine, tarifa minima do estado (faixa ate 500kg).
+{
+  const it = buildItemMeta(S(), T({ peso_kg: 20 }), cfg, base).item;
+  const sp = it.shipping.find((s) => s.region === "SP");
+  const am = it.shipping.find((s) => s.region === "AM");
+  eq("frete SP vem da tabela", sp.price, "450.00 BRL");
+  eq("frete AM vem da tabela", am.price, "950.00 BRL");
+  eq("frete cobre os 27 estados", it.shipping.length, 27);
+  eq("peso do envio declarado", it.shipping_weight, "20 kg");
+  eq("produto sem peso nao declara peso", buildItemMeta(S(), T({ peso_kg: 0 }), cfg, base).item.shipping_weight, "");
+
+  // CSV: grupos pais:regiao:servico:preco numa celula so, entre aspas.
+  const linha = itemsToCsv([it], FEED_COLUMNS_GOOGLE).split("\n")[1];
+  eq("CSV traz o grupo de frete de SP", linha.includes("BR:SP::450.00 BRL"), true);
+
+  // XML: bloco aninhado e repetido.
+  const xml = itemsToXml([it], "MuscularFit", FEED_COLUMNS_GOOGLE);
+  eq("XML repete o bloco de frete por estado", (xml.match(/<g:shipping>/g) || []).length, 27);
+  eq("XML aninha regiao dentro do frete", xml.includes("<g:region>SP</g:region>"), true);
+
+  // O batch da Meta nao pode levar campo do Google (shipping e array, quebraria).
+  const data = itemsToBatchRequests([it])[0].data;
+  eq("batch da Meta sem shipping", "shipping" in data, false);
+  eq("batch da Meta sem mpn", "mpn" in data, false);
+  eq("batch da Meta mantem o preco", data.price, "100.00 BRL");
 }
 
 eq("titulo cortado em 200", buildItemMeta(S(), T({ nome: "A".repeat(400) }), cfg, base).item.title.length <= 200, true);
