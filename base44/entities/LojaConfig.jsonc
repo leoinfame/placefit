@@ -110,6 +110,18 @@
     "wa_ultimo_push": {
       "type": "string",
       "description": "ISO datetime do ultimo push instantaneo aceito pela Meta"
+    },
+    "dominio_loja": {
+      "type": "string",
+      "description": "Dominio publico proprio do revendedor onde a loja responde (ex: https://loja.muscularfit.com.br). Usado no link dos produtos. OBRIGATORIO para o Google Merchant Center, que exige landing page em dominio reivindicado pelo lojista - base44.app e da plataforma e nao pode ser reivindicado. Vazio = usa o dominio do app."
+    },
+    "google_ultima_sync": {
+      "type": "string",
+      "description": "ISO datetime da ultima vez que o Google buscou o feed"
+    },
+    "google_itens_publicados": {
+      "type": "number",
+      "description": "Quantos itens sairam no ultimo feed entregue ao Google"
     }
   },
   "required": [
