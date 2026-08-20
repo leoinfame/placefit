@@ -321,8 +321,9 @@ const xmlEsc = (v) =>
 export function itemsToXml(items, nomeLoja, colunas = FEED_COLUMNS) {
   const entradas = items
     .map((it) => {
-      const campos = colunas.filter((c) => it[c] !== "" && it[c] != null)
-        .map((c) => `      <g:${c}>${xmlEsc(it[c])}</g:${c}>`)
+      const campos = colunas
+        .filter((c) => it[c] !== "" && it[c] != null)
+        .map((c) => campoXml(c, it[c]))
         .join("\n");
       return `    <item>\n${campos}\n    </item>`;
     })
