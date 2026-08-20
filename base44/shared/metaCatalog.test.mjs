@@ -61,10 +61,22 @@ eq("foto http simples e recusada", buildItemMeta(S(), T({ foto: "http://x.com/a.
 eq("indisponivel", buildItemMeta(S({ disponivel: false }), T(), cfg, base).motivo, MOTIVO.INDISPONIVEL);
 eq("template inativo", buildItemMeta(S(), T({ ativo: false }), cfg, base).motivo, MOTIVO.TEMPLATE_INATIVO);
 eq("preco zero", buildItemMeta(S({ preco: 0 }), T(), cfg, base).motivo, MOTIVO.SEM_PRECO);
+// O link tem que abrir a PAGINA DO PRODUTO (/loja/:slug/produto/:cod), nao a vitrine.
+// :cod e o cod do template -- e assim que LojaProduto.jsx acha a variacao.
 eq(
-  "link aponta pra loja do revendedor",
+  "link abre a pagina do produto pelo cod",
   buildItemMeta(S(), T(), cfg, base).item.link,
-  "https://placefit.base44.app/loja/muscularfitcombr?produto=sp1",
+  "https://placefit.base44.app/loja/muscularfitcombr/produto/ASRO20",
+);
+eq(
+  "cod com caractere especial vai escapado",
+  buildItemMeta(S(), T({ cod: "BAR MON/INJ" }), cfg, base).item.link,
+  "https://placefit.base44.app/loja/muscularfitcombr/produto/BAR%20MON%2FINJ",
+);
+eq(
+  "template sem cod cai na vitrine, nao em URL quebrada",
+  buildItemMeta(S(), T({ cod: "" }), cfg, base).item.link,
+  "https://placefit.base44.app/loja/muscularfitcombr",
 );
 
 {
