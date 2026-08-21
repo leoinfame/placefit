@@ -181,6 +181,7 @@ export default function LojaPublica() {
       <footer className="border-t mt-8 py-6 text-center text-xs text-gray-400">
         <p>Powered by PlaceFit</p>
         {config.whatsapp_contato && <p className="flex items-center justify-center gap-1 mt-1"><MessageCircle className="w-3 h-3" /> {config.whatsapp_contato}</p>}
+        <p className="mt-2"><Link to={`/loja/${slug}/politica-devolucao`} className="underline hover:text-gray-600">Política de Devolução e Troca</Link></p>
       </footer>
 
       <LojaCart open={cartOpen} onClose={() => setCartOpen(false)} items={cart} onInc={inc} onDec={dec} onRemove={remove} subtotal={subtotal} frete={null} total={subtotal} onCheckout={() => { setCartOpen(false); setCheckoutOpen(true); }} primaryColor={primary} embedTop={isEmbedded ? embedScroll?.top : undefined} embedHeight={isEmbedded ? embedScroll?.height : undefined} />
