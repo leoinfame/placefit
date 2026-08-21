@@ -318,6 +318,11 @@ export default function Layout({ children, currentPageName }) {
           icon: Users,
         },
         {
+          title: "CRM WhatsApp",
+          url: createPageUrl("CRMWhatsApp"),
+          icon: Smartphone,
+        },
+        {
           title: "Tabela de Frete",
           url: createPageUrl("TabelaFrete"),
           icon: Truck,
@@ -417,6 +422,11 @@ export default function Layout({ children, currentPageName }) {
           icon: Users,
         },
         {
+          title: "CRM WhatsApp",
+          url: createPageUrl("CRMWhatsApp"),
+          icon: Smartphone,
+        },
+        {
           title: "Suporte",
           url: createPageUrl("Suporte"),
           icon: HelpCircle,
@@ -464,6 +474,11 @@ export default function Layout({ children, currentPageName }) {
           title: "Meus Clientes",
           url: createPageUrl("Clientes"),
           icon: Users,
+        },
+        {
+          title: "CRM WhatsApp",
+          url: createPageUrl("CRMWhatsApp"),
+          icon: Smartphone,
         },
         {
           title: "Pedidos de Compra",
