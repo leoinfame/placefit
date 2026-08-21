@@ -108,7 +108,7 @@ Responda de forma amigável e profissional em até 3 parágrafos curtos. Use emo
     const reply = aiData.content?.[0]?.text || 'Desculpe, tive um pequeno problema! 🙏 Tente novamente em instantes.';
 
     // 8. Enviar resposta no WhatsApp
-    const whatsappRes = await fetch(`https://graph.instagram.com/v18.0/${phoneNumberId}/messages`, {
+    const whatsappRes = await fetch(`https://graph.facebook.com/v23.0/${phoneNumberId}/messages`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${Deno.env.get('WHATSAPP_API_TOKEN')}`,
