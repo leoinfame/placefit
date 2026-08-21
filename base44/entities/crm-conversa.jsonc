@@ -1,0 +1,102 @@
+{
+  "name": "CRMConversa",
+  "type": "object",
+  "description": "Conversa comercial do CRM WhatsApp, isolada por usu\u00e1rio respons\u00e1vel.",
+  "properties": {
+    "owner_id": {
+      "type": "string"
+    },
+    "cliente_id": {
+      "type": "string"
+    },
+    "nome_contato": {
+      "type": "string"
+    },
+    "telefone": {
+      "type": "string"
+    },
+    "etapa": {
+      "type": "string",
+      "enum": [
+        "novo",
+        "atendimento",
+        "orcamento",
+        "negociacao",
+        "ganho",
+        "perdido"
+      ],
+      "default": "novo"
+    },
+    "ultima_mensagem": {
+      "type": "string"
+    },
+    "ultima_interacao": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "nao_lidas": {
+      "type": "integer",
+      "default": 0
+    },
+    "origem": {
+      "type": "string",
+      "default": "whatsapp"
+    },
+    "observacoes": {
+      "type": "string"
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "owner_id",
+    "nome_contato",
+    "telefone"
+  ],
+  "x-security": {
+    "read": "authenticated",
+    "create": "authenticated",
+    "update": "authenticated",
+    "delete": "authenticated"
+  },
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.owner_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.owner_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.owner_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
