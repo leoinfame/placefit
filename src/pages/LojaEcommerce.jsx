@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Loader2, Store, Plus, Pencil, ExternalLink } from "lucide-react";
+import { Loader2, Store, Plus, Pencil, ExternalLink, AlertTriangle, Globe } from "lucide-react";
 import AdminStoreForm from "@/components/loja/AdminStoreForm";
 import AdminOrders from "@/components/loja/AdminOrders";
 import WhatsappCatalogo from "@/components/loja/WhatsappCatalogo";
@@ -57,8 +57,15 @@ export default function LojaEcommerce() {
                       {s.logo_url ? <img src={s.logo_url} className="w-12 h-12 rounded-lg object-cover" alt={s.nome_loja} /> : <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center"><Store className="w-5 h-5 text-gray-400" /></div>}
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold truncate">{s.nome_loja}</p>
-                        <p className="text-xs text-gray-400 truncate">/loja/{s.slug}</p>
-                        <p className="text-xs mt-0.5">{s.ativo ? <span className="text-green-600">Publicada</span> : <span className="text-gray-400">Rascunho</span>}</p>
+                        <p className="text-xs text-gray-400 truncate">
+                          {s.dominio_loja ? s.dominio_loja.replace(/^https?:\/\//, "") : `/loja/${s.slug}`}
+                        </p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-xs">{s.ativo ? <span className="text-green-600">Publicada</span> : <span className="text-gray-400">Rascunho</span>}</span>
+                          {s.dominio_loja
+                            ? <span className="text-xs text-blue-600 flex items-center gap-0.5"><Globe className="w-3 h-3" /> Domínio próprio</span>
+                            : <span className="text-xs text-amber-600 flex items-center gap-0.5"><AlertTriangle className="w-3 h-3" /> Sem domínio</span>}
+                        </div>
                       </div>
                       <a href={`/loja/${s.slug}`} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-gray-700"><ExternalLink className="w-4 h-4" /></a>
                       <Button size="sm" variant="outline" onClick={() => { setEditing(s); setShowForm(true); }}><Pencil className="w-4 h-4" /></Button>

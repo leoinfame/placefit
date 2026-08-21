@@ -1,0 +1,17 @@
+{
+  "name": "noop",
+  "type": "object",
+  "description": "Entidade reservada sem uso operacional.",
+  "properties": {
+    "x": {
+      "type": "string"
+    }
+  },
+  "x-security": {
+    "read": "admin",
+    "create": "admin",
+    "update": "admin",
+    "delete": "admin"
+  },
+  "required": []
+}

@@ -119,6 +119,19 @@ export default function WhatsappCatalogo({ config, onSaved }) {
         </div>
       </div>
 
+      {!config?.dominio_loja && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 flex gap-2 text-sm text-amber-900">
+          <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+          <div>
+            <strong>Domínio próprio não configurado.</strong> Os links dos produtos saem como{" "}
+            <code>placefit.base44.app/loja/{config?.slug}</code> — a Meta e o Google{" "}
+            <strong>reprovam itens cuja landing page não está em um domínio verificado pelo lojista</strong>.
+            Configure um domínio próprio na aba <strong>Minha Loja</strong> (campo "Domínio próprio da loja")
+            antes de conectar o catálogo.
+          </div>
+        </div>
+      )}
+
       {!ativo ? (
         <Button onClick={ativar} disabled={ativando}>
           {ativando ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}

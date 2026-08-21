@@ -68,7 +68,9 @@ export default async function (req) {
       return Response.json({ error: "Sincronizacao pausada pelo revendedor" }, { status: 403 });
     }
 
-    const { items, stats } = await buildCatalogoMeta(base44, config, LOJA_URL_PUBLICA);
+    // Dominio reivindicavel do revendedor; cai no dominio da plataforma se nao houver.
+    const baseUrl = (config.dominio_loja || LOJA_URL_PUBLICA).replace(/\/+$/, "");
+    const { items, stats } = await buildCatalogoMeta(base44, config, baseUrl);
 
     // Registra a passagem da Meta para o painel do revendedor.
     try {
