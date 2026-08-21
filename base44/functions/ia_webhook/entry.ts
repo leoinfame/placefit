@@ -132,7 +132,7 @@ Responda de forma amigável e profissional. Se não souber responder, ofereça c
     console.log(`[IA_WEBHOOK] Resposta gerada: ${aiResponse.substring(0, 50)}...`);
 
     // ========== ENVIAR RESPOSTA VIA WHATSAPP ==========
-    const whatsappRes = await fetch(`https://graph.instagram.com/v18.0/${phoneNumberId}/messages`, {
+    const whatsappRes = await fetch(`https://graph.facebook.com/v23.0/${phoneNumberId}/messages`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${Deno.env.get('WPP_TOKEN')}`,
