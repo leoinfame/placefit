@@ -84,7 +84,7 @@ const STEPS = [
     title: "Configure o Webhook",
     icon: "🔗",
     description: "Configure um Webhook para receber mensagens dos seus clientes em tempo real.",
-    help: "O webhook permite que o PlaceFit receba as mensagens enviadas para o seu número do WhatsApp. Você precisará de uma URL pública (pode usar o ngrok para testes) ou contratar um servidor.",
+    help: "O webhook do CRM já está disponível na PlaceFit. Copie a Callback URL exibida abaixo e cadastre-a no painel da Meta junto com o mesmo Verify Token.",
     link: "https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks",
     linkLabel: "Guia de Webhook →",
     fields: [
@@ -198,19 +198,14 @@ export default function WhatsAppSetup({ userId, userType = "revendedor" }) {
     setTesting(true);
     setTestResult(null);
     try {
-      // Testa chamando a API da Meta para verificar o número
-      const res = await fetch(
-        `https://graph.facebook.com/v19.0/${config.phone_number_id}`,
-        { headers: { Authorization: `Bearer ${config.access_token}` } }
-      );
-      const data = await res.json();
-      if (data.error) {
-        setTestResult({ ok: false, message: `Erro: ${data.error.message}` });
-      } else {
-        setTestResult({ ok: true, message: `Conectado! Número: ${data.display_phone_number || data.id}` });
-      }
+      // O teste roda no backend para proteger o token e evitar bloqueio de CORS.
+      await handleSave();
+      const response = await base44.functions.invoke("crm-whatsapp", { action: "test", owner_id: userId });
+      const data = response?.data || {};
+      setTestResult({ ok: true, message: `Conectado! Número: ${data.display_phone_number || config.phone_number_id}` });
     } catch (e) {
-      setTestResult({ ok: false, message: "Falha na conexão. Verifique os dados e tente novamente." });
+      const detail = e?.response?.data?.error || e?.message || "Falha na conexão. Verifique os dados e tente novamente.";
+      setTestResult({ ok: false, message: `Erro: ${detail}` });
     }
     setTesting(false);
   };
@@ -410,7 +405,7 @@ export default function WhatsAppSetup({ userId, userType = "revendedor" }) {
             <p className="font-semibold">Configuração do Webhook na Meta</p>
             <p>Após salvar, configure o webhook no painel da Meta com:</p>
             <ul className="list-disc ml-4 space-y-1">
-              <li><strong>Callback URL:</strong> A URL do seu servidor que receberá as mensagens</li>
+              <li><strong>Callback URL:</strong> <code className="bg-amber-100 px-1 rounded break-all">{`${window.location.origin}/functions/crm-whatsapp-webhook`}</code></li>
               <li><strong>Verify Token:</strong> O mesmo valor que você preencheu no campo "Webhook Verify Token" acima</li>
               <li><strong>Fields:</strong> Marque <code className="bg-amber-100 px-1 rounded">messages</code></li>
             </ul>
