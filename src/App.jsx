@@ -11,6 +11,7 @@ import PublicTableFabricante from './pages/PublicTableFabricante';
 import Marketplace from './pages/Marketplace';
 import FabricanteCatalogoPublic from './pages/FabricanteCatalogoPublic';
 import LojaPublica from './pages/LojaPublica';
+import LojaPoliticaDevolucao from './pages/LojaPoliticaDevolucao';
 import LojaProduto from './pages/LojaProduto';
 import LojaClienteArea from './pages/LojaClienteArea';
 import LojaEcommerce from './pages/LojaEcommerce';
@@ -59,6 +60,7 @@ const AuthenticatedApp = () => {
         <Route path="/fabricantes/:slug" element={<FabricantePublico />} />
         <Route path="/loja/:slug/produto/:cod" element={<LojaProduto />} />
         <Route path="/loja/:slug/conta" element={<LojaClienteArea />} />
+        <Route path="/loja/:slug/politica-devolucao" element={<LojaPoliticaDevolucao />} />
         <Route path="/loja/:slug" element={<LojaPublica />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
