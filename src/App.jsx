@@ -28,6 +28,7 @@ import CatalogoFabricante from './pages/CatalogoFabricante';
 import Atributos from './pages/Atributos';
 import Produtos from './pages/Produtos';
 import FabricantePublico from './pages/FabricantePublico';
+import CRMWhatsApp from './components/crm/CRMWhatsApp';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -107,6 +108,7 @@ const AuthenticatedApp = () => {
       <Route path="/PublicTableFabricante" element={<PublicTableFabricante />} />
       <Route path="/AdminTools" element={<AdminTools />} />
       <Route path="/CatalogoWhatsApp" element={<LayoutWrapper currentPageName="CatalogoWhatsApp"><CatalogoWhatsApp /></LayoutWrapper>} />
+      <Route path="/CRMWhatsApp" element={<LayoutWrapper currentPageName="CRMWhatsApp"><CRMWhatsApp /></LayoutWrapper>} />
       <Route path="/AdminServicos" element={<LayoutWrapper currentPageName="AdminServicos"><AdminServicos /></LayoutWrapper>} />
       <Route path="/Servicos" element={<LayoutWrapper currentPageName="Servicos"><Servicos /></LayoutWrapper>} />
       <Route path="/ConfigurarIA" element={<LayoutWrapper currentPageName="ConfigurarIA"><ConfigurarIA /></LayoutWrapper>} />
