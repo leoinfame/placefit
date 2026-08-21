@@ -1,0 +1,107 @@
+{
+  "name": "CRMTemplate",
+  "type": "object",
+  "description": "Modelo de mensagem comercial local ou aprovado pela Meta.",
+  "properties": {
+    "owner_id": {
+      "type": "string"
+    },
+    "nome": {
+      "type": "string"
+    },
+    "titulo": {
+      "type": "string"
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "MARKETING",
+        "UTILITY",
+        "AUTHENTICATION",
+        "LOCAL"
+      ],
+      "default": "LOCAL"
+    },
+    "idioma": {
+      "type": "string",
+      "default": "pt_BR"
+    },
+    "conteudo": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "APPROVED",
+        "PENDING",
+        "REJECTED",
+        "LOCAL"
+      ],
+      "default": "LOCAL"
+    },
+    "meta_id": {
+      "type": "string"
+    },
+    "origem": {
+      "type": "string",
+      "enum": [
+        "meta",
+        "local"
+      ],
+      "default": "local"
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "owner_id",
+    "nome",
+    "conteudo"
+  ],
+  "x-security": {
+    "read": "authenticated",
+    "create": "authenticated",
+    "update": "authenticated",
+    "delete": "authenticated"
+  },
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.owner_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.owner_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.owner_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
