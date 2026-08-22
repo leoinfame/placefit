@@ -122,6 +122,34 @@
     "google_itens_publicados": {
       "type": "number",
       "description": "Quantos itens sairam no ultimo feed entregue ao Google"
+    },
+    "ml_access_token": {
+      "type": "string",
+      "description": "Token de acesso OAuth do Mercado Livre do revendedor. Vazio = ML nao conectado."
+    },
+    "ml_refresh_token": {
+      "type": "string",
+      "description": "Refresh token OAuth do ML (renova o access token a cada 6h automaticamente)"
+    },
+    "ml_expires_at": {
+      "type": "string",
+      "description": "ISO datetime de expiracao do access token do ML"
+    },
+    "ml_user_id": {
+      "type": "string",
+      "description": "ID do usuario no Mercado Livre"
+    },
+    "ml_nickname": {
+      "type": "string",
+      "description": "Apelido/nickname do vendedor no Mercado Livre"
+    },
+    "ml_ultima_exportacao": {
+      "type": "string",
+      "description": "ISO datetime da ultima exportacao de produtos para o ML"
+    },
+    "ml_itens_exportados": {
+      "type": "number",
+      "description": "Quantos itens foram exportados com sucesso na ultima operacao"
     }
   },
   "required": [
