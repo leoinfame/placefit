@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { UploadFile } from "@/integrations/Core";
-import { Save, Upload, Building, FileText, Lock, Eye, EyeOff, MapPin, Plus, Trash2, Truck } from "lucide-react";
+import { Save, Upload, Building, FileText, Lock, Eye, EyeOff, MapPin, Plus, Trash2, Truck, CreditCard, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,6 +45,7 @@ export default function Profile() {
     newPassword: "",
     confirmPassword: ""
   });
+  const [assinaturas, setAssinaturas] = useState([]);
   const [rotas, setRotas] = useState([]);
   const [rotaFormData, setRotaFormData] = useState({
     estado: "",
@@ -98,6 +99,14 @@ export default function Profile() {
           ativo: true 
         });
         setRotas(rotasData);
+      }
+
+      // Carregar assinaturas (planos contratados)
+      try {
+        const assData = await base44.entities.AssinaturaUsuario.filter({ usuario_id: currentUser.id });
+        setAssinaturas(assData);
+      } catch (e) {
+        console.error("Erro ao carregar assinaturas:", e);
       }
     } catch (error) {
       console.error("Erro ao carregar usuário:", error);
@@ -367,6 +376,49 @@ export default function Profile() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Meus Planos Contratados */}
+        {user?.role !== 'admin' && (
+          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="w-5 h-5" />
+                Meus Planos
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {assinaturas.length === 0 ? (
+                <p className="text-gray-500 text-sm">
+                  Nenhum plano contratado. Acesse "Minha Conta" para contratar.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {assinaturas.map((a) => (
+                    <div key={a.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <p className="font-medium flex items-center gap-2">
+                          {a.plano_nome}
+                          {a.status === 'ativo' && <CheckCircle className="w-4 h-4 text-green-500" />}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Vencimento: {a.data_vencimento ? new Date(a.data_vencimento).toLocaleDateString('pt-BR') : '—'}
+                        </p>
+                      </div>
+                      <Badge className={
+                        a.status === 'ativo' ? "bg-green-100 text-green-700" :
+                        a.status === 'trial' ? "bg-blue-100 text-blue-700" :
+                        a.status === 'suspenso' ? "bg-yellow-100 text-yellow-700" :
+                        "bg-gray-100 text-gray-600"
+                      }>
+                        {a.status === 'ativo' ? 'Ativo' : a.status === 'trial' ? 'Trial' : a.status === 'suspenso' ? 'Suspenso' : a.status}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Formulário Principal */}
         <form onSubmit={handleSave} className="space-y-6">
