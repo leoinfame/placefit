@@ -17,22 +17,43 @@ const GROUP_FIELDS = [
 
 // Normaliza o nome do produto removendo pesos, números e variações de tamanho,
 // para que apenas variações do mesmo produto (ex: 5kg, 10kg, 20kg) compartilhem a imagem.
-const getBaseName = (tmpl) => (tmpl.nome || '')
-  .replace(/Expositor/gi, "Suporte")
-  .replace(/\s+para\s+\d+\s+pares/gi, "")
-  .replace(/\s+\d+\s*p[çc]s/gi, "")
-  .replace(/\s+\d+\s*(?:divis[õo]es|div\.?)\s*/gi, " ")
-  .replace(/\s+p\/\s*\d+\s*kg/gi, "")
-  .replace(/\s+\d+(?:[.,]\d+)?\s*kg/gi, "")
-  .replace(/\s+\d+(?:[.,]\d+)?\s*lbs?/gi, "")
-  .replace(/\s+\d+\s+libras?/gi, "")
-  .replace(/\s*\(?\d+\s+ao\s+\d+\)?/gi, "")
-  .replace(/\s+\d+\s*x\s*\d+(?:\s*x\s*\d+(?:[.,]\d+)?)?(?:\s*d\d+)?/gi, "")
-  .replace(/\s+\/\s*$/g, "")
-  .replace(/\s+p\/\s*$/gi, "")
-  .replace(/\s+/g, " ")
-  .trim()
-  .toLowerCase();
+const getBaseName = (tmpl) => {
+  if (tmpl.categoria === 'Puxadores') {
+    return (tmpl.nome || '')
+      .replace(/\bcom\s+Giro\b/gi, "")
+      .replace(/\bsem\s+Giro\b/gi, "")
+      .replace(/\be\s+Giro\b/gi, "")
+      .replace(/\bc\/\s*Giro\b/gi, "")
+      .replace(/\bc\/\s*Manopla\b/gi, "")
+      .replace(/\bcom\s+Manopla\b/gi, "")
+      .replace(/\bsem\s+Manopla\b/gi, "")
+      .replace(/\be\s+Manopla\b/gi, "")
+      .replace(/\b(Grande|Pequeno|M[eé]dio)\b/gi, "")
+      .replace(/\b(Maci[çc]o|Oco)\b/gi, "")
+      .replace(/\b(Aberto|Fechado)\b/gi, "")
+      .replace(/\b(Preto|Cromado|Zincado|Inox)\b/gi, "")
+      .replace(/\b(Bigode)\b/gi, "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
+  }
+  return (tmpl.nome || '')
+    .replace(/Expositor/gi, "Suporte")
+    .replace(/\s+para\s+\d+\s+pares/gi, "")
+    .replace(/\s+\d+\s*p[çc]s/gi, "")
+    .replace(/\s+\d+\s*(?:divis[õo]es|div\.?)\s*/gi, " ")
+    .replace(/\s+p\/\s*\d+\s*kg/gi, "")
+    .replace(/\s+\d+(?:[.,]\d+)?\s*kg/gi, "")
+    .replace(/\s+\d+(?:[.,]\d+)?\s*lbs?/gi, "")
+    .replace(/\s+\d+\s+libras?/gi, "")
+    .replace(/\s*\(?\d+\s+ao\s+\d+\)?/gi, "")
+    .replace(/\s+\d+\s*x\s*\d+(?:\s*x\s*\d+(?:[.,]\d+)?)?(?:\s*d\d+)?/gi, "")
+    .replace(/\s+\/\s*$/g, "")
+    .replace(/\s+p\/\s*$/gi, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+};
 
 const getGroupKey = (tmpl) => getBaseName(tmpl) + '|' + GROUP_FIELDS.map(f => tmpl[f] ?? '').join('|');
 

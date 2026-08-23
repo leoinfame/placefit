@@ -148,6 +148,24 @@ const getBaseName = (tmpl) => {
   if ((tmpl.nome || '').toLowerCase().includes('corda de escalada')) {
     return 'Corda de Escalada';
   }
+  if (tmpl.categoria === 'Puxadores') {
+    return (tmpl.nome || '')
+      .replace(/\bcom\s+Giro\b/gi, "")
+      .replace(/\bsem\s+Giro\b/gi, "")
+      .replace(/\be\s+Giro\b/gi, "")
+      .replace(/\bc\/\s*Giro\b/gi, "")
+      .replace(/\bc\/\s*Manopla\b/gi, "")
+      .replace(/\bcom\s+Manopla\b/gi, "")
+      .replace(/\bsem\s+Manopla\b/gi, "")
+      .replace(/\be\s+Manopla\b/gi, "")
+      .replace(/\b(Grande|Pequeno|M[eé]dio)\b/gi, "")
+      .replace(/\b(Maci[çc]o|Oco)\b/gi, "")
+      .replace(/\b(Aberto|Fechado)\b/gi, "")
+      .replace(/\b(Preto|Cromado|Zincado|Inox)\b/gi, "")
+      .replace(/\b(Bigode)\b/gi, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
   return (tmpl.nome || '')
     .replace(/Expositor/gi, "Suporte")
     .replace(/\s+para\s+\d+\s+pares/gi, "")
