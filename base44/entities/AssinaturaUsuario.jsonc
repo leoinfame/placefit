@@ -47,6 +47,20 @@
       "format": "date",
       "description": "Data de vencimento"
     },
+    "data_cancelamento": {
+      "type": "string",
+      "format": "date",
+      "description": "Data em que o usu\u00e1rio cancelou a assinatura"
+    },
+    "motivo_cancelamento": {
+      "type": "string",
+      "description": "Motivo do cancelamento informado pelo usu\u00e1rio"
+    },
+    "cobranca_automatica": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se a cobran\u00e7a recorrente est\u00e1 ativa no cart\u00e3o salvo"
+    },
     "observacoes": {
       "type": "string",
       "description": "Observa\u00e7\u00f5es internas do admin"
