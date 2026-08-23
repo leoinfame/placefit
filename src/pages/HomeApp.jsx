@@ -172,9 +172,14 @@ export default function HomeApp() {
           <h2 className="text-3xl font-bold tracking-tight text-center text-slate-900 mb-4">
             Planos e recursos
           </h2>
-          <p className="text-slate-500 text-center mb-12 max-w-2xl mx-auto">
+          <p className="text-slate-500 text-center mb-4 max-w-2xl mx-auto">
             A mensalidade do PlaceFit dá acesso a todos os recursos base.
             Recursos avulsos podem ser contratados separadamente dentro da sua conta.
+          </p>
+          <p className="text-center mb-12">
+            <span className="inline-block bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200 rounded-full px-4 py-1.5 text-sm text-blue-700 font-medium">
+              💰 Pague anual e ganhe 10% de desconto — parcelado em até 12x no cartão
+            </span>
           </p>
 
           {loadingPlanos ? (
@@ -238,10 +243,11 @@ export default function HomeApp() {
         <div className="max-w-4xl mx-auto">
           <div className="bg-gradient-to-r from-blue-600 to-green-600 rounded-2xl p-12 text-center shadow-lg">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-white">
-              Comece hoje. 30 dias grátis.
+              Comece hoje.
             </h2>
             <p className="mt-4 text-blue-50 text-lg">
-              Sem cartão de crédito. Cancele quando quiser.
+              Pague anual e ganhe <strong className="text-white">10% de desconto</strong>,
+              parcelado em até 12x no cartão.
             </p>
             <Button
               onClick={handleAssinar}

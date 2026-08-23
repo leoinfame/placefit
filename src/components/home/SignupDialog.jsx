@@ -55,7 +55,6 @@ export default function SignupDialog({ open, onClose }) {
             <h2 className="text-xl font-bold text-slate-900">Inscrição registrada!</h2>
             <p className="text-slate-500 mt-2 text-sm">
               Clique no botão abaixo para criar sua conta Google e acessar o PlaceFit.
-              Você terá <strong className="text-green-600">30 dias grátis</strong>.
             </p>
             <Button
               onClick={handleLoginRedirect}
@@ -69,7 +68,7 @@ export default function SignupDialog({ open, onClose }) {
             <DialogHeader>
               <DialogTitle className="text-xl">Assinar o PlaceFit</DialogTitle>
               <DialogDescription>
-                Preencha seus dados para começar. 30 dias grátis, sem cartão.
+                Preencha seus dados para começar.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-3 py-4">

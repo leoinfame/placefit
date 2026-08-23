@@ -160,13 +160,10 @@ export default function MinhaConta() {
                   {STATUS_STYLE[assinaturaBase.status]?.label || assinaturaBase.status}
                 </Badge>
               </div>
-              {assinaturaBase.status === "trial" && (
-                <div className="flex items-center gap-2 text-sm text-blue-600 bg-blue-50 p-3 rounded-lg">
-                  <Clock className="w-4 h-4" />
-                  Você está em período de teste. Sua mensalidade será cobrada após{" "}
-                  {fmtData(assinaturaBase.data_vencimento)}.
-                </div>
-              )}
+              <div className="flex items-center gap-2 text-sm text-blue-700 bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200 p-3 rounded-lg">
+                <CreditCard className="w-4 h-4" />
+                Pague anual e ganhe <strong>10% de desconto</strong>, parcelado em até 12x no cartão.
+              </div>
             </div>
           ) : (
             <p className="text-gray-500 text-sm">
