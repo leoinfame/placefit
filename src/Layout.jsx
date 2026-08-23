@@ -279,6 +279,11 @@ export default function Layout({ children, currentPageName }) {
           icon: Users,
         },
         {
+          title: "Gestão de Serviços",
+          url: createPageUrl("AdminServicos"),
+          icon: Crown,
+        },
+        {
           title: "Produtos",
           url: createPageUrl("Produtos") + "?tab=admin",
           icon: Package,
