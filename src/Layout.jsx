@@ -62,6 +62,7 @@ export default function Layout({ children, currentPageName }) {
     return localStorage.getItem('admin_view_mode') || 'admin';
   });
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [userPlanos, setUserPlanos] = useState(new Set());
 
   // VERIFICAR PÁGINAS PÚBLICAS PRIMEIRO
   const isPublicPage = 
@@ -174,6 +175,23 @@ export default function Layout({ children, currentPageName }) {
           setUnreadNotifications(notifs.length);
         } catch (error) {
           console.error("Erro ao carregar notificações:", error);
+        }
+      }
+
+      // Carregar planos contratados pelo usuário (para exibir menu condicional)
+      if (currentUser.role === 'user' && !currentUser.tipo_usuario) {
+        try {
+          const assinaturas = await base44.entities.AssinaturaUsuario.filter({
+            usuario_id: currentUser.id,
+          });
+          const slugsAtivos = new Set(
+            assinaturas
+              .filter(a => a.status === 'ativo' || a.status === 'trial')
+              .map(a => a.plano_slug)
+          );
+          setUserPlanos(slugsAtivos);
+        } catch (error) {
+          console.error("Erro ao carregar assinaturas:", error);
         }
       }
     } catch (error) {
@@ -466,11 +484,11 @@ export default function Layout({ children, currentPageName }) {
           url: createPageUrl("Produtos") + "?tab=meus",
           icon: Package,
         },
-        {
+        ...(userPlanos.has('CW') ? [{
           title: "  • Catálogo WhatsApp",
           url: createPageUrl("CatalogoWhatsApp"),
           icon: Package,
-        },
+        }] : []),
         {
           title: "  • Sua Tabela",
           url: createPageUrl("Export"),
@@ -501,11 +519,11 @@ export default function Layout({ children, currentPageName }) {
           url: createPageUrl("Financeiro"),
           icon: ShoppingCart,
         },
-        {
+        ...(userPlanos.has('atendente_ia') ? [{
           title: "Atendente IA",
           url: createPageUrl("AtendenteIARevendedor"),
           icon: Package,
-        },
+        }] : []),
         {
           title: "Orçamentos",
           url: createPageUrl("Orcamentos"),
