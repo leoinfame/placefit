@@ -28,7 +28,12 @@ const CATEGORIAS = [
   "Dumbells",
   "Tijolinhos",
   "Pisos",
+  "Colchonetes",
   "Kettlebells",
+  "Kits",
+  "Barras",
+  "Puxadores",
+  "Suportes",
   "Outros",
 ];
 

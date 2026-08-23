@@ -22,6 +22,9 @@
         "Colchonetes",
         "Kettlebells",
         "Kits",
+        "Barras",
+        "Puxadores",
+        "Suportes",
         "Outros"
       ],
       "description": "Categoria principal do produto"
