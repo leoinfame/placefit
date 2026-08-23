@@ -11,7 +11,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { expandTemplates } from "@/utils/expandTemplates";
 import { getProdutosData } from "@/functions/getProdutosData";
 
-const CATEGORIAS = ["Anilhas","Halteres","Dumbells","Tijolinhos","Pisos","Colchonetes","Kettlebells","Kits","Outros"];
+const CATEGORIAS = ["Anilhas","Halteres","Dumbells","Tijolinhos","Pisos","Colchonetes","Kettlebells","Kits","Barras","Puxadores","Suportes","Outros"];
 const CATEGORY_ORDER = [...CATEGORIAS];
 
 const GROUP_FIELDS = [

@@ -20,8 +20,12 @@ const CATEGORIAS = [
   "Dumbells",
   "Tijolinhos",
   "Pisos",
+  "Colchonetes",
   "Kettlebells",
   "Kits",
+  "Barras",
+  "Puxadores",
+  "Suportes",
   "Outros",
 ];
 
@@ -50,6 +54,9 @@ const CAMPOS_POR_CATEGORIA = {
   Kettlebells: ["peso_kg", "acabamento"],
   Outros: ["subcategoria"],
   Kits: ["subcategoria", "acabamento", "pegada", "peso_faixa"],
+  Barras: ["subcategoria", "acabamento", "barra_acabamento", "peso_kg"],
+  Puxadores: ["subcategoria", "acabamento"],
+  Suportes: ["subcategoria"],
 };
 
 const CAMPO_LABELS = {
