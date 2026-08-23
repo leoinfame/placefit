@@ -15,7 +15,26 @@ const GROUP_FIELDS = [
   'pegada', 'peso_faixa'
 ];
 
-const getGroupKey = (tmpl) => GROUP_FIELDS.map(f => tmpl[f] ?? '').join('|');
+// Normaliza o nome do produto removendo pesos, números e variações de tamanho,
+// para que apenas variações do mesmo produto (ex: 5kg, 10kg, 20kg) compartilhem a imagem.
+const getBaseName = (tmpl) => (tmpl.nome || '')
+  .replace(/Expositor/gi, "Suporte")
+  .replace(/\s+para\s+\d+\s+pares/gi, "")
+  .replace(/\s+\d+\s*p[çc]s/gi, "")
+  .replace(/\s+\d+\s*(?:divis[õo]es|div\.?)\s*/gi, " ")
+  .replace(/\s+p\/\s*\d+\s*kg/gi, "")
+  .replace(/\s+\d+(?:[.,]\d+)?\s*kg/gi, "")
+  .replace(/\s+\d+(?:[.,]\d+)?\s*lbs?/gi, "")
+  .replace(/\s+\d+\s+libras?/gi, "")
+  .replace(/\s*\(?\d+\s+ao\s+\d+\)?/gi, "")
+  .replace(/\s+\d+\s*x\s*\d+(?:\s*x\s*\d+(?:[.,]\d+)?)?(?:\s*d\d+)?/gi, "")
+  .replace(/\s+\/\s*$/g, "")
+  .replace(/\s+p\/\s*$/gi, "")
+  .replace(/\s+/g, " ")
+  .trim()
+  .toLowerCase();
+
+const getGroupKey = (tmpl) => getBaseName(tmpl) + '|' + GROUP_FIELDS.map(f => tmpl[f] ?? '').join('|');
 
 export default function FotoUploadModal({ template, allTemplates, onClose, onSaved }) {
   const [uploading, setUploading] = useState(false);
@@ -43,7 +62,7 @@ export default function FotoUploadModal({ template, allTemplates, onClose, onSav
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       setPreviewUrl(file_url);
-      toast({ title: "Imagem carregada", description: "Clique em Salvar para aplicar a todas as variações." });
+      toast({ title: "Imagem carregada", description: "Clique em Salvar para aplicar às variações deste produto." });
     } catch (err) {
       toast({ title: "Erro", description: "Falha ao enviar imagem.", variant: "destructive" });
     }
@@ -91,8 +110,8 @@ export default function FotoUploadModal({ template, allTemplates, onClose, onSav
       <div className="bg-blue-50 rounded-lg p-3">
         <p className="font-semibold text-sm text-blue-900">{template?.nome}</p>
         <p className="text-xs text-blue-700 mt-0.5">
-          {variations.length} {variations.length === 1 ? "variação encontrada" : "variações encontradas"} — a imagem será aplicada a todas.
-        </p>
+           {variations.length} {variations.length === 1 ? "variação encontrada" : "variações encontradas"} deste produto — a imagem será aplicada apenas a estas variações.
+         </p>
       </div>
 
       {/* Preview */}
@@ -138,7 +157,7 @@ export default function FotoUploadModal({ template, allTemplates, onClose, onSav
             disabled={uploading || saving}
           />
         </label>
-        <p className="text-xs text-gray-500 mt-1">Formatos: JPG, PNG, WebP. A mesma imagem será usada em todas as variações de peso.</p>
+        <p className="text-xs text-gray-500 mt-1">Formatos: JPG, PNG, WebP. A imagem será aplicada apenas às variações do mesmo produto (mesmo nome e atributos).</p>
       </div>
 
       {/* Actions */}
