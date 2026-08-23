@@ -14,7 +14,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, CreditCard, Package, Plus, Trash2, Zap } from "lucide-react";
+import { Loader2, CreditCard, Package, Plus, Trash2, Zap, QrCode } from "lucide-react";
+import PagarDialog from "./PagarDialog";
 
 const fmtData = (iso) => {
   if (!iso) return "—";
@@ -46,6 +47,10 @@ export default function AssinaturasTab({
   const [cancelando, setCancelando] = useState(null);
   const [motivo, setMotivo] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pagarAssinatura, setPagarAssinatura] = useState(null);
+
+  const getPreco = (slug) =>
+    planos.find((p) => p.slug === slug)?.preco_mensal || 0;
 
   const assinaturaBase = assinaturas.find((a) => a.plano_slug === "mensalidade_padrao");
   const recursosAtivos = assinaturas.filter(
@@ -94,14 +99,29 @@ export default function AssinaturasTab({
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div>
                   <p className="font-semibold text-lg">{assinaturaBase.plano_nome}</p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-2xl font-bold text-gray-900">
+                    {fmtPreco(getPreco(assinaturaBase.plano_slug))}
+                    <span className="text-sm font-normal text-gray-500">/mês</span>
+                  </p>
+                  <p className="text-sm text-gray-500 mt-1">
                     Início: {fmtData(assinaturaBase.data_inicio)} • Vencimento:{" "}
                     {fmtData(assinaturaBase.data_vencimento)}
                   </p>
                 </div>
-                <Badge className={STATUS_STYLE[assinaturaBase.status] || ""}>
-                  {assinaturaBase.status}
-                </Badge>
+                <div className="flex flex-col items-end gap-2">
+                  <Badge className={STATUS_STYLE[assinaturaBase.status] || ""}>
+                    {assinaturaBase.status}
+                  </Badge>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-2"
+                    onClick={() => setPagarAssinatura(assinaturaBase)}
+                  >
+                    <QrCode className="w-4 h-4" />
+                    Pagar via PIX/Boleto
+                  </Button>
+                </div>
               </div>
               {assinaturaBase.cobranca_automatica && (
                 <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 p-2 rounded-lg">
@@ -142,6 +162,9 @@ export default function AssinaturasTab({
                 >
                   <div>
                     <p className="font-medium">{a.plano_nome}</p>
+                    <p className="text-sm font-semibold text-gray-700">
+                      {fmtPreco(getPreco(a.plano_slug))}/mês
+                    </p>
                     <p className="text-xs text-gray-500">
                       Vencimento: {fmtData(a.data_vencimento)}
                       {a.cobranca_automatica && " • Cobrança automática ativa"}
@@ -149,6 +172,15 @@ export default function AssinaturasTab({
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge className={STATUS_STYLE[a.status] || ""}>{a.status}</Badge>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-1"
+                      onClick={() => setPagarAssinatura(a)}
+                    >
+                      <QrCode className="w-3 h-3" />
+                      Pagar
+                    </Button>
                     <Button
                       size="sm"
                       variant="ghost"
@@ -204,6 +236,14 @@ export default function AssinaturasTab({
           </CardContent>
         </Card>
       )}
+
+      {/* Dialog de pagamento PIX/Boleto */}
+      <PagarDialog
+        assinatura={pagarAssinatura}
+        planos={planos}
+        open={!!pagarAssinatura}
+        onOpenChange={(v) => !v && setPagarAssinatura(null)}
+      />
 
       {/* Dialog de cancelamento */}
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
