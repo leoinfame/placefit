@@ -91,18 +91,17 @@ export default function HomeApp() {
     Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 text-slate-900">
       {/* Header */}
-      <header className="border-b border-gray-800 sticky top-0 bg-gray-950/95 backdrop-blur z-50">
+      <header className="border-b border-slate-200/50 sticky top-0 bg-white/80 backdrop-blur-xl z-50">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src={PLACEFIT_LOGO} alt="PlaceFit" className="h-8 w-auto object-contain" />
-            <span className="font-bold text-lg tracking-tight">PlaceFit</span>
+            <span className="font-bold text-lg tracking-tight text-slate-900">PlaceFit</span>
           </div>
           <Button
-            variant="outline"
             onClick={handleEntrar}
-            className="border-gray-700 text-white hover:bg-gray-800 hover:text-white"
+            className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white"
           >
             {authUser ? "Ir para o app" : "Entrar"}
           </Button>
@@ -112,12 +111,14 @@ export default function HomeApp() {
       {/* Hero */}
       <section className="py-24 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-tight">
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-tight text-slate-900">
             Da cotação à entrega.
             <br />
-            <span className="text-green-500">Toda a sua operação fitness em um só lugar.</span>
+            <span className="bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+              Toda a sua operação fitness em um só lugar.
+            </span>
           </h1>
-          <p className="mt-6 text-lg md:text-xl text-gray-400 max-w-2xl mx-auto">
+          <p className="mt-6 text-lg md:text-xl text-slate-600 max-w-2xl mx-auto">
             O PlaceFit conecta fornecedores, produtos, preços, clientes, orçamentos,
             pedidos, compras, fretes e resultados em uma única plataforma.
           </p>
@@ -125,7 +126,7 @@ export default function HomeApp() {
             <Button
               onClick={handleAssinar}
               size="lg"
-              className="bg-green-600 hover:bg-green-700 text-white px-8 text-base"
+              className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white px-8 text-base"
             >
               Assinar o PlaceFit
               <ArrowRight className="w-4 h-4 ml-2" />
@@ -134,7 +135,7 @@ export default function HomeApp() {
               variant="outline"
               onClick={handleEntrar}
               size="lg"
-              className="border-gray-700 text-white hover:bg-gray-800 hover:text-white px-8 text-base"
+              className="border-slate-300 text-slate-700 hover:bg-slate-100 px-8 text-base"
             >
               Entrar
             </Button>
@@ -143,20 +144,22 @@ export default function HomeApp() {
       </section>
 
       {/* Modules */}
-      <section className="py-20 px-6 bg-gray-900 border-y border-gray-800">
+      <section className="py-20 px-6 bg-white/60 border-y border-slate-200/50">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold tracking-tight text-center mb-12">
+          <h2 className="text-3xl font-bold tracking-tight text-center text-slate-900 mb-12">
             Tudo que você precisa para vender
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {MODULES.map((m) => (
               <div
                 key={m.title}
-                className="bg-gray-950 border border-gray-800 rounded-xl p-6 hover:border-green-600/50 transition-colors"
+                className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm hover:shadow-md hover:border-blue-200 transition-all duration-300"
               >
-                <m.icon className="w-8 h-8 text-green-500 mb-4" />
-                <h3 className="font-semibold text-white mb-2">{m.title}</h3>
-                <p className="text-sm text-gray-400 leading-relaxed">{m.desc}</p>
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-50 to-green-50 flex items-center justify-center mb-4">
+                  <m.icon className="w-6 h-6 text-blue-600" />
+                </div>
+                <h3 className="font-semibold text-slate-900 mb-2">{m.title}</h3>
+                <p className="text-sm text-slate-500 leading-relaxed">{m.desc}</p>
               </div>
             ))}
           </div>
@@ -166,16 +169,16 @@ export default function HomeApp() {
       {/* Plans */}
       <section className="py-20 px-6">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold tracking-tight text-center mb-4">
+          <h2 className="text-3xl font-bold tracking-tight text-center text-slate-900 mb-4">
             Planos e recursos
           </h2>
-          <p className="text-gray-400 text-center mb-12 max-w-2xl mx-auto">
+          <p className="text-slate-500 text-center mb-12 max-w-2xl mx-auto">
             A mensalidade do PlaceFit dá acesso a todos os recursos base.
             Recursos avulsos podem ser contratados separadamente dentro da sua conta.
           </p>
 
           {loadingPlanos ? (
-            <div className="text-center text-gray-500">Carregando planos...</div>
+            <div className="text-center text-slate-400">Carregando planos...</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {planos.map((p) => {
@@ -183,30 +186,30 @@ export default function HomeApp() {
                 return (
                   <div
                     key={p.id}
-                    className={`rounded-xl border p-6 ${
+                    className={`rounded-xl border p-6 bg-white shadow-sm transition-all duration-300 ${
                       isBase
-                        ? "border-green-600 bg-green-600/10"
-                        : "border-gray-800 bg-gray-900"
+                        ? "border-blue-500 ring-2 ring-blue-500/20 shadow-md"
+                        : "border-slate-200 hover:shadow-md"
                     }`}
                   >
                     {isBase && (
-                      <span className="inline-block text-xs font-bold uppercase tracking-wider text-green-500 mb-2">
+                      <span className="inline-block text-xs font-bold uppercase tracking-wider text-blue-600 mb-2">
                         Plano base
                       </span>
                     )}
-                    <h3 className="text-xl font-bold text-white">{p.nome}</h3>
-                    <p className="text-3xl font-bold text-white mt-2">
+                    <h3 className="text-xl font-bold text-slate-900">{p.nome}</h3>
+                    <p className="text-3xl font-bold text-slate-900 mt-2">
                       {fmtPreco(p.preco_mensal)}
-                      <span className="text-sm font-normal text-gray-400">/mês</span>
+                      <span className="text-sm font-normal text-slate-400">/mês</span>
                     </p>
                     {p.descricao && (
-                      <p className="text-sm text-gray-400 mt-3">{p.descricao}</p>
+                      <p className="text-sm text-slate-500 mt-3">{p.descricao}</p>
                     )}
                     {p.beneficios && p.beneficios.length > 0 && (
                       <ul className="mt-4 space-y-2">
                         {p.beneficios.map((b, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm text-gray-300">
-                            <Check className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
+                          <li key={i} className="flex items-start gap-2 text-sm text-slate-600">
+                            <Check className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
                             {b}
                           </li>
                         ))}
@@ -216,8 +219,8 @@ export default function HomeApp() {
                       onClick={handleAssinar}
                       className={`mt-6 w-full ${
                         isBase
-                          ? "bg-green-600 hover:bg-green-700 text-white"
-                          : "bg-gray-800 hover:bg-gray-700 text-white border border-gray-700"
+                          ? "bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white"
+                          : "bg-white border border-slate-300 text-slate-700 hover:bg-slate-50"
                       }`}
                     >
                       {isBase ? "Assinar agora" : "Contratar recurso"}
@@ -231,33 +234,35 @@ export default function HomeApp() {
       </section>
 
       {/* Final CTA */}
-      <section className="py-20 px-6 bg-green-600">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-white">
-            Comece hoje. 30 dias grátis.
-          </h2>
-          <p className="mt-4 text-green-50 text-lg">
-            Sem cartão de crédito. Cancele quando quiser.
-          </p>
-          <Button
-            onClick={handleAssinar}
-            size="lg"
-            className="mt-8 bg-gray-950 text-white hover:bg-gray-900 px-8 text-base"
-          >
-            Assinar o PlaceFit
-            <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
+      <section className="py-20 px-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-gradient-to-r from-blue-600 to-green-600 rounded-2xl p-12 text-center shadow-lg">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-white">
+              Comece hoje. 30 dias grátis.
+            </h2>
+            <p className="mt-4 text-blue-50 text-lg">
+              Sem cartão de crédito. Cancele quando quiser.
+            </p>
+            <Button
+              onClick={handleAssinar}
+              size="lg"
+              className="mt-8 bg-white text-blue-600 hover:bg-slate-100 px-8 text-base"
+            >
+              Assinar o PlaceFit
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-gray-800 py-8 px-6">
+      <footer className="border-t border-slate-200 py-8 px-6 bg-white/60">
         <div className="max-w-6xl mx-auto flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-3">
             <img src={PLACEFIT_LOGO} alt="PlaceFit" className="h-6 w-auto object-contain" />
-            <span className="text-sm text-gray-500">© 2026 PlaceFit</span>
+            <span className="text-sm text-slate-400">© 2026 PlaceFit</span>
           </div>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-slate-400">
             Da cotação à entrega. Toda a sua operação fitness em um só lugar.
           </p>
         </div>

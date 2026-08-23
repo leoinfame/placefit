@@ -46,18 +46,20 @@ export default function SignupDialog({ open, onClose }) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="bg-gray-950 border-gray-800 text-white max-w-md">
+      <DialogContent className="max-w-md">
         {done ? (
           <div className="text-center py-6">
-            <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-white">Inscrição registrada!</h2>
-            <p className="text-gray-400 mt-2 text-sm">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-50 to-green-50 flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="w-8 h-8 text-green-600" />
+            </div>
+            <h2 className="text-xl font-bold text-slate-900">Inscrição registrada!</h2>
+            <p className="text-slate-500 mt-2 text-sm">
               Clique no botão abaixo para criar sua conta Google e acessar o PlaceFit.
-              Você terá <strong className="text-green-500">30 dias grátis</strong>.
+              Você terá <strong className="text-green-600">30 dias grátis</strong>.
             </p>
             <Button
               onClick={handleLoginRedirect}
-              className="mt-6 bg-green-600 hover:bg-green-700 text-white w-full"
+              className="mt-6 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white w-full"
             >
               Criar conta e acessar
             </Button>
@@ -65,55 +67,50 @@ export default function SignupDialog({ open, onClose }) {
         ) : (
           <form onSubmit={submit}>
             <DialogHeader>
-              <DialogTitle className="text-white text-xl">Assinar o PlaceFit</DialogTitle>
-              <DialogDescription className="text-gray-400">
+              <DialogTitle className="text-xl">Assinar o PlaceFit</DialogTitle>
+              <DialogDescription>
                 Preencha seus dados para começar. 30 dias grátis, sem cartão.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-3 py-4">
               <div>
-                <Label className="text-gray-300">Nome *</Label>
+                <Label>Nome *</Label>
                 <Input
                   value={form.nome}
                   onChange={(e) => setForm({ ...form, nome: e.target.value })}
                   required
-                  className="bg-gray-900 border-gray-700 text-white"
                 />
               </div>
               <div>
-                <Label className="text-gray-300">Email *</Label>
+                <Label>Email *</Label>
                 <Input
                   type="email"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   required
-                  className="bg-gray-900 border-gray-700 text-white"
                 />
               </div>
               <div>
-                <Label className="text-gray-300">Empresa</Label>
+                <Label>Empresa</Label>
                 <Input
                   value={form.empresa}
                   onChange={(e) => setForm({ ...form, empresa: e.target.value })}
-                  className="bg-gray-900 border-gray-700 text-white"
                 />
               </div>
               <div>
-                <Label className="text-gray-300">WhatsApp</Label>
+                <Label>WhatsApp</Label>
                 <Input
                   value={form.whatsapp}
                   onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
                   placeholder="(11) 99999-9999"
-                  className="bg-gray-900 border-gray-700 text-white"
                 />
               </div>
               <div>
-                <Label className="text-gray-300">Cupom (aluno do curso)</Label>
+                <Label>Cupom (aluno do curso)</Label>
                 <Input
                   value={form.cupom}
                   onChange={(e) => setForm({ ...form, cupom: e.target.value })}
                   placeholder="Opcional"
-                  className="bg-gray-900 border-gray-700 text-white"
                 />
               </div>
               {error && <p className="text-red-500 text-sm">{error}</p>}
@@ -122,7 +119,7 @@ export default function SignupDialog({ open, onClose }) {
               <Button
                 type="submit"
                 disabled={loading}
-                className="bg-green-600 hover:bg-green-700 text-white w-full"
+                className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white w-full"
               >
                 {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 Continuar
