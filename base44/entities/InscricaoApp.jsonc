@@ -1,0 +1,50 @@
+{
+  "name": "InscricaoApp",
+  "type": "object",
+  "description": "Intent de inscricao no app PlaceFit via homepage publica. Quando o usuario faz login (Google), o backend processa o registro e cria uma AssinaturaUsuario de trial.",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome completo do inscrito"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email do inscrito"
+    },
+    "empresa": {
+      "type": "string",
+      "description": "Nome da empresa"
+    },
+    "whatsapp": {
+      "type": "string",
+      "description": "WhatsApp"
+    },
+    "cupom": {
+      "type": "string",
+      "description": "Cupom de aluno do curso Empreenda no Mercado Fitness (30 dias trial)"
+    },
+    "processado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se ja foi processado (AssinaturaUsuario criada)"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "ID do User criado apos o login Google"
+    },
+    "assinatura_id": {
+      "type": "string",
+      "description": "ID da AssinaturaUsuario criada"
+    }
+  },
+  "required": [
+    "nome",
+    "email"
+  ],
+  "x-security": {
+    "read": "admin",
+    "create": "public",
+    "update": "admin",
+    "delete": "admin"
+  }
+}

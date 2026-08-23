@@ -23,7 +23,8 @@ import {
   TrendingUp,
   Crown,
   ShieldCheck,
-  Truck
+  Truck,
+  CreditCard
 } from "lucide-react";
 import {
   Sidebar,
@@ -246,6 +247,11 @@ export default function Layout({ children, currentPageName }) {
         title: "Painel",
         url: createPageUrl("Dashboard"),
         icon: LayoutDashboard,
+      },
+      {
+        title: "Minha Conta",
+        url: createPageUrl("MinhaConta"),
+        icon: CreditCard,
       }
     ];
 

@@ -9,6 +9,8 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import PublicTableFabricante from './pages/PublicTableFabricante';
 import Marketplace from './pages/Marketplace';
+import HomeApp from './pages/HomeApp';
+import MinhaConta from './pages/MinhaConta';
 import FabricanteCatalogoPublic from './pages/FabricanteCatalogoPublic';
 import LojaPublica from './pages/LojaPublica';
 import LojaPoliticaDevolucao from './pages/LojaPoliticaDevolucao';
@@ -53,7 +55,7 @@ const AuthenticatedApp = () => {
   if (isPublicPath()) {
     return (
       <Routes>
-        <Route path="/" element={<Marketplace />} />
+        <Route path="/" element={<HomeApp />} />
         <Route path="/Marketplace" element={<Marketplace />} />
         <Route path="/PublicTableFabricante" element={<PublicTableFabricante />} />
         <Route path="/FabricanteCatalogoPublic/:id" element={<FabricanteCatalogoPublic />} />
@@ -90,7 +92,7 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
-      <Route path="/" element={<Marketplace />} />
+      <Route path="/" element={<HomeApp />} />
       <Route path="/app" element={
         <LayoutWrapper currentPageName={mainPageKey}>
           <MainPage />
@@ -123,6 +125,7 @@ const AuthenticatedApp = () => {
       <Route path="/Produtos" element={<LayoutWrapper currentPageName="Produtos"><Produtos /></LayoutWrapper>} />
       <Route path="/LojaEcommerce" element={<LayoutWrapper currentPageName="LojaEcommerce"><LojaEcommerce /></LayoutWrapper>} />
       <Route path="/LojaRevendedor" element={<LayoutWrapper currentPageName="LojaRevendedor"><LojaRevendedor /></LayoutWrapper>} />
+      <Route path="/MinhaConta" element={<LayoutWrapper currentPageName="MinhaConta"><MinhaConta /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

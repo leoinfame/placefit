@@ -1,0 +1,109 @@
+{
+  "description": "Historico de cobrancas do usuario assinante: mensalidade padrao do App PlaceFit e/ou recursos avulsos (PlanoServico). Uma linha por fatura/cobranca gerada.",
+  "name": "FaturaAssinatura",
+  "properties": {
+    "assinatura_id": {
+      "description": "ID da AssinaturaUsuario relacionada (mensalidade padrao ou recurso avulso)",
+      "type": "string"
+    },
+    "comprovante_url": {
+      "description": "URL do comprovante/recibo, quando disponivel",
+      "type": "string"
+    },
+    "data_emissao": {
+      "description": "Data de emissao da fatura",
+      "format": "date",
+      "type": "string"
+    },
+    "data_pagamento": {
+      "description": "Data em que o pagamento foi confirmado",
+      "format": "date",
+      "type": "string"
+    },
+    "data_vencimento": {
+      "description": "Data de vencimento",
+      "format": "date",
+      "type": "string"
+    },
+    "gateway_id": {
+      "description": "ID da cobranca no gateway de pagamento externo (quando integrado)",
+      "type": "string"
+    },
+    "metodo_pagamento": {
+      "description": "Metodo de pagamento utilizado",
+      "enum": [
+        "pix",
+        "cartao",
+        "boleto"
+      ],
+      "type": "string"
+    },
+    "observacoes": {
+      "description": "Observacoes internas sobre esta fatura",
+      "type": "string"
+    },
+    "plano_nome": {
+      "description": "Nome do plano/recurso para exibicao (ex: Mensalidade padrao, Atendente IA)",
+      "type": "string"
+    },
+    "plano_slug": {
+      "description": "Slug do plano cobrado (ex: mensalidade_padrao, atendente_ia, catalogo_whatsapp)",
+      "type": "string"
+    },
+    "referencia_mes": {
+      "description": "Mes/ano de referencia da cobranca, formato YYYY-MM",
+      "type": "string"
+    },
+    "status": {
+      "default": "pendente",
+      "description": "Status do pagamento desta fatura",
+      "enum": [
+        "pendente",
+        "pago",
+        "atrasado",
+        "cancelado",
+        "estornado"
+      ],
+      "type": "string"
+    },
+    "usuario_email": {
+      "description": "Email do usuario, para referencia rapida",
+      "type": "string"
+    },
+    "usuario_id": {
+      "description": "ID do User assinante dono desta fatura",
+      "type": "string"
+    },
+    "valor": {
+      "description": "Valor da fatura em R$",
+      "type": "number"
+    }
+  },
+  "required": [
+    "usuario_id",
+    "plano_slug",
+    "valor",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.usuario_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  },
+  "type": "object",
+  "x-security": {
+    "create": "admin",
+    "delete": "admin",
+    "read": "authenticated",
+    "update": "admin"
+  }
+}
