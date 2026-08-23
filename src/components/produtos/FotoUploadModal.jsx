@@ -31,7 +31,7 @@ const getBaseName = (tmpl) => {
       .replace(/\b(Grande|Pequeno|M[eé]dio)\b/gi, "")
       .replace(/\b(Maci[çc]o|Oco)\b/gi, "")
       .replace(/\b(Aberto|Fechado)\b/gi, "")
-      .replace(/\b(Preto|Cromado|Zincado|Inox)\b/gi, "")
+      .replace(/\b(Preto|Zincado|Inox)\b/gi, "")
       .replace(/\b(Bigode)\b/gi, "")
       .replace(/\s+/g, " ")
       .trim()
