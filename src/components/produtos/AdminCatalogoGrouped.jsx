@@ -12,7 +12,8 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 
 const CATEGORIAS = [
   "Anilhas", "Halteres", "Dumbells",
-  "Tijolinhos", "Pisos", "Colchonetes", "Kettlebells", "Kits", "Outros",
+  "Tijolinhos", "Pisos", "Colchonetes", "Kettlebells", "Kits",
+  "Barras", "Puxadores", "Suportes", "Outros",
 ];
 
 const CATEGORY_ORDER = [...CATEGORIAS];
