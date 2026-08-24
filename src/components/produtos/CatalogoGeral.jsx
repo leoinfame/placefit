@@ -107,7 +107,7 @@ export default function CatalogoGeral({ user }) {
     for (const t of base) {
       const prices = pricesByProduct[t.id] || [];
       for (const p of prices) {
-        if (p.fabricante_nome) fabSet.add(p.fabricante_nome);
+        if (p && p.fabricante_nome) fabSet.add(p.fabricante_nome);
       }
     }
     return [...fabSet].sort();
@@ -128,7 +128,7 @@ export default function CatalogoGeral({ user }) {
       }
       if (filters.fabricante) {
         const prices = pricesByProduct[t.id] || [];
-        if (!prices.some(p => p.fabricante_nome === filters.fabricante)) return false;
+        if (!prices.some(p => p && p.fabricante_nome === filters.fabricante)) return false;
       }
       return true;
     });
@@ -178,6 +178,7 @@ export default function CatalogoGeral({ user }) {
     for (const tmpl of group.templates) {
       const prices = pricesByProduct[tmpl.id] || [];
       for (const p of prices) {
+        if (!p || !p.fabricante_nome) continue;
         if (!fabData[p.fabricante_nome]) {
           fabData[p.fabricante_nome] = { sum: 0, count: 0, preco: null };
         }
@@ -244,7 +245,7 @@ export default function CatalogoGeral({ user }) {
     let precoKgCount = 0;
     for (const tmpl of group.templates) {
       const prices = pricesByProduct[tmpl.id] || [];
-      const fabPrice = prices.find(p => p.fabricante_nome === fabricanteNome);
+      const fabPrice = prices.find(p => p && p.fabricante_nome === fabricanteNome);
       if (fabPrice && fabPrice.preco && tmpl.peso_kg) {
         precoKgSum += fabPrice.preco / tmpl.peso_kg;
         precoKgCount++;
@@ -256,7 +257,7 @@ export default function CatalogoGeral({ user }) {
     const result = [];
     for (const tmpl of group.templates) {
       const prices = pricesByProduct[tmpl.id] || [];
-      const fabPrice = prices.find(p => p.fabricante_nome === fabricanteNome);
+      const fabPrice = prices.find(p => p && p.fabricante_nome === fabricanteNome);
       if (fabPrice && fabPrice.preco != null) {
         result.push({ templateId: tmpl.id, preco: fabPrice.preco, peso_kg: tmpl.peso_kg, nome: tmpl.nome });
       } else if (hasWeights && avgPrecoKg && tmpl.peso_kg) {

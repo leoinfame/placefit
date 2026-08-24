@@ -32,14 +32,15 @@ import Atributos from './pages/Atributos';
 import Produtos from './pages/Produtos';
 import FabricantePublico from './pages/FabricantePublico';
 import CRMWhatsApp from './components/crm/CRMWhatsApp';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ?
-  <Layout currentPageName={currentPageName}>{children}</Layout>
-  : <>{children}</>;
+  <Layout currentPageName={currentPageName}><ErrorBoundary>{children}</ErrorBoundary></Layout>
+  : <ErrorBoundary>{children}</ErrorBoundary>;
 
 const PUBLIC_PATHS = ['/', '/Marketplace', '/PublicTableFabricante', '/PublicRegister', '/PublicRegisterFabricante', '/PublicRegisterTransportador', '/FabricanteCatalogoPublic', '/fabricantes', '/loja'];
 
@@ -55,15 +56,15 @@ const AuthenticatedApp = () => {
   if (isPublicPath()) {
     return (
       <Routes>
-        <Route path="/" element={<HomeApp />} />
-        <Route path="/Marketplace" element={<Marketplace />} />
-        <Route path="/PublicTableFabricante" element={<PublicTableFabricante />} />
-        <Route path="/FabricanteCatalogoPublic/:id" element={<FabricanteCatalogoPublic />} />
-        <Route path="/fabricantes/:slug" element={<FabricantePublico />} />
-        <Route path="/loja/:slug/produto/:cod" element={<LojaProduto />} />
-        <Route path="/loja/:slug/conta" element={<LojaClienteArea />} />
-        <Route path="/loja/:slug/politica-devolucao" element={<LojaPoliticaDevolucao />} />
-        <Route path="/loja/:slug" element={<LojaPublica />} />
+        <Route path="/" element={<ErrorBoundary><HomeApp /></ErrorBoundary>} />
+        <Route path="/Marketplace" element={<ErrorBoundary><Marketplace /></ErrorBoundary>} />
+        <Route path="/PublicTableFabricante" element={<ErrorBoundary><PublicTableFabricante /></ErrorBoundary>} />
+        <Route path="/FabricanteCatalogoPublic/:id" element={<ErrorBoundary><FabricanteCatalogoPublic /></ErrorBoundary>} />
+        <Route path="/fabricantes/:slug" element={<ErrorBoundary><FabricantePublico /></ErrorBoundary>} />
+        <Route path="/loja/:slug/produto/:cod" element={<ErrorBoundary><LojaProduto /></ErrorBoundary>} />
+        <Route path="/loja/:slug/conta" element={<ErrorBoundary><LojaClienteArea /></ErrorBoundary>} />
+        <Route path="/loja/:slug/politica-devolucao" element={<ErrorBoundary><LojaPoliticaDevolucao /></ErrorBoundary>} />
+        <Route path="/loja/:slug" element={<ErrorBoundary><LojaPublica /></ErrorBoundary>} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     );
