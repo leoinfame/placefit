@@ -101,7 +101,10 @@ export default function Export() {
 
     const preview = availableProducts.map(sp => {
       const product = productsData.find(p => p.id === sp.product_id);
-      return product ? {
+      if (!product) return null;
+      // Preço final com margem aplicada (ou preço promocional se definido)
+      const precoFinal = sp.sale_price || (sp.preco * (1 + (sp.margem || 0) / 100));
+      return {
         nome: product.nome,
         cod: product.cod || '',
         categoria: product.categoria || 'Outros',
@@ -109,9 +112,9 @@ export default function Export() {
         peso: product.peso_kg ? `${product.peso_kg}kg` : '',
         peso_kg: product.peso_kg || null,
         foto: product.foto || '',
-        preco: sp.preco,
-        precoFormatado: `R$ ${sp.preco.toFixed(2)}`
-      } : null;
+        preco: precoFinal,
+        precoFormatado: `R$ ${precoFinal.toFixed(2)}`
+      };
     }).filter(Boolean);
 
     setPreviewData(groupWeightProducts(preview));
