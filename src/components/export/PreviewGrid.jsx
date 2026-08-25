@@ -4,7 +4,7 @@ export default function PreviewGrid({ previewData, user, colors }) {
   if (!previewData || previewData.length === 0) return null;
 
   // Ordem desejada de categorias; demais aparecem depois em ordem alfabética
-  const CATEGORY_ORDER = ['Anilhas', 'Halteres', 'Dumbells', 'Kettlebells', 'Tijolinhos', 'Pisos', 'Kits'];
+  const CATEGORY_ORDER = ['Anilhas', 'Halteres', 'Dumbbells', 'Kettlebells', 'Tijolinhos', 'Pisos', 'Kits'];
 
   // Agrupar por categoria
   const categorias = {};
