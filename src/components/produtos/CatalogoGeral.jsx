@@ -15,7 +15,7 @@ import { expandTemplates } from "@/utils/expandTemplates";
 import { generateCatalogoPDF } from "@/components/produtos/CatalogoPdf";
 
 const CATEGORIAS = [
-  "Anilhas","Halteres","Dumbells",
+  "Anilhas","Halteres","Dumbbells",
   "Tijolinhos","Pisos","Colchonetes","Kettlebells","Kits","Outros"
 ];
 
@@ -170,7 +170,7 @@ export default function CatalogoGeral({ user }) {
   }, [groups]);
 
   // Compute fabricante prices for a group (preço/kg for weight products, unit price otherwise)
-  const WEIGHT_CATEGORIES = ["Anilhas", "Halteres", "Dumbells", "Kettlebells"];
+  const WEIGHT_CATEGORIES = ["Anilhas", "Halteres", "Dumbbells", "Kettlebells"];
   const getGroupFabricantes = (group) => {
     const hasWeights = WEIGHT_CATEGORIES.includes(group.categoria) && group.templates.some(t => t.peso_kg != null);
     const fabData = {};
