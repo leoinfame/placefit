@@ -289,7 +289,7 @@ export default function Export() {
     });
 
     // Ordem desejada de categorias; demais aparecem depois em ordem alfabética
-    const CATEGORY_ORDER = ['Anilhas', 'Halteres', 'Dumbells', 'Kettlebells', 'Tijolinhos', 'Pisos', 'Kits'];
+    const CATEGORY_ORDER = ['Anilhas', 'Halteres', 'Dumbbells', 'Kettlebells', 'Tijolinhos', 'Pisos', 'Kits'];
     const sortedCategories = Object.keys(categorias).sort((a, b) => {
       const ia = CATEGORY_ORDER.indexOf(a);
       const ib = CATEGORY_ORDER.indexOf(b);
