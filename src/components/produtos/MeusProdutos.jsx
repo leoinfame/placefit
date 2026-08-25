@@ -20,7 +20,7 @@ import ConfirmDialog from "@/components/ui/confirm-dialog";
 const formatBRL = (v) => v != null && !isNaN(v) ? v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "—";
 
 const CATEGORY_ORDER = [
-  "Anilhas","Halteres","Dumbells","Barras Montadas",
+  "Anilhas","Halteres","Dumbbells","Barras Montadas",
   "Tijolinhos","Pisos","Colchonetes","Kettlebells","Suportes","Kits","Outros"
 ];
 
@@ -118,7 +118,7 @@ export default function MeusProdutos({ user }) {
     setLoading(false);
   };
 
-  const WEIGHT_CATEGORIES = ["Anilhas", "Halteres", "Dumbells", "Kettlebells"];
+  const WEIGHT_CATEGORIES = ["Anilhas", "Halteres", "Dumbbells", "Kettlebells"];
   const hasWeights = (g) => WEIGHT_CATEGORIES.includes(g.categoria) && g.variations.some(v => v.tmpl.peso_kg != null);
 
   // Compute preço/kg for the group (using smallest weight variation with price)
