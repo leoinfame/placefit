@@ -223,7 +223,7 @@ Deno.serve(async (req) => {
       const deterministico = DETERMINISTICO.includes(r.via);
       // Apenas categorias vendidas por peso usam preço por kg; Pisos, Tijolinhos,
       // Colchonetes, Kits etc. são sempre por unidade, mesmo se a origem veio como por_kg.
-      const WEIGHT_CATEGORIES = ['Anilhas', 'Halteres', 'Dumbells', 'Kettlebells'];
+      const WEIGHT_CATEGORIES = ['Anilhas', 'Halteres', 'Dumbbells', 'Kettlebells'];
       const isWeightCategory = t.categoria && WEIGHT_CATEGORIES.includes(t.categoria);
       const precoFinal = isWeightCategory ? l.preco_final : l.preco_origem;
       plano.push({
