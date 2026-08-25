@@ -18,7 +18,7 @@ import { expandTemplates } from "@/utils/expandTemplates";
 const formatBRL = (v) => v != null && !isNaN(v) ? v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "—";
 
 const CATEGORY_ORDER = [
-  "Anilhas", "Halteres", "Dumbells", "Barras Montadas",
+  "Anilhas", "Halteres", "Dumbbells", "Barras Montadas",
   "Tijolinhos", "Pisos", "Colchonetes", "Kettlebells", "Suportes", "Kits", "Outros"
 ];
 
