@@ -22,7 +22,7 @@ import AdminCatalogoGrouped from "@/components/produtos/AdminCatalogoGrouped";
 import MergeTemplatesDialog from "@/components/admin/MergeTemplatesDialog";
 
 const CATEGORIAS = [
-  "Anilhas", "Halteres", "Dumbells", "Barras Montadas",
+  "Anilhas", "Halteres", "Dumbbells", "Barras Montadas",
   "Tijolinhos", "Pisos", "Kettlebells", "Suportes", "Kits", "Outros",
 ];
 
