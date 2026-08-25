@@ -11,7 +11,7 @@ import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
 const CATEGORIAS = [
-  "Anilhas", "Halteres", "Dumbells",
+  "Anilhas", "Halteres", "Dumbbells",
   "Tijolinhos", "Pisos", "Colchonetes", "Kettlebells", "Kits",
   "Barras", "Puxadores", "Suportes", "Outros",
 ];
