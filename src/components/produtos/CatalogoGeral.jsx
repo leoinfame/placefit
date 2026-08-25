@@ -16,7 +16,8 @@ import { generateCatalogoPDF } from "@/components/produtos/CatalogoPdf";
 
 const CATEGORIAS = [
   "Anilhas","Halteres","Dumbbells",
-  "Tijolinhos","Pisos","Colchonetes","Kettlebells","Kits","Outros"
+  "Tijolinhos","Pisos","Colchonetes","Kettlebells","Kits",
+  "Barras","Puxadores","Suportes","Acessórios","Estruturas","Outros"
 ];
 
 const CATEGORY_ORDER = [...CATEGORIAS];
