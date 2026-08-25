@@ -312,7 +312,7 @@ Deno.serve(async (req) => {
       // ---- preço unitário ou por quilo
       // Apenas categorias vendidas por peso usam preço por kg; Pisos, Tijolinhos,
       // Colchonetes, Kits etc. são sempre por unidade (m²/peça/kit), mesmo com peso_kg.
-      const WEIGHT_CATEGORIES = ['Anilhas', 'Halteres', 'Dumbells', 'Kettlebells'];
+      const WEIGHT_CATEGORIES = ['Anilhas', 'Halteres', 'Dumbbells', 'Kettlebells'];
       const isWeightCategory = template.categoria && WEIGHT_CATEGORIES.includes(template.categoria);
 
       const tipoDeclarado = idxTipoPreco !== -1 ? String(row[idxTipoPreco] || '').trim().toLowerCase() : '';
