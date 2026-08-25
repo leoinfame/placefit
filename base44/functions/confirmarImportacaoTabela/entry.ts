@@ -103,7 +103,7 @@ Deno.serve(async (req) => {
 
       // Apenas categorias vendidas por peso usam preço por kg; Pisos, Tijolinhos,
       // Colchonetes, Kits etc. são sempre por unidade, mesmo com peso_kg no template.
-      const WEIGHT_CATEGORIES = ['Anilhas', 'Halteres', 'Dumbells', 'Kettlebells'];
+      const WEIGHT_CATEGORIES = ['Anilhas', 'Halteres', 'Dumbbells', 'Kettlebells'];
       const isWeightCategory = tmpl.categoria && WEIGHT_CATEGORIES.includes(tmpl.categoria);
       const porKg = isWeightCategory && d?.tipo_preco === 'kg';
       const disponivel = d?.disponivel !== false;
