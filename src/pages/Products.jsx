@@ -34,7 +34,7 @@ import TemplateForm from "@/components/admin/TemplateForm";
 const CATEGORIAS = [
   "Anilhas",
   "Halteres",
-  "Dumbells",
+  "Dumbbells",
   "Barras Montadas",
   "Tijolinhos",
   "Pisos",
