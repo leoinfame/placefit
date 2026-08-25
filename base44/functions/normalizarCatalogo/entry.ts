@@ -139,6 +139,11 @@ export default async function (req) {
 
     if (!gravar) return Response.json(resumo);
 
+    // O Base44 devolve "Rate limit exceeded" quando a gravacao vai sem folga.
+    // 250ms por registro e o que passou limpo; com ?limit=120 cada chamada leva ~30s,
+    // bem dentro do tempo da funcao.
+    const pausa = Math.min(Math.max(parseInt(param("pausa", "250"), 10) || 250, 0), 2000);
+
     let ok = 0;
     const erros = [];
     for (const p of alvo) {
@@ -149,6 +154,7 @@ export default async function (req) {
         erros.push({ cod: p.cod, erro: String(e?.message ?? e) });
         if (erros.length > 20) break;
       }
+      if (pausa) await new Promise((r) => setTimeout(r, pausa));
     }
 
     return Response.json({ ...resumo, gravados: ok, erros });
