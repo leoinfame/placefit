@@ -18,7 +18,7 @@
 
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.41";
 
-const BUILD = "2026-08-25-normalizacao-dumbbell-v1";
+const BUILD = "2026-08-25-normalizacao-dumbbell-v2-pausa";
 
 // Gate simples por token. A funcao nao aceita regra vinda de fora -- ela so sabe
 // aplicar a lista fixa abaixo --, entao o token existe para impedir que alguem
