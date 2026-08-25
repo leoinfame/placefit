@@ -16,7 +16,7 @@
       "enum": [
         "Anilhas",
         "Halteres",
-        "Dumbells",
+        "Dumbbells",
         "Tijolinhos",
         "Pisos",
         "Colchonetes",
@@ -25,13 +25,15 @@
         "Barras",
         "Puxadores",
         "Suportes",
+        "Acess\u00f3rios",
+        "Estruturas",
         "Outros"
       ],
       "description": "Categoria principal do produto"
     },
     "subcategoria": {
       "type": "string",
-      "description": "Subcategoria espec\u00edfica (ex: Halter Sextavado, Dumbell Sextavado)"
+      "description": "Subcategoria espec\u00edfica (ex: Halter Sextavado, Dumbbell Sextavado)"
     },
     "tipo_anilha": {
       "type": "string",
@@ -68,11 +70,11 @@
     },
     "bojo_formato": {
       "type": "string",
-      "description": "Formato das extremidades (bojos) - aplic\u00e1vel para Halteres e Dumbells"
+      "description": "Formato das extremidades (bojos) - aplic\u00e1vel para Halteres e Dumbbells"
     },
     "dumbell_tipo": {
       "type": "string",
-      "description": "Tipo construtivo do Dumbell"
+      "description": "Tipo construtivo do Dumbbell. OBS: o nome do campo mantem a grafia antiga porque o front-end referencia dumbell_tipo; s\u00f3 o texto exibido foi normalizado."
     },
     "piso_espessura_mm": {
       "type": "number",
