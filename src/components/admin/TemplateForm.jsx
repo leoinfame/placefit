@@ -17,7 +17,7 @@ import {
 const CATEGORIAS = [
   "Anilhas",
   "Halteres",
-  "Dumbells",
+  "Dumbbells",
   "Tijolinhos",
   "Pisos",
   "Colchonetes",
@@ -48,7 +48,7 @@ const DEFAULT_OPCOES = {
 const CAMPOS_POR_CATEGORIA = {
   Anilhas: ["tipo_anilha", "peso_kg", "acabamento", "tipo_furo", "peso_fracionado"],
   Halteres: ["peso_kg", "acabamento", "bojo_formato", "barra_acabamento"],
-  Dumbells: ["peso_kg", "acabamento", "bojo_formato", "dumbell_tipo"],
+  Dumbbells: ["peso_kg", "acabamento", "bojo_formato", "dumbell_tipo"],
   Tijolinhos: ["tijolinho_tipo", "tijolinho_torre"],
   Pisos: ["piso_espessura_mm", "piso_formato", "peso_peca"],
   Kettlebells: ["peso_kg", "acabamento"],
