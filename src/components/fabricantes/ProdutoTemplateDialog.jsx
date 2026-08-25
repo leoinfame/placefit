@@ -11,7 +11,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { expandTemplates } from "@/utils/expandTemplates";
 import { getProdutosData } from "@/functions/getProdutosData";
 
-const CATEGORIAS = ["Anilhas","Halteres","Dumbells","Tijolinhos","Pisos","Colchonetes","Kettlebells","Kits","Barras","Puxadores","Suportes","Outros"];
+const CATEGORIAS = ["Anilhas","Halteres","Dumbbells","Tijolinhos","Pisos","Colchonetes","Kettlebells","Kits","Barras","Puxadores","Suportes","Acessórios","Estruturas","Outros"];
 const CATEGORY_ORDER = [...CATEGORIAS];
 
 const GROUP_FIELDS = [
@@ -126,7 +126,7 @@ export default function ProdutoTemplateDialog({ open, fabricante, onClose, onSav
     return sortCategories([...map.keys()]).map(cat => ({ categoria: cat, groups: map.get(cat) }));
   }, [groups]);
 
-  const WEIGHT_CATEGORIES = ["Anilhas", "Halteres", "Dumbells", "Kettlebells"];
+  const WEIGHT_CATEGORIES = ["Anilhas", "Halteres", "Dumbbells", "Kettlebells"];
   const hasWeights = (g) => WEIGHT_CATEGORIES.includes(g.categoria) && g.templates.some(t => t.peso_kg != null);
   const isGroupLinked = (g) => g.templates.some(t => linkedProductIds.has(t.id));
 
