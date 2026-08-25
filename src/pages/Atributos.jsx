@@ -25,7 +25,7 @@ import { useToast } from "@/components/ui/use-toast";
 const CATEGORIAS = [
   "Anilhas",
   "Halteres",
-  "Dumbells",
+  "Dumbbells",
   "Tijolinhos",
   "Pisos",
   "Colchonetes",
