@@ -61,7 +61,7 @@ export default function CatalogoFabricante() {
     const fieldMap = {
       Anilhas: "acabamento",
       Halteres: "acabamento",
-      Dumbells: "dumbell_tipo",
+      Dumbbells: "dumbell_tipo",
       "Barras Montadas": "barra_tipo",
       Tijolinhos: "tijolinho_tipo",
       Pisos: "piso_formato",
