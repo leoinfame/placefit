@@ -60,7 +60,7 @@ export default async function(req) {
     }
     const products = [...gmap.values()].map(g => {
       g.variacoes.sort((a, b) => (a.peso_kg || 0) - (b.peso_kg || 0));
-      const WEIGHT_CATEGORIES = ["Anilhas", "Halteres", "Dumbells", "Kettlebells"];
+      const WEIGHT_CATEGORIES = ["Anilhas", "Halteres", "Dumbbells", "Kettlebells"];
       const isWeightCategory = WEIGHT_CATEGORIES.includes(g.categoria);
       const withWeight = isWeightCategory ? g.variacoes.filter(v => v.peso_kg > 0) : [];
       if (withWeight.length > 0) {
