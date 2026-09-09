@@ -268,7 +268,7 @@ export default function CRMWhatsApp() {
       await loadMessages(selected.id);
       toast({
         title: "Falha no envio",
-        description: error?.response?.data?.error || error?.message || "Confira a conexão e a janela de atendimento do WhatsApp.",
+        description: error?.response?.data?.error || error?.message || "Confira se a sessão do WhatsApp está conectada.",
         variant: "destructive"
       });
     } finally {
@@ -280,10 +280,10 @@ export default function CRMWhatsApp() {
     setSyncing(true);
     try {
       const response = await base44.functions.invoke("crm-whatsapp", { action: "sync_templates", owner_id: ownerId });
-      const count = response?.data?.count || 0;
+      const aviso = response?.data?.aviso || "";
       const rows = await base44.entities.CRMTemplate.filter({ owner_id: ownerId, ativo: true }, "-updated_date", 200);
       setTemplates(rows || []);
-      toast({ title: "Templates sincronizados", description: count + " modelo(s) encontrado(s) na Meta." });
+      toast({ title: "Modelos atualizados", description: aviso || "Suas mensagens rápidas estão prontas para uso." });
     } catch (error) {
       toast({ title: "Não foi possível sincronizar", description: error?.response?.data?.error || error?.message, variant: "destructive" });
     } finally {
@@ -328,15 +328,8 @@ export default function CRMWhatsApp() {
   }
 
   function applyTemplate(template) {
-    if (template.origem === "meta" && template.status === "APPROVED") {
-      if (!selected) {
-        toast({ title: "Selecione uma conversa primeiro", variant: "destructive" });
-        setTab("conversas");
-        return;
-      }
-      sendMessage(template);
-      return;
-    }
+    // O modelo entra como rascunho para revisão antes de sair. Não existe mais
+    // template aprovado pela Meta que justifique envio direto.
     setDraft(template.conteudo);
     setTemplatePickerOpen(false);
     setTab("conversas");
@@ -481,7 +474,7 @@ export default function CRMWhatsApp() {
         </TabsContent>
 
         <TabsContent value="templates" className="mt-0 space-y-4">
-          <Card className="border-slate-200 shadow-none"><CardContent className="flex flex-wrap items-center justify-between gap-3 p-5"><div><h2 className="font-semibold text-slate-900">Templates e mensagens rápidas</h2><p className="mt-1 text-sm text-slate-500">Modelos aprovados pela Meta iniciam conversas; mensagens rápidas agilizam atendimentos já abertos.</p></div><div className="flex flex-wrap gap-2"><Button variant="outline" onClick={syncTemplates} disabled={syncing || !status?.configured}><RefreshCw className={"mr-2 h-4 w-4 " + (syncing ? "animate-spin" : "")} />Sincronizar Meta</Button><Button onClick={() => setTemplateOpen(true)} className="bg-emerald-600 hover:bg-emerald-700"><Plus className="mr-2 h-4 w-4" />Novo template</Button></div></CardContent></Card>
+          <Card className="border-slate-200 shadow-none"><CardContent className="flex flex-wrap items-center justify-between gap-3 p-5"><div><h2 className="font-semibold text-slate-900">Templates e mensagens rápidas</h2><p className="mt-1 text-sm text-slate-500">Mensagens rápidas para agilizar o atendimento. Sem aprovação prévia e sem janela de 24 horas — o modelo entra como rascunho para você revisar antes de enviar.</p></div><div className="flex flex-wrap gap-2"><Button variant="outline" onClick={syncTemplates} disabled={syncing || !status?.configured}><RefreshCw className={"mr-2 h-4 w-4 " + (syncing ? "animate-spin" : "")} />Atualizar modelos</Button><Button onClick={() => setTemplateOpen(true)} className="bg-emerald-600 hover:bg-emerald-700"><Plus className="mr-2 h-4 w-4" />Novo template</Button></div></CardContent></Card>
           {templates.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center"><FileText className="mx-auto h-10 w-10 text-slate-300" /><p className="mt-3 font-medium text-slate-700">Nenhum template cadastrado.</p><p className="mt-1 text-sm text-slate-500">Crie uma mensagem rápida ou sincronize os modelos aprovados na Meta.</p></div> : (
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{templates.map((template) => <Card key={template.id} className="border-slate-200 shadow-none"><CardContent className="space-y-3 p-4"><div className="flex items-start justify-between gap-2"><div><h3 className="font-semibold text-slate-900">{template.titulo || template.nome}</h3><p className="mt-0.5 text-xs text-slate-400">{template.idioma || "pt_BR"} · {template.categoria || "LOCAL"}</p></div><Badge className={template.status === "APPROVED" ? "bg-emerald-100 text-emerald-700" : template.status === "LOCAL" ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"}>{template.status === "APPROVED" ? "Aprovado Meta" : template.status === "LOCAL" ? "Mensagem rápida" : template.status}</Badge></div><p className="line-clamp-4 min-h-[60px] whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-sm text-slate-600">{template.conteudo}</p><div className="flex items-center justify-between"><Button variant="outline" size="sm" onClick={() => applyTemplate(template)}><Send className="mr-1.5 h-3.5 w-3.5" />Usar</Button><Button variant="ghost" size="icon" onClick={() => archiveTemplate(template)} title="Remover template"><Trash2 className="h-4 w-4 text-slate-400" /></Button></div></CardContent></Card>)}</div>
           )}
@@ -489,7 +482,7 @@ export default function CRMWhatsApp() {
 
         <TabsContent value="configuracao" className="mt-0 space-y-4">
           <Card className="border-emerald-200 bg-emerald-50 shadow-none"><CardContent className="p-5"><div className="flex items-start gap-3"><Smartphone className="mt-0.5 h-5 w-5 text-emerald-700" /><div className="min-w-0 flex-1"><p className="font-semibold text-emerald-900">Webhook do CRM PlaceFit</p><p className="mt-1 text-sm text-emerald-800">Cadastre esta URL na Meta e marque o evento <strong>messages</strong>. O token deve ser igual ao configurado abaixo.</p><div className="mt-3 flex flex-wrap items-center gap-2"><code className="break-all rounded-lg bg-white px-3 py-2 text-xs text-slate-700">{webhookUrl}</code><Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(webhookUrl); toast({ title: "URL copiada" }); }}><Copy className="mr-1.5 h-3.5 w-3.5" />Copiar</Button></div></div></div></CardContent></Card>
-          {ownerId === me?.id ? <WhatsAppSetup userId={ownerId} userType={me?.role === "admin" ? "admin" : "revendedor"} /> : <Card className="border-slate-200 shadow-none"><CardContent className="p-5"><p className="font-medium text-slate-800">Conta selecionada: {accounts.find((account) => account.id === ownerId)?.name}</p><p className="mt-2 text-sm text-slate-500">As credenciais do WhatsApp são configuradas pelo próprio usuário em Atendente IA → WhatsApp. O administrador pode acompanhar conversas, sincronizar templates e enviar mensagens pelo CRM.</p><div className="mt-4 flex items-center gap-2"><Badge className={status?.configured ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}>{status?.configured ? "Credenciais configuradas" : "Credenciais pendentes"}</Badge>{status?.phone_number_id && <span className="text-xs text-slate-500">Phone Number ID: {status.phone_number_id}</span>}</div></CardContent></Card>}
+          {ownerId === me?.id ? <WhatsAppSetup userId={ownerId} userType={me?.role === "admin" ? "admin" : "revendedor"} /> : <Card className="border-slate-200 shadow-none"><CardContent className="p-5"><p className="font-medium text-slate-800">Conta selecionada: {accounts.find((account) => account.id === ownerId)?.name}</p><p className="mt-2 text-sm text-slate-500">As credenciais do WhatsApp são configuradas pelo próprio usuário em Atendente IA → WhatsApp. O administrador pode acompanhar conversas, sincronizar templates e enviar mensagens pelo CRM.</p><div className="mt-4 flex items-center gap-2"><Badge className={status?.configured ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}>{status?.configured ? "Credenciais configuradas" : "Credenciais pendentes"}</Badge>{status?.session_name && <span className="text-xs text-slate-500">Sessão: {status.session_name} · {status.session_status || "—"}</span>}</div></CardContent></Card>}
         </TabsContent>
       </Tabs>
 
