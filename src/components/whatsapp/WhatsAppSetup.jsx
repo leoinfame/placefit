@@ -1,110 +1,94 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
 import {
   MessageCircle, CheckCircle, AlertCircle, ExternalLink, Eye, EyeOff,
-  Loader2, Wifi, WifiOff, ChevronRight, ChevronDown, Info, Save, RefreshCw
+  Loader2, Wifi, WifiOff, ChevronRight, ChevronDown, Info, Save, RefreshCw,
+  QrCode, ShieldAlert, Smartphone, Power
 } from "lucide-react";
 
 const STEPS = [
   {
     id: 1,
-    title: "Crie uma conta Meta Business",
-    icon: "🏢",
-    description: "Acesse o Meta Business Suite para criar sua conta de negócios.",
-    help: "Você precisará de uma conta Meta Business para usar a API oficial do WhatsApp.",
-    link: "https://business.facebook.com/",
-    linkLabel: "Acessar Meta Business →",
+    title: "Contrate um VPS",
+    icon: "🖥️",
+    description: "O WAHA roda em um servidor seu. Um VPS pequeno (2 vCPU / 4 GB) dá conta.",
+    help: "Prefira um datacenter no Brasil para reduzir latência. O IP do servidor fica associado à sua sessão do WhatsApp — não compartilhe o mesmo VPS com disparadores de terceiros.",
     fields: [],
   },
   {
     id: 2,
-    title: "Crie um App na Meta for Developers",
-    icon: "⚙️",
-    description: "Crie um aplicativo do tipo 'Business' no painel de desenvolvedores da Meta.",
-    help: "No painel, clique em 'Create App' → selecione tipo 'Business' → siga o assistente.",
-    link: "https://developers.facebook.com/apps/",
-    linkLabel: "Acessar Meta Developers →",
+    title: "Suba o WAHA no servidor",
+    icon: "🐳",
+    description: "Um contêiner Docker, com chave de API e a URL deste webhook já configuradas.",
+    help: "Publique atrás de um domínio com HTTPS (Caddy ou Nginx). A porta padrão do WAHA é 3000. Guarde a chave que você definir em WHATSAPP_API_KEY: é ela que vai no campo abaixo.",
+    link: "https://waha.devlike.pro/docs/how-to/install/",
+    linkLabel: "Guia de instalação do WAHA →",
     fields: [],
   },
   {
     id: 3,
-    title: "Ative o produto WhatsApp no App",
-    icon: "📱",
-    description: "Dentro do seu app, adicione o produto 'WhatsApp' e configure um número de teste.",
-    help: "No painel do app → clique em 'Add Product' → selecione 'WhatsApp' → configure o número de teste gratuito fornecido pela Meta.",
-    link: "https://developers.facebook.com/docs/whatsapp/cloud-api/get-started",
-    linkLabel: "Ver guia oficial →",
-    fields: [],
+    title: "Aponte o CRM para o servidor",
+    icon: "🔌",
+    description: "Informe o endereço público do WAHA e a chave de API.",
+    help: "A URL precisa ser acessível pela internet — o CRM chama o servidor a cada envio, e o servidor chama o CRM a cada mensagem recebida.",
+    fields: [
+      {
+        key: "waha_url",
+        label: "URL do servidor WAHA",
+        placeholder: "https://waha.seudominio.com.br",
+        type: "text",
+        help: "Endereço público, com https e sem barra no final.",
+      },
+      {
+        key: "waha_api_key",
+        label: "Chave de API (X-Api-Key)",
+        placeholder: "sua-chave-secreta",
+        type: "password",
+        help: "O mesmo valor definido em WHATSAPP_API_KEY ao subir o contêiner.",
+      },
+    ],
   },
   {
     id: 4,
-    title: "Obtenha o Phone Number ID",
-    icon: "🔢",
-    description: "No painel do WhatsApp Business API, copie o 'Phone Number ID' do número configurado.",
-    help: "No painel da Meta → WhatsApp → API Setup → copie o 'Phone Number ID' (ex: 123456789012345). Este é o ID do número de telefone que enviará as mensagens.",
-    link: "https://developers.facebook.com/apps/",
-    linkLabel: "Ir para o painel →",
+    title: "Proteja o webhook",
+    icon: "🔐",
+    description: "Nome da sessão e assinatura HMAC das chamadas recebidas.",
+    help: "O HMAC é opcional, mas recomendado: sem ele, qualquer um que descubra a URL do webhook pode injetar conversas falsas no seu CRM.",
     fields: [
       {
-        key: "phone_number_id",
-        label: "Phone Number ID",
-        placeholder: "Ex: 123456789012345",
+        key: "waha_session",
+        label: "Nome da sessão",
+        placeholder: "default",
         type: "text",
-        help: "Onde achar: Meta Developers → seu App → WhatsApp → API Setup → 'Phone Number ID'",
+        help: "Deixe 'default' se você usa um número só. Este nome é como o CRM identifica de quem é a mensagem.",
       },
-    ],
-  },
-  {
-    id: 5,
-    title: "Obtenha o Token de Acesso",
-    icon: "🔑",
-    description: "Gere um token de acesso permanente para autenticar as chamadas à API.",
-    help: "Para token temporário de teste: Meta Developers → WhatsApp → API Setup → 'Temporary access token'. Para produção: gere um token permanente via System User no Meta Business Suite.",
-    link: "https://developers.facebook.com/docs/whatsapp/business-management-api/get-started",
-    linkLabel: "Guia de tokens →",
-    fields: [
       {
-        key: "access_token",
-        label: "Access Token",
-        placeholder: "EAAxxxxxxxx...",
+        key: "waha_hmac",
+        label: "Chave HMAC do webhook (opcional)",
+        placeholder: "outra-chave-secreta",
         type: "password",
-        help: "Onde achar: Meta Developers → seu App → WhatsApp → API Setup → 'Temporary access token' (ou gere um permanente no Meta Business)",
-      },
-    ],
-  },
-  {
-    id: 6,
-    title: "Configure o Webhook",
-    icon: "🔗",
-    description: "Configure um Webhook para receber mensagens dos seus clientes em tempo real.",
-    help: "O webhook do CRM já está disponível na PlaceFit. Copie a Callback URL exibida abaixo e cadastre-a no painel da Meta junto com o mesmo Verify Token.",
-    link: "https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks",
-    linkLabel: "Guia de Webhook →",
-    fields: [
-      {
-        key: "webhook_verify_token",
-        label: "Webhook Verify Token",
-        placeholder: "Crie uma senha secreta sua (ex: minha_chave_secreta_123)",
-        type: "text",
-        help: "Crie qualquer texto secreto. Você vai precisar colocar este mesmo valor no campo 'Verify Token' ao configurar o webhook na Meta.",
-      },
-      {
-        key: "waba_id",
-        label: "WhatsApp Business Account ID (WABA ID)",
-        placeholder: "Ex: 987654321098765",
-        type: "text",
-        help: "Onde achar: Meta Business Suite → Configurações → WhatsApp Accounts → ID da conta. Ou no painel da Meta for Developers ao configurar o WhatsApp.",
+        help: "Se preencher, o CRM passa a recusar qualquer chamada sem assinatura válida.",
       },
     ],
   },
 ];
+
+const STATUS_LABEL = {
+  WORKING: { text: "Conectado — recebendo e enviando", tone: "ok" },
+  SCAN_QR_CODE: { text: "Aguardando leitura do QR Code", tone: "warn" },
+  STARTING: { text: "Iniciando a sessão…", tone: "warn" },
+  STOPPED: { text: "Sessão parada", tone: "off" },
+  FAILED: { text: "Falhou — reinicie a sessão", tone: "bad" },
+  NOT_CONFIGURED: { text: "Informe o servidor WAHA abaixo", tone: "off" },
+  UNKNOWN: { text: "Não foi possível falar com o servidor", tone: "bad" },
+};
 
 function FieldInput({ field, value, onChange }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -139,79 +123,168 @@ function FieldInput({ field, value, onChange }) {
 
 export default function WhatsAppSetup({ userId, userType = "revendedor" }) {
   const [config, setConfig] = useState({
-    phone_number_id: "",
-    access_token: "",
-    webhook_verify_token: "",
-    waba_id: "",
+    waha_url: "",
+    waha_api_key: "",
+    waha_session: "default",
+    waha_hmac: "",
     ativo: false,
+    confirmado: false,
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [testing, setTesting] = useState(false);
-  const [testResult, setTestResult] = useState(null);
-  const [expandedStep, setExpandedStep] = useState(4);
+  const [busy, setBusy] = useState("");
+  const [status, setStatus] = useState(null);
+  const [qr, setQr] = useState("");
+  const [expandedStep, setExpandedStep] = useState(3);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const pollRef = useRef(null);
   const { toast } = useToast();
+
+  const webhookUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/functions/crm-whatsapp-webhook`
+    : "";
 
   useEffect(() => {
     loadConfig();
+    return () => clearInterval(pollRef.current);
   }, [userId]);
+
+  // Enquanto o número não parear, o estado muda sozinho no servidor: só a
+  // consulta periódica revela que o QR foi lido.
+  useEffect(() => {
+    clearInterval(pollRef.current);
+    const s = status?.session_status;
+    if (s === "SCAN_QR_CODE" || s === "STARTING") {
+      pollRef.current = setInterval(() => refreshStatus(true), 5000);
+    }
+    return () => clearInterval(pollRef.current);
+  }, [status?.session_status]);
 
   const loadConfig = async () => {
     setLoading(true);
     try {
       const user = await base44.auth.me();
       setConfig({
-        phone_number_id: user.whatsapp_phone_number_id || "",
-        access_token: user.whatsapp_access_token || "",
-        webhook_verify_token: user.whatsapp_webhook_token || "",
-        waba_id: user.whatsapp_waba_id || "",
+        waha_url: user.whatsapp_waha_url || "",
+        waha_api_key: user.whatsapp_waha_api_key || "",
+        waha_session: user.whatsapp_waha_session || "default",
+        waha_hmac: user.whatsapp_waha_hmac || "",
         ativo: user.whatsapp_atendente_ativo || false,
+        confirmado: user.whatsapp_atendente_confirmado || false,
       });
+      if (user.whatsapp_waha_url) await refreshStatus(true);
     } catch (e) {
       console.error(e);
     }
     setLoading(false);
   };
 
+  const refreshStatus = async (silent = false) => {
+    if (!silent) setBusy("status");
+    try {
+      const response = await base44.functions.invoke("crm-whatsapp", { action: "status", owner_id: userId });
+      const data = response?.data || null;
+      setStatus(data);
+      if (data?.session_status === "WORKING") setQr("");
+      else if (data?.session_status === "SCAN_QR_CODE") await loadQr();
+    } catch (e) {
+      if (!silent) toast({ title: "Não foi possível consultar a sessão", description: e?.message, variant: "destructive" });
+    }
+    if (!silent) setBusy("");
+  };
+
+  const loadQr = async () => {
+    try {
+      const response = await base44.functions.invoke("crm-whatsapp", { action: "qr", owner_id: userId });
+      if (response?.data?.qr) setQr(response.data.qr);
+    } catch {
+      /* a sessão pode ainda não ter gerado o código */
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
       await base44.auth.updateMe({
-        whatsapp_phone_number_id: config.phone_number_id,
-        whatsapp_access_token: config.access_token,
-        whatsapp_webhook_token: config.webhook_verify_token,
-        whatsapp_waba_id: config.waba_id,
-        whatsapp_atendente_ativo: config.ativo,
+        whatsapp_waha_url: config.waha_url.trim().replace(/\/+$/, ""),
+        whatsapp_waha_api_key: config.waha_api_key,
+        whatsapp_waha_session: config.waha_session.trim() || "default",
+        whatsapp_waha_hmac: config.waha_hmac,
       });
-      toast({ title: "Configurações salvas!", description: "Dados do WhatsApp atualizados com sucesso." });
+      toast({ title: "Configurações salvas!", description: "Dados do servidor WAHA atualizados." });
     } catch (e) {
       toast({ title: "Erro ao salvar", description: e.message, variant: "destructive" });
     }
     setSaving(false);
   };
 
-  const handleTestConnection = async () => {
-    if (!config.phone_number_id || !config.access_token) {
-      toast({ title: "Preencha os campos obrigatórios", description: "Phone Number ID e Access Token são necessários.", variant: "destructive" });
+  // Cria a sessão no WAHA já com o webhook deste app apontado, e a inicia.
+  const handleConnect = async () => {
+    if (!config.waha_url) {
+      toast({ title: "Informe a URL do servidor WAHA", variant: "destructive" });
       return;
     }
-    setTesting(true);
-    setTestResult(null);
+    setBusy("connect");
     try {
-      // O teste roda no backend para proteger o token e evitar bloqueio de CORS.
       await handleSave();
-      const response = await base44.functions.invoke("crm-whatsapp", { action: "test", owner_id: userId });
-      const data = response?.data || {};
-      setTestResult({ ok: true, message: `Conectado! Número: ${data.display_phone_number || config.phone_number_id}` });
+      await base44.functions.invoke("crm-whatsapp", {
+        action: "provision",
+        owner_id: userId,
+        webhook_url: webhookUrl,
+      });
+      toast({ title: "Sessão criada", description: "Leia o QR Code com o celular do número." });
+      await refreshStatus(true);
     } catch (e) {
-      const detail = e?.response?.data?.error || e?.message || "Falha na conexão. Verifique os dados e tente novamente.";
-      setTestResult({ ok: false, message: `Erro: ${detail}` });
+      toast({
+        title: "Falha ao conectar",
+        description: e?.response?.data?.error || e?.message,
+        variant: "destructive",
+      });
     }
-    setTesting(false);
+    setBusy("");
   };
 
-  const isConfigured = config.phone_number_id && config.access_token;
-  const completedFields = [config.phone_number_id, config.access_token, config.webhook_verify_token, config.waba_id].filter(Boolean).length;
+  const handleSessionAction = async (action) => {
+    setBusy(action);
+    try {
+      await base44.functions.invoke("crm-whatsapp", { action, owner_id: userId });
+      await refreshStatus(true);
+      toast({ title: "Sessão atualizada" });
+    } catch (e) {
+      toast({ title: "Falha na operação", description: e?.response?.data?.error || e?.message, variant: "destructive" });
+    }
+    setBusy("");
+  };
+
+  const applyAtendente = async (ativo, confirmar) => {
+    setBusy("atendente");
+    try {
+      await base44.functions.invoke("crm-whatsapp", {
+        action: "set_atendente",
+        owner_id: userId,
+        ativo,
+        confirmar,
+      });
+      setConfig((c) => ({ ...c, ativo, confirmado: ativo && confirmar }));
+      setConfirmOpen(false);
+      await refreshStatus(true);
+      toast({
+        title: ativo ? "Atendente automático ligado" : "Atendente automático desligado",
+        description: ativo
+          ? "A IA passa a responder mensagens novas sozinha."
+          : "Nenhuma resposta automática será enviada.",
+      });
+    } catch (e) {
+      toast({ title: "Não foi possível alterar", description: e?.response?.data?.error || e?.message, variant: "destructive" });
+    }
+    setBusy("");
+  };
+
+  const isConfigured = Boolean(config.waha_url);
+  const connected = status?.session_status === "WORKING";
+  const atendenteOn = Boolean(config.ativo && config.confirmado);
+  const statusInfo = STATUS_LABEL[status?.session_status] || STATUS_LABEL.UNKNOWN;
+  const completedFields = [config.waha_url, config.waha_api_key, config.waha_session, config.waha_hmac].filter(Boolean).length;
 
   if (loading) {
     return (
@@ -223,59 +296,48 @@ export default function WhatsAppSetup({ userId, userType = "revendedor" }) {
 
   return (
     <div className="space-y-6">
-      {/* Status Card */}
-      <Card className={`border-2 ${config.ativo && isConfigured ? "border-green-400 bg-green-50" : "border-gray-200 bg-gray-50"}`}>
+      {/* Estado da conexão */}
+      <Card className={`border-2 ${connected ? "border-green-400 bg-green-50" : "border-gray-200 bg-gray-50"}`}>
         <CardContent className="p-5">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${config.ativo && isConfigured ? "bg-green-100" : "bg-gray-100"}`}>
-                {config.ativo && isConfigured
-                  ? <Wifi className="w-6 h-6 text-green-600" />
-                  : <WifiOff className="w-6 h-6 text-gray-400" />}
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${connected ? "bg-green-100" : "bg-gray-100"}`}>
+                {connected ? <Wifi className="w-6 h-6 text-green-600" /> : <WifiOff className="w-6 h-6 text-gray-400" />}
               </div>
               <div>
-                <p className="font-bold text-gray-900 text-lg">Atendente IA no WhatsApp</p>
+                <p className="font-bold text-gray-900 text-lg">Conexão do WhatsApp</p>
                 <p className="text-sm text-gray-500">
-                  {config.ativo && isConfigured
-                    ? "🟢 Conectado e ativo — respondendo mensagens automaticamente"
-                    : !isConfigured
-                    ? "⚠️ Configure as credenciais abaixo para ativar"
-                    : "🔴 Desativado — configure e habilite para iniciar"}
+                  {isConfigured ? statusInfo.text : "Configure o servidor WAHA abaixo"}
                 </p>
+                {status?.me?.pushName && (
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Número pareado: {status.me.pushName}
+                  </p>
+                )}
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-gray-700">
-                {config.ativo ? "Ativo" : "Inativo"}
-              </span>
-              <Switch
-                checked={config.ativo}
-                onCheckedChange={(v) => setConfig({ ...config, ativo: v })}
-                disabled={!isConfigured}
-              />
-            </div>
-          </div>
-
-          {isConfigured && (
-            <div className="mt-4 flex items-center gap-3 flex-wrap">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleTestConnection}
-                disabled={testing}
-                className="border-blue-200 text-blue-700 hover:bg-blue-50"
-              >
-                {testing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
-                Testar Conexão
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button variant="outline" size="sm" onClick={() => refreshStatus(false)} disabled={!isConfigured || busy === "status"}>
+                {busy === "status" ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
+                Atualizar
               </Button>
-              {testResult && (
-                <div className={`flex items-center gap-2 text-sm font-medium px-3 py-1.5 rounded-lg ${testResult.ok ? "bg-green-100 text-green-800" : "bg-red-100 text-red-700"}`}>
-                  {testResult.ok ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-                  {testResult.message}
-                </div>
+              <Button
+                size="sm"
+                onClick={handleConnect}
+                disabled={!isConfigured || busy === "connect"}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              >
+                {busy === "connect" ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <QrCode className="w-4 h-4 mr-2" />}
+                Conectar sessão
+              </Button>
+              {connected && (
+                <Button variant="outline" size="sm" onClick={() => handleSessionAction("logout")} disabled={busy === "logout"}>
+                  <Power className="w-4 h-4 mr-2" />
+                  Desconectar
+                </Button>
               )}
             </div>
-          )}
+          </div>
 
           <div className="mt-3">
             <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
@@ -292,14 +354,108 @@ export default function WhatsAppSetup({ userId, userType = "revendedor" }) {
         </CardContent>
       </Card>
 
-      {/* Intro */}
+      {/* QR Code */}
+      {qr && !connected && (
+        <Card className="border-emerald-200 bg-white">
+          <CardContent className="p-5 flex flex-col items-center gap-3">
+            <div className="flex items-center gap-2 text-emerald-800 font-semibold">
+              <Smartphone className="w-5 h-5" /> Leia com o celular do número
+            </div>
+            <img src={qr} alt="QR Code para parear o WhatsApp" className="w-64 h-64 rounded-lg border border-gray-200" />
+            <p className="text-sm text-gray-600 text-center max-w-md">
+              No celular: <strong>WhatsApp → Configurações → Dispositivos conectados → Conectar dispositivo</strong>.
+              Seu WhatsApp continua funcionando normalmente no aparelho — o CRM entra como mais um dispositivo vinculado.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Atendente automático */}
+      <Card className={`border-2 ${atendenteOn ? "border-amber-400 bg-amber-50" : "border-gray-200 bg-white"}`}>
+        <CardContent className="p-5 space-y-4">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-start gap-3">
+              <ShieldAlert className={`w-6 h-6 mt-0.5 ${atendenteOn ? "text-amber-600" : "text-gray-400"}`} />
+              <div>
+                <p className="font-bold text-gray-900">Atendente IA responde sozinho</p>
+                <p className="text-sm text-gray-500">
+                  {atendenteOn
+                    ? "🟡 Ligado — a IA responde clientes reais pelo seu número"
+                    : "🔒 Desligado — nenhuma resposta automática é enviada"}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-gray-700">{atendenteOn ? "Ativo" : "Inativo"}</span>
+              <Switch
+                checked={atendenteOn}
+                disabled={!connected || busy === "atendente"}
+                onCheckedChange={(v) => (v ? setConfirmOpen(true) : applyAtendente(false, false))}
+              />
+            </div>
+          </div>
+
+          {confirmOpen && (
+            <div className="rounded-lg border-2 border-amber-300 bg-amber-100 p-4 space-y-3">
+              <p className="font-semibold text-amber-900 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4" /> Confirma ligar o atendente automático?
+              </p>
+              <ul className="text-sm text-amber-900 list-disc ml-5 space-y-1">
+                <li>A IA vai responder <strong>clientes reais</strong>, sozinha, pelo seu número comercial.</li>
+                <li>Se você já respondeu na conversa há menos de 1 hora, a IA fica em silêncio — quem assumiu, assumiu.</li>
+                <li>Resposta automática em volume é o principal gatilho de bloqueio do número. Comece observando.</li>
+              </ul>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  className="bg-amber-600 hover:bg-amber-700 text-white"
+                  onClick={() => applyAtendente(true, true)}
+                  disabled={busy === "atendente"}
+                >
+                  {busy === "atendente" ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                  Sim, ligar
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setConfirmOpen(false)}>Cancelar</Button>
+              </div>
+            </div>
+          )}
+
+          {!connected && (
+            <p className="text-xs text-gray-500">Conecte a sessão antes de habilitar o atendente automático.</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Como funciona */}
       <Card className="bg-blue-50 border-blue-200">
         <CardContent className="p-4 flex gap-3">
           <MessageCircle className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
           <div className="text-sm text-blue-800">
-            <p className="font-semibold mb-1">Como funciona a integração?</p>
-            <p>Ao conectar o WhatsApp, seu Atendente IA responderá automaticamente as mensagens recebidas no número configurado, fazendo orçamentos, respondendo dúvidas de produtos e muito mais — 24h por dia, 7 dias por semana.</p>
-            <p className="mt-1 text-blue-600">A API oficial do WhatsApp Business (Meta Cloud API) é gratuita para até 1.000 conversas por mês.</p>
+            <p className="font-semibold mb-1">Como funciona esta integração?</p>
+            <p>
+              O CRM entra como um <strong>dispositivo vinculado</strong> ao seu WhatsApp, igual ao WhatsApp Web.
+              Seu celular continua funcionando normalmente, e tudo que entra ou sai vira conversa organizada aqui dentro —
+              inclusive o que você responde pelo próprio aparelho.
+            </p>
+            <p className="mt-1 text-blue-600">
+              Grupos e listas de transmissão são ignorados de propósito: o CRM cuida de negociação individual.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Risco */}
+      <Card className="bg-red-50 border-red-200">
+        <CardContent className="p-4 flex gap-3">
+          <ShieldAlert className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+          <div className="text-sm text-red-800">
+            <p className="font-semibold mb-1">Antes de conectar, entenda o risco</p>
+            <p>
+              Esta integração usa um cliente <strong>não-oficial</strong> do WhatsApp. Os Termos da Meta proíbem esse tipo
+              de acesso, e o número pode ser bloqueado. Na prática o bloqueio acompanha o <strong>comportamento de envio</strong>:
+              usar como caixa de entrada organizada é de baixo risco; disparo em massa para quem não pediu contato queima o número.
+            </p>
+            <p className="mt-1">Use para organizar leads e negociações. Não use para campanha.</p>
           </div>
         </CardContent>
       </Card>
@@ -310,19 +466,14 @@ export default function WhatsAppSetup({ userId, userType = "revendedor" }) {
         {STEPS.map((step) => {
           const isExpanded = expandedStep === step.id;
           const hasFields = step.fields.length > 0;
-          const stepDone = step.fields.length === 0
-            ? false
-            : step.fields.every((f) => !!config[f.key]);
+          const stepDone = step.fields.length === 0 ? false : step.fields.every((f) => !!config[f.key]);
 
           return (
             <Card
               key={step.id}
               className={`border transition-all ${stepDone ? "border-green-300 bg-green-50" : isExpanded ? "border-blue-300 bg-blue-50" : "border-gray-200"}`}
             >
-              <button
-                className="w-full text-left"
-                onClick={() => setExpandedStep(isExpanded ? null : step.id)}
-              >
+              <button className="w-full text-left" onClick={() => setExpandedStep(isExpanded ? null : step.id)}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
@@ -333,9 +484,7 @@ export default function WhatsAppSetup({ userId, userType = "revendedor" }) {
                         <p className={`font-semibold text-sm ${stepDone ? "text-green-800" : "text-gray-900"}`}>
                           Passo {step.id}: {step.title}
                         </p>
-                        {!isExpanded && (
-                          <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{step.description}</p>
-                        )}
+                        {!isExpanded && <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{step.description}</p>}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
@@ -381,12 +530,7 @@ export default function WhatsAppSetup({ userId, userType = "revendedor" }) {
                   )}
 
                   {step.id < STEPS.length && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setExpandedStep(step.id + 1)}
-                      className="mt-2"
-                    >
+                    <Button size="sm" variant="outline" onClick={() => setExpandedStep(step.id + 1)} className="mt-2">
                       Próximo passo <ChevronRight className="w-3.5 h-3.5 ml-1" />
                     </Button>
                   )}
@@ -397,31 +541,25 @@ export default function WhatsAppSetup({ userId, userType = "revendedor" }) {
         })}
       </div>
 
-      {/* Webhook Info */}
+      {/* Webhook */}
       <Card className="bg-amber-50 border-amber-200">
         <CardContent className="p-4 flex gap-3">
           <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
           <div className="text-sm text-amber-800 space-y-1">
-            <p className="font-semibold">Configuração do Webhook na Meta</p>
-            <p>Após salvar, configure o webhook no painel da Meta com:</p>
-            <ul className="list-disc ml-4 space-y-1">
-              <li><strong>Callback URL:</strong> <code className="bg-amber-100 px-1 rounded break-all">{`${window.location.origin}/functions/crm-whatsapp-webhook`}</code></li>
-              <li><strong>Verify Token:</strong> O mesmo valor que você preencheu no campo "Webhook Verify Token" acima</li>
-              <li><strong>Fields:</strong> Marque <code className="bg-amber-100 px-1 rounded">messages</code></li>
-            </ul>
-            <a
-              href="https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks/components"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 font-semibold hover:underline mt-1"
-            >
-              <ExternalLink className="w-3.5 h-3.5" /> Ver documentação completa →
-            </a>
+            <p className="font-semibold">Webhook</p>
+            <p>
+              O botão <strong>Conectar sessão</strong> cadastra este endereço no WAHA automaticamente, com os eventos{" "}
+              <code className="bg-amber-100 px-1 rounded">message.any</code>,{" "}
+              <code className="bg-amber-100 px-1 rounded">message.ack</code> e{" "}
+              <code className="bg-amber-100 px-1 rounded">session.status</code>.
+            </p>
+            <p className="break-all">
+              <strong>URL:</strong> <code className="bg-amber-100 px-1 rounded">{webhookUrl}</code>
+            </p>
           </div>
         </CardContent>
       </Card>
 
-      {/* Botão Salvar */}
       <div className="flex justify-end">
         <Button
           onClick={handleSave}
