@@ -185,10 +185,28 @@ Deno.serve(async (req) => {
       return Response.json({ ok: true, session: result.data });
     }
 
+    // O QR volta como data URL: o navegador não pode chamar o WAHA direto,
+    // porque precisaria carregar a X-Api-Key numa tag <img>.
     if (action === "qr") {
-      const result = await waha(cfg, "/api/" + encodeURIComponent(cfg.session) + "/auth/qr?format=raw");
-      if (!result.ok) return Response.json({ error: result.error }, { status: 400 });
-      return Response.json({ ok: true, qr: result.data?.value || result.data });
+      const headers: Record<string, string> = {};
+      if (cfg.apiKey) headers["X-Api-Key"] = cfg.apiKey;
+      const response = await fetch(
+        cfg.baseUrl + "/api/" + encodeURIComponent(cfg.session) + "/auth/qr",
+        { headers }
+      );
+      if (!response.ok) {
+        const detail = await response.text().catch(() => "");
+        let parsed: any = null;
+        try { parsed = JSON.parse(detail); } catch { /* texto puro */ }
+        return Response.json({
+          error: parsed?.message || "Não foi possível obter o QR Code. A sessão precisa estar em SCAN_QR_CODE."
+        }, { status: 400 });
+      }
+      const contentType = response.headers.get("content-type") || "image/png";
+      const bytes = new Uint8Array(await response.arrayBuffer());
+      let binary = "";
+      for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+      return Response.json({ ok: true, qr: "data:" + contentType + ";base64," + btoa(binary) });
     }
 
     // ── Envio ────────────────────────────────────────────────────────────────
