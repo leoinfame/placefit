@@ -1,12 +1,75 @@
 import { createClientFromRequest } from "npm:@base44/sdk";
 
-const GRAPH_VERSION = "v23.0";
-const normalizePhone = (value: string) => {
-  const digits = String(value || "").replace(/\D/g, "");
+// ─── CRM WhatsApp via WAHA ────────────────────────────────────────────────────
+// Motor não-oficial (https://waha.devlike.pro) pareado por QR Code como
+// dispositivo vinculado: o celular do dono do número continua funcionando
+// normalmente. Substitui a Cloud API da Meta, que exigia registrar o número e
+// o desconectava do aplicativo.
+//
+// Consequência aceita: não existe template aprovado pela Meta nem janela de 24h
+// — qualquer mensagem sai como texto livre. Em troca, o risco é de banimento do
+// número se houver disparo em massa. Esta integração é para organizar conversas,
+// não para campanha.
+
+const DEFAULT_SESSION = "default";
+
+const onlyDigits = (value: string) => String(value || "").replace(/\D/g, "");
+
+/** Normaliza para MSISDN brasileiro (55 + DDD + número). */
+const toMsisdn = (value: string) => {
+  const digits = onlyDigits(value);
   if (!digits) return "";
   if (digits.startsWith("55")) return digits;
   return digits.length >= 10 ? "55" + digits : digits;
 };
+
+type Waha = { baseUrl: string; apiKey: string; session: string; configured: boolean };
+
+const wahaConfig = (owner: any): Waha => {
+  const baseUrl = String(owner.whatsapp_waha_url || "").trim().replace(/\/+$/, "");
+  return {
+    baseUrl,
+    apiKey: String(owner.whatsapp_waha_api_key || ""),
+    session: String(owner.whatsapp_waha_session || DEFAULT_SESSION),
+    configured: Boolean(baseUrl)
+  };
+};
+
+async function waha(cfg: Waha, path: string, init: RequestInit = {}) {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (cfg.apiKey) headers["X-Api-Key"] = cfg.apiKey;
+  const response = await fetch(cfg.baseUrl + path, {
+    ...init,
+    headers: { ...headers, ...((init.headers as Record<string, string>) || {}) }
+  });
+  const text = await response.text();
+  let data: any = null;
+  try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+  const error = response.ok
+    ? ""
+    : (data?.message || data?.error || String(data || "").slice(0, 200) || "Falha na chamada ao WAHA");
+  return { ok: response.ok, status: response.status, data, error };
+}
+
+/**
+ * Resolve o chatId canônico antes de enviar. Obrigatório no Brasil: números
+ * anteriores a 2012 não têm o nono dígito e o envio para o chatId errado falha
+ * sem erro visível.
+ */
+async function resolveChatId(cfg: Waha, phone: string) {
+  const msisdn = toMsisdn(phone);
+  if (!msisdn) return "";
+  const fallback = msisdn + "@c.us";
+  const result = await waha(
+    cfg,
+    "/api/contacts/check-exists?phone=" + msisdn + "&session=" + encodeURIComponent(cfg.session)
+  );
+  if (!result.ok || !result.data?.numberExists) return fallback;
+  return result.data.chatId || result.data.pn || fallback;
+}
+
+const messageIdOf = (data: any) =>
+  String(data?.id?._serialized || data?.id || data?._data?.id?._serialized || "");
 
 Deno.serve(async (req) => {
   try {
@@ -22,119 +85,155 @@ Deno.serve(async (req) => {
     if (!owner) return Response.json({ error: "Conta responsável não encontrada" }, { status: 404 });
     if (me.role !== "admin" && owner.id !== me.id) return Response.json({ error: "Acesso negado" }, { status: 403 });
 
-    const phoneNumberId = owner.whatsapp_phone_number_id || "";
-    const wabaId = owner.whatsapp_waba_id || "";
-    const accessToken = owner.whatsapp_access_token || "";
-    const configured = Boolean(phoneNumberId && accessToken);
+    const cfg = wahaConfig(owner);
+
+    // O atendente automático só responde com as DUAS chaves ligadas. A segunda é
+    // uma confirmação explícita e deliberada: com o número comercial real
+    // pareado, uma IA respondendo sozinha é o maior risco do sistema — comercial
+    // e de banimento. Ligar sem querer não pode ser possível.
+    const atendenteAtivo = Boolean(owner.whatsapp_atendente_ativo) && Boolean(owner.whatsapp_atendente_confirmado);
 
     if (action === "status") {
+      let session: any = null;
+      if (cfg.configured) {
+        const result = await waha(cfg, "/api/sessions/" + encodeURIComponent(cfg.session));
+        session = result.ok ? result.data : { status: "UNKNOWN", error: result.error };
+      }
       return Response.json({
-        configured,
-        active: Boolean(owner.whatsapp_atendente_ativo),
-        phone_number_id: phoneNumberId,
-        waba_id: wabaId,
+        configured: cfg.configured,
+        engine: "waha",
+        session_name: cfg.session,
+        session_status: session?.status || "NOT_CONFIGURED",
+        connected: session?.status === "WORKING",
+        me: session?.me || null,
+        atendente_ativo: atendenteAtivo,
+        atendente_flag: Boolean(owner.whatsapp_atendente_ativo),
+        atendente_confirmado: Boolean(owner.whatsapp_atendente_confirmado),
         owner: { id: owner.id, name: owner.empresa || owner.full_name || owner.email }
       });
     }
 
-    if (!configured) return Response.json({ error: "Configure o Phone Number ID e o token do WhatsApp antes de continuar." }, { status: 400 });
+    // Alternar o atendente automático. Exige confirmar as duas chaves na mesma
+    // chamada para não reativar por acidente.
+    if (action === "set_atendente") {
+      const ativo = Boolean(body.ativo);
+      const confirmado = ativo ? Boolean(body.confirmar) : false;
+      if (ativo && !confirmado) {
+        return Response.json({
+          error: "Para ligar o atendente automático envie também confirmar: true. Ele passa a responder clientes reais sozinho, pelo seu número."
+        }, { status: 400 });
+      }
+      await base44.asServiceRole.entities.User.update(ownerId, {
+        whatsapp_atendente_ativo: ativo,
+        whatsapp_atendente_confirmado: confirmado
+      });
+      return Response.json({ ok: true, atendente_ativo: ativo && confirmado });
+    }
+
+    if (!cfg.configured) {
+      return Response.json({ error: "Informe a URL do servidor WAHA antes de continuar." }, { status: 400 });
+    }
+
+    // ── Ciclo de vida da sessão (pareamento por QR Code) ──────────────────────
 
     if (action === "test") {
-      const response = await fetch("https://graph.facebook.com/" + GRAPH_VERSION + "/" + phoneNumberId, {
-        headers: { Authorization: "Bearer " + accessToken }
+      const result = await waha(cfg, "/api/sessions/" + encodeURIComponent(cfg.session));
+      if (!result.ok) return Response.json({ error: result.error }, { status: 400 });
+      const status = result.data?.status || "UNKNOWN";
+      return Response.json({
+        ok: status === "WORKING",
+        status,
+        engine: result.data?.engine?.engine || result.data?.engine || "",
+        display_phone_number: result.data?.me?.id ? onlyDigits(String(result.data.me.id).split("@")[0]) : "",
+        push_name: result.data?.me?.pushName || ""
       });
-      const data = await response.json();
-      if (!response.ok) return Response.json({ error: data?.error?.message || "Falha na conexão com a Meta" }, { status: 400 });
-      return Response.json({ ok: true, display_phone_number: data.display_phone_number || data.verified_name || data.id });
     }
 
-    if (action === "sync_templates") {
-      if (!wabaId) return Response.json({ error: "Informe o WABA ID para sincronizar templates." }, { status: 400 });
-      const response = await fetch("https://graph.facebook.com/" + GRAPH_VERSION + "/" + wabaId + "/message_templates?limit=100", {
-        headers: { Authorization: "Bearer " + accessToken }
-      });
-      const data = await response.json();
-      if (!response.ok) return Response.json({ error: data?.error?.message || "Falha ao buscar templates" }, { status: 400 });
+    if (action === "start" || action === "stop" || action === "restart" || action === "logout") {
+      const result = await waha(cfg, "/api/sessions/" + encodeURIComponent(cfg.session) + "/" + action, { method: "POST" });
+      if (!result.ok) return Response.json({ error: result.error }, { status: 400 });
+      return Response.json({ ok: true, session: result.data });
+    }
 
-      const existing = await base44.asServiceRole.entities.CRMTemplate.filter({ owner_id: ownerId });
-      const byMetaId = new Map((existing || []).filter((x: any) => x.meta_id).map((x: any) => [x.meta_id, x]));
-      const synced = [];
-      for (const item of data.data || []) {
-        const bodyComponent = (item.components || []).find((component: any) => component.type === "BODY");
-        const record = {
-          owner_id: ownerId,
-          nome: item.name,
-          titulo: item.name.replace(/_/g, " "),
-          categoria: item.category || "UTILITY",
-          idioma: item.language || "pt_BR",
-          conteudo: bodyComponent?.text || item.name,
-          status: item.status || "PENDING",
-          meta_id: item.id,
-          origem: "meta",
-          ativo: item.status !== "REJECTED"
-        };
-        const current = byMetaId.get(item.id);
-        synced.push(current
-          ? await base44.asServiceRole.entities.CRMTemplate.update(current.id, record)
-          : await base44.asServiceRole.entities.CRMTemplate.create(record));
+    // Cria (ou atualiza) a sessão já apontando o webhook para esta app.
+    if (action === "provision") {
+      const webhookUrl = String(body.webhook_url || "").trim();
+      if (!webhookUrl) return Response.json({ error: "Informe a URL pública do webhook." }, { status: 400 });
+      const payload = {
+        name: cfg.session,
+        start: true,
+        config: {
+          webhooks: [{
+            url: webhookUrl,
+            // Só message.any: ele já entrega as recebidas E as que o dono manda
+            // pelo próprio celular. Assinar "message" junto duplicaria as recebidas.
+            events: ["message.any", "message.ack", "session.status"],
+            ...(owner.whatsapp_waha_hmac ? { hmac: { key: String(owner.whatsapp_waha_hmac) } } : {}),
+            retries: { policy: "exponential", delaySeconds: 2, attempts: 15 }
+          }]
+        }
+      };
+      let result = await waha(cfg, "/api/sessions", { method: "POST", body: JSON.stringify(payload) });
+      // Sessão já existente: atualiza em vez de falhar.
+      if (!result.ok && (result.status === 409 || result.status === 422)) {
+        result = await waha(cfg, "/api/sessions/" + encodeURIComponent(cfg.session), {
+          method: "PUT",
+          body: JSON.stringify({ config: payload.config })
+        });
       }
-      return Response.json({ ok: true, count: synced.length, templates: synced });
+      if (!result.ok) return Response.json({ error: result.error }, { status: 400 });
+      return Response.json({ ok: true, session: result.data });
     }
+
+    if (action === "qr") {
+      const result = await waha(cfg, "/api/" + encodeURIComponent(cfg.session) + "/auth/qr?format=raw");
+      if (!result.ok) return Response.json({ error: result.error }, { status: 400 });
+      return Response.json({ ok: true, qr: result.data?.value || result.data });
+    }
+
+    // ── Envio ────────────────────────────────────────────────────────────────
 
     if (action === "send_text" || action === "send_template") {
-      const to = normalizePhone(body.to);
-      if (!to) return Response.json({ error: "Telefone inválido" }, { status: 400 });
-      let payload: any;
       let messageType = "texto";
       let content = String(body.text || "");
+      let templateName = "";
 
       if (action === "send_template") {
         const template = await base44.asServiceRole.entities.CRMTemplate.get(String(body.template_id || ""));
-        if (!template || template.owner_id !== ownerId) return Response.json({ error: "Template não encontrado" }, { status: 404 });
-        if (template.origem !== "meta" || template.status !== "APPROVED") {
-          return Response.json({ error: "Somente templates aprovados pela Meta podem iniciar conversas fora da janela de 24 horas." }, { status: 400 });
+        if (!template || template.owner_id !== ownerId) {
+          return Response.json({ error: "Template não encontrado" }, { status: 404 });
         }
-        payload = {
-          messaging_product: "whatsapp",
-          recipient_type: "individual",
-          to,
-          type: "template",
-          template: { name: template.nome, language: { code: template.idioma || "pt_BR" } }
-        };
+        // No WAHA não existe aprovação da Meta nem janela de 24h: o template
+        // local vira texto comum. Some a trava antiga de origem/status.
         messageType = "template";
-        content = template.conteudo;
-      } else {
-        if (!content.trim()) return Response.json({ error: "Digite a mensagem" }, { status: 400 });
-        payload = {
-          messaging_product: "whatsapp",
-          recipient_type: "individual",
-          to,
-          type: "text",
-          text: { preview_url: false, body: content.trim() }
-        };
+        content = String(template.conteudo || "");
+        templateName = String(template.nome || "");
       }
 
-      const response = await fetch("https://graph.facebook.com/" + GRAPH_VERSION + "/" + phoneNumberId + "/messages", {
+      if (!content.trim()) return Response.json({ error: "Digite a mensagem" }, { status: 400 });
+
+      const chatId = await resolveChatId(cfg, body.to);
+      if (!chatId) return Response.json({ error: "Telefone inválido" }, { status: 400 });
+      const phone = onlyDigits(String(chatId).split("@")[0]);
+
+      const result = await waha(cfg, "/api/sendText", {
         method: "POST",
-        headers: { Authorization: "Bearer " + accessToken, "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ session: cfg.session, chatId, text: content.trim() })
       });
-      const data = await response.json();
-      const messageId = data?.messages?.[0]?.id || "";
-      const status = response.ok ? "enviada" : "erro";
+      const messageId = messageIdOf(result.data);
 
       if (body.conversa_id) {
         await base44.asServiceRole.entities.CRMMensagem.create({
           owner_id: ownerId,
           conversa_id: String(body.conversa_id),
-          telefone: to,
+          telefone: phone,
           direcao: "enviada",
           tipo: messageType,
           conteudo: content,
-          status,
+          status: result.ok ? "enviada" : "erro",
           meta_message_id: messageId,
-          template_nome: action === "send_template" ? String(body.template_name || "") : "",
-          erro: response.ok ? "" : (data?.error?.message || "Falha no envio")
+          template_nome: templateName,
+          erro: result.ok ? "" : result.error
         });
         await base44.asServiceRole.entities.CRMConversa.update(String(body.conversa_id), {
           ultima_mensagem: content,
@@ -142,8 +241,31 @@ Deno.serve(async (req) => {
         });
       }
 
-      if (!response.ok) return Response.json({ error: data?.error?.message || "Falha ao enviar mensagem", details: data }, { status: 400 });
-      return Response.json({ ok: true, message_id: messageId });
+      if (!result.ok) return Response.json({ error: result.error, details: result.data }, { status: 400 });
+      return Response.json({ ok: true, message_id: messageId, chat_id: chatId });
+    }
+
+    // Marca a conversa como lida no celular também, para o CRM não deixar o
+    // aplicativo do dono cheio de not-lidas fantasma.
+    if (action === "mark_seen") {
+      const chatId = await resolveChatId(cfg, body.to);
+      if (!chatId) return Response.json({ error: "Telefone inválido" }, { status: 400 });
+      const result = await waha(cfg, "/api/sendSeen", {
+        method: "POST",
+        body: JSON.stringify({ session: cfg.session, chatId })
+      });
+      if (!result.ok) return Response.json({ error: result.error }, { status: 400 });
+      return Response.json({ ok: true });
+    }
+
+    // Mantido para não quebrar a UI antiga: templates da Meta não existem mais.
+    if (action === "sync_templates") {
+      return Response.json({
+        ok: true,
+        count: 0,
+        templates: [],
+        aviso: "Sem templates da Meta nesta integração. Com o WAHA os modelos locais são enviados como texto comum, sem aprovação e sem janela de 24h."
+      });
     }
 
     return Response.json({ error: "Ação desconhecida" }, { status: 400 });
