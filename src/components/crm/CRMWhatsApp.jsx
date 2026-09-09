@@ -122,8 +122,8 @@ export default function CRMWhatsApp() {
           .map((item) => ({
             id: item.id,
             name: item.empresa || item.full_name || item.email,
-            configured: Boolean(item.whatsapp_phone_number_id && item.whatsapp_access_token),
-            active: Boolean(item.whatsapp_atendente_ativo)
+            configured: Boolean(item.whatsapp_waha_url),
+            active: Boolean(item.whatsapp_atendente_ativo && item.whatsapp_atendente_confirmado)
           }));
         const sorted = usable.sort((a, b) => Number(b.configured) - Number(a.configured) || a.name.localeCompare(b.name));
         setAccounts(sorted);
