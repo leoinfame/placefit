@@ -10,6 +10,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import PublicTableFabricante from './pages/PublicTableFabricante';
 import Marketplace from './pages/Marketplace';
 import HomeApp from './pages/HomeApp';
+import DocumentoInvestidor from './pages/DocumentoInvestidor';
 import MinhaConta from './pages/MinhaConta';
 import FabricanteCatalogoPublic from './pages/FabricanteCatalogoPublic';
 import LojaPublica from './pages/LojaPublica';
@@ -42,7 +43,7 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   <Layout currentPageName={currentPageName}><ErrorBoundary>{children}</ErrorBoundary></Layout>
   : <ErrorBoundary>{children}</ErrorBoundary>;
 
-const PUBLIC_PATHS = ['/', '/Marketplace', '/PublicTableFabricante', '/PublicRegister', '/PublicRegisterFabricante', '/PublicRegisterTransportador', '/FabricanteCatalogoPublic', '/fabricantes', '/loja'];
+const PUBLIC_PATHS = ['/', '/Marketplace', '/PublicTableFabricante', '/PublicRegister', '/PublicRegisterFabricante', '/PublicRegisterTransportador', '/FabricanteCatalogoPublic', '/fabricantes', '/loja', '/documento'];
 
 const isPublicPath = () => {
   const path = window.location.pathname;
@@ -57,6 +58,7 @@ const AuthenticatedApp = () => {
     return (
       <Routes>
         <Route path="/" element={<ErrorBoundary><HomeApp /></ErrorBoundary>} />
+        <Route path="/documento" element={<ErrorBoundary><DocumentoInvestidor /></ErrorBoundary>} />
         <Route path="/Marketplace" element={<ErrorBoundary><Marketplace /></ErrorBoundary>} />
         <Route path="/PublicTableFabricante" element={<ErrorBoundary><PublicTableFabricante /></ErrorBoundary>} />
         <Route path="/FabricanteCatalogoPublic/:id" element={<ErrorBoundary><FabricanteCatalogoPublic /></ErrorBoundary>} />
