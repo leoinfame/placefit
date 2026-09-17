@@ -128,7 +128,11 @@ Deno.serve(async (req) => {
       let session: any = null;
       if (cfg.configured) {
         const result = await waha(cfg, "/api/sessions/" + encodeURIComponent(cfg.session));
-        session = result.ok ? result.data : { status: "UNKNOWN", error: result.error };
+        // 404 = sessão ainda não criada. Não é erro: é o estado de quem nunca
+        // conectou, e a tela precisa dizer isso em vez de acusar falha.
+        session = result.ok
+          ? result.data
+          : { status: result.status === 404 ? "NAO_CRIADA" : "UNKNOWN", error: result.error };
       }
       return Response.json({
         configured: cfg.configured,
