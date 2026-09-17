@@ -85,6 +85,7 @@ const STATUS_LABEL = {
   SCAN_QR_CODE: { text: "Aguardando leitura do QR Code", tone: "warn" },
   STARTING: { text: "Iniciando a sessão…", tone: "warn" },
   STOPPED: { text: "Sessão parada", tone: "off" },
+  NAO_CRIADA: { text: "Ainda não conectado — toque em Conectar meu WhatsApp", tone: "off" },
   FAILED: { text: "Falhou — reinicie a sessão", tone: "bad" },
   NOT_CONFIGURED: { text: "Informe o servidor WAHA abaixo", tone: "off" },
   UNKNOWN: { text: "Não foi possível falar com o servidor", tone: "bad" },
@@ -344,7 +345,7 @@ export default function WhatsAppSetup({ userId, userType = "revendedor" }) {
                 className="bg-emerald-600 hover:bg-emerald-700 text-white"
               >
                 {busy === "connect" ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <QrCode className="w-4 h-4 mr-2" />}
-                Conectar sessão
+                {connected ? "Reconectar" : "Conectar meu WhatsApp"}
               </Button>
               {connected && (
                 <Button variant="outline" size="sm" onClick={() => handleSessionAction("logout")} disabled={busy === "logout"}>
@@ -355,18 +356,20 @@ export default function WhatsAppSetup({ userId, userType = "revendedor" }) {
             </div>
           </div>
 
-          <div className="mt-3">
-            <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-              <span>Configuração completa</span>
-              <span>{completedFields}/4 campos</span>
+          {!compartilhado && (
+            <div className="mt-3">
+              <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+                <span>Configuração completa</span>
+                <span>{completedFields}/4 campos</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-500"
+                  style={{ width: `${(completedFields / 4) * 100}%` }}
+                />
+              </div>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-500"
-                style={{ width: `${(completedFields / 4) * 100}%` }}
-              />
-            </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
