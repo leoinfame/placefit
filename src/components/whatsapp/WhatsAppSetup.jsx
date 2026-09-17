@@ -172,7 +172,8 @@ export default function WhatsAppSetup({ userId, userType = "revendedor" }) {
         ativo: user.whatsapp_atendente_ativo || false,
         confirmado: user.whatsapp_atendente_confirmado || false,
       });
-      if (user.whatsapp_waha_url) await refreshStatus(true);
+      // Sempre consulta: o servidor pode vir do app, sem nada preenchido aqui.
+      await refreshStatus(true);
     } catch (e) {
       console.error(e);
     }
@@ -218,22 +219,35 @@ export default function WhatsAppSetup({ userId, userType = "revendedor" }) {
     setSaving(false);
   };
 
-  // Cria a sessão no WAHA já com o webhook deste app apontado, e a inicia.
+  // Um clique só: a function cria a sessão, liga o webhook, inicia e já volta
+  // com o QR Code quando ele existe.
   const handleConnect = async () => {
-    if (!config.waha_url) {
-      toast({ title: "Informe a URL do servidor WAHA", variant: "destructive" });
+    const servidorDoApp = Boolean(status?.compartilhado);
+    if (!servidorDoApp && !config.waha_url) {
+      toast({
+        title: "Servidor de WhatsApp não configurado",
+        description: "Peça ao administrador para definir a variável WAHA_URL do app.",
+        variant: "destructive",
+      });
       return;
     }
     setBusy("connect");
     try {
-      await handleSave();
-      await base44.functions.invoke("crm-whatsapp", {
-        action: "provision",
+      // Com servidor próprio, grava os campos antes de usar.
+      if (!servidorDoApp) await handleSave();
+      const response = await base44.functions.invoke("crm-whatsapp", {
+        action: "connect",
         owner_id: userId,
-        webhook_url: webhookUrl,
       });
-      toast({ title: "Sessão criada", description: "Leia o QR Code com o celular do número." });
+      const data = response?.data || {};
+      if (data.qr) setQr(data.qr);
       await refreshStatus(true);
+      toast({
+        title: data.session_status === "WORKING" ? "WhatsApp já conectado" : "Pronto para parear",
+        description: data.session_status === "WORKING"
+          ? "A sessão está ativa."
+          : "Leia o QR Code abaixo com o celular do número.",
+      });
     } catch (e) {
       toast({
         title: "Falha ao conectar",
@@ -280,7 +294,9 @@ export default function WhatsAppSetup({ userId, userType = "revendedor" }) {
     setBusy("");
   };
 
-  const isConfigured = Boolean(config.waha_url);
+  // Servidor vindo das variáveis de ambiente do app: o usuário não preenche nada.
+  const compartilhado = Boolean(status?.compartilhado);
+  const isConfigured = compartilhado || Boolean(config.waha_url);
   const connected = status?.session_status === "WORKING";
   const atendenteOn = Boolean(config.ativo && config.confirmado);
   const statusInfo = STATUS_LABEL[status?.session_status] || STATUS_LABEL.UNKNOWN;
