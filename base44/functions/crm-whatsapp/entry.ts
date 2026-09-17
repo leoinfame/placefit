@@ -188,58 +188,84 @@ Deno.serve(async (req) => {
       return Response.json({ ok: true, session: result.data });
     }
 
-    // Cria (ou atualiza) a sessão já apontando o webhook para esta app.
-    if (action === "provision") {
-      const webhookUrl = String(body.webhook_url || "").trim();
-      if (!webhookUrl) return Response.json({ error: "Informe a URL pública do webhook." }, { status: 400 });
-      const payload = {
-        name: cfg.session,
-        start: true,
-        config: {
-          webhooks: [{
-            url: webhookUrl,
-            // Só message.any: ele já entrega as recebidas E as que o dono manda
-            // pelo próprio celular. Assinar "message" junto duplicaria as recebidas.
-            events: ["message.any", "message.ack", "session.status"],
-            ...(owner.whatsapp_waha_hmac ? { hmac: { key: String(owner.whatsapp_waha_hmac) } } : {}),
-            retries: { policy: "exponential", delaySeconds: 2, attempts: 15 }
-          }]
-        }
-      };
-      let result = await waha(cfg, "/api/sessions", { method: "POST", body: JSON.stringify(payload) });
-      // Sessão já existente: atualiza em vez de falhar.
-      if (!result.ok && (result.status === 409 || result.status === 422)) {
-        result = await waha(cfg, "/api/sessions/" + encodeURIComponent(cfg.session), {
-          method: "PUT",
-          body: JSON.stringify({ config: payload.config })
-        });
-      }
-      if (!result.ok) return Response.json({ error: result.error }, { status: 400 });
-      return Response.json({ ok: true, session: result.data });
-    }
-
     // O QR volta como data URL: o navegador não pode chamar o WAHA direto,
     // porque precisaria carregar a X-Api-Key numa tag <img>.
-    if (action === "qr") {
+    async function buscarQr() {
       const headers: Record<string, string> = {};
       if (cfg.apiKey) headers["X-Api-Key"] = cfg.apiKey;
       const response = await fetch(
         cfg.baseUrl + "/api/" + encodeURIComponent(cfg.session) + "/auth/qr",
         { headers }
       );
-      if (!response.ok) {
-        const detail = await response.text().catch(() => "");
-        let parsed: any = null;
-        try { parsed = JSON.parse(detail); } catch { /* texto puro */ }
-        return Response.json({
-          error: parsed?.message || "Não foi possível obter o QR Code. A sessão precisa estar em SCAN_QR_CODE."
-        }, { status: 400 });
-      }
+      if (!response.ok) return "";
       const contentType = response.headers.get("content-type") || "image/png";
       const bytes = new Uint8Array(await response.arrayBuffer());
       let binary = "";
       for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-      return Response.json({ ok: true, qr: "data:" + contentType + ";base64," + btoa(binary) });
+      return "data:" + contentType + ";base64," + btoa(binary);
+    }
+
+    // Cria (ou atualiza) a sessão já apontando o webhook para esta app, e inicia.
+    async function garantirSessao(webhookUrl: string) {
+      const config = {
+        webhooks: [{
+          url: webhookUrl,
+          // Só message.any: ele já entrega as recebidas E as que o dono manda
+          // pelo próprio celular. Assinar "message" junto duplicaria as recebidas.
+          events: ["message.any", "message.ack", "session.status"],
+          ...(cfg.hmac ? { hmac: { key: cfg.hmac } } : {}),
+          retries: { policy: "exponential", delaySeconds: 2, attempts: 15 }
+        }]
+      };
+      let result = await waha(cfg, "/api/sessions", {
+        method: "POST",
+        body: JSON.stringify({ name: cfg.session, start: true, config })
+      });
+      // Sessão já existente: atualiza a configuração e garante que está de pé.
+      if (!result.ok && (result.status === 409 || result.status === 422)) {
+        result = await waha(cfg, "/api/sessions/" + encodeURIComponent(cfg.session), {
+          method: "PUT",
+          body: JSON.stringify({ config })
+        });
+        if (result.ok) {
+          await waha(cfg, "/api/sessions/" + encodeURIComponent(cfg.session) + "/start", { method: "POST" });
+        }
+      }
+      return result;
+    }
+
+    // Um botão só. Cria a sessão, liga o webhook, inicia e já devolve o QR
+    // quando ele existe — o usuário não digita URL, chave nem nome de sessão.
+    if (action === "connect" || action === "provision") {
+      const webhookUrl = String(body.webhook_url || "").trim() || webhookPadrao();
+      const result = await garantirSessao(webhookUrl);
+      if (!result.ok) return Response.json({ error: result.error }, { status: 400 });
+
+      // O WAHA leva alguns segundos entre STARTING e SCAN_QR_CODE.
+      let status = String(result.data?.status || "");
+      let qr = "";
+      for (let tentativa = 0; tentativa < 6; tentativa++) {
+        if (status === "SCAN_QR_CODE") {
+          qr = await buscarQr();
+          if (qr) break;
+        }
+        if (status === "WORKING" || status === "FAILED") break;
+        await new Promise((r) => setTimeout(r, 1500));
+        const atual = await waha(cfg, "/api/sessions/" + encodeURIComponent(cfg.session));
+        status = String(atual.data?.status || status);
+      }
+
+      return Response.json({ ok: true, session_name: cfg.session, session_status: status, qr, webhook_url: webhookUrl });
+    }
+
+    if (action === "qr") {
+      const qr = await buscarQr();
+      if (!qr) {
+        return Response.json({
+          error: "Não foi possível obter o QR Code. A sessão precisa estar em SCAN_QR_CODE."
+        }, { status: 400 });
+      }
+      return Response.json({ ok: true, qr });
     }
 
     // ── Envio ────────────────────────────────────────────────────────────────
