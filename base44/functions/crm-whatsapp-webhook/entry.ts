@@ -8,6 +8,19 @@ import { createClientFromRequest } from "npm:@base44/sdk";
 
 const onlyDigits = (value: string) => String(value || "").replace(/\D/g, "");
 const chatIdToPhone = (chatId: string) => onlyDigits(String(chatId || "").split("@")[0]);
+
+const env = (nome: string) => String(Deno.env.get(nome) || "").trim();
+
+/** Mesma regra da function crm-whatsapp: a sessão carrega o id do dono. */
+const sessionDoUsuario = (id: string) =>
+  "u" + String(id || "").replace(/[^A-Za-z0-9]/g, "").slice(-24);
+
+const sessionDe = (owner: any) =>
+  String(owner.whatsapp_waha_session || "").trim() || sessionDoUsuario(owner.id);
+
+/** Servidor do app (variável de ambiente) com o campo do usuário como escape. */
+const baseUrlDe = (owner: any) =>
+  (env("WAHA_URL") || String(owner.whatsapp_waha_url || "")).trim().replace(/\/+$/, "");
 const isGroup = (chatId: string) => String(chatId || "").endsWith("@g.us");
 const isBroadcast = (chatId: string) => String(chatId || "").includes("broadcast");
 
@@ -46,14 +59,15 @@ async function hmacValid(rawBody: string, key: string, provided: string) {
 }
 
 async function sendText(owner: any, chatId: string, text: string) {
-  const baseUrl = String(owner.whatsapp_waha_url || "").trim().replace(/\/+$/, "");
+  const baseUrl = baseUrlDe(owner);
+  const apiKey = env("WAHA_API_KEY") || String(owner.whatsapp_waha_api_key || "");
   const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (owner.whatsapp_waha_api_key) headers["X-Api-Key"] = String(owner.whatsapp_waha_api_key);
+  if (apiKey) headers["X-Api-Key"] = apiKey;
   const response = await fetch(baseUrl + "/api/sendText", {
     method: "POST",
     headers,
     body: JSON.stringify({
-      session: String(owner.whatsapp_waha_session || "default"),
+      session: sessionDe(owner),
       chatId,
       text
     })
@@ -101,17 +115,18 @@ Deno.serve(async (req) => {
     if (!event || !sessionName) return new Response("ok");
 
     const users = await base44.asServiceRole.entities.User.list();
-    const owner = (users || []).find(
-      (user: any) => String(user.whatsapp_waha_session || "default") === sessionName && user.whatsapp_waha_url
-    );
+    // A sessão pode vir do nome derivado do id (padrão) ou de um nome próprio
+    // que o usuário tenha configurado à mão.
+    const owner = (users || []).find((user: any) => sessionDe(user) === sessionName);
     if (!owner) {
       console.log("[CRM_WEBHOOK] Conta não encontrada para a sessão", sessionName);
       return new Response("ok");
     }
 
-    if (owner.whatsapp_waha_hmac) {
+    const hmacKey = env("WAHA_HMAC_KEY") || String(owner.whatsapp_waha_hmac || "");
+    if (hmacKey) {
       const provided = req.headers.get("x-webhook-hmac") || "";
-      if (!(await hmacValid(rawBody, String(owner.whatsapp_waha_hmac), provided))) {
+      if (!(await hmacValid(rawBody, hmacKey, provided))) {
         console.warn("[CRM_WEBHOOK] Assinatura HMAC inválida na sessão", sessionName);
         return new Response("Forbidden", { status: 403 });
       }
@@ -215,7 +230,7 @@ Deno.serve(async (req) => {
 
     const atendenteLigado =
       Boolean(owner.whatsapp_atendente_ativo) && Boolean(owner.whatsapp_atendente_confirmado);
-    if (!atendenteLigado || !owner.whatsapp_waha_url) return new Response("ok");
+    if (!atendenteLigado || !baseUrlDe(owner)) return new Response("ok");
 
     const recentes = await base44.asServiceRole.entities.CRMMensagem.filter(
       { conversa_id: conversation.id, direcao: "enviada" },
