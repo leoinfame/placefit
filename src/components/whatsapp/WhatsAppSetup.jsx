@@ -479,7 +479,10 @@ export default function WhatsAppSetup({ userId, userType = "revendedor" }) {
         </CardContent>
       </Card>
 
-      {/* Passo a Passo */}
+      {/* Configuração técnica — só aparece para quem usa servidor próprio.
+          Com o servidor do app, o usuário não precisa ver nada disso. */}
+      {!compartilhado && (
+      <>
       <div className="space-y-3">
         <h3 className="font-bold text-gray-900 text-lg">📋 Passo a Passo de Configuração</h3>
         {STEPS.map((step) => {
@@ -589,6 +592,8 @@ export default function WhatsAppSetup({ userId, userType = "revendedor" }) {
           Salvar Configurações
         </Button>
       </div>
+      </>
+      )}
     </div>
   );
 }
