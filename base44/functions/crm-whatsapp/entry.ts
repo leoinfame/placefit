@@ -23,16 +23,49 @@ const toMsisdn = (value: string) => {
   return digits.length >= 10 ? "55" + digits : digits;
 };
 
-type Waha = { baseUrl: string; apiKey: string; session: string; configured: boolean };
+type Waha = {
+  baseUrl: string;
+  apiKey: string;
+  hmac: string;
+  session: string;
+  configured: boolean;
+  compartilhado: boolean;
+};
 
+const env = (nome: string) => String(Deno.env.get(nome) || "").trim();
+
+/**
+ * Nome da sessão derivado do id do usuário. Dois fornecedores nunca colidem e
+ * ninguém precisa inventar (nem digitar) um nome.
+ */
+const sessionDoUsuario = (id: string) =>
+  "u" + String(id || "").replace(/[^A-Za-z0-9]/g, "").slice(-24);
+
+/**
+ * O servidor WAHA é do app, não do usuário: configurado uma única vez nas
+ * variáveis de ambiente (WAHA_URL / WAHA_API_KEY / WAHA_HMAC_KEY). Assim o
+ * fornecedor abre a tela e só precisa ler o QR Code.
+ * Os campos por usuário continuam valendo como escape, para quem quiser
+ * apontar para um servidor próprio.
+ */
 const wahaConfig = (owner: any): Waha => {
-  const baseUrl = String(owner.whatsapp_waha_url || "").trim().replace(/\/+$/, "");
+  const envUrl = env("WAHA_URL");
+  const compartilhado = Boolean(envUrl);
+  const baseUrl = (envUrl || String(owner.whatsapp_waha_url || "")).trim().replace(/\/+$/, "");
   return {
     baseUrl,
-    apiKey: String(owner.whatsapp_waha_api_key || ""),
-    session: String(owner.whatsapp_waha_session || DEFAULT_SESSION),
-    configured: Boolean(baseUrl)
+    apiKey: env("WAHA_API_KEY") || String(owner.whatsapp_waha_api_key || ""),
+    hmac: env("WAHA_HMAC_KEY") || String(owner.whatsapp_waha_hmac || ""),
+    session: String(owner.whatsapp_waha_session || "").trim() || sessionDoUsuario(owner.id),
+    configured: Boolean(baseUrl),
+    compartilhado
   };
+};
+
+/** URL pública do webhook, montada sozinha a partir do endereço do app. */
+const webhookPadrao = () => {
+  const base = (env("APP_PUBLIC_URL") || "https://placefit.base44.app").replace(/\/+$/, "");
+  return base + "/functions/crm-whatsapp-webhook";
 };
 
 async function waha(cfg: Waha, path: string, init: RequestInit = {}) {
