@@ -11,8 +11,6 @@ import { createClientFromRequest } from "npm:@base44/sdk";
 // número se houver disparo em massa. Esta integração é para organizar conversas,
 // não para campanha.
 
-const DEFAULT_SESSION = "default";
-
 const onlyDigits = (value: string) => String(value || "").replace(/\D/g, "");
 
 /** Normaliza para MSISDN brasileiro (55 + DDD + número). */
@@ -135,6 +133,9 @@ Deno.serve(async (req) => {
       return Response.json({
         configured: cfg.configured,
         engine: "waha",
+        // true = servidor do app, vindo das variáveis de ambiente. A tela esconde
+        // os campos técnicos e mostra só o botão de conectar.
+        compartilhado: cfg.compartilhado,
         session_name: cfg.session,
         session_status: session?.status || "NOT_CONFIGURED",
         connected: session?.status === "WORKING",
@@ -164,7 +165,9 @@ Deno.serve(async (req) => {
     }
 
     if (!cfg.configured) {
-      return Response.json({ error: "Informe a URL do servidor WAHA antes de continuar." }, { status: 400 });
+      return Response.json({
+        error: "O servidor de WhatsApp ainda não foi configurado. Defina a variável WAHA_URL nas configurações do app."
+      }, { status: 400 });
     }
 
     // ── Ciclo de vida da sessão (pareamento por QR Code) ──────────────────────
