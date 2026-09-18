@@ -168,6 +168,192 @@ Deno.serve(async (req) => {
       return Response.json({ ok: true, atendente_ativo: ativo && confirmado });
     }
 
+    // ── Conexão oficial Meta: Embedded Signup v4 com coexistência ────────────
+    // Preparação (homologação): estas ações implementam a troca segura do
+    // código, a validação dos ativos e o armazenamento cifrado por tenant.
+    // Nenhuma mensagem é enviada aqui e nada liga o atendente. Enquanto as
+    // variáveis META_APP_ID / META_APP_SECRET / META_TOKEN_ENC_KEY não
+    // existirem, as ações falham fechado com "configuração pendente".
+    const metaAppId = env("META_APP_ID");
+    const metaAppSecret = env("META_APP_SECRET");
+    const metaEncKey = env("META_TOKEN_ENC_KEY");
+    const metaConfigId = env("META_EMBEDDED_SIGNUP_CONFIG_ID");
+    const graph = "https://graph.facebook.com/v23.0";
+
+    const metaPronto = Boolean(metaAppId && metaAppSecret && metaEncKey && metaConfigId);
+
+    if (action === "meta_status") {
+      let sync: any = {};
+      try { sync = JSON.parse(String(owner.whatsapp_meta_sync_state || "{}")); } catch { sync = {}; }
+      return Response.json({
+        preparado: metaPronto,
+        pendencias: [
+          metaAppId ? "" : "META_APP_ID",
+          metaAppSecret ? "" : "META_APP_SECRET",
+          metaEncKey ? "" : "META_TOKEN_ENC_KEY",
+          metaConfigId ? "" : "META_EMBEDDED_SIGNUP_CONFIG_ID"
+        ].filter(Boolean),
+        app_id: metaAppId || "",
+        config_id_presente: Boolean(metaConfigId),
+        conexao: {
+          status: owner.whatsapp_meta_status || "nao_configurado",
+          waba_id: owner.whatsapp_meta_waba_id || "",
+          phone_number_id: owner.whatsapp_meta_phone_number_id || "",
+          display_phone: owner.whatsapp_meta_display_phone || "",
+          coexistence: Boolean(owner.whatsapp_meta_coexistence),
+          connected_at: owner.whatsapp_meta_connected_at || "",
+          token_presente: Boolean(owner.whatsapp_meta_token_enc)
+        },
+        homologacao: Boolean(owner.whatsapp_meta_homologacao),
+        sincronizacao: {
+          fases: sync.fases || {},
+          historico_concluido: Boolean(sync.historico_concluido),
+          atualizado_em: sync.atualizado_em || ""
+        },
+        // nunca expor token, segredos nem código temporário
+      });
+    }
+
+    if (action === "meta_disconnect_info") {
+      // Roteiro de impacto, sem executar nada: desconexão é último recurso.
+      return Response.json({
+        roteiro: [
+          "Desligar IA e saídas automáticas mantendo recepção e uso do Business App",
+          "Pausar processamento de saída e continuar capturando webhooks",
+          "Reverter a versão do app pelo histórico do Base44",
+          "Offboarding na Meta só como último recurso, com backup e janela acompanhada"
+        ],
+        aviso: "Nada foi alterado. Isto é apenas o roteiro de impacto."
+      });
+    }
+
+    if (action === "meta_embedded_signup_complete") {
+      if (!metaPronto) {
+        return Response.json({
+          error: "Configuração pendente: defina META_APP_ID, META_APP_SECRET, META_TOKEN_ENC_KEY e META_EMBEDDED_SIGNUP_CONFIG_ID antes de conectar.",
+          homologacao: true
+        }, { status: 400 });
+      }
+      const code = String(body.code || "").trim();
+      const wabaId = String(body.waba_id || "").trim();
+      const phoneNumberId = String(body.phone_number_id || "").trim();
+      if (!code || !wabaId || !phoneNumberId) {
+        return Response.json({ error: "code, waba_id e phone_number_id são obrigatórios" }, { status: 400 });
+      }
+
+      // 1. Troca do código SOMENTE no servidor
+      const troca = await fetch(graph + "/oauth/access_token?client_id=" + encodeURIComponent(metaAppId)
+        + "&client_secret=" + encodeURIComponent(metaAppSecret)
+        + "&code=" + encodeURIComponent(code));
+      const trocaData = await troca.json().catch(() => null);
+      if (!troca.ok || !trocaData?.access_token) {
+        console.error("[META_ONBOARD] troca falhou", troca.status);
+        return Response.json({ error: "Falha ao trocar o código na Meta", detalhe: trocaData?.error?.message || "" }, { status: 400 });
+      }
+      const token = String(trocaData.access_token);
+
+      // 2. Validar app e permissões concedidas
+      const appToken = metaAppId + "|" + metaAppSecret;
+      const dbg = await fetch(graph + "/debug_token?input_token=" + encodeURIComponent(token), {
+        headers: { Authorization: "Bearer " + appToken }
+      });
+      const dbgData = await dbg.json().catch(() => null);
+      const dbgInfo = dbgData?.data || {};
+      if (String(dbgInfo.app_id || "") !== metaAppId || !dbgInfo.is_valid) {
+        return Response.json({ error: "Token não pertence ao app esperado ou é inválido" }, { status: 400 });
+      }
+      const scopes: string[] = (dbgInfo.granular_scopes || []).map((s: any) => String(s.scope));
+      const precisa = ["whatsapp_business_management", "whatsapp_business_messaging"];
+      const faltam = precisa.filter((p) => !scopes.includes(p));
+      if (faltam.length) {
+        return Response.json({ error: "Permissões não concedidas: " + faltam.join(", ") }, { status: 400 });
+      }
+
+      // 3. Validar ativos reais: número e WABA
+      const headers = { Authorization: "Bearer " + token };
+      const fone = await fetch(graph + "/" + encodeURIComponent(phoneNumberId)
+        + "?fields=display_phone_number,verified_name,platform_type,code_verification_status", { headers });
+      const foneData = await fone.json().catch(() => null);
+      if (!fone.ok || !foneData?.display_phone_number) {
+        return Response.json({ error: "Phone Number ID não consultável" }, { status: 400 });
+      }
+      const waba = await fetch(graph + "/" + encodeURIComponent(wabaId)
+        + "?fields=id,name,account_review_status", { headers });
+      const wabaData = await waba.json().catch(() => null);
+      if (!waba.ok || !wabaData?.id) {
+        return Response.json({ error: "WABA não consultável" }, { status: 400 });
+      }
+
+      // 4. Cifrar o token (AES-GCM, chave fora do banco) e gravar por tenant
+      const keyBytes = Uint8Array.from(atob(metaEncKey), (c) => c.charCodeAt(0));
+      const encKeyCrypto = await crypto.subtle.importKey("raw", keyBytes, { name: "AES-GCM" }, false, ["encrypt"]);
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const cipher = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, encKeyCrypto, new TextEncoder().encode(token));
+      const pacote = new Uint8Array(iv.length + cipher.byteLength);
+      pacote.set(iv, 0);
+      pacote.set(new Uint8Array(cipher), iv.length);
+      const tokenEnc = btoa(String.fromCharCode(...pacote));
+
+      await base44.asServiceRole.entities.User.update(ownerId, {
+        whatsapp_meta_app_id: metaAppId,
+        whatsapp_meta_waba_id: wabaId,
+        whatsapp_meta_phone_number_id: phoneNumberId,
+        whatsapp_meta_display_phone: String(foneData.display_phone_number),
+        whatsapp_meta_token_enc: tokenEnc,
+        whatsapp_meta_token_key_version: "v1",
+        whatsapp_meta_coexistence: true,
+        whatsapp_meta_status: "ativos_validados",
+        whatsapp_meta_connected_at: new Date().toISOString()
+      });
+
+      // 5. Registro de sessão recebida (session logging do Embedded Signup v4)
+      if (body.session_info) {
+        console.log("[META_ONBOARD] session_info recebida em", new Date().toISOString());
+      }
+
+      return Response.json({
+        ok: true,
+        status: "ativos_validados",
+        display_phone: foneData.display_phone_number,
+        verified_name: foneData.verified_name || "",
+        waba_name: wabaData.name || "",
+        proximos_passos: [
+          "Inscrever o app na WABA e conferir campos do webhook",
+          "Confirmar número registrado (platform_type CLOUD_API)",
+          "Iniciar sincronização dentro da janela de 24h, com consentimento"
+        ]
+      });
+    }
+
+    if (action === "meta_self_test") {
+      // Homologação segura: somente leitura/sondagens. Não grava nada no banco.
+      const base = (env("APP_PUBLIC_URL") || "https://placefit.base44.app").replace(/\/+$/, "");
+      const url = base + "/functions/whatsappWebhook";
+      const r: any = { alvo: url, checagens: [] as any[] };
+      try {
+        const g = await fetch(url + "?hub.mode=subscribe&hub.verify_token=errado&hub.challenge=x");
+        r.checagens.push({ nome: "GET com token errado deve ser 403", status: g.status, ok: g.status === 403 });
+      } catch (e) { r.checagens.push({ nome: "GET challenge", ok: false, erro: String(e) }); }
+      try {
+        const p = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-Hub-Signature-256": "sha256=invalida" },
+          body: JSON.stringify({ object: "whatsapp_business_account", entry: [] })
+        });
+        const ok = p.status === 401 || p.status === 503;
+        r.checagens.push({
+          nome: "POST com assinatura inválida deve ser 401 (ou 503 sem App Secret)",
+          status: p.status, ok
+        });
+      } catch (e) { r.checagens.push({ nome: "POST assinatura", ok: false, erro: String(e) }); }
+      r.meta_pronto = metaPronto;
+      r.observacao = metaPronto
+        ? "Contrato completo (eventos assinados, dedup, chunks fora de ordem) pode ser executado."
+        : "Sem META_APP_SECRET o endpoint falha fechado (503): comportamento correto em homologação.";
+      return Response.json(r);
+    }
+
+
     if (!cfg.configured) {
       return Response.json({
         error: "O servidor de WhatsApp ainda não foi configurado. Defina a variável WAHA_URL nas configurações do app."
@@ -358,3 +544,4 @@ Deno.serve(async (req) => {
     return Response.json({ error: error?.message || "Erro interno" }, { status: 500 });
   }
 });
+
