@@ -1,26 +1,27 @@
 {
   "name": "ClienteFiscal",
   "type": "object",
+  "description": "Cliente fiscal de um tenant para fins de rascunho NF-e. Isolado por tenant via RLS.",
   "properties": {
-    "user_id": {
+    "tenant_id": {
       "type": "string",
-      "description": "ID do usu\u00e1rio que cadastrou"
+      "description": "ID do User dono do cliente (tenant). Sinonimo de user_id."
     },
     "tipo_pessoa": {
       "type": "string",
       "enum": [
-        "F\u00edsica",
-        "Jur\u00eddica"
+        "Fisica",
+        "Juridica"
       ],
       "description": "Tipo de pessoa"
     },
     "cpf_cnpj": {
       "type": "string",
-      "description": "CPF ou CNPJ"
+      "description": "CPF ou CNPJ (normalizado, sem pontuacao)"
     },
     "nome_razao_social": {
       "type": "string",
-      "description": "Nome ou Raz\u00e3o Social"
+      "description": "Nome ou Razao Social"
     },
     "nome_fantasia": {
       "type": "string",
@@ -28,7 +29,7 @@
     },
     "inscricao_estadual": {
       "type": "string",
-      "description": "Inscri\u00e7\u00e3o Estadual"
+      "description": "Inscricao Estadual"
     },
     "email": {
       "type": "string",
@@ -48,7 +49,7 @@
     },
     "numero": {
       "type": "string",
-      "description": "N\u00famero"
+      "description": "Numero"
     },
     "complemento": {
       "type": "string",
@@ -78,7 +79,7 @@
     "ultima_compra": {
       "type": "string",
       "format": "date",
-      "description": "Data da \u00faltima compra"
+      "description": "Data da ultima compra"
     },
     "ativo": {
       "type": "boolean",
@@ -87,11 +88,11 @@
     },
     "observacoes": {
       "type": "string",
-      "description": "Observa\u00e7\u00f5es"
+      "description": "Observacoes"
     }
   },
   "required": [
-    "user_id",
+    "tenant_id",
     "cpf_cnpj",
     "nome_razao_social"
   ],
@@ -100,5 +101,64 @@
     "create": "authenticated",
     "update": "authenticated",
     "delete": "authenticated"
+  },
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.tenant_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "data.tenant_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.tenant_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.tenant_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
   }
 }

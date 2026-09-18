@@ -1,0 +1,102 @@
+{
+  "name": "EventoFiscal",
+  "type": "object",
+  "description": "Trilha de auditoria append-only para eventos fiscais de um tenant. Registra criacao de rascunho, validacoes, mudancas de estado e esqueletos de homologacao/consulta/cancelamento/inutilizacao/contingencia. Nunca contem segredos, XML, DANFE nem dados pessoais excessivos.",
+  "properties": {
+    "tenant_id": {
+      "type": "string",
+      "description": "ID do User dono do evento (tenant). Sinonimo de user_id."
+    },
+    "documento_fiscal_id": {
+      "type": "string",
+      "description": "ID do NotaFiscal relacionado ao evento"
+    },
+    "pedido_id": {
+      "type": "string",
+      "description": "ID do PedidoVenda que originou o evento"
+    },
+    "tipo_evento": {
+      "type": "string",
+      "enum": [
+        "criacao_rascunho",
+        "validacao_dados",
+        "mudanca_estado",
+        "homologacao_esqueleto",
+        "consulta_esqueleto",
+        "cancelamento_esqueleto",
+        "inutilizacao_esqueleto",
+        "contingencia_esqueleto"
+      ],
+      "description": "Tipo do evento fiscal"
+    },
+    "estado_anterior": {
+      "type": "string",
+      "description": "Estado anterior do documento (se aplicavel)"
+    },
+    "estado_novo": {
+      "type": "string",
+      "description": "Novo estado do documento (se aplicavel)"
+    },
+    "descricao": {
+      "type": "string",
+      "description": "Descricao legivel do evento"
+    },
+    "metadados": {
+      "type": "string",
+      "description": "JSON livre com metadados nao sens\u00edveis (pendencias validadas, contadores). Nunca XML, DANFE, chave, protocolo nem dados pessoais."
+    },
+    "idempotency_key": {
+      "type": "string",
+      "description": "Chave de idempotencia do evento (tenant + pedido + operacao)"
+    }
+  },
+  "required": [
+    "tenant_id",
+    "tipo_evento"
+  ],
+  "x-security": {
+    "read": "authenticated",
+    "create": "authenticated",
+    "update": "admin",
+    "delete": "admin"
+  },
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.tenant_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "data.tenant_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

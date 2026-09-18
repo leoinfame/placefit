@@ -1,18 +1,19 @@
 {
   "name": "PedidoVenda",
   "type": "object",
+  "description": "Pedido de venda de um tenant. Isolado por tenant via RLS. O status Faturado so pode ser definido por fluxo futuro protegido por retorno SEFAZ valido, nunca pelo rascunho fiscal.",
   "properties": {
-    "user_id": {
+    "tenant_id": {
       "type": "string",
-      "description": "ID do vendedor (fabricante/revendedor)"
+      "description": "ID do vendedor (tenant). Sinonimo de user_id."
     },
     "numero_pedido": {
       "type": "string",
-      "description": "N\u00famero do pedido"
+      "description": "Numero do pedido"
     },
     "cliente_id": {
       "type": "string",
-      "description": "ID do cliente"
+      "description": "ID do cliente fiscal"
     },
     "cliente_nome": {
       "type": "string",
@@ -30,15 +31,15 @@
     "status": {
       "type": "string",
       "enum": [
-        "Em negocia\u00e7\u00e3o",
+        "Em negociacao",
         "Confirmado",
         "Faturado",
         "Enviado",
         "Entregue",
         "Cancelado"
       ],
-      "default": "Em negocia\u00e7\u00e3o",
-      "description": "Status do pedido"
+      "default": "Em negociacao",
+      "description": "Status do pedido. Faturado so via fluxo fiscal autorizado real."
     },
     "itens": {
       "type": "array",
@@ -95,9 +96,9 @@
     "forma_pagamento": {
       "type": "string",
       "enum": [
-        "\u00c0 vista",
+        "A vista",
         "Boleto",
-        "Cart\u00e3o",
+        "Cartao",
         "PIX",
         "Parcelado"
       ],
@@ -135,7 +136,7 @@
       "type": "string",
       "enum": [
         "Aguardando",
-        "Em tr\u00e2nsito",
+        "Em transito",
         "Entregue"
       ],
       "default": "Aguardando",
@@ -143,15 +144,15 @@
     },
     "nfe_id": {
       "type": "string",
-      "description": "ID da nota fiscal gerada"
+      "description": "ID do rascunho fiscal gerado (NotaFiscal)"
     },
     "observacoes": {
       "type": "string",
-      "description": "Observa\u00e7\u00f5es"
+      "description": "Observacoes"
     }
   },
   "required": [
-    "user_id",
+    "tenant_id",
     "cliente_id",
     "itens"
   ],
@@ -160,5 +161,64 @@
     "create": "authenticated",
     "update": "authenticated",
     "delete": "authenticated"
+  },
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.tenant_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "data.tenant_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.tenant_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.tenant_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
   }
 }

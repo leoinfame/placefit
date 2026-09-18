@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Plus, Search, Eye, Edit, Trash2, FileText, Package } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
 
 export default function PedidosVenda() {
   const [user, setUser] = useState(null);
@@ -20,6 +21,27 @@ export default function PedidosVenda() {
   const [showDialog, setShowDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [preparando, setPreparando] = useState(null);
+
+  const handlePrepararRascunho = async (pedidoId) => {
+    setPreparando(pedidoId);
+    try {
+      const res = await base44.functions.invoke("prepararRascunhoFiscal", {
+        pedido_id: pedidoId,
+      });
+      if (res?.ok) {
+        toast.success(res.aviso || "Rascunho fiscal preparado");
+        loadData();
+      } else {
+        toast.error(res?.erro || "Erro ao preparar rascunho");
+      }
+    } catch (error) {
+      console.error("Erro ao preparar rascunho:", error);
+      toast.error("Erro ao preparar rascunho fiscal");
+    } finally {
+      setPreparando(null);
+    }
+  };
   
   const [formData, setFormData] = useState({
     cliente_id: "",
@@ -490,10 +512,22 @@ export default function PedidosVenda() {
                         <Eye className="w-4 h-4" />
                       </Button>
                       {pedido.status === "Confirmado" && !pedido.nfe_id && (
-                        <Button className="bg-green-600 hover:bg-green-700">
+                        <Button
+                          onClick={() => handlePrepararRascunho(pedido.id)}
+                          disabled={preparando === pedido.id}
+                          className="bg-yellow-600 hover:bg-yellow-700"
+                        >
                           <FileText className="w-4 h-4 mr-2" />
-                          Emitir NF-e
+                          {preparando === pedido.id ? "Preparando..." : "Preparar Rascunho Fiscal"}
                         </Button>
+                      )}
+                      {pedido.nfe_id && (
+                        <Link to="/NotasFiscais">
+                          <Button variant="outline" className="gap-2">
+                            <FileText className="w-4 h-4" />
+                            Ver Rascunho Fiscal
+                          </Button>
+                        </Link>
                       )}
                     </div>
                   </div>

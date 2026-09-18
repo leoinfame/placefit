@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Settings, Save, Upload } from "lucide-react";
+import { Settings, Save } from "lucide-react";
 import { toast } from "sonner";
 
 export default function ConfiguracaoFiscal() {
@@ -19,36 +19,68 @@ export default function ConfiguracaoFiscal() {
     razao_social: "",
     nome_fantasia: "",
     inscricao_estadual: "",
-    regime_tributario: "Simples Nacional",
+    regime_tributario: "",
     endereco: "",
     numero: "",
     complemento: "",
     bairro: "",
     cidade: "",
-    estado: "SP",
+    estado: "",
     cep: "",
     telefone: "",
     email: "",
-    cfop_padrao: "5102",
-    ambiente_nfe: "homologacao",
-    serie_nfe: "1",
-    proximo_numero: 1
+    modelo: "55",
+    ambiente: "homologacao",
+    serie: "",
+    proximo_numero: 1,
+    status_credenciamento: "pendente",
+    certificado_status: "pendente",
+    cfop_confirmado: false,
+    ncm_confirmado: false,
+    icms_st_confirmado: false,
+    difal_confirmado: false,
+    frete_confirmado: false,
+    numeracao_confirmada: false,
   });
+  const [pendencias, setPendencias] = useState([]);
 
   useEffect(() => {
     loadData();
   }, []);
+
+  const calcularPendencias = (dados) => {
+    const pends = [];
+    if (!dados.cnpj) pends.push("Confirmar CNPJ do emissor");
+    if (!dados.razao_social) pends.push("Confirmar razão social");
+    if (!dados.inscricao_estadual) pends.push("Confirmar Inscrição Estadual");
+    if (!dados.regime_tributario) pends.push("Confirmar regime tributário");
+    if (!dados.estado) pends.push("Confirmar UF do emissor");
+    if (!dados.serie) pends.push("Confirmar série da NF-e");
+    if (dados.certificado_status !== "configurado") pends.push("Configurar certificado digital A1");
+    if (dados.status_credenciamento !== "ativo") pends.push("Credenciamento na SEFAZ/UF");
+    if (!dados.cfop_confirmado) pends.push("Confirmar CFOP por operação");
+    if (!dados.ncm_confirmado) pends.push("Confirmar NCM por produto");
+    if (!dados.icms_st_confirmado) pends.push("Confirmar ICMS/ST");
+    if (!dados.difal_confirmado) pends.push("Confirmar DIFAL (se aplicável)");
+    if (!dados.frete_confirmado) pends.push("Confirmar regras de frete");
+    if (!dados.numeracao_confirmada) pends.push("Confirmar numeração");
+    setPendencias(pends);
+    return pends;
+  };
 
   const loadData = async () => {
     try {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      const configs = await base44.entities.ConfiguracaoFiscal.filter({ user_id: currentUser.id });
+      const configs = await base44.entities.ConfiguracaoFiscal.filter({ tenant_id: currentUser.id });
       
       if (configs && configs.length > 0) {
         setConfig(configs[0]);
-        setFormData(configs[0]);
+        setFormData(prev => ({ ...prev, ...configs[0] }));
+        calcularPendencias({ ...formData, ...configs[0] });
+      } else {
+        calcularPendencias(formData);
       }
     } catch (error) {
       console.error("Erro ao carregar configuração:", error);
@@ -118,10 +150,13 @@ export default function ConfiguracaoFiscal() {
 
     setSaving(true);
     try {
+      const pendenciasAtualizadas = calcularPendencias(formData);
       const configData = {
         ...formData,
-        user_id: user.id
+        tenant_id: user.id,
+        cnpj: formData.cnpj ? formData.cnpj.replace(/\D/g, "") : "",
       };
+      configData.pronta_homologacao = pendenciasAtualizadas.length === 0;
 
       if (config) {
         await base44.entities.ConfiguracaoFiscal.update(config.id, configData);
@@ -317,33 +352,26 @@ export default function ConfiguracaoFiscal() {
           </CardContent>
         </Card>
 
-        {/* Configurações NF-e */}
+        {/* Configurações NF-e modelo 55 */}
         <Card>
           <CardHeader>
-            <CardTitle>Configurações NF-e</CardTitle>
+            <CardTitle>Configurações NF-e (Modelo 55)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>CFOP Padrão</Label>
+                <Label>Série</Label>
                 <Input
-                  value={formData.cfop_padrao}
-                  onChange={(e) => setFormData({...formData, cfop_padrao: e.target.value})}
-                  placeholder="5102"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Série NF-e</Label>
-                <Input
-                  value={formData.serie_nfe}
-                  onChange={(e) => setFormData({...formData, serie_nfe: e.target.value})}
+                  value={formData.serie || ""}
+                  onChange={(e) => setFormData({...formData, serie: e.target.value})}
+                  placeholder="A confirmar pelo contador"
                 />
               </div>
               <div className="space-y-2">
                 <Label>Próximo Número</Label>
                 <Input
                   type="number"
-                  value={formData.proximo_numero}
+                  value={formData.proximo_numero || 1}
                   onChange={(e) => setFormData({...formData, proximo_numero: Number(e.target.value)})}
                 />
               </div>
@@ -351,7 +379,7 @@ export default function ConfiguracaoFiscal() {
 
             <div className="space-y-2">
               <Label>Ambiente</Label>
-              <Select value={formData.ambiente_nfe} onValueChange={(value) => setFormData({...formData, ambiente_nfe: value})}>
+              <Select value={formData.ambiente || "homologacao"} onValueChange={(value) => setFormData({...formData, ambiente: value})}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -362,16 +390,88 @@ export default function ConfiguracaoFiscal() {
               </Select>
             </div>
 
-            <div className="space-y-2 bg-yellow-50 p-4 rounded-lg">
-              <Label>Certificado Digital A1</Label>
-              <p className="text-sm text-gray-600 mb-2">
-                ⚠️ Upload de certificado digital será implementado com API de NF-e
-              </p>
-              <Button variant="outline" disabled>
-                <Upload className="w-4 h-4 mr-2" />
-                Upload Certificado (.pfx)
-              </Button>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Credenciamento SEFAZ/UF</Label>
+                <Select value={formData.status_credenciamento || "pendente"} onValueChange={(value) => setFormData({...formData, status_credenciamento: value})}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pendente">Pendente</SelectItem>
+                    <SelectItem value="ativo">Ativo</SelectItem>
+                    <SelectItem value="suspenso">Suspenso</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Certificado Digital A1</Label>
+                <Select value={formData.certificado_status || "pendente"} onValueChange={(value) => setFormData({...formData, certificado_status: value})}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pendente">Pendente</SelectItem>
+                    <SelectItem value="configurado">Configurado</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-gray-500">
+                  Nenhum certificado ou senha é armazenado nesta fase.
+                </p>
+              </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Checklist de pendências do contador */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Checklist do Contador</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Itens que precisam ser confirmados antes da homologação. Regras tributárias
+              (CFOP, NCM, ICMS/ST, DIFAL) não são fixadas — aguardam confirmação do contador.
+            </p>
+            <div className="space-y-2">
+              {[
+                { key: "cfop_confirmado", label: "CFOP confirmado por operação" },
+                { key: "ncm_confirmado", label: "NCM confirmado por produto" },
+                { key: "icms_st_confirmado", label: "ICMS/ST confirmado" },
+                { key: "difal_confirmado", label: "DIFAL confirmado (se aplicável)" },
+                { key: "frete_confirmado", label: "Regras de frete confirmadas" },
+                { key: "numeracao_confirmada", label: "Numeração confirmada" },
+              ].map((item) => (
+                <label key={item.key} className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(formData[item.key])}
+                    onChange={(e) => setFormData({...formData, [item.key]: e.target.checked})}
+                    className="w-4 h-4 rounded border-gray-300"
+                  />
+                  <span className="text-sm">{item.label}</span>
+                </label>
+              ))}
+            </div>
+
+            {pendencias.length > 0 ? (
+              <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-4">
+                <p className="font-semibold text-yellow-900 mb-2">
+                  Pendências restantes ({pendencias.length}):
+                </p>
+                <ul className="list-disc list-inside text-sm text-yellow-800 space-y-1">
+                  {pendencias.map((p, i) => (
+                    <li key={i}>{p}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <div className="bg-green-50 border border-green-300 rounded-lg p-4">
+                <p className="font-semibold text-green-900">
+                  ✓ Todas as pendências resolvidas. Pronta para homologação.
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 

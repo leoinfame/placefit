@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Users, Package, TrendingUp, Settings, Truck, Receipt } from "lucide-react";
+import { FileText, Users, Package, TrendingUp, Settings, Receipt, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function FinanceiroFiscal() {
@@ -81,24 +81,8 @@ export default function FinanceiroFiscal() {
       stat: stats.clientes
     },
     {
-      title: "Financeiro",
-      description: "Contas a receber e pagamentos",
-      icon: TrendingUp,
-      path: "/FinanceiroContas",
-      color: "from-orange-500 to-orange-600",
-      stat: `R$ ${stats.faturamento.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
-    },
-    {
-      title: "Frete e Entrega",
-      description: "Gerenciar entregas",
-      icon: Truck,
-      path: "/FreteEntrega",
-      color: "from-indigo-500 to-indigo-600",
-      stat: null
-    },
-    {
       title: "Configurações Fiscais",
-      description: "Dados da empresa e certificado",
+      description: "Dados da empresa e checklist do contador",
       icon: Settings,
       path: "/ConfiguracaoFiscal",
       color: "from-slate-500 to-slate-600",
@@ -121,6 +105,20 @@ export default function FinanceiroFiscal() {
               </h1>
               <p className="text-gray-600">Central de vendas, faturamento e logística</p>
             </div>
+          </div>
+        </div>
+
+        {/* Aviso de homologação */}
+        <div className="bg-yellow-50 border border-yellow-300 rounded-xl p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold text-yellow-900">
+              Nenhuma NF-e foi emitida. Fluxo em preparação para homologação.
+            </p>
+            <p className="text-sm text-yellow-800 mt-1">
+              Os rascunhos fiscais não têm valor legal. A emissão real exige certificado digital A1,
+              credenciamento SEFAZ e confirmação das regras tributárias pelo contador.
+            </p>
           </div>
         </div>
 
@@ -212,10 +210,10 @@ export default function FinanceiroFiscal() {
                 Novo Cliente
               </Button>
             </Link>
-            <Link to="/NotasFiscais?emitir=true">
+            <Link to="/PedidosVenda">
               <Button variant="secondary" className="gap-2">
                 <FileText className="w-4 h-4" />
-                Emitir NF-e
+                Preparar Rascunho Fiscal
               </Button>
             </Link>
           </CardContent>
