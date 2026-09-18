@@ -53,6 +53,23 @@
     },
     "erro": {
       "type": "string"
+    },
+    "origem": {
+      "type": "string",
+      "enum": [
+        "waha",
+        "cloud_api",
+        "business_app",
+        "history",
+        "sistema"
+      ],
+      "default": "waha",
+      "description": "Canal de origem da mensagem: WAHA (atual), Cloud API, Business App (eco), historico sincronizado ou sistema"
+    },
+    "enviada_em": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp original do evento Meta/WhatsApp"
     }
   },
   "required": [
