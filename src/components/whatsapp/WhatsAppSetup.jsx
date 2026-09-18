@@ -121,6 +121,142 @@ function FieldInput({ field, value, onChange }) {
     </div>
   );
 }
+// Conexão com a Meta (Cloud API + coexistência com o app WhatsApp Business).
+// Visível apenas em homologação: renderiza nada até whatsapp_meta_homologacao
+// estar ativo no usuário; o fluxo WAHA abaixo segue intacto.
+function MetaConnectCard({ userId }) {
+  const { toast } = useToast();
+  const [meta, setMeta] = useState(null);
+  const [metaBusy, setMetaBusy] = useState(false);
+
+  useEffect(() => {
+    let cancelado = false;
+    base44.functions
+      .invoke("crm-whatsapp", { action: "meta_status", owner_id: userId })
+      .then((r) => { if (!cancelado) setMeta(r?.data || null); })
+      .catch(() => { if (!cancelado) setMeta(null); });
+    return () => { cancelado = true; };
+  }, [userId]);
+
+  if (!meta?.homologacao) return null;
+
+  const carregarSdk = () => new Promise((resolve, reject) => {
+    if (window.FB) return resolve(window.FB);
+    const s = document.createElement("script");
+    s.src = "https://connect.facebook.net/pt_BR/sdk.js";
+    s.async = true;
+    s.onload = () => (window.FB ? resolve(window.FB) : reject(new Error("SDK do Facebook indisponível.")));
+    s.onerror = () => reject(new Error("Não foi possível carregar o SDK do Facebook."));
+    document.body.appendChild(s);
+  });
+
+  const conectarMeta = async () => {
+    if (!meta?.preparado) return;
+    setMetaBusy(true);
+    const dados = {};
+    const ouvinteMsg = (event) => {
+      if (event.origin !== "https://www.facebook.com" && event.origin !== "https://web.facebook.com") return;
+      try {
+        const msg = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+        if (msg && msg.type === "WA_EMBEDDED_SIGNUP") {
+          const d = msg.data || {};
+          if (d.waba_id) dados.waba_id = d.waba_id;
+          if (d.phone_number_id) dados.phone_number_id = d.phone_number_id;
+        }
+      } catch { /* ignora mensagens de outras origens */ }
+    };
+    try {
+      const FB = await carregarSdk();
+      FB.init({ appId: meta.app_id, cookie: true, xfbml: false, version: "v23.0" });
+      window.addEventListener("message", ouvinteMsg);
+      let resposta;
+      try {
+        resposta = await new Promise((resolve) => {
+          FB.login((r) => resolve(r), {
+            config_id: meta.config_id,
+            response_type: "code",
+            override_default_response_type: true,
+            extras: {
+              featureType: "whatsapp_business_app_onboarding",
+              sessionInfoVersion: "3",
+              version: "v3",
+            },
+          });
+        });
+        for (let i = 0; i < 20 && (!dados.waba_id || !dados.phone_number_id); i++) {
+          await new Promise((r) => setTimeout(r, 150));
+        }
+      } finally {
+        window.removeEventListener("message", ouvinteMsg);
+      }
+      const code = resposta?.authResponse?.code;
+      if (!code) {
+        toast({ title: "Conexão não concluída", description: "O cadastro na Meta foi fechado antes do fim. Nada foi alterado.", variant: "destructive" });
+        return;
+      }
+      if (!dados.waba_id || !dados.phone_number_id) {
+        toast({ title: "Dados incompletos", description: "A Meta não devolveu a WABA e o número. Tente de novo.", variant: "destructive" });
+        return;
+      }
+      await base44.functions.invoke("crm-whatsapp", {
+        action: "meta_embedded_signup_complete",
+        owner_id: userId,
+        code,
+        waba_id: dados.waba_id,
+        phone_number_id: dados.phone_number_id,
+        session_info: dados,
+      });
+      toast({ title: "Número validado em homologação", description: "Conta conferida e token guardado com segurança. O envio segue pelo fluxo atual (WAHA)." });
+      try {
+        const rs = await base44.functions.invoke("crm-whatsapp", { action: "meta_status", owner_id: userId });
+        setMeta(rs?.data || null);
+      } catch { /* mantém o estado anterior */ }
+    } catch (e) {
+      toast({ title: "Falha ao conectar com a Meta", description: e?.response?.data?.error || e?.message, variant: "destructive" });
+    } finally {
+      setMetaBusy(false);
+    }
+  };
+
+  const conexao = meta?.conexao || {};
+  const conectado = conexao.status === "ativos_validados";
+  return (
+    <Card className="border-2 border-indigo-300 bg-indigo-50">
+      <CardContent className="space-y-3 p-5">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-2">
+            <Smartphone className="h-5 w-5 text-indigo-600" />
+            <h3 className="font-semibold text-gray-900">Conectar com a Meta (Cloud API)</h3>
+          </div>
+          <Badge className="border-indigo-300 bg-white text-indigo-700">Homologação</Badge>
+        </div>
+        <p className="text-sm text-gray-600">
+          Preparação da coexistência com o aplicativo WhatsApp Business. O fluxo atual (WAHA) continua ativo e nada é enviado pela Meta nesta etapa.
+        </p>
+        {conectado ? (
+          <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+            Número validado: {conexao.display_phone || conexao.phone_number_id} — WABA {conexao.waba_id || "sem id"}.
+          </div>
+        ) : !meta?.preparado ? (
+          <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+            Configuração pendente no servidor: {(meta?.pendencias || []).join(", ")}. Defina as variáveis do app antes de conectar.
+          </div>
+        ) : null}
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            disabled={!meta?.preparado || metaBusy || conectado}
+            onClick={conectarMeta}
+            className="bg-indigo-600 hover:bg-indigo-700"
+          >
+            {metaBusy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            {conectado ? "Conectado" : "Conectar com a Meta"}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function WhatsAppSetup({ userId, userType = "revendedor" }) {
   const [config, setConfig] = useState({
@@ -313,6 +449,7 @@ export default function WhatsAppSetup({ userId, userType = "revendedor" }) {
 
   return (
     <div className="space-y-6">
+      <MetaConnectCard userId={userId} />
       {/* Estado da conexão */}
       <Card className={`border-2 ${connected ? "border-green-400 bg-green-50" : "border-gray-200 bg-gray-50"}`}>
         <CardContent className="p-5">
