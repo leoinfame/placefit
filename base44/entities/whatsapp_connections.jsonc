@@ -1,0 +1,134 @@
+{
+  "name": "whatsapp_connections",
+  "type": "object",
+  "description": "Conex\u00e3o oficial WhatsApp (Cloud API + coexist\u00eancia) por tenant. Substitui os campos tempor\u00e1rios whatsapp_meta_* de User como fonte principal. Uma conex\u00e3o por tenant/n\u00famero comercial.",
+  "properties": {
+    "tenant_id": {
+      "type": "string",
+      "description": "ID do User dono da conex\u00e3o (tenant). Sin\u00f4nimo de user_id."
+    },
+    "app_id": {
+      "type": "string",
+      "description": "ID do app Meta da conex\u00e3o oficial (Embedded Signup v4)"
+    },
+    "waba_id": {
+      "type": "string",
+      "description": "WhatsApp Business Account ID validado no onboarding"
+    },
+    "phone_number_id": {
+      "type": "string",
+      "description": "Phone Number ID validado no onboarding"
+    },
+    "display_phone": {
+      "type": "string",
+      "description": "N\u00famero comercial exibido validado (ex: 5537999147206)"
+    },
+    "coexistence_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Coexist\u00eancia ativa: n\u00famero segue utiliz\u00e1vel no WhatsApp Business App"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "nao_configurado",
+        "credenciais_recebidas",
+        "ativos_validados",
+        "webhook_inscrito",
+        "numero_registrado",
+        "coexistence_ativo",
+        "sincronizando",
+        "operacional",
+        "degradado",
+        "bloqueado"
+      ],
+      "default": "nao_configurado",
+      "description": "Estado do ciclo de vida da conex\u00e3o oficial"
+    },
+    "health_status": {
+      "type": "string",
+      "enum": [
+        "desconhecido",
+        "saudavel",
+        "degradado",
+        "bloqueado"
+      ],
+      "default": "desconhecido",
+      "description": "Sa\u00fade real da conex\u00e3o (sondagem peri\u00f3dica), independente do status de ciclo"
+    },
+    "embedded_signup_config_id": {
+      "type": "string",
+      "description": "Config ID do Embedded Signup v4 usado no onboarding"
+    },
+    "last_validated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u00daltima vez que os ativos (n\u00famero/WABA) foram revalidados com a Meta"
+    },
+    "metadata": {
+      "type": "string",
+      "description": "JSON livre com dados auxiliares (verified_name, waba_name, platform_type, etc). Nunca conter token."
+    }
+  },
+  "required": [
+    "tenant_id",
+    "waba_id",
+    "phone_number_id"
+  ],
+  "x-security": {
+    "read": "authenticated",
+    "create": "authenticated",
+    "update": "authenticated",
+    "delete": "authenticated"
+  },
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.tenant_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "data.tenant_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.tenant_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.tenant_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

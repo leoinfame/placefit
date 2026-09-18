@@ -1,0 +1,121 @@
+{
+  "name": "whatsapp_webhook_events",
+  "type": "object",
+  "description": "Evento bruto recebido do webhook oficial Meta (Cloud API + Coexistence). Deduplic\u00e1vel por event_key est\u00e1vel. Payload redigido: nunca guarda token, c\u00f3digo tempor\u00e1rio nem conte\u00fado sens\u00edvel. Chunks de hist\u00f3rico chegam fora de ordem e s\u00e3o registrados pela chave fase+ordem.",
+  "properties": {
+    "tenant_id": {
+      "type": "string",
+      "description": "ID do User dono do evento (tenant). Sin\u00f4nimo de user_id."
+    },
+    "connection_id": {
+      "type": "string",
+      "description": "ID da whatsapp_connections a que o evento pertence"
+    },
+    "event_key": {
+      "type": "string",
+      "description": "Chave est\u00e1vel de deduplica\u00e7\u00e3o (ex: wamid ou fase+chunk_order+entry_id). Reentregas n\u00e3o duplicam."
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "messages",
+        "smb_message_echoes",
+        "history",
+        "smb_app_state_sync",
+        "account_update",
+        "outro"
+      ],
+      "description": "Campo field do change da Meta"
+    },
+    "wamid": {
+      "type": "string",
+      "description": "ID da mensagem na Meta (quando aplic\u00e1vel). Usado para dedup de mensagens."
+    },
+    "payload_hash": {
+      "type": "string",
+      "description": "SHA-256 do payload bruto, para auditoria e detec\u00e7\u00e3o de diverg\u00eancia"
+    },
+    "payload": {
+      "type": "string",
+      "description": "JSON redigido do evento (sem token, c\u00f3digo, nem conte\u00fado sens\u00edvel). Apenas metadados necess\u00e1rios."
+    },
+    "phase": {
+      "type": "number",
+      "description": "Fase da sincroniza\u00e7\u00e3o de hist\u00f3rico (0, 1, 2) quando aplic\u00e1vel"
+    },
+    "chunk_order": {
+      "type": "number",
+      "description": "Ordem do chunk dentro da fase (para chunks fora de ordem)"
+    },
+    "progress": {
+      "type": "number",
+      "description": "Progresso percentual reportado no chunk (0-100)"
+    },
+    "event_timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp original do evento Meta/WhatsApp"
+    },
+    "processing_status": {
+      "type": "string",
+      "enum": [
+        "recebido",
+        "processado",
+        "dedup",
+        "erro"
+      ],
+      "default": "recebido",
+      "description": "Estado do processamento do evento"
+    },
+    "processed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Quando o evento foi processado com sucesso"
+    },
+    "error": {
+      "type": "string",
+      "description": "Erro de processamento, quando aplic\u00e1vel"
+    }
+  },
+  "required": [
+    "tenant_id",
+    "connection_id",
+    "event_key",
+    "event_type"
+  ],
+  "x-security": {
+    "read": "admin",
+    "create": "admin",
+    "update": "admin",
+    "delete": "admin"
+  },
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.tenant_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

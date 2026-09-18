@@ -1,4 +1,9 @@
 import { createClientFromRequest } from "npm:@base44/sdk";
+import {
+  garantirConexaoDoTenant,
+  cifrarToken,
+  lerEstadoSync
+} from "../../shared/whatsappCoexistence.ts";
 
 // ─── CRM WhatsApp via WAHA ────────────────────────────────────────────────────
 // Motor não-oficial (https://waha.devlike.pro) pareado por QR Code como
@@ -102,6 +107,12 @@ async function resolveChatId(cfg: Waha, phone: string) {
 const messageIdOf = (data: any) =>
   String(data?.id?._serialized || data?.id || data?._data?.id?._serialized || "");
 
+/** Verifica se existe segredo cifrado para a conexão (sem devolver o token). */
+async function temSegredo(base44: any, connectionId: string): Promise<boolean> {
+  const segredos = await base44.asServiceRole.entities.whatsapp_secrets.filter({ connection_id: connectionId });
+  return Boolean(segredos && segredos.length && segredos[0].encrypted_access_token);
+}
+
 Deno.serve(async (req) => {
   try {
     if (req.method !== "POST") return Response.json({ error: "Método não permitido" }, { status: 405 });
@@ -174,6 +185,10 @@ Deno.serve(async (req) => {
     // Nenhuma mensagem é enviada aqui e nada liga o atendente. Enquanto as
     // variáveis META_APP_ID / META_APP_SECRET / META_TOKEN_ENC_KEY não
     // existirem, as ações falham fechado com "configuração pendente".
+    //
+    // Fonte principal: entidades dedicadas (whatsapp_connections,
+    // whatsapp_secrets, whatsapp_webhook_events, whatsapp_sync_jobs). Os
+    // campos whatsapp_meta_* de User são lidos apenas para migração.
     const metaAppId = env("META_APP_ID");
     const metaAppSecret = env("META_APP_SECRET");
     const metaEncKey = env("META_TOKEN_ENC_KEY");
@@ -182,9 +197,11 @@ Deno.serve(async (req) => {
 
     const metaPronto = Boolean(metaAppId && metaAppSecret && metaEncKey && metaConfigId);
 
+    // Garante a conexão dedicada do tenant (migra de User.whatsapp_meta_* se necessário)
+    const conexao = await garantirConexaoDoTenant(base44, ownerId);
+
     if (action === "meta_status") {
-      let sync: any = {};
-      try { sync = JSON.parse(String(owner.whatsapp_meta_sync_state || "{}")); } catch { sync = {}; }
+      const sync = await lerEstadoSync(base44, conexao);
       return Response.json({
         preparado: metaPronto,
         pendencias: [
@@ -197,19 +214,21 @@ Deno.serve(async (req) => {
         config_id_presente: Boolean(metaConfigId),
         config_id: owner.whatsapp_meta_homologacao ? (metaConfigId || "") : "",
         conexao: {
-          status: owner.whatsapp_meta_status || "nao_configurado",
-          waba_id: owner.whatsapp_meta_waba_id || "",
-          phone_number_id: owner.whatsapp_meta_phone_number_id || "",
-          display_phone: owner.whatsapp_meta_display_phone || "",
-          coexistence: Boolean(owner.whatsapp_meta_coexistence),
-          connected_at: owner.whatsapp_meta_connected_at || "",
-          token_presente: Boolean(owner.whatsapp_meta_token_enc)
+          status: conexao?.status || owner.whatsapp_meta_status || "nao_configurado",
+          waba_id: conexao?.waba_id || owner.whatsapp_meta_waba_id || "",
+          phone_number_id: conexao?.phone_number_id || owner.whatsapp_meta_phone_number_id || "",
+          display_phone: conexao?.display_phone || owner.whatsapp_meta_display_phone || "",
+          coexistence: Boolean(conexao?.coexistence_enabled ?? owner.whatsapp_meta_coexistence),
+          connected_at: conexao?.last_validated_at || owner.whatsapp_meta_connected_at || "",
+          token_presente: Boolean(conexao) ? await temSegredo(base44, conexao.id) : Boolean(owner.whatsapp_meta_token_enc)
         },
         homologacao: Boolean(owner.whatsapp_meta_homologacao),
         sincronizacao: {
           fases: sync.fases || {},
           historico_concluido: Boolean(sync.historico_concluido),
-          atualizado_em: sync.atualizado_em || ""
+          atualizado_em: sync.atualizado_em || "",
+          job_id: sync.job_id || "",
+          job_status: sync.job_status || ""
         },
         // nunca expor token, segredos nem código temporário
       });
@@ -285,16 +304,68 @@ Deno.serve(async (req) => {
         return Response.json({ error: "WABA não consultável" }, { status: 400 });
       }
 
-      // 4. Cifrar o token (AES-GCM, chave fora do banco) e gravar por tenant
-      const keyBytes = Uint8Array.from(atob(metaEncKey), (c) => c.charCodeAt(0));
-      const encKeyCrypto = await crypto.subtle.importKey("raw", keyBytes, { name: "AES-GCM" }, false, ["encrypt"]);
-      const iv = crypto.getRandomValues(new Uint8Array(12));
-      const cipher = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, encKeyCrypto, new TextEncoder().encode(token));
-      const pacote = new Uint8Array(iv.length + cipher.byteLength);
-      pacote.set(iv, 0);
-      pacote.set(new Uint8Array(cipher), iv.length);
-      const tokenEnc = btoa(String.fromCharCode(...pacote));
+      // 4. Cifrar o token (AES-GCM, chave fora do banco) e gravar nas entidades dedicadas
+      const tokenEnc = await cifrarToken(token, metaEncKey);
 
+      // Criar ou atualizar a conexão dedicada do tenant
+      let conn = conexao;
+      if (!conn) {
+        conn = await base44.asServiceRole.entities.whatsapp_connections.create({
+          tenant_id: ownerId,
+          app_id: metaAppId,
+          waba_id: wabaId,
+          phone_number_id: phoneNumberId,
+          display_phone: String(foneData.display_phone_number),
+          coexistence_enabled: true,
+          status: "ativos_validados",
+          health_status: "desconhecido",
+          embedded_signup_config_id: metaConfigId,
+          last_validated_at: new Date().toISOString(),
+          metadata: JSON.stringify({
+            verified_name: foneData.verified_name || "",
+            waba_name: wabaData.name || "",
+            account_review_status: wabaData.account_review_status || ""
+          })
+        });
+      } else {
+        await base44.asServiceRole.entities.whatsapp_connections.update(conn.id, {
+          app_id: metaAppId,
+          waba_id: wabaId,
+          phone_number_id: phoneNumberId,
+          display_phone: String(foneData.display_phone_number),
+          coexistence_enabled: true,
+          status: "ativos_validados",
+          embedded_signup_config_id: metaConfigId,
+          last_validated_at: new Date().toISOString(),
+          metadata: JSON.stringify({
+            verified_name: foneData.verified_name || "",
+            waba_name: wabaData.name || "",
+            account_review_status: wabaData.account_review_status || ""
+          })
+        });
+      }
+
+      // Gravar o segredo cifrado (substitui se já existir)
+      const segredos = await base44.asServiceRole.entities.whatsapp_secrets.filter({ connection_id: conn.id });
+      if (segredos && segredos.length) {
+        await base44.asServiceRole.entities.whatsapp_secrets.update(segredos[0].id, {
+          encrypted_access_token: tokenEnc,
+          encryption_version: "v1",
+          rotated_at: new Date().toISOString()
+        });
+      } else {
+        await base44.asServiceRole.entities.whatsapp_secrets.create({
+          tenant_id: ownerId,
+          connection_id: conn.id,
+          encrypted_access_token: tokenEnc,
+          encryption_version: "v1",
+          token_expires_at: "",
+          rotated_at: new Date().toISOString()
+        });
+      }
+
+      // Compatibilidade: espelhar nos campos User.whatsapp_meta_* para não quebrar
+      // leituras antigas durante a transição. A fonte principal passa a ser a entidade.
       await base44.asServiceRole.entities.User.update(ownerId, {
         whatsapp_meta_app_id: metaAppId,
         whatsapp_meta_waba_id: wabaId,
@@ -545,4 +616,3 @@ Deno.serve(async (req) => {
     return Response.json({ error: error?.message || "Erro interno" }, { status: 500 });
   }
 });
-
