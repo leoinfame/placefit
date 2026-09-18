@@ -195,6 +195,7 @@ Deno.serve(async (req) => {
         ].filter(Boolean),
         app_id: metaAppId || "",
         config_id_presente: Boolean(metaConfigId),
+        config_id: owner.whatsapp_meta_homologacao ? (metaConfigId || "") : "",
         conexao: {
           status: owner.whatsapp_meta_status || "nao_configurado",
           waba_id: owner.whatsapp_meta_waba_id || "",
