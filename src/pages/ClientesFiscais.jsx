@@ -45,7 +45,7 @@ export default function ClientesFiscais() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      const clientesData = await base44.entities.ClienteFiscal.filter({ user_id: currentUser.id }, "-created_date");
+      const clientesData = await base44.entities.ClienteFiscal.filter({ tenant_id: currentUser.id }, "-created_date");
       setClientes(clientesData || []);
     } catch (error) {
       console.error("Erro ao carregar clientes:", error);
@@ -114,7 +114,7 @@ export default function ClientesFiscais() {
     try {
       const clienteData = {
         ...formData,
-        user_id: user.id
+        tenant_id: user.id
       };
 
       if (editingCliente) {

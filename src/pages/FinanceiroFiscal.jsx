@@ -25,9 +25,9 @@ export default function FinanceiroFiscal() {
       setUser(currentUser);
 
       const [pedidos, notas, clientes] = await Promise.all([
-        base44.entities.PedidoVenda.filter({ user_id: currentUser.id }),
-        base44.entities.NotaFiscal.filter({ user_id: currentUser.id }),
-        base44.entities.ClienteFiscal.filter({ user_id: currentUser.id })
+        base44.entities.PedidoVenda.filter({ tenant_id: currentUser.id }),
+        base44.entities.NotaFiscal.filter({ tenant_id: currentUser.id }),
+        base44.entities.ClienteFiscal.filter({ tenant_id: currentUser.id })
       ]);
 
       const faturamento = pedidos
@@ -36,7 +36,7 @@ export default function FinanceiroFiscal() {
 
       setStats({
         pedidos: pedidos.length,
-        notasFiscais: notas.filter(n => n.status === "Autorizada").length,
+        notasFiscais: notas.length,
         clientes: clientes.length,
         faturamento
       });
@@ -66,7 +66,7 @@ export default function FinanceiroFiscal() {
     },
     {
       title: "Notas Fiscais",
-      description: "Emitir e gerenciar NF-e",
+      description: "Rascunhos fiscais em preparação",
       icon: FileText,
       path: "/NotasFiscais",
       color: "from-green-500 to-green-600",

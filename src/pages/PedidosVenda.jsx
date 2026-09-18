@@ -70,8 +70,8 @@ export default function PedidosVenda() {
       setUser(currentUser);
 
       const [pedidosData, clientesData, produtosData] = await Promise.all([
-        base44.entities.PedidoVenda.filter({ user_id: currentUser.id }, "-created_date"),
-        base44.entities.ClienteFiscal.filter({ user_id: currentUser.id }),
+        base44.entities.PedidoVenda.filter({ tenant_id: currentUser.id }, "-created_date"),
+        base44.entities.ClienteFiscal.filter({ tenant_id: currentUser.id }),
         base44.entities.SupplierProduct.filter({ supplier_id: currentUser.id })
       ]);
 
@@ -169,7 +169,7 @@ export default function PedidosVenda() {
       const numeroPedido = `PV-${Date.now()}`;
 
       const pedidoData = {
-        user_id: user.id,
+        tenant_id: user.id,
         numero_pedido: numeroPedido,
         cliente_id: formData.cliente_id,
         cliente_nome: cliente.nome_razao_social,

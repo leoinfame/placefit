@@ -81,6 +81,40 @@ function hashSimples(texto: string): string {
   return Math.abs(h).toString(36);
 }
 
+// ============================================================================
+// ESQUELETO DESATIVADO — Reserva atomica de numeracao (futura, NAO acionavel)
+// ============================================================================
+// A plataforma Base44 NAO oferece transacoes ACID nem indices unicos custom.
+// Portanto, NENHUMA reserva de numero fiscal e feita nesta fase. O campo
+// `numero` do rascunho fica vazio ("") ate que a garantia de atomicidade exista.
+//
+// Quando a plataforma suportar controle de versao (optimistic locking) ou
+// operacao atomica equivalente, a reserva devera ser implementada assim:
+//
+//   async function reservarNumeroAtomico(base44, tenantId, config) {
+//     // 1) Ler config com versao atual
+//     const configs = await base44.entities.ConfiguracaoFiscal.filter({ tenant_id: tenantId });
+//     const cfg = configs[0];
+//     const versaoAtual = cfg._version; // campo de versao (quando existir)
+//     const numeroDesejado = cfg.proximo_numero || 1;
+//
+//     // 2) Tentar update com filtro de versao (optimistic locking)
+//     //    So sucede se ninguem alterou a config entre leitura e escrita.
+//     const atualizado = await base44.entities.ConfiguracaoFiscal.updateMany(
+//       { tenant_id: tenantId, _version: versaoAtual },
+//       { $inc: { proximo_numero: 1 } }
+//     );
+//     if (!atualizado || atualizado.modified_count !== 1) {
+//       // Concorrencia detectada — refazer leitura e tentar de novo
+//       throw new Error("Concorrencia na reserva de numero. Refazer.");
+//     }
+//     return String(numeroDesejado).padStart(9, "0");
+//   }
+//
+// BLOQUEIO: enquanto este esqueleto estiver desativado, a UI NAO pode oferecer
+// "Enviar" nem "Homologar". O status do rascunho nunca passa de PRONTA_HOMOLOGACAO.
+// ============================================================================
+
 export default async function (req: any) {
   try {
     const base44 = createClientFromRequest(req);

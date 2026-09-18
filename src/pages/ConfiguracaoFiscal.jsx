@@ -193,7 +193,7 @@ export default function ConfiguracaoFiscal() {
           </div>
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Configurações Fiscais</h1>
-            <p className="text-gray-600">Dados da empresa e certificado digital</p>
+            <p className="text-gray-600">Dados da empresa e preparação para homologação</p>
           </div>
         </div>
 
