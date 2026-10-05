@@ -14,6 +14,8 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import AIResponseFormatter from "@/components/AIResponseFormatter";
 import ComissaoConfig from "@/components/ComissaoConfig";
+import { getProdutosData } from "@/functions/getProdutosData";
+import { expandTemplates } from "@/utils/expandTemplates";
 
 export default function FabricantesRevendedor() {
   const [user, setUser] = useState(null);
@@ -509,11 +511,29 @@ RESPONDA EM PORTUGUÊS BRASILEIRO DE FORMA PROFISSIONAL E COMERCIAL.
     setLoadingCatalogo(true);
 
     try {
-      const allProducts = await base44.entities.Product.list();
-      const fabricanteProducts = allProducts.filter(
-        p => p.fabricante_id === fabricante.id && p.aprovado_produto === true
-      );
-      setCatalogoProducts(fabricanteProducts);
+      const res = await getProdutosData({ mode: "catalogo" });
+      const data = res.data || res;
+      const templates = expandTemplates(data.templates || [], data.fieldMap);
+      const pricesByProduct = data.pricesByProduct || {};
+
+      const fabNome = fabricante.nome_fantasia || fabricante.razao_social || fabricante.empresa || fabricante.full_name;
+
+      const products = [];
+      for (const tmpl of templates) {
+        const prices = pricesByProduct[tmpl.id] || [];
+        const fabPrice = prices.find(p => p && p.fabricante_nome === fabNome);
+        if (!fabPrice) continue;
+        products.push({
+          id: tmpl.id,
+          foto: tmpl.foto,
+          nome: tmpl.nome,
+          cod: tmpl.cod,
+          peso: tmpl.peso_kg,
+          und: tmpl.und,
+          preco_fabricante: fabPrice.preco,
+        });
+      }
+      setCatalogoProducts(products);
     } catch (error) {
       console.error("Erro ao carregar catálogo:", error);
       toast({
