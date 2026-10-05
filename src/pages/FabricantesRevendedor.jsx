@@ -17,6 +17,27 @@ import ComissaoConfig from "@/components/ComissaoConfig";
 import { getProdutosData } from "@/functions/getProdutosData";
 import { expandTemplates } from "@/utils/expandTemplates";
 
+const normalizeName = (s) => (s || "")
+  .toLowerCase()
+  .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+  .replace(/[^\w\s]/g, "")
+  .replace(/\s+/g, " ")
+  .trim();
+
+const GROUP_FIELDS = [
+  "categoria", "subcategoria", "tipo_anilha", "tipo_furo", "acabamento",
+  "barra_formato", "barra_acabamento", "presilha_tipo", "comprimento_m",
+  "barra_rolamento", "bojo_formato", "dumbell_tipo",
+  "piso_espessura_mm", "piso_formato", "tijolinho_tipo", "tijolinho_torre",
+  "suporte_modelo", "suporte_estrutura", "suporte_degraus",
+  "suporte_capacidade_pares", "suporte_capacidade_unidades",
+  "suporte_torre_capacidade", "suporte_torre_tipo",
+  "pegada", "peso_faixa"
+];
+
+const getBaseName = (tmpl) => (tmpl.nome || "").replace(/\s+\d+([.,]\d+)?\s*kg$/i, "").trim();
+const getGroupKey = (tmpl) => getBaseName(tmpl) + "|" + GROUP_FIELDS.map(f => tmpl[f] ?? "").join("|");
+
 export default function FabricantesRevendedor() {
   const [user, setUser] = useState(null);
   const [fabricantes, setFabricantes] = useState([]);
@@ -517,23 +538,38 @@ RESPONDA EM PORTUGUÊS BRASILEIRO DE FORMA PROFISSIONAL E COMERCIAL.
       const pricesByProduct = data.pricesByProduct || {};
 
       const fabNome = fabricante.nome_fantasia || fabricante.razao_social || fabricante.empresa || fabricante.full_name;
+      const fabNorm = normalizeName(fabNome);
 
-      const products = [];
-      for (const tmpl of templates) {
+      const matchingTemplates = templates.filter(tmpl => {
         const prices = pricesByProduct[tmpl.id] || [];
-        const fabPrice = prices.find(p => p && p.fabricante_nome === fabNome);
-        if (!fabPrice) continue;
-        products.push({
-          id: tmpl.id,
-          foto: tmpl.foto,
-          nome: tmpl.nome,
-          cod: tmpl.cod,
-          peso: tmpl.peso_kg,
-          und: tmpl.und,
-          preco_fabricante: fabPrice.preco,
+        return prices.some(p => {
+          const pNorm = normalizeName(p && p.fabricante_nome);
+          if (!fabNorm || !pNorm) return false;
+          return fabNorm.includes(pNorm) || pNorm.includes(fabNorm);
         });
+      });
+
+      const groupsMap = new Map();
+      for (const tmpl of matchingTemplates) {
+        const key = getGroupKey(tmpl);
+        if (!groupsMap.has(key)) {
+          groupsMap.set(key, {
+            key,
+            baseName: getBaseName(tmpl),
+            foto: tmpl.foto,
+            weights: [],
+          });
+        }
+        const g = groupsMap.get(key);
+        if (tmpl.peso_kg != null && !g.weights.includes(tmpl.peso_kg)) {
+          g.weights.push(tmpl.peso_kg);
+        }
       }
-      setCatalogoProducts(products);
+      for (const g of groupsMap.values()) {
+        g.weights.sort((a, b) => a - b);
+      }
+
+      setCatalogoProducts([...groupsMap.values()]);
     } catch (error) {
       console.error("Erro ao carregar catálogo:", error);
       toast({
@@ -820,28 +856,26 @@ RESPONDA EM PORTUGUÊS BRASILEIRO DE FORMA PROFISSIONAL E COMERCIAL.
             </div>
           ) : catalogoProducts.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {catalogoProducts.map((product) => (
-                <Card key={product.id} className="bg-white">
+              {catalogoProducts.map((group) => (
+                <Card key={group.key} className="bg-white">
                   <CardContent className="p-4">
-                    {product.foto && (
+                    {group.foto && (
                       <img
-                        src={product.foto}
-                        alt={product.nome}
+                        src={group.foto}
+                        alt={group.baseName}
                         className="w-full h-32 object-contain bg-white rounded-lg mb-3"
                       />
                     )}
-                    <h4 className="font-bold text-sm mb-2 line-clamp-2">{product.nome}</h4>
-                    <div className="space-y-1 text-xs text-gray-600">
-                      <p><strong>Código:</strong> {product.cod}</p>
-                      {product.peso && <p><strong>Peso:</strong> {product.peso} kg</p>}
-                      {product.dimensoes && <p><strong>Dimensões:</strong> {product.dimensoes} cm</p>}
-                      <p><strong>Unidade:</strong> {product.und}</p>
-                      {product.preco_fabricante && (
-                        <p className="text-green-600 font-bold">
-                          R$ {product.preco_fabricante.toFixed(2)}
-                        </p>
-                      )}
-                    </div>
+                    <h4 className="font-bold text-sm mb-2 line-clamp-2">{group.baseName}</h4>
+                    {group.weights.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {group.weights.map(w => (
+                          <span key={w} className="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 text-xs font-medium">
+                            {w} kg
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               ))}
