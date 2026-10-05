@@ -44,8 +44,40 @@ const extractWeightFromName = (nome) => {
   return isNaN(n) ? null : n;
 };
 
+const SIZE_ORDER = ["PP", "P", "M", "G", "GG", "XG"];
+const SIZE_CANONICAL = {
+  PP: "PP", P: "P", M: "M", G: "G", GG: "GG", XG: "XG",
+  PEQUENO: "P", MEDIO: "M", GRANDE: "G",
+};
+const normSizeKey = (k) => k.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+const extractSizesFromName = (nome) => {
+  const s = nome || "";
+  const found = new Set();
+  let m;
+  const parenRe = /\((PP|XG|GG|P|M|G)\)|\((PP|XG|GG|P|M|G)(?=\s*$)/gi;
+  while ((m = parenRe.exec(s)) !== null) {
+    const key = m[1] || m[2];
+    if (key) found.add(SIZE_CANONICAL[normSizeKey(key)]);
+  }
+  const letterRe = /\b(PP|XG|GG|P|M|G)\b/gi;
+  while ((m = letterRe.exec(s)) !== null) {
+    found.add(SIZE_CANONICAL[normSizeKey(m[1])]);
+  }
+  const wordRe = /\b(Pequeno|Médio|Medio|Grande)\b/gi;
+  while ((m = wordRe.exec(s)) !== null) {
+    found.add(SIZE_CANONICAL[normSizeKey(m[1])]);
+  }
+  return [...found];
+};
+
 const getBaseName = (tmpl) => {
-  let nome = (tmpl.nome || "").replace(/\d+(?:[.,]\d+)?\s*kg/gi, " ");
+  let nome = (tmpl.nome || "");
+  nome = nome.replace(/\d+(?:[.,]\d+)?\s*kg/gi, " ");
+  nome = nome.replace(/\((PP|XG|GG|P|M|G)\)/gi, " ");
+  nome = nome.replace(/\((PP|XG|GG|P|M|G)(?=\s*$)/gi, " ");
+  nome = nome.replace(/\b(PP|XG|GG|P|M|G)\b/gi, " ");
+  nome = nome.replace(/\b(Pequeno|Médio|Medio|Grande)\b/gi, " ");
   nome = nome.replace(/\s+/g, " ").trim();
   nome = nome.replace(/^[,()/\\-]+|[,()/\\-]+$/g, "").trim();
   return nome;
@@ -574,6 +606,7 @@ RESPONDA EM PORTUGUÊS BRASILEIRO DE FORMA PROFISSIONAL E COMERCIAL.
             categoria: tmpl.categoria,
             foto: tmpl.foto,
             weights: [],
+            sizes: new Set(),
           });
         }
         const g = groupsMap.get(key);
@@ -581,9 +614,13 @@ RESPONDA EM PORTUGUÊS BRASILEIRO DE FORMA PROFISSIONAL E COMERCIAL.
         if (w != null && !g.weights.includes(w)) {
           g.weights.push(w);
         }
+        for (const sz of extractSizesFromName(tmpl.nome)) {
+          g.sizes.add(sz);
+        }
       }
       for (const g of groupsMap.values()) {
         g.weights.sort((a, b) => a - b);
+        g.sizes = [...g.sizes].sort((a, b) => SIZE_ORDER.indexOf(a) - SIZE_ORDER.indexOf(b));
       }
 
       setCatalogoProducts([...groupsMap.values()]);
@@ -940,11 +977,16 @@ RESPONDA EM PORTUGUÊS BRASILEIRO DE FORMA PROFISSIONAL E COMERCIAL.
                           <div className="flex-1 min-w-0">
                             <h5 className="font-bold text-sm line-clamp-2">{group.baseName}</h5>
                             {group.categoria && <p className="text-xs text-gray-500 mb-1">{group.categoria}</p>}
-                            {group.weights.length > 0 && (
+                            {(group.weights.length > 0 || group.sizes.length > 0) && (
                               <div className="flex flex-wrap gap-1">
                                 {group.weights.map(w => (
                                   <span key={w} className="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 text-xs font-medium">
                                     {w} kg
+                                  </span>
+                                ))}
+                                {group.sizes.map(s => (
+                                  <span key={s} className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">
+                                    {s}
                                   </span>
                                 ))}
                               </div>
