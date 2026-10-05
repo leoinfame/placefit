@@ -807,7 +807,7 @@ RESPONDA EM PORTUGUÊS BRASILEIRO DE FORMA PROFISSIONAL E COMERCIAL.
                       <img
                         src={product.foto}
                         alt={product.nome}
-                        className="w-full h-32 object-cover rounded-lg mb-3"
+                        className="w-full h-32 object-contain bg-white rounded-lg mb-3"
                       />
                     )}
                     <h4 className="font-bold text-sm mb-2 line-clamp-2">{product.nome}</h4>
