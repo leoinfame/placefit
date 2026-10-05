@@ -35,7 +35,7 @@ const GROUP_FIELDS = [
   "pegada", "peso_faixa"
 ];
 
-const WEIGHT_TOKEN_RE = /\d+(?:[.,]\d+)?\s*kg/i;
+const WEIGHT_TOKEN_RE = /(?<![\p{L}\p{N}])\d+(?:[.,]\d+)?\s*kg(?![\p{L}\p{N}])/giu;
 
 const extractWeightFromName = (nome) => {
   const m = (nome || "").match(WEIGHT_TOKEN_RE);
@@ -51,21 +51,21 @@ const SIZE_CANONICAL = {
 };
 const normSizeKey = (k) => k.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
+const SIZE_PAREN_RE = /\((PP|XG|GG|P|M|G)\)|\((PP|XG|GG|P|M|G)(?=\s*$)/gi;
+const SIZE_LETTER_RE = /(?<![\p{L}\p{N}])(PP|XG|GG|P|M|G)(?![\p{L}\p{N}])/giu;
+const SIZE_WORD_RE = /(?<![\p{L}\p{N}])(Pequeno|Médio|Medio|Grande)(?![\p{L}\p{N}])/giu;
+
 const extractSizesFromName = (nome) => {
   const s = nome || "";
   const found = new Set();
-  let m;
-  const parenRe = /\((PP|XG|GG|P|M|G)\)|\((PP|XG|GG|P|M|G)(?=\s*$)/gi;
-  while ((m = parenRe.exec(s)) !== null) {
+  for (const m of s.matchAll(SIZE_PAREN_RE)) {
     const key = m[1] || m[2];
     if (key) found.add(SIZE_CANONICAL[normSizeKey(key)]);
   }
-  const letterRe = /\b(PP|XG|GG|P|M|G)\b/gi;
-  while ((m = letterRe.exec(s)) !== null) {
+  for (const m of s.matchAll(SIZE_LETTER_RE)) {
     found.add(SIZE_CANONICAL[normSizeKey(m[1])]);
   }
-  const wordRe = /\b(Pequeno|Médio|Medio|Grande)\b/gi;
-  while ((m = wordRe.exec(s)) !== null) {
+  for (const m of s.matchAll(SIZE_WORD_RE)) {
     found.add(SIZE_CANONICAL[normSizeKey(m[1])]);
   }
   return [...found];
@@ -73,11 +73,11 @@ const extractSizesFromName = (nome) => {
 
 const getBaseName = (tmpl) => {
   let nome = (tmpl.nome || "");
-  nome = nome.replace(/\d+(?:[.,]\d+)?\s*kg/gi, " ");
+  nome = nome.replace(WEIGHT_TOKEN_RE, " ");
   nome = nome.replace(/\((PP|XG|GG|P|M|G)\)/gi, " ");
   nome = nome.replace(/\((PP|XG|GG|P|M|G)(?=\s*$)/gi, " ");
-  nome = nome.replace(/\b(PP|XG|GG|P|M|G)\b/gi, " ");
-  nome = nome.replace(/\b(Pequeno|Médio|Medio|Grande)\b/gi, " ");
+  nome = nome.replace(SIZE_LETTER_RE, " ");
+  nome = nome.replace(SIZE_WORD_RE, " ");
   nome = nome.replace(/\s+/g, " ").trim();
   nome = nome.replace(/^[,()/\\-]+|[,()/\\-]+$/g, "").trim();
   return nome;
