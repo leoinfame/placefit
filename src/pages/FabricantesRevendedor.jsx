@@ -85,6 +85,22 @@ const getBaseName = (tmpl) => {
 
 const getGroupKey = (tmpl) => getBaseName(tmpl).toLowerCase() + "|" + GROUP_FIELDS.map(f => tmpl[f] ?? "").join("|");
 
+function FamilyPhoto({ candidates, alt, className }) {
+  const [idx, setIdx] = useState(0);
+  const src = candidates && candidates[idx];
+  if (!src) {
+    return <Package className="w-8 h-8 text-gray-300" />;
+  }
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      onError={() => setIdx(i => (i + 1 < candidates.length ? i + 1 : candidates.length))}
+    />
+  );
+}
+
 export default function FabricantesRevendedor() {
   const [user, setUser] = useState(null);
   const [fabricantes, setFabricantes] = useState([]);
@@ -604,12 +620,15 @@ RESPONDA EM PORTUGUÊS BRASILEIRO DE FORMA PROFISSIONAL E COMERCIAL.
             key,
             baseName: getBaseName(tmpl),
             categoria: tmpl.categoria,
-            foto: tmpl.foto,
+            fotos: [],
             weights: [],
             sizes: new Set(),
           });
         }
         const g = groupsMap.get(key);
+        if (tmpl.foto && !tmpl.foto.includes("placefit.com.br/produtos") && !g.fotos.includes(tmpl.foto)) {
+          g.fotos.push(tmpl.foto);
+        }
         const w = tmpl.peso_kg != null ? tmpl.peso_kg : extractWeightFromName(tmpl.nome);
         if (w != null && !g.weights.includes(w)) {
           g.weights.push(w);
@@ -968,11 +987,11 @@ RESPONDA EM PORTUGUÊS BRASILEIRO DE FORMA PROFISSIONAL E COMERCIAL.
                       <Card key={group.key} className="bg-white">
                         <CardContent className="p-3 flex gap-3 items-start">
                           <div className="w-28 h-28 flex-shrink-0 bg-white rounded-lg overflow-hidden flex items-center justify-center">
-                            {group.foto ? (
-                              <img src={group.foto} alt={group.baseName} className="w-28 h-28 object-contain bg-white" />
-                            ) : (
-                              <Package className="w-8 h-8 text-gray-300" />
-                            )}
+                            <FamilyPhoto
+                              candidates={group.fotos}
+                              alt={group.baseName}
+                              className="w-28 h-28 object-contain bg-white"
+                            />
                           </div>
                           <div className="flex-1 min-w-0">
                             <h5 className="font-bold text-sm line-clamp-2">{group.baseName}</h5>
