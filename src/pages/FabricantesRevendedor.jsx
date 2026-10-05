@@ -556,6 +556,7 @@ RESPONDA EM PORTUGUÊS BRASILEIRO DE FORMA PROFISSIONAL E COMERCIAL.
           groupsMap.set(key, {
             key,
             baseName: getBaseName(tmpl),
+            categoria: tmpl.categoria,
             foto: tmpl.foto,
             weights: [],
           });
@@ -585,6 +586,16 @@ RESPONDA EM PORTUGUÊS BRASILEIRO DE FORMA PROFISSIONAL E COMERCIAL.
     setSelectedFabricante(fabricante);
     setShowPerfilDialog(true);
   };
+
+  const catalogoByCategory = (() => {
+    const map = new Map();
+    for (const g of catalogoProducts) {
+      const cat = g.categoria || "Outros";
+      if (!map.has(cat)) map.set(cat, []);
+      map.get(cat).push(g);
+    }
+    return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  })();
 
   if (loading) {
     return (
@@ -842,11 +853,26 @@ RESPONDA EM PORTUGUÊS BRASILEIRO DE FORMA PROFISSIONAL E COMERCIAL.
 
       {/* Dialog de Catálogo */}
       <Dialog open={showCatalogoDialog} onOpenChange={setShowCatalogoDialog}>
-        <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              Catálogo - {selectedFabricante?.empresa || selectedFabricante?.full_name}
-            </DialogTitle>
+        <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto catalogo-dialog-content">
+          <style>{`
+            @media print {
+              body * { visibility: hidden; }
+              #catalogo-print-area, #catalogo-print-area * { visibility: visible; }
+              .catalogo-dialog-content { position: static !important; transform: none !important; max-height: none !important; overflow: visible !important; box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; background: #fff !important; }
+              #catalogo-print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 16px; background: #fff !important; }
+              .no-print { display: none !important; }
+            }
+          `}</style>
+          <DialogHeader className="no-print">
+            <div className="flex items-center justify-between gap-3">
+              <DialogTitle>
+                Catálogo - {selectedFabricante?.nome_fantasia || selectedFabricante?.razao_social || selectedFabricante?.empresa || selectedFabricante?.full_name}
+              </DialogTitle>
+              <Button onClick={() => window.print()} variant="outline" size="sm" className="gap-1.5">
+                <Download className="w-4 h-4" />
+                Exportar PDF
+              </Button>
+            </div>
           </DialogHeader>
 
           {loadingCatalogo ? (
@@ -855,30 +881,77 @@ RESPONDA EM PORTUGUÊS BRASILEIRO DE FORMA PROFISSIONAL E COMERCIAL.
               <p className="text-gray-600">Carregando catálogo...</p>
             </div>
           ) : catalogoProducts.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {catalogoProducts.map((group) => (
-                <Card key={group.key} className="bg-white">
-                  <CardContent className="p-4">
-                    {group.foto && (
-                      <img
-                        src={group.foto}
-                        alt={group.baseName}
-                        className="w-full h-32 object-contain bg-white rounded-lg mb-3"
-                      />
-                    )}
-                    <h4 className="font-bold text-sm mb-2 line-clamp-2">{group.baseName}</h4>
-                    {group.weights.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {group.weights.map(w => (
-                          <span key={w} className="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 text-xs font-medium">
-                            {w} kg
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+            <div id="catalogo-print-area" className="space-y-6">
+              {/* Cabeçalho do fabricante */}
+              <div className="flex items-start gap-4 p-4 rounded-lg border bg-gray-50">
+                {selectedFabricante?.logomarca && (
+                  <div className="w-16 h-16 bg-white rounded-lg p-2 flex-shrink-0 flex items-center justify-center">
+                    <img src={selectedFabricante.logomarca} alt="Logo" className="w-full h-full object-contain" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0 space-y-0.5">
+                  <h3 className="text-lg font-bold text-gray-900">
+                    {selectedFabricante?.nome_fantasia || selectedFabricante?.razao_social || selectedFabricante?.empresa || selectedFabricante?.full_name}
+                  </h3>
+                  {selectedFabricante?.cnpj && <p className="text-xs text-gray-600">CNPJ: {selectedFabricante.cnpj}</p>}
+                  {selectedFabricante?.endereco && <p className="text-xs text-gray-600">{selectedFabricante.endereco}</p>}
+                  <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-gray-600">
+                    {selectedFabricante?.whatsapp && <span>📱 {selectedFabricante.whatsapp}</span>}
+                    {selectedFabricante?.site && <span>🌐 {selectedFabricante.site}</span>}
+                    {selectedFabricante?.email && <span>✉ {selectedFabricante.email}</span>}
+                  </div>
+                </div>
+              </div>
+
+              {/* Categorias */}
+              {catalogoByCategory.map(([cat, items]) => (
+                <div key={cat} className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-base font-bold text-gray-900">{cat}</h4>
+                    <Badge variant="outline" className="text-xs">{items.length} {items.length === 1 ? "produto" : "produtos"}</Badge>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {items.map((group) => (
+                      <Card key={group.key} className="bg-white">
+                        <CardContent className="p-3 flex gap-3 items-start">
+                          <div className="w-28 h-28 flex-shrink-0 bg-white rounded-lg overflow-hidden flex items-center justify-center">
+                            {group.foto ? (
+                              <img src={group.foto} alt={group.baseName} className="w-28 h-28 object-contain bg-white" />
+                            ) : (
+                              <Package className="w-8 h-8 text-gray-300" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h5 className="font-bold text-sm line-clamp-2">{group.baseName}</h5>
+                            {group.categoria && <p className="text-xs text-gray-500 mb-1">{group.categoria}</p>}
+                            {group.weights.length > 0 && (
+                              <div className="flex flex-wrap gap-1">
+                                {group.weights.map(w => (
+                                  <span key={w} className="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 text-xs font-medium">
+                                    {w} kg
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
               ))}
+
+              {/* Rodapé */}
+              <div className="border-t pt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500">
+                <div className="flex flex-wrap gap-x-4 gap-y-1">
+                  <span className="font-medium text-gray-700">
+                    {selectedFabricante?.nome_fantasia || selectedFabricante?.razao_social || selectedFabricante?.empresa || selectedFabricante?.full_name}
+                  </span>
+                  {selectedFabricante?.whatsapp && <span>📱 {selectedFabricante.whatsapp}</span>}
+                  {selectedFabricante?.site && <span>🌐 {selectedFabricante.site}</span>}
+                </div>
+                <span>Catálogo gerado em {new Date().toLocaleDateString('pt-BR')}</span>
+              </div>
             </div>
           ) : (
             <div className="p-12 text-center">
