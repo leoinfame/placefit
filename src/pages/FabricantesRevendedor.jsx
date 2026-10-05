@@ -35,8 +35,23 @@ const GROUP_FIELDS = [
   "pegada", "peso_faixa"
 ];
 
-const getBaseName = (tmpl) => (tmpl.nome || "").replace(/\s+\d+([.,]\d+)?\s*kg$/i, "").trim();
-const getGroupKey = (tmpl) => getBaseName(tmpl) + "|" + GROUP_FIELDS.map(f => tmpl[f] ?? "").join("|");
+const WEIGHT_TOKEN_RE = /\d+(?:[.,]\d+)?\s*kg/i;
+
+const extractWeightFromName = (nome) => {
+  const m = (nome || "").match(WEIGHT_TOKEN_RE);
+  if (!m) return null;
+  const n = parseFloat(m[0].replace(/kg/i, "").replace(",", ".").trim());
+  return isNaN(n) ? null : n;
+};
+
+const getBaseName = (tmpl) => {
+  let nome = (tmpl.nome || "").replace(/\d+(?:[.,]\d+)?\s*kg/gi, " ");
+  nome = nome.replace(/\s+/g, " ").trim();
+  nome = nome.replace(/^[,()/\\-]+|[,()/\\-]+$/g, "").trim();
+  return nome;
+};
+
+const getGroupKey = (tmpl) => getBaseName(tmpl).toLowerCase() + "|" + GROUP_FIELDS.map(f => tmpl[f] ?? "").join("|");
 
 export default function FabricantesRevendedor() {
   const [user, setUser] = useState(null);
@@ -562,8 +577,9 @@ RESPONDA EM PORTUGUÊS BRASILEIRO DE FORMA PROFISSIONAL E COMERCIAL.
           });
         }
         const g = groupsMap.get(key);
-        if (tmpl.peso_kg != null && !g.weights.includes(tmpl.peso_kg)) {
-          g.weights.push(tmpl.peso_kg);
+        const w = tmpl.peso_kg != null ? tmpl.peso_kg : extractWeightFromName(tmpl.nome);
+        if (w != null && !g.weights.includes(w)) {
+          g.weights.push(w);
         }
       }
       for (const g of groupsMap.values()) {
