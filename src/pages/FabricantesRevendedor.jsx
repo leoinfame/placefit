@@ -85,6 +85,12 @@ const getBaseName = (tmpl) => {
 
 const getGroupKey = (tmpl) => getBaseName(tmpl).toLowerCase() + "|" + GROUP_FIELDS.map(f => tmpl[f] ?? "").join("|");
 
+const DIM_RE = /(?<![\p{L}\p{N}])\d+(?:[.,]\d+)?(?:\s*[xX×]\s*\d+(?:[.,]\d+)?){1,2}(?:\s*(?:mm|cm|m|mts?))?(?![\p{L}\p{N}])|(?<![\p{L}\p{N}])\d+(?:[.,]\d+)?\s*(?:mm|cm|mts?|metros?|m|pol)(?![\p{L}\p{N}])/giu;
+const TBL_SKIP = ["piso_espessura_mm", "piso_formato", "comprimento_m", "peso_faixa"];
+const tblBase = (tmpl) => getBaseName(tmpl).replace(DIM_RE, " ").replace(/\s+/g, " ").replace(/^[,()/\\-]+|[,()/\\-]+$/g, "").trim();
+const tblKey = (tmpl) => tblBase(tmpl).toLowerCase() + "|" + GROUP_FIELDS.filter(f => !TBL_SKIP.includes(f)).map(f => tmpl[f] ?? "").join("|");
+const tblDims = (tmpl) => ((tmpl.nome || "").match(DIM_RE) || []).map(x => x.replace(/\s+/g, "")).join(" ");
+
 function FamilyPhoto({ candidates, alt, className }) {
   const [idx, setIdx] = useState(0);
   const src = candidates && candidates[idx];
@@ -248,8 +254,9 @@ export default function FabricantesRevendedor() {
         }).map(p => Number(p.preco_origem)).filter(n => n > 0);
         if (precos.length === 0) continue;
         fabricanteProducts.push({
-          _key: getGroupKey(tmpl),
-          _base: getBaseName(tmpl),
+          _key: tblKey(tmpl),
+          _base: tblBase(tmpl),
+          _dims: tblDims(tmpl),
           _sizes: extractSizesFromName(tmpl.nome),
           cod: tmpl.cod,
           nome: tmpl.nome,
@@ -277,7 +284,8 @@ export default function FabricantesRevendedor() {
         const g = gmap.get(it._key);
         if (!g.foto && it.foto) g.foto = it.foto;
         g.cods.push(it.cod);
-        const label = it.peso != null ? String(it.peso).replace('.', ',') + 'kg' : (it._sizes && it._sizes.length ? it._sizes.join('/') : '');
+        const wl = it.peso != null ? String(it.peso).replace('.', ',') + 'kg' : (it._sizes && it._sizes.length ? it._sizes.join('/') : '');
+        const label = it._dims ? it._dims : wl;
         g.variants.push({ label, peso: it.peso, size: it._sizes && it._sizes.length ? SIZE_ORDER.indexOf(it._sizes[0]) : 99, preco: it.preco, cod: it.cod, nome: it.nome });
       }
       const grupos = [...gmap.values()];
