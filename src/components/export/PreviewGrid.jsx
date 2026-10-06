@@ -139,10 +139,15 @@ export default function PreviewGrid({ previewData, user, colors }) {
                   </div>
 
                   {/* Meio: espec/pesos + und */}
-                  <div className="flex items-center gap-2 my-2">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 my-2">
                     {item.isWeightGrouped && item.pesosDisponiveis && (
-                      <span className="text-[11px] text-gray-600 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full">
+                      <span className="basis-full text-[11px] leading-snug text-gray-600 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-lg">
                         {item.pesosDisponiveis}
+                      </span>
+                    )}
+                    {item.isDimGrouped && item.dimsDisponiveis && (
+                      <span className="basis-full text-[11px] leading-snug text-gray-600 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-lg">
+                        {item.dimsDisponiveis}
                       </span>
                     )}
                     {!item.isWeightGrouped && item.peso && (
@@ -158,7 +163,7 @@ export default function PreviewGrid({ previewData, user, colors }) {
                   {/* Preço */}
                   <div className="flex items-end justify-between">
                     <span className="text-[10px] text-gray-400 uppercase tracking-wide">
-                      {item.isWeightGrouped ? 'Preço por kg' : 'Preço'}
+                      {item.isWeightGrouped ? 'Preço por kg' : item.isDimGrouped ? 'A partir de' : 'Preço'}
                     </span>
                     <span className="text-base font-bold text-green-600">
                       {item.precoFormatado}
