@@ -55,7 +55,7 @@ export default function Export() {
 
     const groups = {};
     withWeight.forEach(item => {
-      const baseName = item.nome.replace(/\s+\d+([.,]\d+)?kg$/i, '').trim();
+      const baseName = item.nome.replace(/\s*\d+([.,]\d+)?\s*kg(?=(\s*\([^)]*\))?\s*$)/i, '').replace(/\s*\(par\)\s*$/i, '').replace(/[\s-]+$/, '').trim();
       if (!groups[baseName]) {
         groups[baseName] = { items: [], pesos: [], categoria: item.categoria, und: item.und };
       }
