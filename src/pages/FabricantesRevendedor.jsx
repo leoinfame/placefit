@@ -685,12 +685,13 @@ RESPONDA EM PORTUGUÊS BRASILEIRO DE FORMA PROFISSIONAL E COMERCIAL.
 
       const groupsMap = new Map();
       for (const tmpl of matchingTemplates) {
-        const key = getGroupKey(tmpl);
+        const key = tblKey(tmpl);
         if (!groupsMap.has(key)) {
           groupsMap.set(key, {
             key,
-            baseName: getBaseName(tmpl),
+            baseName: tblBase(tmpl),
             categoria: tmpl.categoria,
+            dims: [],
             fotos: [],
             weights: [],
             sizes: new Set(),
@@ -700,8 +701,10 @@ RESPONDA EM PORTUGUÊS BRASILEIRO DE FORMA PROFISSIONAL E COMERCIAL.
         if (tmpl.foto && !tmpl.foto.includes("placefit.com.br/produtos") && !g.fotos.includes(tmpl.foto)) {
           g.fotos.push(tmpl.foto);
         }
+        const dm = tblDims(tmpl);
+        if (dm && !g.dims.includes(dm)) g.dims.push(dm);
         const w = tmpl.peso_kg != null ? tmpl.peso_kg : extractWeightFromName(tmpl.nome);
-        if (w != null && !g.weights.includes(w)) {
+        if (w != null && !g.weights.includes(w) && !(dm && g.weights.length === 0 && false)) {
           g.weights.push(w);
         }
         for (const sz of extractSizesFromName(tmpl.nome)) {
@@ -1067,8 +1070,13 @@ RESPONDA EM PORTUGUÊS BRASILEIRO DE FORMA PROFISSIONAL E COMERCIAL.
                           <div className="flex-1 min-w-0">
                             <h5 className="font-bold text-sm line-clamp-2">{group.baseName}</h5>
                             {group.categoria && <p className="text-xs text-gray-500 mb-1">{group.categoria}</p>}
-                            {(group.weights.length > 0 || group.sizes.length > 0) && (
+                            {(group.dims.length > 0 || group.weights.length > 0 || group.sizes.length > 0) && (
                               <div className="flex flex-wrap gap-1">
+                                {group.dims.map(d => (
+                                  <span key={d} className="inline-flex items-center px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-medium">
+                                    {d}
+                                  </span>
+                                ))}
                                 {group.weights.map(w => (
                                   <span key={w} className="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 text-xs font-medium">
                                     {w} kg
