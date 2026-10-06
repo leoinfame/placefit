@@ -87,7 +87,7 @@ const getGroupKey = (tmpl) => getBaseName(tmpl).toLowerCase() + "|" + GROUP_FIEL
 
 const DIM_RE = /(?<![\p{L}\p{N}])\d+(?:[.,]\d+)?(?:\s*[xX×]\s*\d+(?:[.,]\d+)?){1,2}(?:\s*(?:mm|cm|m|mts?))?(?![\p{L}\p{N}])|(?<![\p{L}\p{N}])\d+(?:[.,]\d+)?\s*(?:mm|cm|mts?|metros?|m|pol)(?![\p{L}\p{N}])/giu;
 const TBL_SKIP = ["piso_espessura_mm", "piso_formato", "comprimento_m", "peso_faixa"];
-const tblBase = (tmpl) => getBaseName(tmpl).replace(DIM_RE, " ").replace(/\bmodular\b/gi, " ").replace(/\s+/g, " ").replace(/^[,()/\\-]+|[,()/\\-]+$/g, "").trim();
+const tblBase = (tmpl) => getBaseName(tmpl).replace(DIM_RE, " ").replace(/\bmodular\b/gi, " ").replace(/^(colchonete\b.*?)\s*&\s*Cia\b/i, "$1").replace(/\s+/g, " ").replace(/^[,()/\\-]+|[,()/\\-]+$/g, "").trim();
 const tblKey = (tmpl) => tblBase(tmpl).toLowerCase() + "|" + GROUP_FIELDS.filter(f => !TBL_SKIP.includes(f)).map(f => tmpl[f] ?? "").join("|");
 const tblDims = (tmpl) => ((tmpl.nome || "").match(DIM_RE) || []).map(x => x.replace(/\s+/g, "")).join(" ");
 
