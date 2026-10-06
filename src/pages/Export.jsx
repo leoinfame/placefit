@@ -49,7 +49,42 @@ export default function Export() {
 
   // Agrupa produtos que têm variações de peso (ex: Halter 1kg, 2kg, 3kg...)
   // em uma única linha, mostrando os pesos disponíveis e o preço do item de referência (1kg)
+  // Colchonetes: uma linha por linha de produto (AG90, Bagum, Smart...), com as medidas como fichas
+  const groupColchonetes = (items) => {
+    const dimRe = /\s*\d+(?:[.,]\d+)?\s*x\s*\d+(?:[.,]\d+)?(?:\s*x\s*\d+(?:[.,]\d+)?)?\s*(?:cm)?/i;
+    const g = {};
+    items.forEach(it => {
+      const nome = it.nome || '';
+      const dm = nome.match(dimRe);
+      const dens = (nome.match(/\bD\d+\b/i) || [''])[0];
+      const base = nome.replace(dimRe, ' ').replace(/\bD\d+\b/i, '').replace(/\s*&\s*Cia\b/i, '').replace(/\s+/g, ' ').trim();
+      const chip = dm ? (dm[0].trim().replace(/\s*cm$/i, '') + 'cm' + (dens ? ' ' + dens.toUpperCase() : '')) : '';
+      if (!g[base]) g[base] = [];
+      g[base].push({ it, chip });
+    });
+    return Object.entries(g).map(([base, arr]) => {
+      if (arr.length === 1) return arr[0].it;
+      const first = arr.find(x => x.it.foto) || arr[0];
+      const min = Math.min(...arr.map(x => x.it.preco));
+      return {
+        nome: base,
+        cod: '',
+        categoria: arr[0].it.categoria,
+        und: arr[0].it.und || 'peça',
+        peso: '',
+        dimsDisponiveis: arr.map(x => x.chip).filter(Boolean).join(', '),
+        foto: first.it.foto || '',
+        preco: min,
+        precoFormatado: `R$ ${min.toFixed(2)}`,
+        isDimGrouped: true
+      };
+    });
+  };
+
   const groupWeightProducts = (previewItems) => {
+    const isColch = (it) => /colchonete/i.test(it.categoria || '') && /^colchonete\b/i.test(it.nome || '');
+    const colchItems = previewItems.filter(isColch);
+    previewItems = previewItems.filter(it => !isColch(it));
     const withWeight = previewItems.filter(item => item.peso_kg || (item.categoria || '').toLowerCase() === 'kettlebells');
     const withoutWeight = previewItems.filter(item => !item.peso_kg && (item.categoria || '').toLowerCase() !== 'kettlebells');
 
@@ -99,7 +134,7 @@ export default function Export() {
       };
     });
 
-    return [...withoutWeight, ...groupedItems];
+    return [...withoutWeight, ...groupedItems, ...groupColchonetes(colchItems)];
   };
 
   const generatePreview = (productsData, supplierProductsData) => {
@@ -318,9 +353,9 @@ export default function Export() {
       const itens = categorias[cat];
       const icon = categoryIcons[cat] || '📦';
       const cards = itens.map(item => {
-        const espec = item.isWeightGrouped ? (item.pesosDisponiveis || '—') : (item.peso || item.dimensoes || '');
+        const espec = item.isWeightGrouped ? (item.pesosDisponiveis || '—') : item.isDimGrouped ? (item.dimsDisponiveis || '—') : (item.peso || item.dimensoes || '');
         const und = item.isWeightGrouped ? '/kg' : (item.und || 'peça');
-        const precoLabel = item.isWeightGrouped ? 'Preço por kg' : 'Preço';
+        const precoLabel = item.isWeightGrouped ? 'Preço por kg' : item.isDimGrouped ? 'A partir de' : 'Preço';
         const fotoUrl = getImg(item.foto);
         const fotoHtml = fotoUrl
           ? `<img src="${fotoUrl}" alt="${item.nome}" style="width:30px;height:30px;object-fit:cover;border-radius:4px;border:1px solid #e2e8f0;flex-shrink:0;">`
@@ -333,8 +368,8 @@ export default function Export() {
                 ${item.cod ? `<span style="display:inline-block;font-size:7px;font-family:monospace;color:#64748b;background:#f1f5f9;padding:1px 4px;border-radius:3px;margin-bottom:3px;">${item.cod}</span>` : ''}
                 <div style="font-size:9px;font-weight:600;color:#1e293b;line-height:1.25;">${item.nome}</div>
               </div>
-              <div style="display:flex;align-items:center;gap:4px;margin:4px 0;">
-                ${espec && espec !== '—' ? `<span style="font-size:7px;color:#475569;background:#eff6ff;border:1px solid #dbeafe;padding:1px 5px;border-radius:8px;">${espec}</span>` : ''}
+              <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin:4px 0;">
+                ${espec && espec !== '—' ? `<span style="font-size:7px;color:#475569;background:#eff6ff;border:1px solid #dbeafe;padding:1px 5px;border-radius:8px;line-height:1.35;">${espec}</span>` : ''}
                 <span style="font-size:7px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.3px;">${und}</span>
               </div>
               <div style="display:flex;align-items:flex-end;justify-content:space-between;border-top:1px solid #f1f5f9;padding-top:3px;">
