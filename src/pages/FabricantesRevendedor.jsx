@@ -248,6 +248,9 @@ export default function FabricantesRevendedor() {
         }).map(p => Number(p.preco_origem)).filter(n => n > 0);
         if (precos.length === 0) continue;
         fabricanteProducts.push({
+          _key: getGroupKey(tmpl),
+          _base: getBaseName(tmpl),
+          _sizes: extractSizesFromName(tmpl.nome),
           cod: tmpl.cod,
           nome: tmpl.nome,
           categoria: tmpl.categoria || 'Outros',
@@ -265,6 +268,25 @@ export default function FabricantesRevendedor() {
         return;
       }
 
+      // Agrupar variações (peso/tamanho) de um mesmo produto: 1 produto + chips
+      const gmap = new Map();
+      for (const it of fabricanteProducts) {
+        if (!gmap.has(it._key)) {
+          gmap.set(it._key, { nome: it._base || it.nome, categoria: it.categoria, foto: null, und: it.und, cods: [], variants: [] });
+        }
+        const g = gmap.get(it._key);
+        if (!g.foto && it.foto) g.foto = it.foto;
+        g.cods.push(it.cod);
+        const label = it.peso != null ? String(it.peso).replace('.', ',') + 'kg' : (it._sizes && it._sizes.length ? it._sizes.join('/') : '');
+        g.variants.push({ label, peso: it.peso, size: it._sizes && it._sizes.length ? SIZE_ORDER.indexOf(it._sizes[0]) : 99, preco: it.preco, cod: it.cod, nome: it.nome });
+      }
+      const grupos = [...gmap.values()];
+      for (const g of grupos) {
+        g.variants.sort((a, b) => (a.peso != null && b.peso != null) ? a.peso - b.peso : a.size - b.size);
+        if (g.variants.length === 1 && !g.variants[0].label) g.nome = g.variants[0].nome;
+      }
+      grupos.sort((x, y) => (x.nome || '').localeCompare(y.nome || '', 'pt-BR', { numeric: true }));
+
       // Extrair cores da logo
       const logoColors = await extractLogoColors(fabricante.logomarca);
       const c = logoColors || {
@@ -277,7 +299,7 @@ export default function FabricantesRevendedor() {
 
       // Agrupar por categoria
       const categorias = {};
-      fabricanteProducts.forEach(p => {
+      grupos.forEach(p => {
         const cat = p.categoria || 'Outros';
         if (!categorias[cat]) categorias[cat] = [];
         categorias[cat].push(p);
@@ -303,26 +325,28 @@ export default function FabricantesRevendedor() {
       const categoriasBlocos = catsOrdenadas.map((cat) => {
         const itens = categorias[cat];
         const icon = categoryIcons[cat] || '📦';
-        const cards = itens.map((item) => {
-          const espec = item.peso ? item.peso + 'kg' : '';
-          const fotoHtml = item.foto
-            ? `<img src="${item.foto}" alt="" style="width:30px;height:30px;object-fit:contain;background:#fff;border-radius:4px;border:1px solid #e2e8f0;flex-shrink:0;">`
+        const cards = itens.map((g) => {
+          const precos = g.variants.map(v => v.preco);
+          const mesmoPreco = precos.every(p => p === precos[0]);
+          const temChips = g.variants.length > 1 || (g.variants[0] && g.variants[0].label);
+          const fotoHtml = g.foto
+            ? `<img src="${g.foto}" alt="" style="width:30px;height:30px;object-fit:contain;background:#fff;border-radius:4px;border:1px solid #e2e8f0;flex-shrink:0;">`
             : `<div style="width:30px;height:30px;border-radius:4px;border:1px solid #e2e8f0;background:#f8fafc;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">📦</div>`;
+          const chips = temChips ? g.variants.map(v => `<span style="display:inline-block;font-size:7px;color:#475569;background:#eff6ff;border:1px solid #dbeafe;padding:1px 4px;border-radius:8px;margin:1px 2px 1px 0;white-space:nowrap;">${v.label || v.cod}${mesmoPreco ? '' : ' · ' + fmtPreco(v.preco)}</span>`).join('') : '';
+          const precoTxt = mesmoPreco ? fmtPreco(precos[0]) : 'a partir de ' + fmtPreco(Math.min(...precos));
+          const codTxt = g.cods.length > 1 ? g.cods[0] + ' … ' + g.cods[g.cods.length - 1] : g.cods[0];
           return `
           <div style="border:1px solid #e2e8f0;border-radius:6px;padding:8px;background:#ffffff;break-inside:avoid;display:flex;gap:6px;min-height:78px;">
             ${fotoHtml}
             <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;min-width:0;">
               <div>
-                ${item.cod ? `<span style="display:inline-block;font-size:7px;font-family:monospace;color:#64748b;background:#f1f5f9;padding:1px 4px;border-radius:3px;margin-bottom:3px;">${item.cod}</span>` : ''}
-                <div style="font-size:9px;font-weight:600;color:#1e293b;line-height:1.25;">${item.nome}</div>
+                ${codTxt ? `<span style="display:inline-block;font-size:7px;font-family:monospace;color:#64748b;background:#f1f5f9;padding:1px 4px;border-radius:3px;margin-bottom:3px;">${codTxt}</span>` : ''}
+                <div style="font-size:9px;font-weight:600;color:#1e293b;line-height:1.25;">${g.nome}</div>
               </div>
-              <div style="display:flex;align-items:center;gap:4px;margin:4px 0;">
-                ${espec ? `<span style="font-size:7px;color:#475569;background:#eff6ff;border:1px solid #dbeafe;padding:1px 5px;border-radius:8px;">${espec}</span>` : ''}
-                <span style="font-size:7px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.3px;">${item.und || 'peça'}</span>
-              </div>
+              ${chips ? `<div style="margin:4px 0;line-height:1.4;">${chips}</div>` : `<div style="margin:4px 0;"><span style="font-size:7px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.3px;">${g.und || 'peça'}</span></div>`}
               <div style="display:flex;align-items:flex-end;justify-content:space-between;border-top:1px solid #f1f5f9;padding-top:3px;">
-                <span style="font-size:7px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.3px;">Preço</span>
-                <span style="font-size:11px;font-weight:700;color:#16a34a;">${fmtPreco(item.preco)}</span>
+                <span style="font-size:7px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.3px;">${mesmoPreco ? 'Preço' : 'Preço (varia)'}</span>
+                <span style="font-size:${mesmoPreco ? 11 : 9}px;font-weight:700;color:#16a34a;">${precoTxt}</span>
               </div>
             </div>
           </div>`;
@@ -393,7 +417,7 @@ export default function FabricantesRevendedor() {
   </div>
 
   <div class="stats-bar">
-    <div class="stat-card"><div class="stat-num">${fabricanteProducts.length}</div><div class="stat-label">Produtos</div></div>
+    <div class="stat-card"><div class="stat-num">${grupos.length}</div><div class="stat-label">Produtos</div></div>
     <div class="stat-card"><div class="stat-num">${Object.keys(categorias).length}</div><div class="stat-label">Categorias</div></div>
     <div class="stat-card"><div class="stat-num">${dataGeracao}</div><div class="stat-label">Atualizado em</div></div>
   </div>
