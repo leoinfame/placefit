@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { getProdutosData } from "@/functions/getProdutosData";
 import { expandTemplates } from "@/utils/expandTemplates";
@@ -29,7 +29,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import PreviewGrid from "@/components/export/PreviewGrid";
+
+const PDF_CATEGORY_ORDER = ['Anilhas', 'Halteres', 'Dumbbells', 'Kettlebells', 'Tijolinhos', 'Pisos', 'Kits'];
 
 export default function Export() {
   const [user, setUser] = useState(null);
@@ -38,6 +42,8 @@ export default function Export() {
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [previewData, setPreviewData] = useState([]);
+  const [pdfCatsOpen, setPdfCatsOpen] = useState(false);
+  const [selectedCats, setSelectedCats] = useState(null);
   const { toast } = useToast();
   const colors = useLogoColors(user?.logomarca);
 
@@ -271,7 +277,7 @@ export default function Export() {
     }
   };
 
-  const buildPDFHTML = (imageMap = {}) => {
+  const buildPDFHTML = (imageMap = {}, items = previewData) => {
     const getImg = (url) => imageMap[url] || url || '';
     const nomeEmpresa = user?.empresa || user?.full_name || 'Fornecedor';
     const dataGeracao = new Date().toLocaleDateString('pt-BR');
@@ -282,17 +288,16 @@ export default function Export() {
 
     // Agrupar por categoria
     const categorias = {};
-    previewData.forEach(item => {
+    items.forEach(item => {
       const cat = item.categoria || 'Outros';
       if (!categorias[cat]) categorias[cat] = [];
       categorias[cat].push(item);
     });
 
     // Ordem desejada de categorias; demais aparecem depois em ordem alfabética
-    const CATEGORY_ORDER = ['Anilhas', 'Halteres', 'Dumbbells', 'Kettlebells', 'Tijolinhos', 'Pisos', 'Kits'];
     const sortedCategories = Object.keys(categorias).sort((a, b) => {
-      const ia = CATEGORY_ORDER.indexOf(a);
-      const ib = CATEGORY_ORDER.indexOf(b);
+      const ia = PDF_CATEGORY_ORDER.indexOf(a);
+      const ib = PDF_CATEGORY_ORDER.indexOf(b);
       if (ia !== -1 && ib !== -1) return ia - ib;
       if (ia !== -1) return -1;
       if (ib !== -1) return 1;
@@ -351,7 +356,7 @@ export default function Export() {
         </div>`;
     }).join('');
 
-    const totalProdutos = previewData.length;
+    const totalProdutos = items.length;
     const totalCategorias = Object.keys(categorias).length;
 
     return `<!DOCTYPE html>
@@ -484,8 +489,12 @@ export default function Export() {
 </html>`;
   };
 
-  const generatePDF = async () => {
-    if (previewData.length === 0) {
+  const generatePDF = async (selectedCategories = null) => {
+    const items = selectedCategories && selectedCategories.size > 0
+      ? previewData.filter(item => selectedCategories.has(item.categoria || 'Outros'))
+      : previewData;
+
+    if (items.length === 0) {
       toast({
         title: "Nenhum produto para gerar PDF",
         description: "Sua tabela de preços está vazia.",
@@ -499,7 +508,7 @@ export default function Export() {
     // Coletar todas as URLs de imagens únicas e converter para base64
     const imageUrls = new Set();
     if (user?.logomarca) imageUrls.add(user.logomarca);
-    previewData.forEach(item => {
+    items.forEach(item => {
       if (item.foto) imageUrls.add(item.foto);
     });
 
@@ -508,7 +517,7 @@ export default function Export() {
       imageMap[url] = await fetchImageAsDataURL(url);
     }));
 
-    const htmlContent = buildPDFHTML(imageMap);
+    const htmlContent = buildPDFHTML(imageMap, items);
 
     const iframe = document.createElement('iframe');
     iframe.style.position = 'fixed';
@@ -529,6 +538,53 @@ export default function Export() {
       setTimeout(() => document.body.removeChild(iframe), 1000);
       setExporting(false);
     }, 500);
+  };
+
+  const pdfCategories = useMemo(() => {
+    const counts = {};
+    previewData.forEach(item => {
+      const cat = item.categoria || 'Outros';
+      counts[cat] = (counts[cat] || 0) + 1;
+    });
+    const cats = Object.keys(counts);
+    cats.sort((a, b) => {
+      const ia = PDF_CATEGORY_ORDER.indexOf(a);
+      const ib = PDF_CATEGORY_ORDER.indexOf(b);
+      if (ia !== -1 && ib !== -1) return ia - ib;
+      if (ia !== -1) return -1;
+      if (ib !== -1) return 1;
+      return a.localeCompare(b, 'pt-BR');
+    });
+    return cats.map(c => ({ categoria: c, count: counts[c] }));
+  }, [previewData]);
+
+  const openPdfCategoryDialog = () => {
+    if (previewData.length === 0) {
+      toast({
+        title: "Nenhum produto para gerar PDF",
+        description: "Sua tabela de preços está vazia.",
+        variant: "destructive"
+      });
+      return;
+    }
+    const present = pdfCategories.map(c => c.categoria);
+    if (selectedCats === null) {
+      setSelectedCats(new Set(present));
+    } else {
+      const stillPresent = new Set([...selectedCats].filter(c => present.includes(c)));
+      if (stillPresent.size === 0) present.forEach(c => stillPresent.add(c));
+      setSelectedCats(stillPresent);
+    }
+    setPdfCatsOpen(true);
+  };
+
+  const selectedProductCount = pdfCategories
+    .filter(c => selectedCats?.has(c.categoria))
+    .reduce((s, c) => s + c.count, 0);
+
+  const handleConfirmPdf = () => {
+    setPdfCatsOpen(false);
+    generatePDF(selectedCats);
   };
 
   const getPublicLink = () => {
@@ -703,7 +759,7 @@ export default function Export() {
                 </Button>
 
                 <Button
-                  onClick={generatePDF}
+                  onClick={openPdfCategoryDialog}
                   disabled={exporting || previewData.length === 0}
                   variant="outline"
                   className="w-full hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200"
@@ -817,6 +873,51 @@ export default function Export() {
           </div>
         </div>
       </div>
+
+      <Dialog open={pdfCatsOpen} onOpenChange={setPdfCatsOpen}>
+        <DialogContent className="sm:max-w-md max-h-[90vh] flex flex-col gap-4">
+          <DialogHeader>
+            <DialogTitle>Escolher categorias da tabela</DialogTitle>
+            <DialogDescription>Selecione as categorias que deseja incluir no PDF.</DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" onClick={() => setSelectedCats(new Set(pdfCategories.map(c => c.categoria)))}>
+              Selecionar todas
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setSelectedCats(new Set())}>
+              Limpar
+            </Button>
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {selectedCats?.size || 0} categorias, {selectedProductCount} {selectedProductCount === 1 ? 'produto' : 'produtos'} selecionados
+          </div>
+          <div className="overflow-y-auto flex-1 min-h-0 -mx-1 px-1 space-y-1">
+            {pdfCategories.map(({ categoria, count }) => (
+              <label key={categoria} className="flex items-center gap-3 py-1.5 px-2 rounded hover:bg-accent cursor-pointer">
+                <Checkbox
+                  checked={selectedCats?.has(categoria) || false}
+                  onCheckedChange={(v) => {
+                    setSelectedCats(prev => {
+                      const base = prev ?? new Set(pdfCategories.map(c => c.categoria));
+                      const next = new Set(base);
+                      if (v) next.add(categoria); else next.delete(categoria);
+                      return next;
+                    });
+                  }}
+                />
+                <span className="flex-1 text-sm">{categoria}</span>
+                <span className="text-xs text-muted-foreground">{count} {count === 1 ? 'produto' : 'produtos'}</span>
+              </label>
+            ))}
+          </div>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => setPdfCatsOpen(false)}>Cancelar</Button>
+            <Button onClick={handleConfirmPdf} disabled={!selectedCats || selectedCats.size === 0}>
+              Gerar PDF
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
