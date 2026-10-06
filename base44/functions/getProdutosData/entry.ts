@@ -119,6 +119,7 @@ Deno.serve(async (req) => {
         pricesByProduct[sp.product_id].push({
           preco: applyMargem(sp.preco, margemMaps, sp.fabricante_id, sp.supplier_id),
           fabricante_nome: fabNome,
+          preco_origem: sp.preco,
         });
       }
     }
