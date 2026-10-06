@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { base44 } from "@/api/base44Client";
 
 const PLACEFIT_LOGO =
   "https://media.base44.com/images/public/68c9d5dd3cf0f8fd8a834875/574e5a0a6_logo-ico-removebg-preview1.png";
@@ -87,6 +89,49 @@ const Th = ({ children }) => <th style={styles.th}>{children}</th>;
 const Td = ({ children }) => <td style={styles.td}>{children}</td>;
 
 export default function DocumentoInvestidor() {
+  const navigate = useNavigate();
+  const [authState, setAuthState] = useState({ loading: true, isAdmin: false });
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const user = await base44.auth.me();
+        if (cancelled) return;
+        if (user && user.role === "admin") {
+          setAuthState({ loading: false, isAdmin: true });
+        } else {
+          setAuthState({ loading: false, isAdmin: false });
+        }
+      } catch {
+        if (!cancelled) setAuthState({ loading: false, isAdmin: false });
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    if (!authState.loading && !authState.isAdmin) {
+      navigate("/", { replace: true });
+    }
+  }, [authState, navigate]);
+
+  if (authState.loading) {
+    return (
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f8fafc" }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ width: 40, height: 40, border: "4px solid #e2e8f0", borderTopColor: "#1e40af", borderRadius: "50%", margin: "0 auto 16px", animation: "spin 1s linear infinite" }} />
+          <p style={{ color: "#64748b", fontSize: "0.9rem" }}>Carregando...</p>
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
+      </div>
+    );
+  }
+
+  if (!authState.isAdmin) {
+    return null;
+  }
+
   return (
     <div style={styles.body}>
       <div style={styles.container}>
