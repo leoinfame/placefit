@@ -232,13 +232,35 @@ export default function FabricantesRevendedor() {
   const downloadFabricanteTable = async (fabricante) => {
     setDownloadingTable(fabricante.id);
     try {
-      const allProducts = await base44.entities.Product.list();
-      const fabricanteProducts = allProducts.filter(
-        p => p.fabricante_id === fabricante.id && p.aprovado_produto === true
-      );
+      // Mesma fonte do catálogo (getProdutosData): templates com preço deste fabricante
+      const res = await getProdutosData({ mode: "catalogo" });
+      const data = res.data || res;
+      const templatesAll = expandTemplates(data.templates || [], data.fieldMap);
+      const pricesByProduct = data.pricesByProduct || {};
+      const fabNomeBusca = fabricante.nome_fantasia || fabricante.razao_social || fabricante.empresa || fabricante.full_name;
+      const fabNormBusca = normalizeName(fabNomeBusca);
+      const fabricanteProducts = [];
+      for (const tmpl of templatesAll) {
+        const precos = (pricesByProduct[tmpl.id] || []).filter(p => {
+          const pNorm = normalizeName(p && p.fabricante_nome);
+          if (!fabNormBusca || !pNorm) return false;
+          return fabNormBusca.includes(pNorm) || pNorm.includes(fabNormBusca);
+        }).map(p => Number(p.preco)).filter(n => n > 0);
+        if (precos.length === 0) continue;
+        fabricanteProducts.push({
+          cod: tmpl.cod,
+          nome: tmpl.nome,
+          categoria: tmpl.categoria || 'Outros',
+          peso: tmpl.peso_kg != null ? tmpl.peso_kg : extractWeightFromName(tmpl.nome),
+          und: tmpl.und,
+          foto: tmpl.foto && !tmpl.foto.includes("placefit.com.br/produtos") ? tmpl.foto : null,
+          preco: Math.min(...precos),
+        });
+      }
+      fabricanteProducts.sort((x, y) => (x.nome || '').localeCompare(y.nome || '', 'pt-BR', { numeric: true }));
 
       if (fabricanteProducts.length === 0) {
-        toast({ title: "Sem produtos", description: "Este fabricante não possui produtos aprovados." });
+        toast({ title: "Sem produtos", description: "Este fabricante não possui produtos com preço no catálogo." });
         setDownloadingTable(null);
         return;
       }
@@ -268,36 +290,53 @@ export default function FabricantesRevendedor() {
         'Tornozeleiras': '🦵', 'Cabos': '🔗', 'Complemento': '➕', 'Outros': '📦',
       };
 
-      const categoriasBlocos = Object.entries(categorias).map(([cat, itens]) => {
+      const ordemCats = ['Anilhas', 'Halteres', 'Dumbbells', 'Kettlebells', 'Tijolinhos', 'Pisos', 'Kits'];
+      const catsOrdenadas = Object.keys(categorias).sort((x, y) => {
+        const ix = ordemCats.indexOf(x), iy = ordemCats.indexOf(y);
+        if (ix !== -1 && iy !== -1) return ix - iy;
+        if (ix !== -1) return -1;
+        if (iy !== -1) return 1;
+        return x.localeCompare(y, 'pt-BR');
+      });
+      const fmtPreco = (v) => 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+      const categoriasBlocos = catsOrdenadas.map((cat) => {
+        const itens = categorias[cat];
         const icon = categoryIcons[cat] || '📦';
-        const linhas = itens.map((item, idx) => `
-          <tr style="background:${idx % 2 === 0 ? '#ffffff' : '#fafafa'};">
-            <td style="padding:4px 6px;font-size:8px;color:#1e293b;font-family:monospace;white-space:nowrap;">${item.cod || '—'}</td>
-            <td style="padding:4px 6px;font-size:9px;font-weight:600;color:#1e293b;">${item.nome}</td>
-            <td style="padding:4px 6px;font-size:8px;color:#1e293b;text-align:center;">${item.peso ? item.peso + 'kg' : item.dimensoes || '—'}</td>
-            <td style="padding:4px 6px;font-size:8px;color:#1e293b;text-align:center;">${item.und || 'peça'}</td>
-            <td style="padding:4px 6px;font-size:9px;font-weight:700;color:#16a34a;text-align:right;white-space:nowrap;">${item.preco_fabricante ? 'R$ ' + parseFloat(item.preco_fabricante).toFixed(2) : '—'}</td>
-          </tr>`).join('');
+        const cards = itens.map((item) => {
+          const espec = item.peso ? item.peso + 'kg' : '';
+          const fotoHtml = item.foto
+            ? `<img src="${item.foto}" alt="" style="width:30px;height:30px;object-fit:contain;background:#fff;border-radius:4px;border:1px solid #e2e8f0;flex-shrink:0;">`
+            : `<div style="width:30px;height:30px;border-radius:4px;border:1px solid #e2e8f0;background:#f8fafc;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">📦</div>`;
+          return `
+          <div style="border:1px solid #e2e8f0;border-radius:6px;padding:8px;background:#ffffff;break-inside:avoid;display:flex;gap:6px;min-height:78px;">
+            ${fotoHtml}
+            <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;min-width:0;">
+              <div>
+                ${item.cod ? `<span style="display:inline-block;font-size:7px;font-family:monospace;color:#64748b;background:#f1f5f9;padding:1px 4px;border-radius:3px;margin-bottom:3px;">${item.cod}</span>` : ''}
+                <div style="font-size:9px;font-weight:600;color:#1e293b;line-height:1.25;">${item.nome}</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:4px;margin:4px 0;">
+                ${espec ? `<span style="font-size:7px;color:#475569;background:#eff6ff;border:1px solid #dbeafe;padding:1px 5px;border-radius:8px;">${espec}</span>` : ''}
+                <span style="font-size:7px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.3px;">${item.und || 'peça'}</span>
+              </div>
+              <div style="display:flex;align-items:flex-end;justify-content:space-between;border-top:1px solid #f1f5f9;padding-top:3px;">
+                <span style="font-size:7px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.3px;">Preço</span>
+                <span style="font-size:11px;font-weight:700;color:#16a34a;">${fmtPreco(item.preco)}</span>
+              </div>
+            </div>
+          </div>`;
+        }).join('');
 
         return `
-          <div style="margin-bottom:10px;page-break-inside:avoid;">
-            <div style="display:flex;align-items:center;gap:6px;padding:6px 10px;background:transparent;border:1px solid #e2e8f0;border-bottom:none;border-radius:4px 4px 0 0;">
+          <div style="margin-bottom:12px;">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+              <div style="width:3px;height:14px;background:${c.secondary};border-radius:2px;"></div>
               <span style="font-size:11px;">${icon}</span>
               <span style="font-size:10px;font-weight:700;color:#1e293b;letter-spacing:1px;text-transform:uppercase;">${cat}</span>
-              <span style="margin-left:auto;font-size:8px;color:#64748b;font-weight:500;">${itens.length} item${itens.length !== 1 ? 's' : ''}</span>
+              <span style="margin-left:auto;font-size:8px;color:#64748b;font-weight:500;">${itens.length} ${itens.length === 1 ? 'item' : 'itens'}</span>
             </div>
-            <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-top:none;font-size:9px;">
-              <thead>
-                <tr style="background:transparent;">
-                 <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#1e293b !important;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;width:70px;">Código</th>
-                 <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#1e293b !important;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;">Produto</th>
-                 <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#1e293b !important;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;text-align:center;width:60px;">Espec.</th>
-                 <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#1e293b !important;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;text-align:center;width:50px;">Und.</th>
-                 <th style="padding:5px 8px;font-size:8px;font-weight:700;color:#1e293b !important;text-transform:uppercase;letter-spacing:0.3px;border-bottom:1px solid #e2e8f0;text-align:right;width:70px;">Preço</th>
-                </tr>
-              </thead>
-              <tbody>${linhas}</tbody>
-            </table>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;">${cards}</div>
           </div>`;
       }).join('');
 
