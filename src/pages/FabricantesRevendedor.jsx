@@ -245,7 +245,7 @@ export default function FabricantesRevendedor() {
           const pNorm = normalizeName(p && p.fabricante_nome);
           if (!fabNormBusca || !pNorm) return false;
           return fabNormBusca.includes(pNorm) || pNorm.includes(fabNormBusca);
-        }).map(p => Number(p.preco)).filter(n => n > 0);
+        }).map(p => Number(p.preco_origem)).filter(n => n > 0);
         if (precos.length === 0) continue;
         fabricanteProducts.push({
           cod: tmpl.cod,
