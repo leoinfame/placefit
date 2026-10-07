@@ -119,7 +119,7 @@ export default function ProdutosChinaForm({ fabricante }) {
               <CardContent className="p-4 flex items-center gap-3">
                 <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center shrink-0 overflow-hidden">
                   {p.foto ? (
-                    <img src={p.foto} alt={p.nome} className="w-full h-full object-cover" />
+                    <img src={p.foto} alt={p.nome} className="w-full h-full object-contain bg-white" />
                   ) : (
                     <ImageIcon className="w-5 h-5 text-gray-400" />
                   )}
