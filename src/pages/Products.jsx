@@ -526,7 +526,7 @@ export default function Products() {
                         <TableCell>
                           <div className="w-10 h-10 bg-gray-100 rounded overflow-hidden">
                             {template.foto ? (
-                              <img src={template.foto} alt={template.nome} className="w-full h-full object-cover" />
+                              <img src={template.foto} alt={template.nome} className="w-full h-full object-contain bg-white" />
                             ) : (
                               <div className="flex items-center justify-center w-full h-full text-gray-400">
                                 <ImageIcon className="w-4 h-4" />
@@ -590,7 +590,7 @@ export default function Products() {
                   <div className="flex gap-3">
                     <div className="w-12 h-12 bg-gray-100 rounded flex-shrink-0 overflow-hidden">
                       {template.foto ? (
-                        <img src={template.foto} alt={template.nome} className="w-full h-full object-cover" />
+                        <img src={template.foto} alt={template.nome} className="w-full h-full object-contain bg-white" />
                       ) : (
                         <div className="flex items-center justify-center w-full h-full text-gray-400">
                           <ImageIcon className="w-4 h-4" />
