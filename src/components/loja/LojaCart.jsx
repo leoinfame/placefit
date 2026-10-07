@@ -21,7 +21,7 @@ export default function LojaCart({ open, onClose, items, onInc, onDec, onRemove,
           ) : items.map(it => (
             <div key={it.sp_id} className="flex gap-3 border-b pb-3">
               <div className="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
-                {it.product.foto && <img src={it.product.foto} className="w-full h-full object-cover" alt={it.product.nome} />}
+                {it.product.foto && <img src={it.product.foto} className="w-full h-full object-contain bg-white" alt={it.product.nome} />}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 leading-tight line-clamp-2">{it.product.nome}</p>
