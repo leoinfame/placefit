@@ -316,7 +316,7 @@ export default function ProdutoTemplateDialog({ open, fabricante, onClose, onSav
                         >
                           <div className="flex items-start gap-2 p-3">
                             {g.foto ? (
-                              <img src={g.foto} alt={g.baseName} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+                              <img src={g.foto} alt={g.baseName} className="w-12 h-12 rounded-lg object-contain bg-white flex-shrink-0" />
                             ) : (
                               <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
                                 <Package className="w-5 h-5 text-gray-300" />
