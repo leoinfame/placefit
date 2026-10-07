@@ -19,7 +19,7 @@ export default function LojaProductCard({ group, onAdd, primaryColor, slug }) {
     <div className="bg-white rounded-xl border border-gray-100 overflow-hidden flex flex-col hover:shadow-lg transition-shadow">
       <Link to={produtoUrl} className="block">
         <div className="aspect-square bg-gray-50 flex items-center justify-center overflow-hidden">
-          {group.foto ? <img src={group.foto} alt={group.nome} className="w-full h-full object-cover" /> : <Package className="w-12 h-12 text-gray-300" />}
+          {group.foto ? <img src={group.foto} alt={group.nome} className="w-full h-full object-contain bg-white" /> : <Package className="w-12 h-12 text-gray-300" />}
         </div>
       </Link>
       <div className="p-3 flex flex-col flex-1">
