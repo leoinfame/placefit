@@ -358,7 +358,7 @@ export default function Export() {
         const precoLabel = item.isWeightGrouped ? 'Preço por kg' : item.isDimGrouped ? 'A partir de' : 'Preço';
         const fotoUrl = getImg(item.foto);
         const fotoHtml = fotoUrl
-          ? `<img src="${fotoUrl}" alt="${item.nome}" style="width:30px;height:30px;object-fit:cover;border-radius:4px;border:1px solid #e2e8f0;flex-shrink:0;">`
+          ? `<img src="${fotoUrl}" alt="${item.nome}" style="width:30px;height:30px;object-fit:contain;background:#fff;border-radius:4px;border:1px solid #e2e8f0;flex-shrink:0;">`
           : `<div style="width:30px;height:30px;border-radius:4px;border:1px solid #e2e8f0;background:#f8fafc;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">📦</div>`;
         return `
           <div style="border:1px solid #e2e8f0;border-radius:6px;padding:8px;background:#ffffff;break-inside:avoid;display:flex;gap:6px;min-height:78px;">
