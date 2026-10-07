@@ -35,6 +35,9 @@ import Produtos from './pages/Produtos';
 import FabricantePublico from './pages/FabricantePublico';
 import CRMWhatsApp from './components/crm/CRMWhatsApp';
 import ErrorBoundary from './components/ErrorBoundary';
+import CrmPrivacidade from './components/crm-legal/CrmPrivacidade';
+import CrmTermos from './components/crm-legal/CrmTermos';
+import CrmExclusaoDados from './components/crm-legal/CrmExclusaoDados';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -131,6 +134,10 @@ const AuthenticatedApp = () => {
       <Route path="/LojaEcommerce" element={<LayoutWrapper currentPageName="LojaEcommerce"><LojaEcommerce /></LayoutWrapper>} />
       <Route path="/LojaRevendedor" element={<LayoutWrapper currentPageName="LojaRevendedor"><LojaRevendedor /></LayoutWrapper>} />
       <Route path="/MinhaConta" element={<LayoutWrapper currentPageName="MinhaConta"><MinhaConta /></LayoutWrapper>} />
+      {/* Rascunho das páginas legais do CRM: por enquanto só com login (fora de PUBLIC_PATHS). */}
+      <Route path="/crm/privacidade" element={<ErrorBoundary><CrmPrivacidade /></ErrorBoundary>} />
+      <Route path="/crm/termos" element={<ErrorBoundary><CrmTermos /></ErrorBoundary>} />
+      <Route path="/crm/exclusao-de-dados" element={<ErrorBoundary><CrmExclusaoDados /></ErrorBoundary>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
