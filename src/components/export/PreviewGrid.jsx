@@ -113,7 +113,7 @@ export default function PreviewGrid({ previewData, user, colors }) {
                     <img
                       src={item.foto}
                       alt={item.nome}
-                      className="w-16 h-16 object-cover rounded-lg border border-gray-200"
+                      className="w-16 h-16 object-contain bg-white rounded-lg border border-gray-200"
                     />
                   ) : (
                     <div className="w-16 h-16 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center text-gray-300 text-2xl">
