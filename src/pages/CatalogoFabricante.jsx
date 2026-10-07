@@ -298,7 +298,7 @@ export default function CatalogoFabricante() {
                       <img
                         src={product.foto}
                         alt={product.nome}
-                        className="w-10 h-10 rounded-lg object-cover"
+                        className="w-10 h-10 rounded-lg object-contain bg-white"
                       />
                     ) : (
                       <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
@@ -317,7 +317,7 @@ export default function CatalogoFabricante() {
                         <img
                           src={product.foto}
                           alt={product.nome}
-                          className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+                          className="w-10 h-10 rounded-lg object-contain bg-white flex-shrink-0"
                         />
                       ) : (
                         <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
