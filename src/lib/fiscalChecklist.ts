@@ -151,12 +151,20 @@ export function validarCodigoIbge(codigo: string, uf: string): { ok: boolean; mo
   return { ok: true };
 }
 
-/** Série da NF-e: número de 0 a 999. Faixas reservadas não são aceitas para emissão normal. */
+/**
+ * Série da NF-e 55 para emitente CNPJ com aplicativo próprio: 0 a 889.
+ * Fonte: MOC 7.00, Anexo I, campo B07 (atualizado pela NT 2018/001) e regra B26-10
+ * (rejeição 244). 890-919 são do site do Fisco (NFA-e) e 920-969 de emitente CPF.
+ */
+export const SERIE_MAX_EMITENTE_CNPJ = 889;
+
 export function validarSerie(serie: string): { ok: boolean; motivo?: string } {
   const s = String(serie ?? "").trim();
-  if (!/^\d{1,3}$/.test(s)) return { ok: false, motivo: "Série deve ser um número de 0 a 999" };
+  if (!/^\d{1,3}$/.test(s)) return { ok: false, motivo: "Série deve ser um número de 0 a 889 (emitente CNPJ)" };
   const n = Number(s);
-  if (n >= 890) return { ok: false, motivo: "Séries 890 a 999 são reservadas (avulsa/contingência)" };
+  if (n > SERIE_MAX_EMITENTE_CNPJ) {
+    return { ok: false, motivo: "Séries 890 a 999 não são de emitente CNPJ com aplicativo próprio; use 0 a 889" };
+  }
   return { ok: true };
 }
 
