@@ -39,6 +39,10 @@ ok(!validarCodigoIbge("31173", "MG").ok, "IBGE curto");
 ok(validarSerie("1").ok && validarSerie("0").ok, "série 0 e 1");
 ok(!validarSerie("890").ok && !validarSerie("1000").ok && !validarSerie("A").ok, "séries inválidas");
 ok(!validarSerie("").ok, "série vazia não vira 1 por padrão");
+ok(validarSerie("889").ok && !validarSerie("889").motivo, "889 é o limite para emitente CNPJ");
+ok(/0 a 889/.test(validarSerie("").motivo), "mensagem de formato cita 0 a 889, não 0 a 999");
+ok(/0 a 889/.test(validarSerie("900").motivo), "mensagem de faixa reservada indica 0 a 889");
+ok(!/0 a 999/.test(validarSerie("abc").motivo), "nenhuma mensagem promete 0 a 999");
 
 // Prontidão: vazio
 const vazio = avaliarProntidao({});
