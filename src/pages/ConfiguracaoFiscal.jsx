@@ -155,7 +155,7 @@ export default function ConfiguracaoFiscal() {
               <Campo label="Ambiente" dica="Produção travada nesta fase.">
                 <Input value="Homologação (fixo)" disabled />
               </Campo>
-              <Campo label="Série" dica="Sem valor padrão: definir com o contador.">
+              <Campo label="Série" dica="0 a 889 para emitente CNPJ. Sem valor padrão: definir com o contador.">
                 <Input value={dados.serie} onChange={(e) => set("serie")(e.target.value)} placeholder="Ex.: definida pelo contador" />
               </Campo>
             </div>
