@@ -1,492 +1,254 @@
-import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import React, { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Settings, Save } from "lucide-react";
-import { toast } from "sonner";
+import { Settings, Lock, ShieldAlert } from "lucide-react";
+import {
+  avaliarProntidao, validarCnpj, formatarCnpj, CRT_OPCOES, A1_ESTADOS,
+  CREDENCIAMENTO_ESTADOS, ITENS_TRIBUTACAO, UFS,
+} from "@/lib/fiscalChecklist";
+
+// Unidade 1 — formulário fiscal LOCAL.
+// Esta página não lê nem grava no banco, não chama funções, provedor ou APIs
+// externas e não usa armazenamento do navegador. O que se digita fica só na
+// memória da página e some ao sair. Prontidão = simulação; emissão bloqueada.
+
+const VAZIO = {
+  cnpj: "", razao_social: "", nome_fantasia: "", inscricao_estadual: "",
+  uf: "", municipio: "", codigo_ibge: "", logradouro: "", numero: "", bairro: "", cep: "",
+  crt: "", crt_confirmado_contador: false,
+  credenciamento: "nao_informado", credenciamento_data: "", credenciamento_evidencia: "",
+  serie: "", serie_confirmada_contador: false, numeracao_confirmada_contador: false,
+  tributacao: {},
+};
+
+const NIVEIS = [
+  { chave: "cadastro", titulo: "Cadastro completo" },
+  { chave: "teste_local", titulo: "Pronto para teste local (simulação)" },
+  { chave: "provedor_homologacao", titulo: "Habilitado no provedor (homologação)" },
+  { chave: "producao", titulo: "Pronto para produção" },
+];
+
+function Campo({ label, children, dica }) {
+  return (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      {children}
+      {dica && <p className="text-xs text-gray-500">{dica}</p>}
+    </div>
+  );
+}
+
+function Confirmacao({ checked, onChange, children }) {
+  return (
+    <label className="flex items-start gap-3 cursor-pointer">
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="mt-1 w-4 h-4 rounded border-gray-300" />
+      <span className="text-sm">{children}</span>
+    </label>
+  );
+}
 
 export default function ConfiguracaoFiscal() {
-  const [user, setUser] = useState(null);
-  const [config, setConfig] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [dados, setDados] = useState(VAZIO);
+  const set = (campo) => (valor) => setDados((d) => ({ ...d, [campo]: valor }));
+  const setTrib = (chave, valor) => setDados((d) => ({ ...d, tributacao: { ...d.tributacao, [chave]: valor } }));
 
-  const [formData, setFormData] = useState({
-    cnpj: "",
-    razao_social: "",
-    nome_fantasia: "",
-    inscricao_estadual: "",
-    regime_tributario: "",
-    endereco: "",
-    numero: "",
-    complemento: "",
-    bairro: "",
-    cidade: "",
-    estado: "",
-    cep: "",
-    telefone: "",
-    email: "",
-    modelo: "55",
-    ambiente: "homologacao",
-    serie: "",
-    proximo_numero: 1,
-    status_credenciamento: "pendente",
-    certificado_status: "pendente",
-    cfop_confirmado: false,
-    ncm_confirmado: false,
-    icms_st_confirmado: false,
-    difal_confirmado: false,
-    frete_confirmado: false,
-    numeracao_confirmada: false,
-  });
-  const [pendencias, setPendencias] = useState([]);
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const calcularPendencias = (dados) => {
-    const pends = [];
-    if (!dados.cnpj) pends.push("Confirmar CNPJ do emissor");
-    if (!dados.razao_social) pends.push("Confirmar razão social");
-    if (!dados.inscricao_estadual) pends.push("Confirmar Inscrição Estadual");
-    if (!dados.regime_tributario) pends.push("Confirmar regime tributário");
-    if (!dados.estado) pends.push("Confirmar UF do emissor");
-    if (!dados.serie) pends.push("Confirmar série da NF-e");
-    if (dados.certificado_status !== "configurado") pends.push("Configurar certificado digital A1");
-    if (dados.status_credenciamento !== "ativo") pends.push("Credenciamento na SEFAZ/UF");
-    if (!dados.cfop_confirmado) pends.push("Confirmar CFOP por operação");
-    if (!dados.ncm_confirmado) pends.push("Confirmar NCM por produto");
-    if (!dados.icms_st_confirmado) pends.push("Confirmar ICMS/ST");
-    if (!dados.difal_confirmado) pends.push("Confirmar DIFAL (se aplicável)");
-    if (!dados.frete_confirmado) pends.push("Confirmar regras de frete");
-    if (!dados.numeracao_confirmada) pends.push("Confirmar numeração");
-    setPendencias(pends);
-    return pends;
+  // A1 nunca vem do navegador: nesta fase é sempre "pendente".
+  const resultado = useMemo(() => avaliarProntidao({ ...dados, a1_estado: "pendente" }), [dados]);
+  const cnpj = validarCnpj(dados.cnpj);
+  const status = {
+    cadastro: resultado.cadastroCompleto,
+    teste_local: resultado.prontoTesteLocal,
+    provedor_homologacao: resultado.habilitadoProvedorHomologacao,
+    producao: resultado.prontoProducao,
   };
 
-  const loadData = async () => {
-    try {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
-
-      const configs = await base44.entities.ConfiguracaoFiscal.filter({ tenant_id: currentUser.id });
-      
-      if (configs && configs.length > 0) {
-        setConfig(configs[0]);
-        setFormData(prev => ({ ...prev, ...configs[0] }));
-        calcularPendencias({ ...formData, ...configs[0] });
-      } else {
-        calcularPendencias(formData);
-      }
-    } catch (error) {
-      console.error("Erro ao carregar configuração:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const buscarCNPJ = async () => {
-    try {
-      const cnpj = formData.cnpj.replace(/\D/g, '');
-      const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpj}`);
-      
-      if (res.ok) {
-        const data = await res.json();
-        setFormData({
-          ...formData,
-          razao_social: data.razao_social || "",
-          nome_fantasia: data.nome_fantasia || "",
-          email: data.email || "",
-          telefone: data.ddd_telefone_1 || "",
-          endereco: data.logradouro || "",
-          numero: data.numero || "",
-          complemento: data.complemento || "",
-          bairro: data.bairro || "",
-          cidade: data.municipio || "",
-          estado: data.uf || "SP",
-          cep: data.cep || ""
-        });
-        toast.success("Dados do CNPJ carregados");
-      } else {
-        toast.error("CNPJ não encontrado");
-      }
-    } catch (error) {
-      toast.error("Erro ao buscar CNPJ");
-    }
-  };
-
-  const buscarCEP = async () => {
-    try {
-      const cep = formData.cep.replace(/\D/g, '');
-      const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-      
-      if (res.ok) {
-        const data = await res.json();
-        if (!data.erro) {
-          setFormData({
-            ...formData,
-            endereco: data.logradouro || "",
-            bairro: data.bairro || "",
-            cidade: data.localidade || "",
-            estado: data.uf || "SP"
-          });
-          toast.success("Endereço carregado");
-        }
-      }
-    } catch (error) {
-      toast.error("Erro ao buscar CEP");
-    }
-  };
-
-  const handleSave = async () => {
-    if (!formData.cnpj || !formData.razao_social) {
-      toast.error("Preencha os campos obrigatórios");
-      return;
-    }
-
-    setSaving(true);
-    try {
-      const pendenciasAtualizadas = calcularPendencias(formData);
-      const configData = {
-        ...formData,
-        tenant_id: user.id,
-        cnpj: formData.cnpj ? formData.cnpj.replace(/\D/g, "") : "",
-      };
-      configData.pronta_homologacao = pendenciasAtualizadas.length === 0;
-
-      if (config) {
-        await base44.entities.ConfiguracaoFiscal.update(config.id, configData);
-        toast.success("Configuração atualizada!");
-      } else {
-        await base44.entities.ConfiguracaoFiscal.create(configData);
-        toast.success("Configuração salva!");
-      }
-
-      loadData();
-    } catch (error) {
-      console.error("Erro ao salvar:", error);
-      toast.error("Erro ao salvar configuração");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  const bloquearEnvio = (e) => e.preventDefault();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 md:p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header */}
+      <form onSubmit={bloquearEnvio} className="max-w-4xl mx-auto space-y-6">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-gradient-to-br from-slate-600 to-slate-700 rounded-2xl shadow-lg">
             <Settings className="w-8 h-8 text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Configurações Fiscais</h1>
-            <p className="text-gray-600">Dados da empresa e preparação para homologação</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Configurações Fiscais — NF-e 55</h1>
+            <p className="text-gray-600">Preparação do emitente. Nada é salvo nem enviado nesta fase.</p>
           </div>
         </div>
 
-        {/* Dados da Empresa */}
+        <div className="flex gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+          <ShieldAlert className="w-5 h-5 shrink-0" />
+          <p>
+            <strong>Simulação local.</strong> Os dados digitados ficam só nesta tela e somem ao sair. Nenhuma NF-e é
+            emitida, nenhum dado vai para provedor ou SEFAZ, e estados de certificado e credenciamento são apenas
+            declarações exibidas, não prova.
+          </p>
+        </div>
+
         <Card>
-          <CardHeader>
-            <CardTitle>Dados da Empresa</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle>Emitente</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            {/* CNPJ */}
-            <div className="space-y-2">
-              <Label>CNPJ *</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={formData.cnpj}
-                  onChange={(e) => setFormData({...formData, cnpj: e.target.value})}
-                  placeholder="00.000.000/0000-00"
-                />
-                <Button onClick={buscarCNPJ} variant="outline">
-                  Buscar
-                </Button>
-              </div>
+            <Campo label="CNPJ" dica={dados.cnpj ? (cnpj.ok ? `Válido: ${formatarCnpj(dados.cnpj)}` : cnpj.motivo) : "Aceita o formato numérico e o alfanumérico."}>
+              <Input value={dados.cnpj} onChange={(e) => set("cnpj")(e.target.value)} placeholder="00.000.000/0000-00" />
+            </Campo>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Campo label="Razão social"><Input value={dados.razao_social} onChange={(e) => set("razao_social")(e.target.value)} /></Campo>
+              <Campo label="Nome fantasia"><Input value={dados.nome_fantasia} onChange={(e) => set("nome_fantasia")(e.target.value)} /></Campo>
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Razão Social *</Label>
-                <Input
-                  value={formData.razao_social}
-                  onChange={(e) => setFormData({...formData, razao_social: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Nome Fantasia</Label>
-                <Input
-                  value={formData.nome_fantasia}
-                  onChange={(e) => setFormData({...formData, nome_fantasia: e.target.value})}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Inscrição Estadual</Label>
-                <Input
-                  value={formData.inscricao_estadual}
-                  onChange={(e) => setFormData({...formData, inscricao_estadual: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Regime Tributário</Label>
-                <Select value={formData.regime_tributario} onValueChange={(value) => setFormData({...formData, regime_tributario: value})}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Campo label="Inscrição Estadual" dica="Formato por UF a confirmar com o contador.">
+                <Input value={dados.inscricao_estadual} onChange={(e) => set("inscricao_estadual")(e.target.value)} />
+              </Campo>
+              <Campo label="CRT (regime)" dica="Escolha conforme o contador. O sistema não deduz o CRT.">
+                <Select value={dados.crt} onValueChange={set("crt")}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Simples Nacional">Simples Nacional</SelectItem>
-                    <SelectItem value="Lucro Presumido">Lucro Presumido</SelectItem>
-                    <SelectItem value="Lucro Real">Lucro Real</SelectItem>
+                    {CRT_OPCOES.map((o) => <SelectItem key={o.valor} value={o.valor}>{o.rotulo}</SelectItem>)}
                   </SelectContent>
                 </Select>
+              </Campo>
+            </div>
+            <Confirmacao checked={dados.crt_confirmado_contador} onChange={set("crt_confirmado_contador")}>
+              O contador confirmou o CRT acima (declaração).
+            </Confirmacao>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader><CardTitle>Endereço do emitente</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Campo label="CEP"><Input value={dados.cep} onChange={(e) => set("cep")(e.target.value)} placeholder="00000-000" /></Campo>
+              <div className="md:col-span-2">
+                <Campo label="Logradouro"><Input value={dados.logradouro} onChange={(e) => set("logradouro")(e.target.value)} /></Campo>
               </div>
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Email</Label>
-                <Input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Campo label="Número"><Input value={dados.numero} onChange={(e) => set("numero")(e.target.value)} /></Campo>
+              <div className="md:col-span-2">
+                <Campo label="Bairro"><Input value={dados.bairro} onChange={(e) => set("bairro")(e.target.value)} /></Campo>
               </div>
-              <div className="space-y-2">
-                <Label>Telefone</Label>
-                <Input
-                  value={formData.telefone}
-                  onChange={(e) => setFormData({...formData, telefone: e.target.value})}
-                />
-              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Campo label="UF">
+                <Select value={dados.uf} onValueChange={set("uf")}>
+                  <SelectTrigger><SelectValue placeholder="UF" /></SelectTrigger>
+                  <SelectContent>
+                    {Object.keys(UFS).sort().map((uf) => <SelectItem key={uf} value={uf}>{uf}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </Campo>
+              <Campo label="Município"><Input value={dados.municipio} onChange={(e) => set("municipio")(e.target.value)} /></Campo>
+              <Campo label="Código IBGE do município"><Input value={dados.codigo_ibge} onChange={(e) => set("codigo_ibge")(e.target.value)} placeholder="7 dígitos" /></Campo>
             </div>
           </CardContent>
         </Card>
 
-        {/* Endereço */}
         <Card>
-          <CardHeader>
-            <CardTitle>Endereço</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle>NF-e modelo 55</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>CEP</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={formData.cep}
-                  onChange={(e) => setFormData({...formData, cep: e.target.value})}
-                  placeholder="00000-000"
-                />
-                <Button onClick={buscarCEP} variant="outline">
-                  Buscar
-                </Button>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Campo label="Ambiente" dica="Produção travada nesta fase.">
+                <Input value="Homologação (fixo)" disabled />
+              </Campo>
+              <Campo label="Série" dica="Sem valor padrão: definir com o contador.">
+                <Input value={dados.serie} onChange={(e) => set("serie")(e.target.value)} placeholder="Ex.: definida pelo contador" />
+              </Campo>
             </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div className="col-span-2 space-y-2">
-                <Label>Logradouro</Label>
-                <Input
-                  value={formData.endereco}
-                  onChange={(e) => setFormData({...formData, endereco: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Número</Label>
-                <Input
-                  value={formData.numero}
-                  onChange={(e) => setFormData({...formData, numero: e.target.value})}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Bairro</Label>
-                <Input
-                  value={formData.bairro}
-                  onChange={(e) => setFormData({...formData, bairro: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Complemento</Label>
-                <Input
-                  value={formData.complemento}
-                  onChange={(e) => setFormData({...formData, complemento: e.target.value})}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Cidade</Label>
-                <Input
-                  value={formData.cidade}
-                  onChange={(e) => setFormData({...formData, cidade: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>UF</Label>
-                <Input
-                  value={formData.estado}
-                  onChange={(e) => setFormData({...formData, estado: e.target.value})}
-                  maxLength={2}
-                />
-              </div>
-            </div>
+            <Confirmacao checked={dados.serie_confirmada_contador} onChange={set("serie_confirmada_contador")}>
+              O contador confirmou a série (declaração).
+            </Confirmacao>
+            <Campo label="Numeração" dica={`Escopo: CNPJ + modelo 55 + homologação. Não editável aqui; será controlada pelo servidor/provedor.`}>
+              <Input value="Não reservada — controle definido em etapa própria" disabled />
+            </Campo>
+            <Confirmacao checked={dados.numeracao_confirmada_contador} onChange={set("numeracao_confirmada_contador")}>
+              O contador e o provedor definiram quem controla a numeração (declaração).
+            </Confirmacao>
           </CardContent>
         </Card>
 
-        {/* Configurações NF-e modelo 55 */}
         <Card>
-          <CardHeader>
-            <CardTitle>Configurações NF-e (Modelo 55)</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle>Credenciamento e certificado</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Série</Label>
-                <Input
-                  value={formData.serie || ""}
-                  onChange={(e) => setFormData({...formData, serie: e.target.value})}
-                  placeholder="A confirmar pelo contador"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Próximo Número</Label>
-                <Input
-                  type="number"
-                  value={formData.proximo_numero || 1}
-                  onChange={(e) => setFormData({...formData, proximo_numero: Number(e.target.value)})}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Ambiente</Label>
-              <Select value={formData.ambiente || "homologacao"} onValueChange={(value) => setFormData({...formData, ambiente: value})}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+            <Campo label="Credenciamento NF-e 55 na UF (declarado pela revenda)" dica="Declaração exibida; não é verificação na SEFAZ.">
+              <Select value={dados.credenciamento} onValueChange={set("credenciamento")}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="homologacao">Homologação</SelectItem>
-                  <SelectItem value="producao">Produção</SelectItem>
+                  {Object.entries(CREDENCIAMENTO_ESTADOS).map(([v, r]) => <SelectItem key={v} value={v}>{r}</SelectItem>)}
                 </SelectContent>
               </Select>
+            </Campo>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Campo label="Data da confirmação"><Input type="date" value={dados.credenciamento_data} onChange={(e) => set("credenciamento_data")(e.target.value)} /></Campo>
+              <Campo label="Evidência (ex.: protocolo, quem confirmou)"><Input value={dados.credenciamento_evidencia} onChange={(e) => set("credenciamento_evidencia")(e.target.value)} /></Campo>
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Credenciamento SEFAZ/UF</Label>
-                <Select value={formData.status_credenciamento || "pendente"} onValueChange={(value) => setFormData({...formData, status_credenciamento: value})}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pendente">Pendente</SelectItem>
-                    <SelectItem value="ativo">Ativo</SelectItem>
-                    <SelectItem value="suspenso">Suspenso</SelectItem>
-                  </SelectContent>
-                </Select>
+            <div className="rounded-lg border bg-slate-50 p-4 text-sm">
+              <div className="flex items-center gap-2 font-semibold text-slate-800">
+                <Lock className="w-4 h-4" /> Certificado digital A1
               </div>
-              <div className="space-y-2">
-                <Label>Certificado Digital A1</Label>
-                <Select value={formData.certificado_status || "pendente"} onValueChange={(value) => setFormData({...formData, certificado_status: value})}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pendente">Pendente</SelectItem>
-                    <SelectItem value="configurado">Configurado</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-gray-500">
-                  Nenhum certificado ou senha é armazenado nesta fase.
-                </p>
-              </div>
+              <p className="mt-1 text-slate-700">Estado: {A1_ESTADOS.pendente}</p>
+              <p className="mt-1 text-xs text-slate-500">
+                Sem upload nesta fase. O certificado e a senha nunca são digitados aqui; o envio será por canal seguro, em etapa própria.
+              </p>
             </div>
           </CardContent>
         </Card>
 
-        {/* Checklist de pendências do contador */}
         <Card>
-          <CardHeader>
-            <CardTitle>Checklist do Contador</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-gray-600">
-              Itens que precisam ser confirmados antes da homologação. Regras tributárias
-              (CFOP, NCM, ICMS/ST, DIFAL) não são fixadas — aguardam confirmação do contador.
+          <CardHeader><CardTitle>Tributação por operação e item (contador)</CardTitle></CardHeader>
+          <CardContent className="space-y-2">
+            <p className="text-sm text-gray-600 mb-2">
+              O sistema não aplica CFOP, CST, alíquota ou tributação padrão. Marque apenas o que o contador já definiu.
             </p>
-            <div className="space-y-2">
-              {[
-                { key: "cfop_confirmado", label: "CFOP confirmado por operação" },
-                { key: "ncm_confirmado", label: "NCM confirmado por produto" },
-                { key: "icms_st_confirmado", label: "ICMS/ST confirmado" },
-                { key: "difal_confirmado", label: "DIFAL confirmado (se aplicável)" },
-                { key: "frete_confirmado", label: "Regras de frete confirmadas" },
-                { key: "numeracao_confirmada", label: "Numeração confirmada" },
-              ].map((item) => (
-                <label key={item.key} className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={Boolean(formData[item.key])}
-                    onChange={(e) => setFormData({...formData, [item.key]: e.target.checked})}
-                    className="w-4 h-4 rounded border-gray-300"
-                  />
-                  <span className="text-sm">{item.label}</span>
-                </label>
+            {ITENS_TRIBUTACAO.map((item) => (
+              <Confirmacao key={item.chave} checked={Boolean(dados.tributacao[item.chave])} onChange={(v) => setTrib(item.chave, v)}>
+                {item.rotulo} — definido pelo contador
+              </Confirmacao>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader><CardTitle>Prontidão (simulação)</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {NIVEIS.map((n) => (
+                <div key={n.chave} className={`rounded-lg border p-3 text-sm ${status[n.chave] ? "border-green-300 bg-green-50 text-green-900" : "border-slate-200 bg-white text-slate-700"}`}>
+                  {status[n.chave] ? "✓ " : "○ "}{n.titulo}
+                </div>
               ))}
             </div>
-
-            {pendencias.length > 0 ? (
-              <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-4">
-                <p className="font-semibold text-yellow-900 mb-2">
-                  Pendências restantes ({pendencias.length}):
-                </p>
-                <ul className="list-disc list-inside text-sm text-yellow-800 space-y-1">
-                  {pendencias.map((p, i) => (
-                    <li key={i}>{p}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : (
-              <div className="bg-green-50 border border-green-300 rounded-lg p-4">
-                <p className="font-semibold text-green-900">
-                  ✓ Todas as pendências resolvidas. Pronta para homologação.
-                </p>
-              </div>
-            )}
+            {NIVEIS.map((n) => {
+              const itens = resultado.pendencias.filter((p) => p.nivel === n.chave);
+              if (!itens.length) return null;
+              return (
+                <div key={n.chave}>
+                  <p className="font-semibold text-sm text-slate-800 mb-1">{n.titulo} — {itens.length} pendência(s)</p>
+                  <ul className="space-y-1">
+                    {itens.map((p) => (
+                      <li key={p.codigo} className="text-sm rounded border border-yellow-200 bg-yellow-50 p-2">
+                        <span className="text-yellow-900">{p.motivo}</span>
+                        <span className="block text-xs text-yellow-800">Ação: {p.acao}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
           </CardContent>
         </Card>
 
-        {/* Save Button */}
-        <div className="flex justify-end">
-          <Button 
-            onClick={handleSave} 
-            disabled={saving}
-            className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            {saving ? "Salvando..." : "Salvar Configurações"}
+        <div className="flex flex-col items-end gap-2">
+          <Button type="button" disabled className="w-full md:w-auto">
+            <Lock className="w-4 h-4 mr-2" /> Salvar desativado nesta fase
           </Button>
+          <p className="text-xs text-gray-500 text-right">Gravação será habilitada só com validação no servidor (unidade 2). Emissão bloqueada.</p>
         </div>
-      </div>
+      </form>
     </div>
   );
 }
