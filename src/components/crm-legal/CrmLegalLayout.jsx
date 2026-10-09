@@ -1,9 +1,11 @@
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 
-// Páginas legais do CRM MuscularFit — RASCUNHO, não publicado.
-// Texto aprovado em crm-muscularfit-pages-confirmado-2026-10-07.zip (Drive,
-// pasta "Backups - PlaceFit"). Só mudar redação com nova aprovação.
+// Páginas legais do CRM MuscularFit — públicas (sem login).
+// Base: crm-muscularfit-pages-confirmado-2026-10-07.zip (Drive, pasta
+// "Backups - PlaceFit") + decisões do dono de 09/10/2026 (descarte manual,
+// exclusão só pelo número cadastrado, treino de IA no plano Builder).
+// Só mudar redação com nova aprovação.
 
 export const CRM_LEGAL_ROUTES = {
   privacidade: "/crm/privacidade",
@@ -11,16 +13,9 @@ export const CRM_LEGAL_ROUTES = {
   exclusao: "/crm/exclusao-de-dados",
 };
 
-export const VIGENCIA_RASCUNHO = "Rascunho não publicado. Vigência a definir na publicação";
+export const VIGENCIA = "9 de outubro de 2026";
 
-/** Ponto pendente do rascunho, destacado como no pacote aprovado. */
-export function Pendencia({ children }) {
-  return (
-    <aside className="my-5 border-l-[3px] border-[#73a89a] bg-[#f4efec] p-4 text-sm [overflow-wrap:anywhere]">
-      {children}
-    </aside>
-  );
-}
+export const RESPONSAVEL = "Maria do Carmo Chagas de Moura (MEI), CNPJ 41.920.834/0001-00, nome fantasia MuscularFit";
 
 /** Link entre os três documentos. */
 export function DocLink({ to, children }) {
@@ -52,7 +47,7 @@ export default function CrmLegalLayout({ titulo, tituloAba, children }) {
     <div className="min-h-screen bg-white text-base leading-relaxed text-[#251f21] [font-family:Arial,sans-serif]">
       <header className="border-b border-[#eae9ea] bg-[#f4efec] p-5 sm:p-6">
         <b className="text-lg">CRM MuscularFit</b>
-        <span className="mt-1.5 block text-[13px] text-[#585254]">{VIGENCIA_RASCUNHO}</span>
+        <span className="mt-1.5 block text-[13px] text-[#585254]">Vigência: {VIGENCIA}</span>
         <nav className="mt-3 flex flex-wrap gap-3.5 text-sm">
           <DocLink to={CRM_LEGAL_ROUTES.privacidade}>Privacidade</DocLink>
           <DocLink to={CRM_LEGAL_ROUTES.termos}>Termos</DocLink>
@@ -63,7 +58,7 @@ export default function CrmLegalLayout({ titulo, tituloAba, children }) {
         <h1 className="my-5 font-serif text-[28px] font-normal leading-tight sm:text-[32px]">{titulo}</h1>
         {children}
         <footer className="mt-10 border-t border-[#eae9ea] pt-5 text-[13px] text-[#585254]">
-          MuscularFit • Plataforma PlaceFit • Rascunho para revisão
+          MuscularFit • Plataforma PlaceFit
         </footer>
       </main>
     </div>
