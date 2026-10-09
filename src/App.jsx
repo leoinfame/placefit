@@ -47,7 +47,7 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   <Layout currentPageName={currentPageName}><ErrorBoundary>{children}</ErrorBoundary></Layout>
   : <ErrorBoundary>{children}</ErrorBoundary>;
 
-const PUBLIC_PATHS = ['/', '/Marketplace', '/PublicTableFabricante', '/PublicRegister', '/PublicRegisterFabricante', '/PublicRegisterTransportador', '/FabricanteCatalogoPublic', '/fabricantes', '/loja', '/documento'];
+const PUBLIC_PATHS = ['/', '/Marketplace', '/PublicTableFabricante', '/PublicRegister', '/PublicRegisterFabricante', '/PublicRegisterTransportador', '/FabricanteCatalogoPublic', '/fabricantes', '/loja', '/documento', '/crm/privacidade', '/crm/termos', '/crm/exclusao-de-dados'];
 
 const isPublicPath = () => {
   const path = window.location.pathname;
@@ -71,6 +71,9 @@ const AuthenticatedApp = () => {
         <Route path="/loja/:slug/conta" element={<ErrorBoundary><LojaClienteArea /></ErrorBoundary>} />
         <Route path="/loja/:slug/politica-devolucao" element={<ErrorBoundary><LojaPoliticaDevolucao /></ErrorBoundary>} />
         <Route path="/loja/:slug" element={<ErrorBoundary><LojaPublica /></ErrorBoundary>} />
+        <Route path="/crm/privacidade" element={<ErrorBoundary><CrmPrivacidade /></ErrorBoundary>} />
+        <Route path="/crm/termos" element={<ErrorBoundary><CrmTermos /></ErrorBoundary>} />
+        <Route path="/crm/exclusao-de-dados" element={<ErrorBoundary><CrmExclusaoDados /></ErrorBoundary>} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     );
@@ -134,10 +137,6 @@ const AuthenticatedApp = () => {
       <Route path="/LojaEcommerce" element={<LayoutWrapper currentPageName="LojaEcommerce"><LojaEcommerce /></LayoutWrapper>} />
       <Route path="/LojaRevendedor" element={<LayoutWrapper currentPageName="LojaRevendedor"><LojaRevendedor /></LayoutWrapper>} />
       <Route path="/MinhaConta" element={<LayoutWrapper currentPageName="MinhaConta"><MinhaConta /></LayoutWrapper>} />
-      {/* Rascunho das páginas legais do CRM: por enquanto só com login (fora de PUBLIC_PATHS). */}
-      <Route path="/crm/privacidade" element={<ErrorBoundary><CrmPrivacidade /></ErrorBoundary>} />
-      <Route path="/crm/termos" element={<ErrorBoundary><CrmTermos /></ErrorBoundary>} />
-      <Route path="/crm/exclusao-de-dados" element={<ErrorBoundary><CrmExclusaoDados /></ErrorBoundary>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
