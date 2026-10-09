@@ -35,6 +35,9 @@ import Produtos from './pages/Produtos';
 import FabricantePublico from './pages/FabricantePublico';
 import CRMWhatsApp from './components/crm/CRMWhatsApp';
 import ErrorBoundary from './components/ErrorBoundary';
+import CrmPrivacidade from './components/crm-legal/CrmPrivacidade';
+import CrmTermos from './components/crm-legal/CrmTermos';
+import CrmExclusaoDados from './components/crm-legal/CrmExclusaoDados';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -44,7 +47,7 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   <Layout currentPageName={currentPageName}><ErrorBoundary>{children}</ErrorBoundary></Layout>
   : <ErrorBoundary>{children}</ErrorBoundary>;
 
-const PUBLIC_PATHS = ['/', '/Marketplace', '/PublicTableFabricante', '/PublicRegister', '/PublicRegisterFabricante', '/PublicRegisterTransportador', '/FabricanteCatalogoPublic', '/fabricantes', '/loja', '/documento'];
+const PUBLIC_PATHS = ['/', '/Marketplace', '/PublicTableFabricante', '/PublicRegister', '/PublicRegisterFabricante', '/PublicRegisterTransportador', '/FabricanteCatalogoPublic', '/fabricantes', '/loja', '/documento', '/crm/privacidade', '/crm/termos', '/crm/exclusao-de-dados'];
 
 const isPublicPath = () => {
   const path = window.location.pathname;
@@ -68,6 +71,9 @@ const AuthenticatedApp = () => {
         <Route path="/loja/:slug/conta" element={<ErrorBoundary><LojaClienteArea /></ErrorBoundary>} />
         <Route path="/loja/:slug/politica-devolucao" element={<ErrorBoundary><LojaPoliticaDevolucao /></ErrorBoundary>} />
         <Route path="/loja/:slug" element={<ErrorBoundary><LojaPublica /></ErrorBoundary>} />
+        <Route path="/crm/privacidade" element={<ErrorBoundary><CrmPrivacidade /></ErrorBoundary>} />
+        <Route path="/crm/termos" element={<ErrorBoundary><CrmTermos /></ErrorBoundary>} />
+        <Route path="/crm/exclusao-de-dados" element={<ErrorBoundary><CrmExclusaoDados /></ErrorBoundary>} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     );
