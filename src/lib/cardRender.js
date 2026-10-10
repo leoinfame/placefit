@@ -6,6 +6,8 @@
 // URI. Aqui nao ha IA nem calculo de preco: so layout deterministico.
 // Formato "video" (premium, futuro) entra como outro renderizador em RENDERIZADORES.
 
+import { calcularLayout, ESPACO } from "./cardLayout.js";
+
 const FAMILIA = "CardInter";
 
 const FONTES = [500, 700, 800].map((peso) => ({
@@ -299,16 +301,14 @@ function elipseRadial(ctx, cx, cy, rx, ry, cor, alfa) {
 // ---------------------------------------------------------------- layout
 
 // Destinos: so muda a moldura. Topo/base = faixa que a interface do app cobre
-// (Reels/Stories/TikTok/Status cobrem ~250px em cima e ~300px embaixo); nome,
-// preco e contato ficam sempre dentro da zona segura. "ui" escala tipografia,
-// raios e espacamentos de forma proporcional (mesmo grid em todos).
+// (Reels/Stories/TikTok/Status cobrem ~250px em cima e ~300px embaixo). "ui"
+// escala so a tipografia; o espacamento (ESPACO) e o mesmo em todos.
 export const PROPORCOES = {
-  quadrado: { largura: 1080, altura: 1080, topo: 56, base: 56, ui: 1 },
-  retrato: { largura: 1080, altura: 1350, topo: 56, base: 56, ui: 1.05 },
+  quadrado: { largura: 1080, altura: 1080, topo: ESPACO.g, base: ESPACO.g, ui: 1 },
+  retrato: { largura: 1080, altura: 1350, topo: ESPACO.g, base: ESPACO.g, ui: 1.05 },
   vertical: { largura: 1080, altura: 1920, topo: 250, base: 300, ui: 1.3 },
 };
 
-const LATERAL = 56;
 const TAMANHOS_NOME = [56, 52, 48, 44, 40, 36, 34, 32, 30, 28];
 const VERDE_WHATSAPP = "#25D366";
 
@@ -362,13 +362,13 @@ export async function renderCardImagem(pacote, proporcao = pacote.proporcao) {
   const c1 = d.marca.cor_primaria;
   const temFundo = !!imagens.fundo;
 
-  // Cores: faixa inferior solida que contrasta com a marca
+  // Cores: rodape solido que contrasta com a marca
   const marcaEscura = luminancia(hexParaRgb(c1)) < 0.2;
+  const marcaClara = luminancia(hexParaRgb(c1)) > 0.45;
   const painel = marcaEscura ? "#ffffff" : misturar(c1, "#000000", 0.84);
   const painelTexto = corDeTexto(painel);
   const precoCor = contraste(c1, painel) >= 3 ? c1 : painelTexto;
   const textoTopo = temFundo ? "#ffffff" : corDeTexto(c1);
-  const marcaClara = luminancia(hexParaRgb(c1)) > 0.45;
 
   await carregarFontes();
   const [foto, logo, fundo] = await Promise.all([
@@ -383,74 +383,59 @@ export async function renderCardImagem(pacote, proporcao = pacote.proporcao) {
   const ctx = canvas.getContext("2d");
   ctx.imageSmoothingQuality = "high";
 
-  // ---------------- medidas (grid) ----------------
-  const larguraPainel = W - 2 * LATERAL;
-  const pad = Math.round(36 * ui);
-  const larguraTexto = larguraPainel - 2 * pad;
+  // ---------------- medidas de texto (alimentam o layout) ----------------
+  const larguraTexto = W - 2 * ESPACO.g - 2 * ESPACO.m;
   const { fonteNome, linhas } = medirNomeCompleto(ctx, d.nome, larguraTexto, ui);
-  const alturaNome = Math.round(linhas.length * fonteNome * 1.1);
+  const entrelinha = fonteNome * 1.1;
+  const alturaNome = Math.round(linhas.length * entrelinha);
 
   const sufixo = `/${d.und || "unid."}`;
   const fonteContato = Math.round(34 * ui), icone = Math.round(40 * ui);
   ctx.font = fonte(700, fonteContato);
-  const wContato = d.marca.whatsapp ? icone + 12 + ctx.measureText(d.marca.whatsapp).width : 0;
-  // preco: maior elemento do bloco; contato ao lado se couber, senao embaixo
-  let fontePreco = Math.round(92 * ui), fonteSufixo, wPreco, wSufixo, contatoAoLado = false;
+  const contato = d.marca.whatsapp ? { w: icone + 12 + ctx.measureText(d.marca.whatsapp).width, h: icone } : null;
+
+  // preco: maior elemento do rodape; contato ao lado se couber, senao embaixo
   const minimoPreco = Math.max(fonteNome + Math.round(16 * ui), Math.round(64 * ui));
-  for (; fontePreco >= minimoPreco; fontePreco -= 4) {
-    fonteSufixo = Math.round(fontePreco * 0.34);
-    ctx.font = fonte(800, fontePreco);
-    wPreco = ctx.measureText(d.preco_texto).width;
-    ctx.font = fonte(700, fonteSufixo);
-    wSufixo = ctx.measureText(sufixo).width;
-    if (!d.marca.whatsapp || wPreco + 10 + wSufixo + 32 + wContato <= larguraTexto) { contatoAoLado = true; break; }
+  const medirPreco = (f) => {
+    ctx.font = fonte(800, f);
+    const wv = ctx.measureText(d.preco_texto).width;
+    const fs = Math.round(f * 0.34);
+    ctx.font = fonte(700, fs);
+    return { f, fs, wv, w: wv + 10 + ctx.measureText(sufixo).width, h: Math.round(f * 1.05) };
+  };
+  let preco = null, contatoAoLado = false;
+  for (let f = Math.round(92 * ui); f >= minimoPreco; f -= 4) {
+    const m = medirPreco(f);
+    if (!contato || m.w + ESPACO.m + contato.w <= larguraTexto) { preco = m; contatoAoLado = !!contato; break; }
   }
-  if (!contatoAoLado) {
-    fontePreco = Math.round(92 * ui);
-    for (; fontePreco > minimoPreco; fontePreco -= 4) {
-      ctx.font = fonte(800, fontePreco);
-      wPreco = ctx.measureText(d.preco_texto).width;
-      fonteSufixo = Math.round(fontePreco * 0.34);
-      ctx.font = fonte(700, fonteSufixo);
-      wSufixo = ctx.measureText(sufixo).width;
-      if (wPreco + 10 + wSufixo <= larguraTexto) break;
+  if (!preco) {
+    for (let f = Math.round(92 * ui); f >= Math.round(40 * ui); f -= 4) {
+      preco = medirPreco(f);
+      if (preco.w <= larguraTexto) break;
     }
-    fonteSufixo = Math.round(fontePreco * 0.34);
   }
-  const alturaPreco = Math.round(fontePreco * 1.05);
-  const alturaContatoLinha = d.marca.whatsapp && !contatoAoLado ? icone + Math.round(14 * ui) : 0;
-  const alturaPainel = pad + alturaNome + Math.round(14 * ui) + alturaPreco + alturaContatoLinha + pad;
-  const fimSeguro = H - moldura.base;
-  const topoPainel = fimSeguro - alturaPainel;
 
-  // cabecalho
-  const topoCab = moldura.topo, alturaCab = Math.round(120 * ui);
-  const meioCab = topoCab + alturaCab / 2;
-  let lw = 0, lh = 0;
-  if (logo) {
-    const s = Math.min(alturaCab / logo.height, (460 * ui) / logo.width);
-    lw = logo.width * s;
-    lh = logo.height * s;
+  let badge = null;
+  const fonteBadge = Math.round(32 * ui), padBadge = Math.round(24 * ui);
+  if (d.peso_texto) {
+    ctx.font = fonte(800, fonteBadge);
+    badge = { w: ctx.measureText(d.peso_texto).width + 2 * padBadge, h: Math.round(60 * ui) };
   }
-  const fonteBadge = Math.round(32 * ui), padBadge = Math.round(24 * ui), hBadge = Math.round(60 * ui);
-  ctx.font = fonte(800, fonteBadge);
-  const wBadge = d.peso_texto ? ctx.measureText(d.peso_texto).width + 2 * padBadge : 0;
 
-  // produto: apoiado sobre a faixa; se for estreito, pode subir entre logo e badge
-  const sobreposicao = Math.round(18 * ui);
-  const basePro = topoPainel + sobreposicao;
-  const larguraMaxPro = larguraPainel;
-  let pw = 0, ph = 0;
-  if (foto) {
-    const caber = (topo) => {
-      const s = Math.min(larguraMaxPro / foto.width, (basePro - topo) / foto.height, 4);
-      return [Math.round(foto.width * s), Math.round(foto.height * s)];
-    };
-    const larguraLivreTopo = W - 2 * (LATERAL + Math.max(lw, wBadge) + Math.round(24 * ui));
-    const [pwAlto, phAlto] = caber(topoCab + Math.round(8 * ui));
-    [pw, ph] = pwAlto <= larguraLivreTopo ? [pwAlto, phAlto] : caber(topoCab + alturaCab + Math.round(20 * ui));
-  }
-  const centroPro = foto ? basePro - ph / 2 : (topoCab + alturaCab + topoPainel) / 2;
+  // ---------------- layout em 3 faixas ----------------
+  const layout = calcularLayout({
+    W, H, topo: moldura.topo, base: moldura.base,
+    alturaTopo: Math.round(112 * ui),
+    logo: logo ? { w: logo.width, h: logo.height } : null,
+    badge,
+    foto: foto ? { w: foto.width, h: foto.height } : null,
+    reservaSombra: Math.round(32 * ui),
+    alturaNome, preco: { w: preco.w, h: preco.h }, contato, contatoAoLado,
+  });
+  if (layout.violacoes.length) console.warn("cardRender: layout com problemas", layout.violacoes);
+  const { faixas, caixas } = layout;
+  const cxFoto = caixas.foto ? caixas.foto.x + caixas.foto.w / 2 : W / 2;
+  const cyFoto = caixas.foto ? caixas.foto.y + caixas.foto.h / 2 : faixas.miolo.y + faixas.miolo.h / 2;
 
   // ---------------- fundo com profundidade ----------------
   if (fundo) {
@@ -461,77 +446,67 @@ export async function renderCardImagem(pacote, proporcao = pacote.proporcao) {
     ctx.drawImage(fundo, (W - fw) / 2, (H - fh) / 2, fw, fh);
   } else {
     const raioFundo = Math.hypot(W, H) * 0.62;
-    const g = ctx.createRadialGradient(W / 2, centroPro, 0, W / 2, centroPro, raioFundo);
+    const g = ctx.createRadialGradient(cxFoto, cyFoto, 0, cxFoto, cyFoto, raioFundo);
     g.addColorStop(0, misturar(c1, "#ffffff", marcaClara ? 0.35 : 0.22));
     g.addColorStop(0.45, c1);
     g.addColorStop(1, misturar(c1, "#000000", marcaClara ? 0.22 : 0.38));
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
-    texturaDiagonal(ctx, W, H, marcaClara ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.05)", W / 2, centroPro, Math.max(pw, ph, 400) * 0.6);
+    const tam = caixas.foto ? Math.max(caixas.foto.w, caixas.foto.h) : 400;
+    texturaDiagonal(ctx, W, H, marcaClara ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.05)", cxFoto, cyFoto, tam * 0.6);
   }
-  // vinheta sutil
   const vin = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.45, W / 2, H / 2, Math.hypot(W, H) * 0.6);
   vin.addColorStop(0, "rgba(0,0,0,0)");
   vin.addColorStop(1, "rgba(0,0,0,0.28)");
   ctx.fillStyle = vin;
   ctx.fillRect(0, 0, W, H);
-  // spotlight atras do produto
-  if (foto) elipseRadial(ctx, W / 2, centroPro, Math.max(pw, ph) * 0.62 + 80, Math.max(pw, ph) * 0.55 + 60, "255,255,255", marcaClara ? 0.45 : 0.32);
 
-  // ---------------- produto + sombra de contato ----------------
-  if (foto) {
-    // sombra larga e difusa + sombra curta e escura no ponto de apoio
-    elipseRadial(ctx, W / 2, basePro - 6 * ui, pw * 0.5, 30 * ui, "0,0,0", 0.35);
-    elipseRadial(ctx, W / 2, basePro - 3 * ui, pw * 0.38, 10 * ui, "0,0,0", 0.55);
-    ctx.drawImage(foto, (W - pw) / 2, basePro - ph, pw, ph);
+  // ---------------- faixa 2: spotlight, sombra de contato e foto ----------------
+  if (caixas.foto) {
+    const f = caixas.foto, s = caixas.sombra;
+    const tam = Math.max(f.w, f.h);
+    elipseRadial(ctx, cxFoto, cyFoto, tam * 0.62 + 80, tam * 0.55 + 60, "255,255,255", marcaClara ? 0.45 : 0.32);
+    const base = f.y + f.h;
+    elipseRadial(ctx, s.x + s.w / 2, base - 2, s.w * 0.5, s.h * 0.5, "0,0,0", 0.35);
+    elipseRadial(ctx, s.x + s.w / 2, base - 1, s.w * 0.38, s.h * 0.18, "0,0,0", 0.55);
+    ctx.drawImage(foto, f.x, f.y, f.w, f.h);
   } else {
     ctx.fillStyle = textoTopo;
     ctx.font = fonte(700, Math.round(36 * ui));
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("Foto indisponível", W / 2, centroPro);
+    ctx.fillText("Foto indisponível", cxFoto, cyFoto);
     ctx.textAlign = "left";
   }
 
-  // ---------------- faixa inferior (solida, alto contraste) ----------------
+  // ---------------- faixa 3: rodape solido ----------------
+  const p = caixas.painel;
   ctx.save();
   ctx.shadowColor = "rgba(0,0,0,0.25)";
-  ctx.shadowBlur = 40 * ui;
-  ctx.shadowOffsetY = 12 * ui;
-  retanguloArredondado(ctx, LATERAL, topoPainel, larguraPainel, alturaPainel, RAIO);
+  ctx.shadowBlur = 40;
+  ctx.shadowOffsetY = 12;
+  retanguloArredondado(ctx, p.x, p.y, p.w, p.h, RAIO);
   ctx.fillStyle = painel;
   ctx.fill();
   ctx.restore();
-  // o produto fica por cima da borda da faixa (apoiado)
-  if (foto && sobreposicao > 0) {
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(0, topoPainel, W, sobreposicao + 2);
-    ctx.clip();
-    ctx.drawImage(foto, (W - pw) / 2, basePro - ph, pw, ph);
-    ctx.restore();
-  }
 
-  const xTexto = LATERAL + pad;
   ctx.textBaseline = "alphabetic";
   ctx.fillStyle = painelTexto;
   ctx.font = fonte(800, fonteNome);
-  linhas.forEach((linha, i) => ctx.fillText(linha, xTexto, topoPainel + pad + fonteNome * 1.1 * i + fonteNome * 0.86));
+  linhas.forEach((linha, i) => ctx.fillText(linha, caixas.nome.x, caixas.nome.y + entrelinha * i + fonteNome * 0.9));
 
-  const topoPreco = topoPainel + pad + alturaNome + Math.round(14 * ui);
-  const basePreco = topoPreco + fontePreco * 0.82;
+  const basePreco = caixas.preco.y + preco.f * 0.86;
   ctx.fillStyle = precoCor;
-  ctx.font = fonte(800, fontePreco);
-  ctx.fillText(d.preco_texto, xTexto, basePreco);
+  ctx.font = fonte(800, preco.f);
+  ctx.fillText(d.preco_texto, caixas.preco.x, basePreco);
   ctx.fillStyle = painelTexto;
-  ctx.font = fonte(700, fonteSufixo);
-  ctx.fillText(sufixo, xTexto + wPreco + 10, basePreco);
+  ctx.font = fonte(700, preco.fs);
+  ctx.fillText(sufixo, caixas.preco.x + preco.wv + 10, basePreco);
 
-  if (d.marca.whatsapp) {
-    const meio = contatoAoLado ? basePreco - fontePreco * 0.33 : topoPreco + alturaPreco + Math.round(14 * ui) + icone / 2;
-    const xIcone = contatoAoLado ? LATERAL + larguraPainel - pad - wContato : xTexto;
+  if (caixas.contato) {
+    const c = caixas.contato, meio = c.y + c.h / 2;
     ctx.save();
-    ctx.translate(xIcone, meio - icone / 2);
+    ctx.translate(c.x, c.y);
     ctx.scale(icone / 24, icone / 24);
     ctx.fillStyle = VERDE_WHATSAPP;
     ctx.fill(new Path2D(WHATSAPP_PATH));
@@ -539,30 +514,32 @@ export async function renderCardImagem(pacote, proporcao = pacote.proporcao) {
     ctx.fillStyle = painelTexto;
     ctx.font = fonte(700, fonteContato);
     ctx.textBaseline = "middle";
-    ctx.fillText(d.marca.whatsapp, xIcone + icone + 12, meio + 1);
+    ctx.fillText(d.marca.whatsapp, c.x + icone + 12, meio + 1);
   }
 
-  // ---------------- cabecalho: logo grande sem caixa + peso (uma vez, nitido) ----------------
+  // ---------------- faixa 1: logo + peso ----------------
   ctx.textBaseline = "middle";
-  if (logo) {
-    ctx.drawImage(logo, LATERAL, meioCab - lh / 2, lw, lh);
+  if (caixas.logo) {
+    ctx.drawImage(logo, caixas.logo.x, caixas.logo.y, caixas.logo.w, caixas.logo.h);
   } else if (d.marca.nome) {
     ctx.fillStyle = textoTopo;
     ctx.font = fonte(800, Math.round(48 * ui));
-    ctx.fillText(d.marca.nome, LATERAL, meioCab);
+    ctx.fillText(d.marca.nome, faixas.topo.x, faixas.topo.y + faixas.topo.h / 2);
   }
-  if (d.peso_texto) {
-    retanguloArredondado(ctx, W - LATERAL - wBadge, meioCab - hBadge / 2, wBadge, hBadge, RAIO * 0.75);
+  if (caixas.badge) {
+    const b = caixas.badge;
+    retanguloArredondado(ctx, b.x, b.y, b.w, b.h, RAIO * 0.75);
     ctx.fillStyle = painel;
     ctx.fill();
     ctx.fillStyle = painelTexto;
     ctx.font = fonte(800, fonteBadge);
-    ctx.fillText(d.peso_texto, W - LATERAL - wBadge + padBadge, meioCab + 1);
+    ctx.fillText(d.peso_texto, b.x + padBadge, b.y + b.h / 2 + 1);
   }
 
   const blob = await new Promise((resolve, reject) =>
     canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("Falha ao gerar o PNG"))), "image/png"),
   );
+  blob.violacoes = layout.violacoes;
   return blob;
 }
 
