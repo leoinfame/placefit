@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import ConfirmDialog from "@/components/ui/confirm-dialog";
+import IdentidadeVisual from "@/components/usuarios/IdentidadeVisual";
 
 const ESTADOS = [
   "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA",
@@ -670,6 +671,11 @@ export default function Profile() {
             </Button>
           </div>
         </form>
+
+        {/* Identidade visual do card de produto (revendedor) */}
+        {user && user.tipo_usuario !== 'fabricante' && user.tipo_usuario !== 'transportador' && (
+          <IdentidadeVisual user={user} logoUrl={user.logomarca || formData.logomarca} />
+        )}
 
         {/* Rotas do Transportador */}
         {user?.tipo_usuario === 'transportador' && (
