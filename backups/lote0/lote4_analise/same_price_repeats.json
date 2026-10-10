@@ -1,0 +1,6964 @@
+[
+  {
+    "cod": "ABO1",
+    "nome": "Anilha Bumper Olímpica 1kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 7.03,
+    "sp_ids": [
+      "6a8d8d1684c5ddf972ab2707",
+      "6a8d94fc5b7c051637e30e51"
+    ],
+    "margens": [
+      25,
+      25
+    ]
+  },
+  {
+    "cod": "ABO2",
+    "nome": "Anilha Bumper Olímpica 2kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 14.06,
+    "sp_ids": [
+      "6a8d8d1684c5ddf972ab2709",
+      "6a8d94fc5b7c051637e30e53"
+    ],
+    "margens": [
+      25,
+      25
+    ]
+  },
+  {
+    "cod": "ABO2.5",
+    "nome": "Anilha Bumper Olímpica 2,5kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 17.57,
+    "sp_ids": [
+      "6a8d8d1684c5ddf972ab270a",
+      "6a8d94fc5b7c051637e30e54"
+    ],
+    "margens": [
+      25,
+      25
+    ]
+  },
+  {
+    "cod": "ASP1",
+    "nome": "Anilha Sport Pintado 1kg",
+    "fabricante_nome": "Anilha X",
+    "preco_igual": 6.6875,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30e9b",
+      "6aa6fa6334398cbc5ed0dd52"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASP2",
+    "nome": "Anilha Sport Pintado 2kg",
+    "fabricante_nome": "Anilha X",
+    "preco_igual": 13.375,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30e9c",
+      "6aa6fa6334398cbc5ed0dd53"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASP3",
+    "nome": "Anilha Sport Pintado 3kg",
+    "fabricante_nome": "Anilha X",
+    "preco_igual": 20.0625,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30e9d",
+      "6aa6fa6334398cbc5ed0dd54"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASP4",
+    "nome": "Anilha Sport Pintado 4kg",
+    "fabricante_nome": "Anilha X",
+    "preco_igual": 26.75,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30e9e",
+      "6aa6fa6334398cbc5ed0dd55"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASP5",
+    "nome": "Anilha Sport Pintado 5kg",
+    "fabricante_nome": "Anilha X",
+    "preco_igual": 33.4375,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30e9f",
+      "6aa6fa6334398cbc5ed0dd56"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASP10",
+    "nome": "Anilha Sport Pintado 10kg",
+    "fabricante_nome": "Anilha X",
+    "preco_igual": 66.875,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30ea0",
+      "6aa6fa6334398cbc5ed0dd57"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASP15",
+    "nome": "Anilha Sport Pintado 15kg",
+    "fabricante_nome": "Anilha X",
+    "preco_igual": 100.3125,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30ea1",
+      "6aa6fa6334398cbc5ed0dd58"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASP20",
+    "nome": "Anilha Sport Pintado 20kg",
+    "fabricante_nome": "Anilha X",
+    "preco_igual": 133.75,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30ea2",
+      "6aa6fa6334398cbc5ed0dd59"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASP25",
+    "nome": "Anilha Sport Pintado 25kg",
+    "fabricante_nome": "Anilha X",
+    "preco_igual": 167.1875,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30ea3",
+      "6aa6fa6334398cbc5ed0dd5a"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASPO1",
+    "nome": "Anilha Sport Pintado Olímpica 1kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 7.24,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30ea4",
+      "6aa6fa6334398cbc5ed0dd5b"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASPO2",
+    "nome": "Anilha Sport Pintado Olímpica 2kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 14.48,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30ea5",
+      "6aa6fa6334398cbc5ed0dd5c"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASPO3",
+    "nome": "Anilha Sport Pintado Olímpica 3kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 21.72,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30ea6",
+      "6aa6fa6334398cbc5ed0dd5d"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASPO4",
+    "nome": "Anilha Sport Pintado Olímpica 4kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 28.96,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30ea7",
+      "6aa6fa6334398cbc5ed0dd5e"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASPO5",
+    "nome": "Anilha Sport Pintado Olímpica 5kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 36.2,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30ea8",
+      "6aa6fa6334398cbc5ed0dd5f"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASPO10",
+    "nome": "Anilha Sport Pintado Olímpica 10kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 72.4,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30ea9",
+      "6aa6fa6334398cbc5ed0dd60"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASPO15",
+    "nome": "Anilha Sport Pintado Olímpica 15kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 108.6,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30eaa",
+      "6aa6fa6334398cbc5ed0dd61"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASPO20",
+    "nome": "Anilha Sport Pintado Olímpica 20kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 144.8,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30eab",
+      "6aa6fa6334398cbc5ed0dd62"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASPO25",
+    "nome": "Anilha Sport Pintado Olímpica 25kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 181,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30eac",
+      "6aa6fa6334398cbc5ed0dd63"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASRO1",
+    "nome": "Anilha Sport Emborrachada Olímpica 1kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 10.8,
+    "sp_ids": [
+      "6a7b79fcde527275d1bf5e21",
+      "6ac28ffcd266735588df09a8"
+    ],
+    "margens": [
+      0,
+      0
+    ]
+  },
+  {
+    "cod": "ASRO1",
+    "nome": "Anilha Sport Emborrachada Olímpica 1kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 9.34,
+    "sp_ids": [
+      "6a8d8f9e328b4e4406b35787",
+      "6a8d94fc5b7c051637e30eb6"
+    ],
+    "margens": [
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "ASRO2",
+    "nome": "Anilha Sport Emborrachada Olímpica 2kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 21.6,
+    "sp_ids": [
+      "6a7b79fcde527275d1bf5e20",
+      "6ac28ffcc497844efd347ebe"
+    ],
+    "margens": [
+      0,
+      0
+    ]
+  },
+  {
+    "cod": "ASRO2",
+    "nome": "Anilha Sport Emborrachada Olímpica 2kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 18.68,
+    "sp_ids": [
+      "6a8d8f9e328b4e4406b35788",
+      "6a8d94fc5b7c051637e30eb7"
+    ],
+    "margens": [
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "ASRO3",
+    "nome": "Anilha Sport Emborrachada Olímpica 3kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 32.4,
+    "sp_ids": [
+      "6a7b79fcde527275d1bf5e1f",
+      "6ac28ffc61a7ce68c838bb95"
+    ],
+    "margens": [
+      0,
+      0
+    ]
+  },
+  {
+    "cod": "ASRO3",
+    "nome": "Anilha Sport Emborrachada Olímpica 3kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 28.02,
+    "sp_ids": [
+      "6a8d8f9e328b4e4406b35789",
+      "6a8d94fc5b7c051637e30eb8"
+    ],
+    "margens": [
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "ASRO4",
+    "nome": "Anilha Sport Emborrachada Olímpica 4kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 43.2,
+    "sp_ids": [
+      "6a7b79fcde527275d1bf5e1e",
+      "6ac28ffc39c486d337b8baee"
+    ],
+    "margens": [
+      0,
+      0
+    ]
+  },
+  {
+    "cod": "ASRO4",
+    "nome": "Anilha Sport Emborrachada Olímpica 4kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 37.36,
+    "sp_ids": [
+      "6a8d8f9e328b4e4406b3578a",
+      "6a8d94fc5b7c051637e30eb9"
+    ],
+    "margens": [
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "ASRO5",
+    "nome": "Anilha Sport Emborrachada Olímpica 5kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 54,
+    "sp_ids": [
+      "6a7b79fcde527275d1bf5e1d",
+      "6ac28ffcd1a4d595f204c073"
+    ],
+    "margens": [
+      0,
+      0
+    ]
+  },
+  {
+    "cod": "ASRO5",
+    "nome": "Anilha Sport Emborrachada Olímpica 5kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 46.7,
+    "sp_ids": [
+      "6a8d8f9e328b4e4406b3578b",
+      "6a8d94fc5b7c051637e30eba"
+    ],
+    "margens": [
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "ASRO10",
+    "nome": "Anilha Sport Emborrachada Olímpica 10kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 108,
+    "sp_ids": [
+      "6a7b79fcde527275d1bf5e1c",
+      "6ac28ffcbb4829ee6254e83c"
+    ],
+    "margens": [
+      0,
+      0
+    ]
+  },
+  {
+    "cod": "ASRO10",
+    "nome": "Anilha Sport Emborrachada Olímpica 10kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 93.4,
+    "sp_ids": [
+      "6a8d8f9e328b4e4406b3578c",
+      "6a8d94fc5b7c051637e30ebb"
+    ],
+    "margens": [
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "ASRO15",
+    "nome": "Anilha Sport Emborrachada Olímpica 15kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 162,
+    "sp_ids": [
+      "6a7b79fcde527275d1bf5e1b",
+      "6ac28ffc17806c2c7062a65d"
+    ],
+    "margens": [
+      0,
+      0
+    ]
+  },
+  {
+    "cod": "ASRO15",
+    "nome": "Anilha Sport Emborrachada Olímpica 15kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 140.1,
+    "sp_ids": [
+      "6a8d8f9e328b4e4406b3578d",
+      "6a8d94fc5b7c051637e30ebc"
+    ],
+    "margens": [
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "ASRO20",
+    "nome": "Anilha Sport Emborrachada Olímpica 20kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 216,
+    "sp_ids": [
+      "6a7b79fcde527275d1bf5e1a",
+      "6ac28ffc9e1ef3fa70e98614"
+    ],
+    "margens": [
+      0,
+      0
+    ]
+  },
+  {
+    "cod": "ASRO20",
+    "nome": "Anilha Sport Emborrachada Olímpica 20kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 186.8,
+    "sp_ids": [
+      "6a8d8f9e328b4e4406b3578e",
+      "6a8d94fc5b7c051637e30ebd"
+    ],
+    "margens": [
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "ASRO25",
+    "nome": "Anilha Sport Emborrachada Olímpica 25kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 270,
+    "sp_ids": [
+      "6a7b79fcde527275d1bf5e19",
+      "6ac28ffce5b4ed9fb74f31c9"
+    ],
+    "margens": [
+      0,
+      0
+    ]
+  },
+  {
+    "cod": "ASRO25",
+    "nome": "Anilha Sport Emborrachada Olímpica 25kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 233.5,
+    "sp_ids": [
+      "6a8d8f9e328b4e4406b3578f",
+      "6a8d94fc5b7c051637e30ebe"
+    ],
+    "margens": [
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "ASI1",
+    "nome": "Anilha Sport Injetado 1kg",
+    "fabricante_nome": "Fabricante PlaceFit",
+    "preco_igual": 8.7,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30e89",
+      "6aa6fa6334398cbc5ed0dd40"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASI2",
+    "nome": "Anilha Sport Injetado 2kg",
+    "fabricante_nome": "Fabricante PlaceFit",
+    "preco_igual": 17.4,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30e8a",
+      "6aa6fa6334398cbc5ed0dd41"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASI3",
+    "nome": "Anilha Sport Injetado 3kg",
+    "fabricante_nome": "Fabricante PlaceFit",
+    "preco_igual": 26.1,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30e8b",
+      "6aa6fa6334398cbc5ed0dd42"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASI4",
+    "nome": "Anilha Sport Injetado 4kg",
+    "fabricante_nome": "Fabricante PlaceFit",
+    "preco_igual": 34.8,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30e8c",
+      "6aa6fa6334398cbc5ed0dd43"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASI5",
+    "nome": "Anilha Sport Injetado 5kg",
+    "fabricante_nome": "Fabricante PlaceFit",
+    "preco_igual": 43.5,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30e8d",
+      "6aa6fa6334398cbc5ed0dd44"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASIO3",
+    "nome": "Anilha Sport Injetado Olímpica 3kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 34.83,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30e94",
+      "6aa6fa6334398cbc5ed0dd4b"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASIO4",
+    "nome": "Anilha Sport Injetado Olímpica 4kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 46.44,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30e95",
+      "6aa6fa6334398cbc5ed0dd4c"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASIO5",
+    "nome": "Anilha Sport Injetado Olímpica 5kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 58.05,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30e96",
+      "6aa6fa6334398cbc5ed0dd4d"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "AVI1",
+    "nome": "Anilha Vazada Injetado 1kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 8.5,
+    "sp_ids": [
+      "6a8c8efcb9d659ba5961f66a",
+      "6a8d94fc5b7c051637e30ef5"
+    ],
+    "margens": [
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "AVI2",
+    "nome": "Anilha Vazada Injetado 2kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 17,
+    "sp_ids": [
+      "6a8c8efcb9d659ba5961f66b",
+      "6a8d94fc5b7c051637e30ef6"
+    ],
+    "margens": [
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "AVI3",
+    "nome": "Anilha Vazada Injetado 3kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 25.5,
+    "sp_ids": [
+      "6a8c8efcb9d659ba5961f66c",
+      "6a8d94fc5b7c051637e30ef7"
+    ],
+    "margens": [
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "AVI4",
+    "nome": "Anilha Vazada Injetado 4kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 34,
+    "sp_ids": [
+      "6a8c8efcb9d659ba5961f66d",
+      "6a8d94fc5b7c051637e30ef8"
+    ],
+    "margens": [
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "AVI5",
+    "nome": "Anilha Vazada Injetado 5kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 42.5,
+    "sp_ids": [
+      "6a8c8efcb9d659ba5961f66e",
+      "6a8d94fc5b7c051637e30ef9"
+    ],
+    "margens": [
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "AVI10",
+    "nome": "Anilha Vazada Injetado 10kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 85,
+    "sp_ids": [
+      "6a8c8efcb9d659ba5961f66f",
+      "6a8d94fc5b7c051637e30efa"
+    ],
+    "margens": [
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "AVI20",
+    "nome": "Anilha Vazada Injetado 20kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 170,
+    "sp_ids": [
+      "6a8c8efcb9d659ba5961f671",
+      "6a8d94fc5b7c051637e30efc"
+    ],
+    "margens": [
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "AVIO3",
+    "nome": "Anilha Vazada Injetado Olímpica 3kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 27.81,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f00",
+      "6aca0f8cebb957bd330de1d7"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "AVIO4",
+    "nome": "Anilha Vazada Injetado Olímpica 4kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 37.08,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f01",
+      "6aca0f8cebb957bd330de1d8"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "AVIO5",
+    "nome": "Anilha Vazada Injetado Olímpica 5kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 46.35,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f02",
+      "6aca0f8cebb957bd330de1d9"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "AVIO10",
+    "nome": "Anilha Vazada Injetado Olímpica 10kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 92.7,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f03",
+      "6aca0f8cebb957bd330de1da"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "AVIO20",
+    "nome": "Anilha Vazada Injetado Olímpica 20kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 185.4,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f05",
+      "6aca0f8cebb957bd330de1dc"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "AVI15",
+    "nome": "Anilha Vazada Injetado 15kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 127.5,
+    "sp_ids": [
+      "6a8c8efcb9d659ba5961f670",
+      "6a8d94fc5b7c051637e30efb"
+    ],
+    "margens": [
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "AVI25",
+    "nome": "Anilha Vazada Injetado 25kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 212.5,
+    "sp_ids": [
+      "6a8c8efcb9d659ba5961f672",
+      "6a8d94fc5b7c051637e30efd"
+    ],
+    "margens": [
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "KDAIPR1230S",
+    "nome": "Kit Dumbbell Anilha Injetado Pegada Recartilhada 12 a 30kg + Suporte",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 6989.79,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e311de",
+      "6a8dcb351cefdea339e5fb1d"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "KDSMP1230S",
+    "nome": "Kit Dumbbell Sextavado Maciço Pintado 12 a 30kg + Suporte",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 4139.88,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e311df",
+      "6a8dcb351cefdea339e5fb1e"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "KDSTE1230S",
+    "nome": "Kit Dumbbell Sextavado Maciço Texturizado/Emborrachado 12 a 30kg + Suporte",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 6989.79,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e311e0",
+      "6a8dcb351cefdea339e5fb1f"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "KBMAI1230S",
+    "nome": "Kit Barras Montadas Anilhas Injetadas 12 a 30kg + Suporte",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 9919.7,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e311d1",
+      "6a8dcbcf26e40be8c1e8fb4e"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "ASI10",
+    "nome": "Anilha Sport Injetado 10kg",
+    "fabricante_nome": "Fabricante PlaceFit",
+    "preco_igual": 87,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30e8e",
+      "6aa6fa6334398cbc5ed0dd45"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASI15",
+    "nome": "Anilha Sport Injetado 15kg",
+    "fabricante_nome": "Fabricante PlaceFit",
+    "preco_igual": 130.5,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30e8f",
+      "6aa6fa6334398cbc5ed0dd46"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASI20",
+    "nome": "Anilha Sport Injetado 20kg",
+    "fabricante_nome": "Fabricante PlaceFit",
+    "preco_igual": 174,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30e90",
+      "6aa6fa6334398cbc5ed0dd47"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASI25",
+    "nome": "Anilha Sport Injetado 25kg",
+    "fabricante_nome": "Fabricante PlaceFit",
+    "preco_igual": 217.5,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30e91",
+      "6aa6fa6334398cbc5ed0dd48"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "PIU10",
+    "nome": "Piso Borracha 1x1m 10mm",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 82,
+    "sp_ids": [
+      "6a809c7c18333d4c024dee81",
+      "6a8c8efcb9d659ba5961f675",
+      "6a8d94fc5b7c051637e31231"
+    ],
+    "margens": [
+      0,
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "PIM15",
+    "nome": "Piso Borracha Modular 50x50cm 15mm",
+    "fabricante_nome": "Fabricante PlaceFit",
+    "preco_igual": 82,
+    "sp_ids": [
+      "6a8c8efcb9d659ba5961f674",
+      "6a8d94fc5b7c051637e3122f"
+    ],
+    "margens": [
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "PIU15",
+    "nome": "Piso Borracha 1x1m 15mm",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 82,
+    "sp_ids": [
+      "6a809ca92a7e4a247ed7a436",
+      "6a8c8efcb9d659ba5961f676",
+      "6a8d94fc5b7c051637e31232"
+    ],
+    "margens": [
+      0,
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "DSXEEB12",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Emborrachada 12kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 190.46,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310e3",
+      "6a8dcad15cb070ea4558c56b"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXEEB14",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Emborrachada 14kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 222.21,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310e4",
+      "6a8dcad15cb070ea4558c56c"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXEEB16",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Emborrachada 16kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 253.95,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310e5",
+      "6a8dcad15cb070ea4558c56d"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXEEB18",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Emborrachada 18kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 285.7,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310e6",
+      "6a8dcad15cb070ea4558c56e"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXEEB20",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Emborrachada 20kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 317.44,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310e7",
+      "6a8dcad15cb070ea4558c56f"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXEEB22",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Emborrachada 22kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 349.18,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310e8",
+      "6a8dcad15cb070ea4558c570"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXEEB24",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Emborrachada 24kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 380.93,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310e9",
+      "6a8dcad15cb070ea4558c571"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXEEB26",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Emborrachada 26kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 412.67,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310ea",
+      "6a8dcad15cb070ea4558c572"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXEEB28",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Emborrachada 28kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 444.42,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310eb",
+      "6a8dcad15cb070ea4558c573"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXEEB30",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Emborrachada 30kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 476.16,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310ec",
+      "6a8dcad15cb070ea4558c574"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXEEB32",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Emborrachada 32kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 507.9,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310ed",
+      "6a8dcad15cb070ea4558c575"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXER10",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Recartilhada 10kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 101.68,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31118",
+      "6a8dcad15cb070ea4558c576"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXER12",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Recartilhada 12kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 122.02,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31119",
+      "6a8dcad15cb070ea4558c577"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXER14",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Recartilhada 14kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 243.04,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3111a",
+      "6a8dcad15cb070ea4558c578"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXER16",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Recartilhada 16kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 162.69,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3111b",
+      "6a8dcad15cb070ea4558c579"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXER18",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Recartilhada 18kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 183.02,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3111c",
+      "6a8dcad15cb070ea4558c57a"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXER20",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Recartilhada 20kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 203.36,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3111d",
+      "6a8dcad15cb070ea4558c57b"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXER22",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Recartilhada 22kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 223.7,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3111e",
+      "6a8dcad15cb070ea4558c57c"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXER24",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Recartilhada 24kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 244.03,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3111f",
+      "6a8dcad15cb070ea4558c57d"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXER26",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Recartilhada 26kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 264.37,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31120",
+      "6a8dcad15cb070ea4558c57e"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXER28",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Recartilhada 28kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 284.7,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31121",
+      "6a8dcad15cb070ea4558c57f"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXER30",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Recartilhada 30kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 305.04,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31122",
+      "6a8dcad15cb070ea4558c580"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXER32",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Recartilhada 32kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 325.38,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31123",
+      "6a8dcad15cb070ea4558c581"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXER34",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Recartilhada 34kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 345.71,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31124",
+      "6a8dcad15cb070ea4558c582"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXER36",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Recartilhada 36kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 366.05,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31125",
+      "6a8dcad15cb070ea4558c583"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXER38",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Recartilhada 38kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 386.38,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31126",
+      "6a8dcad15cb070ea4558c584"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXER40",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Recartilhada 40kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 406.72,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31127",
+      "6a8dcad15cb070ea4558c585"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXER42",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Recartilhada 42kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 427.06,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31128",
+      "6a8dcad15cb070ea4558c586"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXER44",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Recartilhada 44kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 447.39,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31129",
+      "6a8dcad15cb070ea4558c587"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXER46",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Recartilhada 46kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 467.73,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3112a",
+      "6a8dcad15cb070ea4558c588"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXER48",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Recartilhada 48kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 488.06,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3112b",
+      "6a8dcad15cb070ea4558c589"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXER50",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Recartilhada 50kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 508.4,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3112c",
+      "6a8dcad15cb070ea4558c58a"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXIR10",
+    "nome": "Dumbbell Sextavado Injetado Pegada Recartilhada 10kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 142.6,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3112d",
+      "6a8dcad15cb070ea4558c58b"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXIR12",
+    "nome": "Dumbbell Sextavado Injetado Pegada Recartilhada 12kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 171.12,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3112e",
+      "6a8dcad15cb070ea4558c58c"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXIR14",
+    "nome": "Dumbbell Sextavado Injetado Pegada Recartilhada 14kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 199.64,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3112f",
+      "6a8dcad15cb070ea4558c58d"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXIR16",
+    "nome": "Dumbbell Sextavado Injetado Pegada Recartilhada 16kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 228.16,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31130",
+      "6a8dcad15cb070ea4558c58e"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXIR18",
+    "nome": "Dumbbell Sextavado Injetado Pegada Recartilhada 18kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 256.68,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31131",
+      "6a8dcad15cb070ea4558c58f"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXIR20",
+    "nome": "Dumbbell Sextavado Injetado Pegada Recartilhada 20kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 285.2,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31132",
+      "6a8dcad15cb070ea4558c590"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXIR22",
+    "nome": "Dumbbell Sextavado Injetado Pegada Recartilhada 22kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 313.72,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31133",
+      "6a8dcad15cb070ea4558c591"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXIR24",
+    "nome": "Dumbbell Sextavado Injetado Pegada Recartilhada 24kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 342.24,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31134",
+      "6a8dcad15cb070ea4558c592"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXIR26",
+    "nome": "Dumbbell Sextavado Injetado Pegada Recartilhada 26kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 370.76,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31135",
+      "6a8dcad15cb070ea4558c593"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXIR28",
+    "nome": "Dumbbell Sextavado Injetado Pegada Recartilhada 28kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 399.28,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31136",
+      "6a8dcad15cb070ea4558c594"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXIR30",
+    "nome": "Dumbbell Sextavado Injetado Pegada Recartilhada 30kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 427.8,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31137",
+      "6a8dcad15cb070ea4558c595"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXIR32",
+    "nome": "Dumbbell Sextavado Injetado Pegada Recartilhada 32kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 456.32,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31138",
+      "6a8dcad15cb070ea4558c596"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXIR34",
+    "nome": "Dumbbell Sextavado Injetado Pegada Recartilhada 34kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 484.84,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31139",
+      "6a8dcad15cb070ea4558c597"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXIR36",
+    "nome": "Dumbbell Sextavado Injetado Pegada Recartilhada 36kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 513.36,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3113a",
+      "6a8dcad15cb070ea4558c598"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXIR38",
+    "nome": "Dumbbell Sextavado Injetado Pegada Recartilhada 38kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 541.88,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3113b",
+      "6a8dcad15cb070ea4558c599"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXIR40",
+    "nome": "Dumbbell Sextavado Injetado Pegada Recartilhada 40kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 570.4,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3113c",
+      "6a8dcad15cb070ea4558c59a"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXIR42",
+    "nome": "Dumbbell Sextavado Injetado Pegada Recartilhada 42kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 598.92,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3113d",
+      "6a8dcad15cb070ea4558c59b"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXIR44",
+    "nome": "Dumbbell Sextavado Injetado Pegada Recartilhada 44kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 627.44,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3113e",
+      "6a8dcad15cb070ea4558c59c"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXIR46",
+    "nome": "Dumbbell Sextavado Injetado Pegada Recartilhada 46kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 655.96,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3113f",
+      "6a8dcad15cb070ea4558c59d"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXIR48",
+    "nome": "Dumbbell Sextavado Injetado Pegada Recartilhada 48kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 684.48,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31140",
+      "6a8dcad15cb070ea4558c59e"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXIR50",
+    "nome": "Dumbbell Sextavado Injetado Pegada Recartilhada 50kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 713,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31141",
+      "6a8dcad15cb070ea4558c59f"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPR10",
+    "nome": "Dumbbell Sextavado Pintado Pegada Recartilhada 10kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 106.64,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3114e",
+      "6a8dcad15cb070ea4558c5ac"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPR12",
+    "nome": "Dumbbell Sextavado Pintado Pegada Recartilhada 12kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 127.97,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3114f",
+      "6a8dcad15cb070ea4558c5ad"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPR14",
+    "nome": "Dumbbell Sextavado Pintado Pegada Recartilhada 14kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 149.3,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31150",
+      "6a8dcad15cb070ea4558c5ae"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPR16",
+    "nome": "Dumbbell Sextavado Pintado Pegada Recartilhada 16kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 170.62,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31151",
+      "6a8dcad15cb070ea4558c5af"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPR18",
+    "nome": "Dumbbell Sextavado Pintado Pegada Recartilhada 18kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 191.95,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31152",
+      "6a8dcad15cb070ea4558c5b0"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPR20",
+    "nome": "Dumbbell Sextavado Pintado Pegada Recartilhada 20kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 213.28,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31153",
+      "6a8dcad15cb070ea4558c5b1"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPR22",
+    "nome": "Dumbbell Sextavado Pintado Pegada Recartilhada 22kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 234.61,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31154",
+      "6a8dcad15cb070ea4558c5b2"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPR24",
+    "nome": "Dumbbell Sextavado Pintado Pegada Recartilhada 24kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 255.94,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31155",
+      "6a8dcad15cb070ea4558c5b3"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPR26",
+    "nome": "Dumbbell Sextavado Pintado Pegada Recartilhada 26kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 277.26,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31156",
+      "6a8dcad15cb070ea4558c5b4"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPR28",
+    "nome": "Dumbbell Sextavado Pintado Pegada Recartilhada 28kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 298.59,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31157",
+      "6a8dcad15cb070ea4558c5b5"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPR30",
+    "nome": "Dumbbell Sextavado Pintado Pegada Recartilhada 30kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 319.92,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31158",
+      "6a8dcad15cb070ea4558c5b6"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPR32",
+    "nome": "Dumbbell Sextavado Pintado Pegada Recartilhada 32kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 341.25,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31159",
+      "6a8dcad15cb070ea4558c5b7"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPR34",
+    "nome": "Dumbbell Sextavado Pintado Pegada Recartilhada 34kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 362.58,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3115a",
+      "6a8dcad15cb070ea4558c5b8"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPR36",
+    "nome": "Dumbbell Sextavado Pintado Pegada Recartilhada 36kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 383.9,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3115b",
+      "6a8dcad15cb070ea4558c5b9"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPR38",
+    "nome": "Dumbbell Sextavado Pintado Pegada Recartilhada 38kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 405.23,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3115c",
+      "6a8dcad15cb070ea4558c5ba"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPR40",
+    "nome": "Dumbbell Sextavado Pintado Pegada Recartilhada 40kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 426.56,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3115d",
+      "6a8dcad15cb070ea4558c5bb"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPR42",
+    "nome": "Dumbbell Sextavado Pintado Pegada Recartilhada 42kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 447.89,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3115e",
+      "6a8dcad15cb070ea4558c5bc"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPR44",
+    "nome": "Dumbbell Sextavado Pintado Pegada Recartilhada 44kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 469.22,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3115f",
+      "6a8dcad15cb070ea4558c5bd"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPR46",
+    "nome": "Dumbbell Sextavado Pintado Pegada Recartilhada 46kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 490.54,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31160",
+      "6a8dcad15cb070ea4558c5be"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPR48",
+    "nome": "Dumbbell Sextavado Pintado Pegada Recartilhada 48kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 511.87,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31161",
+      "6a8dcad15cb070ea4558c5bf"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPR50",
+    "nome": "Dumbbell Sextavado Pintado Pegada Recartilhada 50kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 533.2,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31162",
+      "6a8dcad15cb070ea4558c5c0"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIIN12",
+    "nome": "Dumbbell Monobloco Injetado Pegada Injetada 12kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 301.32,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fcf",
+      "6a8dcad15cb070ea4558c483"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIIN14",
+    "nome": "Dumbbell Monobloco Injetado Pegada Injetada 14kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 351.54,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fd0",
+      "6a8dcad15cb070ea4558c484"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIIN16",
+    "nome": "Dumbbell Monobloco Injetado Pegada Injetada 16kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 401.76,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fd1",
+      "6a8dcad15cb070ea4558c485"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIIN18",
+    "nome": "Dumbbell Monobloco Injetado Pegada Injetada 18kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 451.98,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fd2",
+      "6a8dcad15cb070ea4558c486"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIIN20",
+    "nome": "Dumbbell Monobloco Injetado Pegada Injetada 20kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 502.2,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fd3",
+      "6a8dcad15cb070ea4558c487"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIIN22",
+    "nome": "Dumbbell Monobloco Injetado Pegada Injetada 22kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 552.42,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fd4",
+      "6a8dcad15cb070ea4558c488"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIIN24",
+    "nome": "Dumbbell Monobloco Injetado Pegada Injetada 24kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 602.64,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fd5",
+      "6a8dcad15cb070ea4558c489"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIIN26",
+    "nome": "Dumbbell Monobloco Injetado Pegada Injetada 26kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 652.86,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fd6",
+      "6a8dcad15cb070ea4558c48a"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIIN28",
+    "nome": "Dumbbell Monobloco Injetado Pegada Injetada 28kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 703.08,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fd7",
+      "6a8dcad15cb070ea4558c48b"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIIN30",
+    "nome": "Dumbbell Monobloco Injetado Pegada Injetada 30kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 753.3,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fd8",
+      "6a8dcad15cb070ea4558c48c"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEEB10",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Emborrachada 10kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 158.7,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31063",
+      "6a8dcad15cb070ea4558c501"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEEB12",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Emborrachada 12kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 190.44,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31064",
+      "6a8dcad15cb070ea4558c502"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEEB14",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Emborrachada 14kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 222.18,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31065",
+      "6a8dcad15cb070ea4558c503"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEEB16",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Emborrachada 16kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 253.92,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31066",
+      "6a8dcad15cb070ea4558c504"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEEB18",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Emborrachada 18kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 285.66,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31067",
+      "6a8dcad15cb070ea4558c505"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEEB20",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Emborrachada 20kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 317.4,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31068",
+      "6a8dcad15cb070ea4558c506"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEEB22",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Emborrachada 22kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 349.14,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31069",
+      "6a8dcad15cb070ea4558c507"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEEB24",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Emborrachada 24kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 380.88,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3106a",
+      "6a8dcad15cb070ea4558c508"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEEB26",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Emborrachada 26kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 412.62,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3106b",
+      "6a8dcad15cb070ea4558c509"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEEB28",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Emborrachada 28kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 444.36,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3106c",
+      "6a8dcad15cb070ea4558c50a"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEEB30",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Emborrachada 30kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 476.1,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3106d",
+      "6a8dcad15cb070ea4558c50b"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEEB32",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Emborrachada 32kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 507.84,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3106e",
+      "6a8dcad15cb070ea4558c50c"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEEB34",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Emborrachada 34kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 539.58,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3106f",
+      "6a8dcad15cb070ea4558c50d"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEEB36",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Emborrachada 36kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 571.32,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31070",
+      "6a8dcad15cb070ea4558c50e"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEEB38",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Emborrachada 38kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 603.06,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31071",
+      "6a8dcad15cb070ea4558c50f"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEEB40",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Emborrachada 40kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 634.8,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31072",
+      "6a8dcad15cb070ea4558c510"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEEB42",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Emborrachada 42kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 666.54,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31073",
+      "6a8dcad15cb070ea4558c511"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEEB44",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Emborrachada 44kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 698.28,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31074",
+      "6a8dcad15cb070ea4558c512"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEEB46",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Emborrachada 46kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 730.02,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31075",
+      "6a8dcad15cb070ea4558c513"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEEB48",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Emborrachada 48kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 761.76,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31076",
+      "6a8dcad15cb070ea4558c514"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEEB50",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Emborrachada 50kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 793.5,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31077",
+      "6a8dcad15cb070ea4558c515"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPPT10",
+    "nome": "Dumbbell Sextavado Pintado Pegada Pintada 10kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 85.5,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31142",
+      "6a8dcad15cb070ea4558c5a0"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPPT12",
+    "nome": "Dumbbell Sextavado Pintado Pegada Pintada 12kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 102.6,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31143",
+      "6a8dcad15cb070ea4558c5a1"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPPT14",
+    "nome": "Dumbbell Sextavado Pintado Pegada Pintada 14kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 119.7,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31144",
+      "6a8dcad15cb070ea4558c5a2"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPPT16",
+    "nome": "Dumbbell Sextavado Pintado Pegada Pintada 16kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 136.8,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31145",
+      "6a8dcad15cb070ea4558c5a3"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPPT18",
+    "nome": "Dumbbell Sextavado Pintado Pegada Pintada 18kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 153.9,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31146",
+      "6a8dcad15cb070ea4558c5a4"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPPT20",
+    "nome": "Dumbbell Sextavado Pintado Pegada Pintada 20kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 171,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31147",
+      "6a8dcad15cb070ea4558c5a5"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPPT22",
+    "nome": "Dumbbell Sextavado Pintado Pegada Pintada 22kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 188.1,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31148",
+      "6a8dcad15cb070ea4558c5a6"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPPT24",
+    "nome": "Dumbbell Sextavado Pintado Pegada Pintada 24kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 205.2,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31149",
+      "6a8dcad15cb070ea4558c5a7"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPPT26",
+    "nome": "Dumbbell Sextavado Pintado Pegada Pintada 26kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 222.3,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3114a",
+      "6a8dcad15cb070ea4558c5a8"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPPT28",
+    "nome": "Dumbbell Sextavado Pintado Pegada Pintada 28kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 239.4,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3114b",
+      "6a8dcad15cb070ea4558c5a9"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVIR10",
+    "nome": "Dumbbell Montado Anilha Vazada Injetado Pegada Recartilhada 10kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 142.6,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310a2",
+      "6a8db5e73f73b7830a63ead8"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVIR12",
+    "nome": "Dumbbell Montado Anilha Vazada Injetado Pegada Recartilhada 12kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 171.12,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310a3",
+      "6a8db5e73f73b7830a63ead9"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVIR14",
+    "nome": "Dumbbell Montado Anilha Vazada Injetado Pegada Recartilhada 14kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 199.64,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310a4",
+      "6a8db5e73f73b7830a63eada"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVIR16",
+    "nome": "Dumbbell Montado Anilha Vazada Injetado Pegada Recartilhada 16kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 228.16,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310a5",
+      "6a8db5e73f73b7830a63eadb"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVIR18",
+    "nome": "Dumbbell Montado Anilha Vazada Injetado Pegada Recartilhada 18kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 256.68,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310a6",
+      "6a8db5e73f73b7830a63eadc"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVIR20",
+    "nome": "Dumbbell Montado Anilha Vazada Injetado Pegada Recartilhada 20kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 285.2,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310a7",
+      "6a8db5e73f73b7830a63eadd"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVIR22",
+    "nome": "Dumbbell Montado Anilha Vazada Injetado Pegada Recartilhada 22kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 313.72,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310a8",
+      "6a8db5e73f73b7830a63eade"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVIR24",
+    "nome": "Dumbbell Montado Anilha Vazada Injetado Pegada Recartilhada 24kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 342.24,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310a9",
+      "6a8db5e73f73b7830a63eadf"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVIR26",
+    "nome": "Dumbbell Montado Anilha Vazada Injetado Pegada Recartilhada 26kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 370.76,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310aa",
+      "6a8db5e73f73b7830a63eae0"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVIR28",
+    "nome": "Dumbbell Montado Anilha Vazada Injetado Pegada Recartilhada 28kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 399.28,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310ab",
+      "6a8db5e73f73b7830a63eae1"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVIR30",
+    "nome": "Dumbbell Montado Anilha Vazada Injetado Pegada Recartilhada 30kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 427.8,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310ac",
+      "6a8db5e73f73b7830a63eae2"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVIR32",
+    "nome": "Dumbbell Montado Anilha Vazada Injetado Pegada Recartilhada 32kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 456.32,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310ad",
+      "6a8db5e73f73b7830a63eae3"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVIR34",
+    "nome": "Dumbbell Montado Anilha Vazada Injetado Pegada Recartilhada 34kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 484.84,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310ae",
+      "6a8db5e73f73b7830a63eae4"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVIR36",
+    "nome": "Dumbbell Montado Anilha Vazada Injetado Pegada Recartilhada 36kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 513.36,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310af",
+      "6a8db5e73f73b7830a63eae5"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVIR38",
+    "nome": "Dumbbell Montado Anilha Vazada Injetado Pegada Recartilhada 38kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 541.88,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310b0",
+      "6a8db5e73f73b7830a63eae6"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVIR40",
+    "nome": "Dumbbell Montado Anilha Vazada Injetado Pegada Recartilhada 40kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 570.4,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310b1",
+      "6a8db5e73f73b7830a63eae7"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVIR42",
+    "nome": "Dumbbell Montado Anilha Vazada Injetado Pegada Recartilhada 42kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 598.92,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310b2",
+      "6a8db5e73f73b7830a63eae8"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVIR44",
+    "nome": "Dumbbell Montado Anilha Vazada Injetado Pegada Recartilhada 44kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 627.44,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310b3",
+      "6a8db5e73f73b7830a63eae9"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVIR46",
+    "nome": "Dumbbell Montado Anilha Vazada Injetado Pegada Recartilhada 46kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 655.96,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310b4",
+      "6a8db5e73f73b7830a63eaea"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVIR48",
+    "nome": "Dumbbell Montado Anilha Vazada Injetado Pegada Recartilhada 48kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 684.48,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310b5",
+      "6a8db5e73f73b7830a63eaeb"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVIR50",
+    "nome": "Dumbbell Montado Anilha Vazada Injetado Pegada Recartilhada 50kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 713,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310b6",
+      "6a8db5e73f73b7830a63eaec"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPPT30",
+    "nome": "Dumbbell Sextavado Pintado Pegada Pintada 30kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 256.5,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3114c",
+      "6a8dcad15cb070ea4558c5aa"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DSXPPT32",
+    "nome": "Dumbbell Sextavado Pintado Pegada Pintada 32kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 273.6,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3114d",
+      "6a8dcad15cb070ea4558c5ab"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVER10",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Recartilhada 10kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 101.6,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3108d",
+      "6a8dcad15cb070ea4558c52b"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVER12",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Recartilhada 12kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 121.92,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3108e",
+      "6a8dcad15cb070ea4558c52c"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVER14",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Recartilhada 14kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 142.24,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3108f",
+      "6a8dcad15cb070ea4558c52d"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVER16",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Recartilhada 16kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 162.56,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31090",
+      "6a8dcad15cb070ea4558c52e"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVER18",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Recartilhada 18kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 182.88,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31091",
+      "6a8dcad15cb070ea4558c52f"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVER20",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Recartilhada 20kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 203.2,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31092",
+      "6a8dcad15cb070ea4558c530"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVER22",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Recartilhada 22kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 223.52,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31093",
+      "6a8dcad15cb070ea4558c531"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVER24",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Recartilhada 24kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 243.84,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31094",
+      "6a8dcad15cb070ea4558c532"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVER26",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Recartilhada 26kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 264.16,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31095",
+      "6a8dcad15cb070ea4558c533"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVER28",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Recartilhada 28kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 284.48,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31096",
+      "6a8dcad15cb070ea4558c534"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVER30",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Recartilhada 30kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 304.8,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31097",
+      "6a8dcad15cb070ea4558c535"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVER32",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Recartilhada 32kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 325.12,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31098",
+      "6a8dcad15cb070ea4558c536"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVER34",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Recartilhada 34kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 345.44,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31099",
+      "6a8dcad15cb070ea4558c537"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVER36",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Recartilhada 36kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 365.76,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3109a",
+      "6a8dcad15cb070ea4558c538"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVER38",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Recartilhada 38kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 386.08,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3109b",
+      "6a8dcad15cb070ea4558c539"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVER40",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Recartilhada 40kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 406.4,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3109c",
+      "6a8dcad15cb070ea4558c53a"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVER42",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Recartilhada 42kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 426.72,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3109d",
+      "6a8dcad15cb070ea4558c53b"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVER44",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Recartilhada 44kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 447.04,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3109e",
+      "6a8dcad15cb070ea4558c53c"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVER46",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Recartilhada 46kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 467.36,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3109f",
+      "6a8dcad15cb070ea4558c53d"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVER48",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Recartilhada 48kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 487.68,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310a0",
+      "6a8dcad15cb070ea4558c53e"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVER50",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Recartilhada 50kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 508,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310a1",
+      "6a8dcad15cb070ea4558c53f"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPEB10",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Emborrachada 10kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 106.6,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310b7",
+      "6a8dcad15cb070ea4558c540"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPEB12",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Emborrachada 12kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 127.92,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310b8",
+      "6a8dcad15cb070ea4558c541"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPEB14",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Emborrachada 14kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 149.24,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310b9",
+      "6a8dcad15cb070ea4558c542"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPEB16",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Emborrachada 16kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 170.56,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310ba",
+      "6a8dcad15cb070ea4558c543"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPEB18",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Emborrachada 18kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 191.88,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310bb",
+      "6a8dcad15cb070ea4558c544"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPEB20",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Emborrachada 20kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 213.2,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310bc",
+      "6a8dcad15cb070ea4558c545"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPEB22",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Emborrachada 22kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 234.52,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310bd",
+      "6a8dcad15cb070ea4558c546"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPEB24",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Emborrachada 24kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 255.84,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310be",
+      "6a8dcad15cb070ea4558c547"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPEB26",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Emborrachada 26kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 277.16,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310bf",
+      "6a8dcad15cb070ea4558c548"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPEB28",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Emborrachada 28kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 298.48,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310c0",
+      "6a8dcad15cb070ea4558c549"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPEB30",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Emborrachada 30kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 319.8,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310c1",
+      "6a8dcad15cb070ea4558c54a"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPEB32",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Emborrachada 32kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 341.12,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310c2",
+      "6a8dcad15cb070ea4558c54b"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPEB34",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Emborrachada 34kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 362.44,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310c3",
+      "6a8dcad15cb070ea4558c54c"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPEB36",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Emborrachada 36kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 383.76,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310c4",
+      "6a8dcad15cb070ea4558c54d"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPEB38",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Emborrachada 38kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 405.08,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310c5",
+      "6a8dcad15cb070ea4558c54e"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPEB40",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Emborrachada 40kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 426.4,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310c6",
+      "6a8dcad15cb070ea4558c54f"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPEB42",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Emborrachada 42kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 447.72,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310c7",
+      "6a8dcad15cb070ea4558c550"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPEB44",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Emborrachada 44kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 469.04,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310c8",
+      "6a8dcad15cb070ea4558c551"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPEB46",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Emborrachada 46kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 490.36,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310c9",
+      "6a8dcad15cb070ea4558c552"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPEB48",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Emborrachada 48kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 511.68,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310ca",
+      "6a8dcad15cb070ea4558c553"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPEB50",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Emborrachada 50kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 533,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310cb",
+      "6a8dcad15cb070ea4558c554"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPR10",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Recartilhada 10kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 106.6,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310cd",
+      "6a8dcad15cb070ea4558c555"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPR12",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Recartilhada 12kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 127.92,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310ce",
+      "6a8dcad15cb070ea4558c556"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPR14",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Recartilhada 14kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 149.24,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310cf",
+      "6a8dcad15cb070ea4558c557"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPR16",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Recartilhada 16kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 170.56,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310d0",
+      "6a8dcad15cb070ea4558c558"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPR18",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Recartilhada 18kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 191.88,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310d1",
+      "6a8dcad15cb070ea4558c559"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPR20",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Recartilhada 20kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 213.2,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310d2",
+      "6a8dcad15cb070ea4558c55a"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPR22",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Recartilhada 22kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 234.52,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310d3",
+      "6a8dcad15cb070ea4558c55b"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPR24",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Recartilhada 24kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 255.84,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310d4",
+      "6a8dcad15cb070ea4558c55c"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPR26",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Recartilhada 26kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 277.16,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310d5",
+      "6a8dcad15cb070ea4558c55d"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPR28",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Recartilhada 28kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 298.48,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310d6",
+      "6a8dcad15cb070ea4558c55e"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPR30",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Recartilhada 30kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 319.8,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310d7",
+      "6a8dcad15cb070ea4558c55f"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPR32",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Recartilhada 32kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 341.12,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310d8",
+      "6a8dcad15cb070ea4558c560"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPR34",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Recartilhada 34kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 362.44,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310d9",
+      "6a8dcad15cb070ea4558c561"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPR36",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Recartilhada 36kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 383.76,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310da",
+      "6a8dcad15cb070ea4558c562"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPR38",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Recartilhada 38kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 405.08,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310db",
+      "6a8dcad15cb070ea4558c563"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPR40",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Recartilhada 40kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 426.4,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310dc",
+      "6a8dcad15cb070ea4558c564"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPR42",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Recartilhada 42kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 447.72,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310dd",
+      "6a8dcad15cb070ea4558c565"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPR44",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Recartilhada 44kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 469.04,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310de",
+      "6a8dcad15cb070ea4558c566"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPR46",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Recartilhada 46kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 490.36,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310df",
+      "6a8dcad15cb070ea4558c567"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPR48",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Recartilhada 48kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 511.68,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310e0",
+      "6a8dcad15cb070ea4558c568"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVPR50",
+    "nome": "Dumbbell Montado Anilha Vazada Pintado Pegada Recartilhada 50kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 533,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310e1",
+      "6a8dcad15cb070ea4558c569"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEPT10",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Pintada 10kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 105.4,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31078",
+      "6a8dcad15cb070ea4558c516"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEPT12",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Pintada 12kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 126.48,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31079",
+      "6a8dcad15cb070ea4558c517"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEPT14",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Pintada 14kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 147.56,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3107a",
+      "6a8dcad15cb070ea4558c518"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEPT16",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Pintada 16kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 168.64,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3107b",
+      "6a8dcad15cb070ea4558c519"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEPT18",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Pintada 18kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 189.72,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3107c",
+      "6a8dcad15cb070ea4558c51a"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEPT20",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Pintada 20kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 210.8,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3107d",
+      "6a8dcad15cb070ea4558c51b"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEPT22",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Pintada 22kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 231.88,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3107e",
+      "6a8dcad15cb070ea4558c51c"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEPT24",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Pintada 24kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 252.96,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3107f",
+      "6a8dcad15cb070ea4558c51d"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEPT26",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Pintada 26kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 274.04,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31080",
+      "6a8dcad15cb070ea4558c51e"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEPT28",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Pintada 28kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 295.12,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31081",
+      "6a8dcad15cb070ea4558c51f"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEPT30",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Pintada 30kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 316.2,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31082",
+      "6a8dcad15cb070ea4558c520"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEPT32",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Pintada 32kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 337.28,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31083",
+      "6a8dcad15cb070ea4558c521"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEPT34",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Pintada 34kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 358.36,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31084",
+      "6a8dcad15cb070ea4558c522"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEPT36",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Pintada 36kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 379.44,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31085",
+      "6a8dcad15cb070ea4558c523"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEPT38",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Pintada 38kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 400.52,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31086",
+      "6a8dcad15cb070ea4558c524"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEPT40",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Pintada 40kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 421.6,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31087",
+      "6a8dcad15cb070ea4558c525"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEPT42",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Pintada 42kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 442.68,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31088",
+      "6a8dcad15cb070ea4558c526"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEPT44",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Pintada 44kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 463.76,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31089",
+      "6a8dcad15cb070ea4558c527"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEPT46",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Pintada 46kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 484.84,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3108a",
+      "6a8dcad15cb070ea4558c528"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEPT48",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Pintada 48kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 505.92,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3108b",
+      "6a8dcad15cb070ea4558c529"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOAVEPT50",
+    "nome": "Dumbbell Montado Anilha Vazada Emborrachado Pegada Pintada 50kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 527,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3108c",
+      "6a8dcad15cb070ea4558c52a"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIIN10",
+    "nome": "Dumbbell Monobloco Injetado Pegada Injetada 10kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 251.1,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fce",
+      "6a8dcad15cb070ea4558c482"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIIN32",
+    "nome": "Dumbbell Monobloco Injetado Pegada Injetada 32kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 803.52,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fd9",
+      "6a8dcad15cb070ea4558c48d"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIIN34",
+    "nome": "Dumbbell Monobloco Injetado Pegada Injetada 34kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 853.74,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fda",
+      "6a8dcad15cb070ea4558c48e"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIIN36",
+    "nome": "Dumbbell Monobloco Injetado Pegada Injetada 36kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 903.96,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fdb",
+      "6a8dcad15cb070ea4558c48f"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIIN38",
+    "nome": "Dumbbell Monobloco Injetado Pegada Injetada 38kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 954.18,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fdc",
+      "6a8dcad15cb070ea4558c490"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIIN40",
+    "nome": "Dumbbell Monobloco Injetado Pegada Injetada 40kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 1004.4,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fdd",
+      "6a8dcad15cb070ea4558c491"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIIN42",
+    "nome": "Dumbbell Monobloco Injetado Pegada Injetada 42kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 1054.62,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fde",
+      "6a8dcad15cb070ea4558c492"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIIN44",
+    "nome": "Dumbbell Monobloco Injetado Pegada Injetada 44kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 1104.84,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fdf",
+      "6a8dcad15cb070ea4558c493"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIIN46",
+    "nome": "Dumbbell Monobloco Injetado Pegada Injetada 46kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 1155.06,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fe0",
+      "6a8dcad15cb070ea4558c494"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIIN48",
+    "nome": "Dumbbell Monobloco Injetado Pegada Injetada 48kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 1205.28,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fe1",
+      "6a8dcad15cb070ea4558c495"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIIN50",
+    "nome": "Dumbbell Monobloco Injetado Pegada Injetada 50kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 1255.5,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fe2",
+      "6a8dcad15cb070ea4558c496"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "ASIO1",
+    "nome": "Anilha Sport Injetado Olímpica 1kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 11.61,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30e92",
+      "6aa6fa6334398cbc5ed0dd49"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASIO10",
+    "nome": "Anilha Sport Injetado Olímpica 10kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 116.1,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30e97",
+      "6aa6fa6334398cbc5ed0dd4e"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASIO15",
+    "nome": "Anilha Sport Injetado Olímpica 15kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 174.15,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30e98",
+      "6aa6fa6334398cbc5ed0dd4f"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASIO2",
+    "nome": "Anilha Sport Injetado Olímpica 2kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 23.22,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30e93",
+      "6aa6fa6334398cbc5ed0dd4a"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASIO20",
+    "nome": "Anilha Sport Injetado Olímpica 20kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 232.2,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30e99",
+      "6aa6fa6334398cbc5ed0dd50"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ASIO25",
+    "nome": "Anilha Sport Injetado Olímpica 25kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 290.25,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30e9a",
+      "6aa6fa6334398cbc5ed0dd51"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "AVIO1",
+    "nome": "Anilha Vazada Injetado Olímpica 1kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 9.27,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30efe",
+      "6aca0f8cebb957bd330de1d5"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "AVIO15",
+    "nome": "Anilha Vazada Injetado Olímpica 15kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 139.05,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f04",
+      "6aca0f8cebb957bd330de1db"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "AVIO2",
+    "nome": "Anilha Vazada Injetado Olímpica 2kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 18.54,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30eff",
+      "6aca0f8cebb957bd330de1d6"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "AVIO25",
+    "nome": "Anilha Vazada Injetado Olímpica 25kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 231.75,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f06",
+      "6aca0f8cebb957bd330de1dd"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "ABO1.5",
+    "nome": "Anilha Bumper Olímpica 1,5kg",
+    "fabricante_nome": "Muscular Fitness Brasil Ltda",
+    "preco_igual": 10.7,
+    "sp_ids": [
+      "6a8d8d1684c5ddf972ab2708",
+      "6a8d94fc5b7c051637e30e52"
+    ],
+    "margens": [
+      25,
+      25
+    ]
+  },
+  {
+    "cod": "DSXEEB10",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Emborrachada 10kg",
+    "fabricante_nome": "Planeta Vendas",
+    "preco_igual": 158.72,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e310e2",
+      "6a8dcad15cb070ea4558c56a"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-003",
+    "nome": "Barra Maciça Cromada Recartilhada Reta 1,2m c/ Presilha Espiral",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 201.88,
+    "sp_ids": [
+      "6a57be5ad8016d01e774bc01",
+      "6a57be5ad8016d01e774bc05"
+    ],
+    "margens": [
+      0,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-013",
+    "nome": "Barra Maciça Cromada Recartilhada Reta 1,2m c/ Lock Press Mini",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 226.1,
+    "sp_ids": [
+      "6a57be5ad8016d01e774bc0a",
+      "6a57be5ad8016d01e774bc0e"
+    ],
+    "margens": [
+      0,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-026",
+    "nome": "Barra Oca Cromada 40cm c/ Presilha Espiral",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 43.36,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f46",
+      "6a8dcbcf26e40be8c1e8faff"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-027",
+    "nome": "Barra Oca Cromada 1,2m c/ Presilha Espiral",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 88.44,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f47",
+      "6a8dcbcf26e40be8c1e8fb00"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-028",
+    "nome": "Barra Oca Cromada 1,5m c/ Presilha Espiral",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 103.83,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f48",
+      "6a8dcbcf26e40be8c1e8fb01"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-061",
+    "nome": "Barra Olímpica \"H\" Cromada c/ Rolamento",
+    "fabricante_nome": "Metal Forma",
+    "preco_igual": 512.6691000000001,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f5b",
+      "6a8dcbcf26e40be8c1e8fb1f"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "SUP-041",
+    "nome": "Suporte Dumbbell para 8 Pares",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 558,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31256",
+      "6a8dcc5d84880f31578cca86"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "SUP-074",
+    "nome": "Suporte Dumbbells Sextavado 3 Andares (12 ao 30)",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 1054,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3125a",
+      "6a8dcc5d84880f31578cca90"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "ACE-026",
+    "nome": "Cinto de Musculação Para Agachamento (G)",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 111.38,
+    "sp_ids": [
+      "6a57be5ad8016d01e774bce0",
+      "6a57be5ad8016d01e774bce1"
+    ],
+    "margens": [
+      0,
+      0
+    ]
+  },
+  {
+    "cod": "ACE-029",
+    "nome": "Cinto de Tração (G)",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 121.68,
+    "sp_ids": [
+      "6a57be5ad8016d01e774bce3",
+      "6a57be5ad8016d01e774bce4"
+    ],
+    "margens": [
+      0,
+      0
+    ]
+  },
+  {
+    "cod": "ACE-032",
+    "nome": "Cinto de Tração Modelo Simples (G)",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 77.22,
+    "sp_ids": [
+      "6a57be5ad8016d01e774bce6",
+      "6a57be5ad8016d01e774bce7"
+    ],
+    "margens": [
+      0,
+      0
+    ]
+  },
+  {
+    "cod": "HSPP2",
+    "nome": "Halter Sextavado Pintado 2kg",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 14.64,
+    "sp_ids": [
+      "6a8d7c65a005ad83a4838e6c",
+      "6a8d94fc5b7c051637e311be"
+    ],
+    "margens": [
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "DSXTER50",
+    "nome": "Dumbbell Sextavado Texturizado Pegada Recartilhada 50kg",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 17.36,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31163",
+      "6a8dcad15cb070ea4558c5c1"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMOASEEB50",
+    "nome": "Dumbbell Montado Anilha Sport Emborrachado Pegada Emborrachada 50kg",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 15.87,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31022",
+      "6a8dcad15cb070ea4558c4d6"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-016",
+    "nome": "Barra Maciça Cromada Recartilhada Reta 1,8m c/ Lock Press Mini",
+    "fabricante_nome": "Metal Forma",
+    "preco_igual": 257.67740000000003,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f3e",
+      "6a8dcbcf26e40be8c1e8faf5"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-025",
+    "nome": "Barra Oca Cromada 30cm c/ Presilha Espiral",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 39.01,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f45",
+      "6a8dcbcf26e40be8c1e8fafe"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-030",
+    "nome": "Barra Maciça Pintada Reta 40cm c/ Presilha Espiral (sem recartilhado)",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 43.4,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f49",
+      "6a8dcbcf26e40be8c1e8fb03"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-031",
+    "nome": "Barra Maciça Pintada Reta 1,2m c/ Presilha Espiral (sem recartilhado)",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 124,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f4a",
+      "6a8dcbcf26e40be8c1e8fb04"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-032",
+    "nome": "Barra Maciça Pintada Reta 1,5m c/ Presilha Espiral (sem recartilhado)",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 148.8,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f4b",
+      "6a8dcbcf26e40be8c1e8fb05"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-033",
+    "nome": "Barra Maciça Pintada Reta 1,8m c/ Presilha Espiral (sem recartilhado)",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 173.6,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f4c",
+      "6a8dcbcf26e40be8c1e8fb06"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-037",
+    "nome": "Barra Oca Pintada 1,8m c/ Presilha Espiral (sem recartilhado)",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 124,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f4d",
+      "6a8dcbcf26e40be8c1e8fb07"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-038",
+    "nome": "Barra Hexagonal Maciça Preta - Pegada Cromada Recartilhada",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 805.63,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f4e",
+      "6a8dcbcf26e40be8c1e8fb08"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-039",
+    "nome": "Barra Hexagonal Maciça Olímpica Preta - Pegada Cromada Recartilhada",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 1287.12,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f4f",
+      "6a8dcbcf26e40be8c1e8fb09"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-043",
+    "nome": "Barra Olímpica 20kg 2.2m Rolamento de Bronze Cromada",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 1055.57,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f52",
+      "6a8dcbcf26e40be8c1e8fb0d"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-048",
+    "nome": "Barra Olímpica 15kg 2.0m Rolamento de Bronze Cromada",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 913.3,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f54",
+      "6a8dcbcf26e40be8c1e8fb12"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-052",
+    "nome": "Barra Olímpica 10kg 1.62m 4 Rolamentos Cromada",
+    "fabricante_nome": "Metal Forma",
+    "preco_igual": 613.8804,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f55",
+      "6a8dcbcf26e40be8c1e8fb16"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-053",
+    "nome": "Barra Olímpica 10kg 1.62m Rolamento de Bronze Cromada",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 711.41,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f56",
+      "6a8dcbcf26e40be8c1e8fb17"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-057",
+    "nome": "Barra Olímpica 1,8m Cromada c/ Rolamento",
+    "fabricante_nome": "Metal Forma",
+    "preco_igual": 572.4072000000001,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f57",
+      "6a8dcbcf26e40be8c1e8fb1b"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-058",
+    "nome": "Barra Olímpica 1,5m Cromada c/ Rolamento",
+    "fabricante_nome": "Metal Forma",
+    "preco_igual": 495.24950000000007,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f58",
+      "6a8dcbcf26e40be8c1e8fb1c"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-059",
+    "nome": "Barra Olímpica 1,2m Cromada c/ Rolamento",
+    "fabricante_nome": "Metal Forma",
+    "preco_igual": 463.8878,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f59",
+      "6a8dcbcf26e40be8c1e8fb1d"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-062",
+    "nome": "Barra Olímpica 40lbs 2.2m 4 Rolamentos Cromada",
+    "fabricante_nome": "Metal Forma",
+    "preco_igual": 695.1790000000001,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f5c",
+      "6a8dcbcf26e40be8c1e8fb20"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-063",
+    "nome": "Barra Olímpica 40lbs 2.2m Rolamento de Bronze Cromada",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 805.63,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f5d",
+      "6a8dcbcf26e40be8c1e8fb21"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-064",
+    "nome": "Barra Olímpica 40lbs 2.2m 4 Rolamentos Zinco Extra",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 805.63,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f5e",
+      "6a8dcbcf26e40be8c1e8fb22"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-067",
+    "nome": "Barra Olímpica 30lbs 2.0m 4 Rolamentos Cromada",
+    "fabricante_nome": "Metal Forma",
+    "preco_igual": 612.2112,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f5f",
+      "6a8dcbcf26e40be8c1e8fb25"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-068",
+    "nome": "Barra Olímpica 30lbs 2.0m Rolamento de Bronze Cromada",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 709.48,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f60",
+      "6a8dcbcf26e40be8c1e8fb26"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-072",
+    "nome": "Barra Olímpica 20lbs 1.62m 4 Rolamentos Cromada",
+    "fabricante_nome": "Metal Forma",
+    "preco_igual": 512.6691000000001,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f61",
+      "6a8dcbcf26e40be8c1e8fb2a"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-073",
+    "nome": "Barra Olímpica 20lbs 1.62m Rolamento de Bronze Cromada",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 507.98,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f62",
+      "6a8dcbcf26e40be8c1e8fb2b"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-085",
+    "nome": "Presilha Lock Press Mini 1.1/8\" (28,5mm)",
+    "fabricante_nome": "Metal Forma",
+    "preco_igual": 19.153,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f66",
+      "6a8dcbcf26e40be8c1e8fb37"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "PUX-001",
+    "nome": "Puxador Romano \"D\" 1m com Giro Preto",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 152.28,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31234",
+      "6a8dc971e5816345e5d69d1a"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "PUX-023",
+    "nome": "Puxador Estribo Aberto c/ Manopla Cromado",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 115.16,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31235",
+      "6a8dc971e5816345e5d69d2f"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "PUX-027",
+    "nome": "Puxador Pulley Reto 1,2m c/ Manopla e Giro Cromado",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 160.9,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31236",
+      "6a8dc971e5816345e5d69d33"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "PUX-030",
+    "nome": "Puxador Triângulo Grande com Giro Cromado",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 122.14,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31237",
+      "6a8dc971e5816345e5d69d36"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "PUX-032",
+    "nome": "Puxador Triângulo Pequeno com Giro Cromado",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 101.16,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31238",
+      "6a8dc971e5816345e5d69d38"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "PUX-033",
+    "nome": "Puxador Tríceps Bigode Maciço c/ Manopla e Giro Cromado",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 123.94,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31239",
+      "6a8dc971e5816345e5d69d39"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "PUX-034",
+    "nome": "Puxador Tríceps Curvo 0,50m c/ Manopla e Giro Cromado",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 122.45,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3123a",
+      "6a8dc971e5816345e5d69d3a"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "PUX-036",
+    "nome": "Puxador Tríceps Reto 0,50m c/ Manopla e Giro Cromado",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 119.16,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3123b",
+      "6a8dc971e5816345e5d69d3c"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "PUX-038",
+    "nome": "Puxador \"V\" com Manopla e Giro Cromado",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 133.94,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3123c",
+      "6a8dc971e5816345e5d69d3e"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "SUP-005",
+    "nome": "Suporte Anilha \"T\" + 8 Barras p/ 200kg",
+    "fabricante_nome": "Furious Equipment",
+    "preco_igual": 484.62,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31241",
+      "6a8dcbcf26e40be8c1e8fb50"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "SUP-025",
+    "nome": "Suporte Fogueteiro para 10 Barras Olímpicas",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 448.4,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31250",
+      "6a8dcbcf26e40be8c1e8fb54"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "SUP-026",
+    "nome": "Suporte Fogueteiro para 12 Barras Olímpicas Box",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 508.2,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31251",
+      "6a8dcbcf26e40be8c1e8fb55"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "SUP-030",
+    "nome": "Suporte Colchonete",
+    "fabricante_nome": "CrossRigs",
+    "preco_igual": 535,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31254",
+      "6a8d971b1ac485c0b03389b3"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "HSPP5",
+    "nome": "Halter Sextavado Pintado 5kg",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 36.6,
+    "sp_ids": [
+      "6a8d7c65a005ad83a4838e6f",
+      "6a8d94fc5b7c051637e311c1"
+    ],
+    "margens": [
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "HSPP1",
+    "nome": "Halter Sextavado Pintado 1kg",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 7.32,
+    "sp_ids": [
+      "6a8d7c65a005ad83a4838e6b",
+      "6a8d94fc5b7c051637e311bd"
+    ],
+    "margens": [
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "HSPP7",
+    "nome": "Halter Sextavado Pintado 7kg",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 51.24,
+    "sp_ids": [
+      "6a8d7c65a005ad83a4838e71",
+      "6a8d94fc5b7c051637e311c3"
+    ],
+    "margens": [
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "HSPP3",
+    "nome": "Halter Sextavado Pintado 3kg",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 21.96,
+    "sp_ids": [
+      "6a8d7c65a005ad83a4838e6d",
+      "6a8d94fc5b7c051637e311bf"
+    ],
+    "margens": [
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "HSPP6",
+    "nome": "Halter Sextavado Pintado 6kg",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 43.92,
+    "sp_ids": [
+      "6a8d7c65a005ad83a4838e70",
+      "6a8d94fc5b7c051637e311c2"
+    ],
+    "margens": [
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "HSPP4",
+    "nome": "Halter Sextavado Pintado 4kg",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 29.28,
+    "sp_ids": [
+      "6a8d7c65a005ad83a4838e6e",
+      "6a8d94fc5b7c051637e311c0"
+    ],
+    "margens": [
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "HSPP8",
+    "nome": "Halter Sextavado Pintado 8kg",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 58.56,
+    "sp_ids": [
+      "6a8d7c65a005ad83a4838e72",
+      "6a8d94fc5b7c051637e311c4"
+    ],
+    "margens": [
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "HSPP9",
+    "nome": "Halter Sextavado Pintado 9kg",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 65.88,
+    "sp_ids": [
+      "6a8d7c65a005ad83a4838e73",
+      "6a8d94fc5b7c051637e311c5"
+    ],
+    "margens": [
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "HSPP10",
+    "nome": "Halter Sextavado Pintado 10kg",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "preco_igual": 73.2,
+    "sp_ids": [
+      "6a8d7c65a005ad83a4838e74",
+      "6a8d94fc5b7c051637e311c6"
+    ],
+    "margens": [
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "COL-COM-90X",
+    "nome": "Colchonete Comum 90x50x3 D20",
+    "fabricante_nome": "Caneleira e Cia",
+    "preco_igual": 43.870000000000005,
+    "sp_ids": [
+      "6a8d930642c72541aeafa3ed",
+      "6a8d94fc5b7c051637e30f78"
+    ],
+    "margens": [
+      7,
+      25
+    ]
+  },
+  {
+    "cod": "PUX-N002",
+    "nome": "Polia Baixa (Puxador Tornozeleira)",
+    "fabricante_nome": "Furious Equipment",
+    "preco_igual": 66.48,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3123d",
+      "6a8dc971e5816345e5d69d41"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "PRO-DE-BAR",
+    "nome": "Protetor de Barra",
+    "fabricante_nome": "Furious Equipment",
+    "preco_igual": 45.82,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31233",
+      "6a8dcbcf26e40be8c1e8fb4f"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "ANI-N015",
+    "nome": "Anilha Mini Bumper Olímpica 4Kg",
+    "fabricante_nome": "Furious Equipment",
+    "preco_igual": 93.33,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30e83",
+      "6aa6fa6334398cbc5ed0dd3e"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "ANI-N016",
+    "nome": "Anilha Mini Bumper Olímpica 5Kg",
+    "fabricante_nome": "Furious Equipment",
+    "preco_igual": 116.67,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30e84",
+      "6aa6fa6334398cbc5ed0dd3f"
+    ],
+    "margens": [
+      25,
+      10
+    ]
+  },
+  {
+    "cod": "BAR-N008",
+    "nome": "Barra Olímpica 15Kg 2,0M KTL E-Coat - Feminina",
+    "fabricante_nome": "Furious Equipment",
+    "preco_igual": 1115.38,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f68",
+      "6a8dcbcf26e40be8c1e8fb3e"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-N009",
+    "nome": "Barra Olímpica 10Kg 1,62M KTL E-Coat - Iniciante",
+    "fabricante_nome": "Furious Equipment",
+    "preco_igual": 792.31,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f69",
+      "6a8dcbcf26e40be8c1e8fb3f"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "KIT-N011",
+    "nome": "Kit Puxadores Anatômicos (7 Puxadores)",
+    "fabricante_nome": "Furious Equipment",
+    "preco_igual": 1493.06,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31209",
+      "6a8dc971e5816345e5d69d17"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "ACE-N031",
+    "nome": "Step EVA 60X28X10Cm",
+    "fabricante_nome": "Furious Equipment",
+    "preco_igual": 108.55,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30e70",
+      "6ac7fbddb453789d20f59a60"
+    ],
+    "margens": [
+      25,
+      24
+    ]
+  },
+  {
+    "cod": "TJJPI10",
+    "nome": "Tijolinho Jaú Pintado 10kg",
+    "fabricante_nome": "Furious Equipment",
+    "preco_igual": 96.67,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3126d",
+      "6a8dcaf847bb7730be9d1595"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "TJJIN5",
+    "nome": "Tijolinho Jaú Injetado 5kg",
+    "fabricante_nome": "Furious Equipment",
+    "preco_igual": 72.5,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3126c",
+      "6a8dcaf847bb7730be9d1594"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "HBI1",
+    "nome": "Halter Bola Injetado 1kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 12.06,
+    "sp_ids": [
+      "6a8d7c65a005ad83a4838e38",
+      "6a8d94fc5b7c051637e31180"
+    ],
+    "margens": [
+      0,
+      25
+    ]
+  },
+  {
+    "cod": "DMBPEB50",
+    "nome": "Dumbbell Monobloco Pintado Pegada Emborrachada 50kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 553.5,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3100c",
+      "6a8dcad15cb070ea4558c4c0"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPEB48",
+    "nome": "Dumbbell Monobloco Pintado Pegada Emborrachada 48kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 531.36,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3100b",
+      "6a8dcad15cb070ea4558c4bf"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPEB46",
+    "nome": "Dumbbell Monobloco Pintado Pegada Emborrachada 46kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 509.22,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3100a",
+      "6a8dcad15cb070ea4558c4be"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPEB44",
+    "nome": "Dumbbell Monobloco Pintado Pegada Emborrachada 44kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 487.08,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31009",
+      "6a8dcad15cb070ea4558c4bd"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPEB42",
+    "nome": "Dumbbell Monobloco Pintado Pegada Emborrachada 42kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 464.94,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31008",
+      "6a8dcad15cb070ea4558c4bc"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPEB40",
+    "nome": "Dumbbell Monobloco Pintado Pegada Emborrachada 40kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 442.8,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31007",
+      "6a8dcad15cb070ea4558c4bb"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPEB38",
+    "nome": "Dumbbell Monobloco Pintado Pegada Emborrachada 38kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 420.66,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31006",
+      "6a8dcad15cb070ea4558c4ba"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPEB36",
+    "nome": "Dumbbell Monobloco Pintado Pegada Emborrachada 36kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 398.52,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31005",
+      "6a8dcad15cb070ea4558c4b9"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPEB34",
+    "nome": "Dumbbell Monobloco Pintado Pegada Emborrachada 34kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 376.38,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31004",
+      "6a8dcad15cb070ea4558c4b8"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPEB32",
+    "nome": "Dumbbell Monobloco Pintado Pegada Emborrachada 32kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 354.24,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31003",
+      "6a8dcad15cb070ea4558c4b7"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPEB30",
+    "nome": "Dumbbell Monobloco Pintado Pegada Emborrachada 30kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 332.1,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31002",
+      "6a8dcad15cb070ea4558c4b6"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPEB28",
+    "nome": "Dumbbell Monobloco Pintado Pegada Emborrachada 28kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 309.96,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31001",
+      "6a8dcad15cb070ea4558c4b5"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPEB26",
+    "nome": "Dumbbell Monobloco Pintado Pegada Emborrachada 26kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 287.82,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31000",
+      "6a8dcad15cb070ea4558c4b4"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPEB24",
+    "nome": "Dumbbell Monobloco Pintado Pegada Emborrachada 24kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 265.68,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fff",
+      "6a8dcad15cb070ea4558c4b3"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPEB22",
+    "nome": "Dumbbell Monobloco Pintado Pegada Emborrachada 22kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 243.54,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30ffe",
+      "6a8dcad15cb070ea4558c4b2"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPEB20",
+    "nome": "Dumbbell Monobloco Pintado Pegada Emborrachada 20kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 221.4,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30ffd",
+      "6a8dcad15cb070ea4558c4b1"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPEB18",
+    "nome": "Dumbbell Monobloco Pintado Pegada Emborrachada 18kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 199.26,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30ffc",
+      "6a8dcad15cb070ea4558c4b0"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPEB16",
+    "nome": "Dumbbell Monobloco Pintado Pegada Emborrachada 16kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 177.12,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30ffb",
+      "6a8dcad15cb070ea4558c4af"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPEB14",
+    "nome": "Dumbbell Monobloco Pintado Pegada Emborrachada 14kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 154.98,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30ffa",
+      "6a8dcad15cb070ea4558c4ae"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPEB12",
+    "nome": "Dumbbell Monobloco Pintado Pegada Emborrachada 12kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 132.84,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30ff9",
+      "6a8dcad15cb070ea4558c4ad"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPEB10",
+    "nome": "Dumbbell Monobloco Pintado Pegada Emborrachada 10kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 110.7,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30ff8",
+      "6a8dcad15cb070ea4558c4ac"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPR38",
+    "nome": "Dumbbell Monobloco Pintado Pegada Recartilhada 38kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 502.74,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3101b",
+      "6a8dcad15cb070ea4558c4cf"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPR36",
+    "nome": "Dumbbell Monobloco Pintado Pegada Recartilhada 36kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 476.28,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3101a",
+      "6a8dcad15cb070ea4558c4ce"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPR34",
+    "nome": "Dumbbell Monobloco Pintado Pegada Recartilhada 34kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 449.82,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31019",
+      "6a8dcad15cb070ea4558c4cd"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPR32",
+    "nome": "Dumbbell Monobloco Pintado Pegada Recartilhada 32kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 423.36,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31018",
+      "6a8dcad15cb070ea4558c4cc"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPR30",
+    "nome": "Dumbbell Monobloco Pintado Pegada Recartilhada 30kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 396.9,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31017",
+      "6a8dcad15cb070ea4558c4cb"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPR28",
+    "nome": "Dumbbell Monobloco Pintado Pegada Recartilhada 28kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 370.44,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31016",
+      "6a8dcad15cb070ea4558c4ca"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPR26",
+    "nome": "Dumbbell Monobloco Pintado Pegada Recartilhada 26kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 343.98,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31015",
+      "6a8dcad15cb070ea4558c4c9"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPR24",
+    "nome": "Dumbbell Monobloco Pintado Pegada Recartilhada 24kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 317.52,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31014",
+      "6a8dcad15cb070ea4558c4c8"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPR22",
+    "nome": "Dumbbell Monobloco Pintado Pegada Recartilhada 22kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 291.06,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31013",
+      "6a8dcad15cb070ea4558c4c7"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPR20",
+    "nome": "Dumbbell Monobloco Pintado Pegada Recartilhada 20kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 264.6,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31012",
+      "6a8dcad15cb070ea4558c4c6"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPR18",
+    "nome": "Dumbbell Monobloco Pintado Pegada Recartilhada 18kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 238.14,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31011",
+      "6a8dcad15cb070ea4558c4c5"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPR16",
+    "nome": "Dumbbell Monobloco Pintado Pegada Recartilhada 16kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 211.68,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31010",
+      "6a8dcad15cb070ea4558c4c4"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPR14",
+    "nome": "Dumbbell Monobloco Pintado Pegada Recartilhada 14kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 185.22,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3100f",
+      "6a8dcad15cb070ea4558c4c3"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPR12",
+    "nome": "Dumbbell Monobloco Pintado Pegada Recartilhada 12kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 158.76,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3100e",
+      "6a8dcad15cb070ea4558c4c2"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPR10",
+    "nome": "Dumbbell Monobloco Pintado Pegada Recartilhada 10kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 132.3,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3100d",
+      "6a8dcad15cb070ea4558c4c1"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPR50",
+    "nome": "Dumbbell Monobloco Pintado Pegada Recartilhada 50kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 661.5,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31021",
+      "6a8dcad15cb070ea4558c4d5"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPR48",
+    "nome": "Dumbbell Monobloco Pintado Pegada Recartilhada 48kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 635.04,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31020",
+      "6a8dcad15cb070ea4558c4d4"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPR46",
+    "nome": "Dumbbell Monobloco Pintado Pegada Recartilhada 46kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 608.58,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3101f",
+      "6a8dcad15cb070ea4558c4d3"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPR44",
+    "nome": "Dumbbell Monobloco Pintado Pegada Recartilhada 44kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 582.12,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3101e",
+      "6a8dcad15cb070ea4558c4d2"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPR42",
+    "nome": "Dumbbell Monobloco Pintado Pegada Recartilhada 42kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 555.66,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3101d",
+      "6a8dcad15cb070ea4558c4d1"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBPR40",
+    "nome": "Dumbbell Monobloco Pintado Pegada Recartilhada 40kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 529.2,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3101c",
+      "6a8dcad15cb070ea4558c4d0"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBER50",
+    "nome": "Dumbbell Monobloco Emborrachado Pegada Recartilhada 50kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 751.5,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fb8",
+      "6a8dcad15cb070ea4558c46c"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBER48",
+    "nome": "Dumbbell Monobloco Emborrachado Pegada Recartilhada 48kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 721.44,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fb7",
+      "6a8dcad15cb070ea4558c46b"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBER46",
+    "nome": "Dumbbell Monobloco Emborrachado Pegada Recartilhada 46kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 691.38,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fb6",
+      "6a8dcad15cb070ea4558c46a"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBER44",
+    "nome": "Dumbbell Monobloco Emborrachado Pegada Recartilhada 44kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 661.32,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fb5",
+      "6a8dcad15cb070ea4558c469"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBER42",
+    "nome": "Dumbbell Monobloco Emborrachado Pegada Recartilhada 42kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 631.26,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fb4",
+      "6a8dcad15cb070ea4558c468"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBER40",
+    "nome": "Dumbbell Monobloco Emborrachado Pegada Recartilhada 40kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 601.2,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fb3",
+      "6a8dcad15cb070ea4558c467"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBER38",
+    "nome": "Dumbbell Monobloco Emborrachado Pegada Recartilhada 38kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 571.14,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fb2",
+      "6a8dcad15cb070ea4558c466"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBER36",
+    "nome": "Dumbbell Monobloco Emborrachado Pegada Recartilhada 36kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 541.08,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fb1",
+      "6a8dcad15cb070ea4558c465"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBER34",
+    "nome": "Dumbbell Monobloco Emborrachado Pegada Recartilhada 34kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 511.02,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fb0",
+      "6a8dcad15cb070ea4558c464"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBER32",
+    "nome": "Dumbbell Monobloco Emborrachado Pegada Recartilhada 32kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 480.96,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30faf",
+      "6a8dcad15cb070ea4558c463"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBER30",
+    "nome": "Dumbbell Monobloco Emborrachado Pegada Recartilhada 30kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 450.9,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fae",
+      "6a8dcad15cb070ea4558c462"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBER28",
+    "nome": "Dumbbell Monobloco Emborrachado Pegada Recartilhada 28kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 420.84,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fad",
+      "6a8dcad15cb070ea4558c461"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBER26",
+    "nome": "Dumbbell Monobloco Emborrachado Pegada Recartilhada 26kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 390.78,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fac",
+      "6a8dcad15cb070ea4558c460"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBER24",
+    "nome": "Dumbbell Monobloco Emborrachado Pegada Recartilhada 24kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 360.72,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fab",
+      "6a8dcad15cb070ea4558c45f"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBER22",
+    "nome": "Dumbbell Monobloco Emborrachado Pegada Recartilhada 22kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 330.66,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30faa",
+      "6a8dcad15cb070ea4558c45e"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBER20",
+    "nome": "Dumbbell Monobloco Emborrachado Pegada Recartilhada 20kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 300.6,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fa9",
+      "6a8dcad15cb070ea4558c45d"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBER18",
+    "nome": "Dumbbell Monobloco Emborrachado Pegada Recartilhada 18kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 270.54,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fa8",
+      "6a8dcad15cb070ea4558c45c"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBER16",
+    "nome": "Dumbbell Monobloco Emborrachado Pegada Recartilhada 16kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 240.48,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fa7",
+      "6a8dcad15cb070ea4558c45b"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBER14",
+    "nome": "Dumbbell Monobloco Emborrachado Pegada Recartilhada 14kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 210.42,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fa6",
+      "6a8dcad15cb070ea4558c45a"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBER12",
+    "nome": "Dumbbell Monobloco Emborrachado Pegada Recartilhada 12kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 180.36,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fa5",
+      "6a8dcad15cb070ea4558c459"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBER10",
+    "nome": "Dumbbell Monobloco Emborrachado Pegada Recartilhada 10kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 150.3,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fa4",
+      "6a8dcad15cb070ea4558c458"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIEB22",
+    "nome": "Dumbbell Monobloco Injetado Pegada Emborrachada 22kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 386.1,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fbf",
+      "6a8dcad15cb070ea4558c473"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIEB20",
+    "nome": "Dumbbell Monobloco Injetado Pegada Emborrachada 20kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 351,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fbe",
+      "6a8dcad15cb070ea4558c472"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIEB18",
+    "nome": "Dumbbell Monobloco Injetado Pegada Emborrachada 18kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 315.9,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fbd",
+      "6a8dcad15cb070ea4558c471"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIEB16",
+    "nome": "Dumbbell Monobloco Injetado Pegada Emborrachada 16kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 280.8,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fbc",
+      "6a8dcad15cb070ea4558c470"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIEB14",
+    "nome": "Dumbbell Monobloco Injetado Pegada Emborrachada 14kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 245.7,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fbb",
+      "6a8dcad15cb070ea4558c46f"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIEB12",
+    "nome": "Dumbbell Monobloco Injetado Pegada Emborrachada 12kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 210.6,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fba",
+      "6a8dcad15cb070ea4558c46e"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIEB10",
+    "nome": "Dumbbell Monobloco Injetado Pegada Emborrachada 10kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 175.5,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fb9",
+      "6a8dcad15cb070ea4558c46d"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIEB50",
+    "nome": "Dumbbell Monobloco Injetado Pegada Emborrachada 50kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 877.5,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fcd",
+      "6a8dcad15cb070ea4558c481"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIEB48",
+    "nome": "Dumbbell Monobloco Injetado Pegada Emborrachada 48kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 842.4,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fcc",
+      "6a8dcad15cb070ea4558c480"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIEB46",
+    "nome": "Dumbbell Monobloco Injetado Pegada Emborrachada 46kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 807.3,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fcb",
+      "6a8dcad15cb070ea4558c47f"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIEB44",
+    "nome": "Dumbbell Monobloco Injetado Pegada Emborrachada 44kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 772.2,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fca",
+      "6a8dcad15cb070ea4558c47e"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIEB42",
+    "nome": "Dumbbell Monobloco Injetado Pegada Emborrachada 42kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 737.1,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fc9",
+      "6a8dcad15cb070ea4558c47d"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIEB40",
+    "nome": "Dumbbell Monobloco Injetado Pegada Emborrachada 40kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 702,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fc8",
+      "6a8dcad15cb070ea4558c47c"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIEB38",
+    "nome": "Dumbbell Monobloco Injetado Pegada Emborrachada 38kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 666.9,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fc7",
+      "6a8dcad15cb070ea4558c47b"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIEB36",
+    "nome": "Dumbbell Monobloco Injetado Pegada Emborrachada 36kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 631.8,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fc6",
+      "6a8dcad15cb070ea4558c47a"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIEB34",
+    "nome": "Dumbbell Monobloco Injetado Pegada Emborrachada 34kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 596.7,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fc5",
+      "6a8dcad15cb070ea4558c479"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIEB32",
+    "nome": "Dumbbell Monobloco Injetado Pegada Emborrachada 32kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 561.6,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fc4",
+      "6a8dcad15cb070ea4558c478"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIEB30",
+    "nome": "Dumbbell Monobloco Injetado Pegada Emborrachada 30kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 526.5,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fc3",
+      "6a8dcad15cb070ea4558c477"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIEB28",
+    "nome": "Dumbbell Monobloco Injetado Pegada Emborrachada 28kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 491.4,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fc2",
+      "6a8dcad15cb070ea4558c476"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIEB26",
+    "nome": "Dumbbell Monobloco Injetado Pegada Emborrachada 26kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 456.3,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fc1",
+      "6a8dcad15cb070ea4558c475"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "DMBIEB24",
+    "nome": "Dumbbell Monobloco Injetado Pegada Emborrachada 24kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 421.2,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30fc0",
+      "6a8dcad15cb070ea4558c474"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "TIJ-N019",
+    "nome": "Guia Tijolinho Injetado Evolution 6 kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 70.2,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31263",
+      "6ac7f6d51986392edd9222a9"
+    ],
+    "margens": [
+      25,
+      24
+    ]
+  },
+  {
+    "cod": "TIJ-N021",
+    "nome": "Guia Tijolinho Quadrado Injetada 6 kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 65.88,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31264",
+      "6ac7f6d51986392edd9222ab"
+    ],
+    "margens": [
+      25,
+      24
+    ]
+  },
+  {
+    "cod": "TIJ-N022",
+    "nome": "Guia Tijolinho Quadrado Pintada 7 kg",
+    "fabricante_nome": "Anilhas de Ferro",
+    "preco_igual": 53.55,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31265",
+      "6ac7f6d51986392edd9222ac"
+    ],
+    "margens": [
+      25,
+      24
+    ]
+  },
+  {
+    "cod": "CLB-PIN-12",
+    "nome": "Clubbell Pintado Preto 12kg",
+    "fabricante_nome": "Fundição Unibrás",
+    "preco_igual": 122.3652,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f75",
+      "6ac151afb0455da111829757"
+    ],
+    "margens": [
+      25,
+      24
+    ]
+  },
+  {
+    "cod": "CLB-PIN-10",
+    "nome": "Clubbell Pintado Preto 10kg",
+    "fabricante_nome": "Fundição Unibrás",
+    "preco_igual": 101.971,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f74",
+      "6ac151afb0455da111829756"
+    ],
+    "margens": [
+      25,
+      24
+    ]
+  },
+  {
+    "cod": "CLB-PIN-8",
+    "nome": "Clubbell Pintado Preto 8kg",
+    "fabricante_nome": "Fundição Unibrás",
+    "preco_igual": 81.5768,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f73",
+      "6ac151afb0455da111829755"
+    ],
+    "margens": [
+      25,
+      24
+    ]
+  },
+  {
+    "cod": "CLB-PIN-6",
+    "nome": "Clubbell Pintado Preto 6kg",
+    "fabricante_nome": "Fundição Unibrás",
+    "preco_igual": 61.1826,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f72",
+      "6ac151afb0455da111829754"
+    ],
+    "margens": [
+      25,
+      24
+    ]
+  },
+  {
+    "cod": "CLB-PIN-4",
+    "nome": "Clubbell Pintado Preto 4kg",
+    "fabricante_nome": "Fundição Unibrás",
+    "preco_igual": 40.7884,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f71",
+      "6ac151afb0455da111829753"
+    ],
+    "margens": [
+      25,
+      24
+    ]
+  },
+  {
+    "cod": "BAR-017",
+    "nome": "Barra Maciça Cromada Recartilhada Reta 2m c/ Lock Press Mini",
+    "fabricante_nome": "Metal Forma",
+    "preco_igual": 280.2223,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f3f",
+      "6a8dcbcf26e40be8c1e8faf6"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-018",
+    "nome": "Barra Maciça Cromada Recartilhada Reta 2,2m c/ Lock Press Mini",
+    "fabricante_nome": "Metal Forma",
+    "preco_igual": 308.4382,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f40",
+      "6a8dcbcf26e40be8c1e8faf7"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-024",
+    "nome": "Barra Maciça Cromada Recartilhada \"W\" 1,2m c/ Rosca",
+    "fabricante_nome": "Metal Forma",
+    "preco_igual": 234.79010000000002,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f44",
+      "6a8dcbcf26e40be8c1e8fafd"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-060",
+    "nome": "Barra Olímpica \"W\" Cromada c/ Rolamento",
+    "fabricante_nome": "Metal Forma",
+    "preco_igual": 472.85440000000006,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f5a",
+      "6a8dcbcf26e40be8c1e8fb1e"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-082",
+    "nome": "Presilha Espiral 2 Voltas 1\"",
+    "fabricante_nome": "Metal Forma",
+    "preco_igual": 8.774,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f63",
+      "6a8dcbcf26e40be8c1e8fb34"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "TJBBRGC6",
+    "nome": "Tijolinho Guia Batman Sem acabamento Furo Chato 6kg",
+    "fabricante_nome": "Anilha X",
+    "preco_igual": 36.915,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31267",
+      "6ac7f6d51986392edd9222ad"
+    ],
+    "margens": [
+      25,
+      24
+    ]
+  },
+  {
+    "cod": "TJBBRGT6",
+    "nome": "Tijolinho Guia Batman Sem acabamento Furo Tubular 6kg",
+    "fabricante_nome": "Anilha X",
+    "preco_igual": 36.915,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31268",
+      "6ac7f6d51986392edd9222ae"
+    ],
+    "margens": [
+      25,
+      24
+    ]
+  },
+  {
+    "cod": "TJJBRGT6",
+    "nome": "Tijolinho Guia Jaú Sem acabamento Furo Tubular 6kg",
+    "fabricante_nome": "Anilha X",
+    "preco_igual": 36.915,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3126b",
+      "6ac7f6d51986392edd9222b0"
+    ],
+    "margens": [
+      25,
+      24
+    ]
+  },
+  {
+    "cod": "TJMBRGC6",
+    "nome": "Tijolinho Guia Meia Lua Sem acabamento Furo Chato 6kg",
+    "fabricante_nome": "Anilha X",
+    "preco_igual": 36.915,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3126f",
+      "6ac7f6d51986392edd9222b2"
+    ],
+    "margens": [
+      25,
+      24
+    ]
+  },
+  {
+    "cod": "TJMBRGT6",
+    "nome": "Tijolinho Guia Meia Lua Sem acabamento Furo Tubular 6kg",
+    "fabricante_nome": "Anilha X",
+    "preco_igual": 36.915,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31270",
+      "6ac7f6d51986392edd9222b3"
+    ],
+    "margens": [
+      25,
+      24
+    ]
+  },
+  {
+    "cod": "TJRBRGT6",
+    "nome": "Tijolinho Guia Retangular Sem acabamento Furo Tubular 6kg",
+    "fabricante_nome": "Anilha X",
+    "preco_igual": 36.915,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31273",
+      "6ac7f6d51986392edd9222b5"
+    ],
+    "margens": [
+      25,
+      24
+    ]
+  },
+  {
+    "cod": "TJJBR5",
+    "nome": "Tijolinho Jaú Sem acabamento 5kg",
+    "fabricante_nome": "Anilha X",
+    "preco_igual": 28.622500000000002,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31269",
+      "6ac7f6d51986392edd9222af"
+    ],
+    "margens": [
+      25,
+      24
+    ]
+  },
+  {
+    "cod": "TJMBR5",
+    "nome": "Tijolinho Meia Lua Sem acabamento 5kg",
+    "fabricante_nome": "Anilha X",
+    "preco_igual": 28.622500000000002,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e3126e",
+      "6ac7f6d51986392edd9222b1"
+    ],
+    "margens": [
+      25,
+      24
+    ]
+  },
+  {
+    "cod": "TJRBR5",
+    "nome": "Tijolinho Retangular Sem acabamento 5kg",
+    "fabricante_nome": "Anilha X",
+    "preco_igual": 28.622500000000002,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e31271",
+      "6ac7f6d51986392edd9222b4"
+    ],
+    "margens": [
+      25,
+      24
+    ]
+  },
+  {
+    "cod": "BAR-N013",
+    "nome": "Barra 40Lbs, 2,2 Metros, KTL E-Coat Rolamento Nylon",
+    "fabricante_nome": "Furious Equipment",
+    "preco_igual": 1135.85,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f6a",
+      "6a8dcbcf26e40be8c1e8fb43"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  },
+  {
+    "cod": "BAR-N014",
+    "nome": "Barra 30Lbs, 2,0 Metros, KTL E-Coat Rolamento Nylon",
+    "fabricante_nome": "Furious Equipment",
+    "preco_igual": 1000.28,
+    "sp_ids": [
+      "6a8d94fc5b7c051637e30f6b",
+      "6a8dcbcf26e40be8c1e8fb44"
+    ],
+    "margens": [
+      25,
+      0
+    ]
+  }
+]

@@ -1,0 +1,79 @@
+ACE-035 | Corda de Escalada 36mm Com Suporte 3m | Anilhas e Halteres Brasil | peça | 167.31 / 286.65 / 312.39 / 353.34 / 393.12 / 421.2 / 441.09 / 460.98 / 486.72
+DMOASER10 | Dumbbell Montado Anilha Sport Emborrachado Pegada Recartilhada 10kg | Planeta Vendas | par | 50.1 / 75.14 / 100.2 / 125.24
+DMOASPR10 | Dumbbell Montado Anilha Sport Pintado Pegada Recartilhada 10kg | Planeta Vendas | par | 34.03 / 51.04 / 68.05 / 85.06
+ACE-045 | Corda Naval Fitness Pegada Emborrachada 36mm 6m | Anilhas e Halteres Brasil | peça | 216.45 / 372 / 417.88 / 461.28
+ATBO25 | Anilha Tradicional Sem acabamento Olímpica 25kg | Muscular Fitness | peça | 8.79 / 15.82 / 175.75
+ATPO25 | Anilha Tradicional Pintado Olímpica 25kg | Muscular Fitness | peça | 9.05 / 16.29 / 181
+DSXEIN16 | Dumbbell Sextavado Emborrachado Pegada Injetada 16kg | Planeta Vendas | par | 194.63 / 433.9 / 496
+DSXEIN18 | Dumbbell Sextavado Emborrachado Pegada Injetada 18kg | Planeta Vendas | par | 218.96 / 488.14 / 558
+DSXEIN20 | Dumbbell Sextavado Emborrachado Pegada Injetada 20kg | Planeta Vendas | par | 243.29 / 542.38 / 620
+DSXEIN22 | Dumbbell Sextavado Emborrachado Pegada Injetada 22kg | Planeta Vendas | par | 267.62 / 596.61 / 682
+DSXEIN24 | Dumbbell Sextavado Emborrachado Pegada Injetada 24kg | Planeta Vendas | par | 291.95 / 650.85 / 744
+DSXEIN26 | Dumbbell Sextavado Emborrachado Pegada Injetada 26kg | Planeta Vendas | par | 316.27 / 705.09 / 806
+DSXEIN28 | Dumbbell Sextavado Emborrachado Pegada Injetada 28kg | Planeta Vendas | par | 340.6 / 759.33 / 868
+DSXEIN30 | Dumbbell Sextavado Emborrachado Pegada Injetada 30kg | Planeta Vendas | par | 364.93 / 813.56 / 930
+DMOASEPT30 | Dumbbell Montado Anilha Sport Emborrachado Pegada Pintada 30kg | Planeta Vendas | par | 40.52 / 60.78 / 303.92
+ABO1 | Anilha Bumper Olímpica 1kg | Muscular Fitness | peça | 7.03 / 7.24
+ABO2 | Anilha Bumper Olímpica 2kg | Muscular Fitness | peça | 14.06 / 14.48
+ABO2.5 | Anilha Bumper Olímpica 2,5kg | Muscular Fitness | peça | 17.57 / 18.1
+ASR5 | Anilha Sport Emborrachada 5kg | Anilhas e Halteres Brasil | peça | 11.45 / 54.6
+HBP1 | Halter Bola Pintado 1kg | Planeta Vendas | peça | 5.8 / 5.9
+HBP2 | Halter Bola Pintado 2kg | Planeta Vendas | peça | 11.6 / 11.8
+HBP3 | Halter Bola Pintado 3kg | Planeta Vendas | peça | 17.4 / 17.7
+HBP4 | Halter Bola Pintado 4kg | Planeta Vendas | peça | 23.2 / 23.6
+HBP5 | Halter Bola Pintado 5kg | Planeta Vendas | peça | 29 / 29.5
+HBP6 | Halter Bola Pintado 6kg | Planeta Vendas | peça | 34.8 / 35.4
+HBP7 | Halter Bola Pintado 7kg | Planeta Vendas | peça | 40.6 / 41.3
+HBP8 | Halter Bola Pintado 8kg | Planeta Vendas | peça | 46.4 / 47.2
+HBP9 | Halter Bola Pintado 9kg | Planeta Vendas | peça | 52.2 / 53.1
+HBP10 | Halter Bola Pintado 10kg | Planeta Vendas | peça | 58 / 59
+HBE1 | Halter Bola Emborrachado 1kg | Planeta Vendas | peça | 7.6 / 7.7
+HBE2 | Halter Bola Emborrachado 2kg | Planeta Vendas | peça | 15.2 / 15.4
+HBE3 | Halter Bola Emborrachado 3kg | Planeta Vendas | peça | 22.8 / 23.1
+HBE4 | Halter Bola Emborrachado 4kg | Planeta Vendas | peça | 30.4 / 30.8
+HBE5 | Halter Bola Emborrachado 5kg | Planeta Vendas | peça | 38 / 38.5
+HBE6 | Halter Bola Emborrachado 6kg | Planeta Vendas | peça | 45.6 / 46.2
+HBE7 | Halter Bola Emborrachado 7kg | Planeta Vendas | peça | 53.2 / 53.9
+HBE8 | Halter Bola Emborrachado 8kg | Planeta Vendas | peça | 60.8 / 61.6
+HBE9 | Halter Bola Emborrachado 9kg | Planeta Vendas | peça | 68.4 / 69.3
+HBE10 | Halter Bola Emborrachado 10kg | Planeta Vendas | peça | 76 / 77
+DSXER14 | Dumbbell Sextavado Emborrachado Pegada Recartilhada 14kg | Planeta Vendas | par | 142.35 / 243.04
+DSXEIN12 | Dumbbell Sextavado Emborrachado Pegada Injetada 12kg | Planeta Vendas | par | 145.97 / 372
+DSXEIN14 | Dumbbell Sextavado Emborrachado Pegada Injetada 14kg | Planeta Vendas | par | 170.3 / 434
+DSXEIN32 | Dumbbell Sextavado Emborrachado Pegada Injetada 32kg | Planeta Vendas | par | 389.26 / 867.8
+DSXEIN34 | Dumbbell Sextavado Emborrachado Pegada Injetada 34kg | Planeta Vendas | par | 413.59 / 922.04
+DSXEIN36 | Dumbbell Sextavado Emborrachado Pegada Injetada 36kg | Planeta Vendas | par | 437.92 / 976.28
+DSXEIN38 | Dumbbell Sextavado Emborrachado Pegada Injetada 38kg | Planeta Vendas | par | 462.25 / 1030.51
+DSXEIN40 | Dumbbell Sextavado Emborrachado Pegada Injetada 40kg | Planeta Vendas | par | 486.58 / 1084.75
+DSXEIN42 | Dumbbell Sextavado Emborrachado Pegada Injetada 42kg | Planeta Vendas | par | 510.9 / 1138.99
+DSXEIN44 | Dumbbell Sextavado Emborrachado Pegada Injetada 44kg | Planeta Vendas | par | 535.23 / 1193.23
+DSXEIN46 | Dumbbell Sextavado Emborrachado Pegada Injetada 46kg | Planeta Vendas | par | 559.56 / 1247.46
+DSXEIN48 | Dumbbell Sextavado Emborrachado Pegada Injetada 48kg | Planeta Vendas | par | 583.89 / 1301.7
+DSXEIN50 | Dumbbell Sextavado Emborrachado Pegada Injetada 50kg | Planeta Vendas | par | 608.22 / 1355.94
+DSXEPT12 | Dumbbell Sextavado Emborrachado Pegada Pintada 12kg | Planeta Vendas | par | 126.48 / 186
+DSXEPT14 | Dumbbell Sextavado Emborrachado Pegada Pintada 14kg | Planeta Vendas | par | 147.56 / 217
+DSXEPT16 | Dumbbell Sextavado Emborrachado Pegada Pintada 16kg | Planeta Vendas | par | 168.64 / 248
+DSXEPT18 | Dumbbell Sextavado Emborrachado Pegada Pintada 18kg | Planeta Vendas | par | 189.72 / 279
+DSXEPT20 | Dumbbell Sextavado Emborrachado Pegada Pintada 20kg | Planeta Vendas | par | 210.8 / 310
+DSXEPT22 | Dumbbell Sextavado Emborrachado Pegada Pintada 22kg | Planeta Vendas | par | 231.88 / 341
+DSXEPT24 | Dumbbell Sextavado Emborrachado Pegada Pintada 24kg | Planeta Vendas | par | 252.96 / 372
+DSXEPT26 | Dumbbell Sextavado Emborrachado Pegada Pintada 26kg | Planeta Vendas | par | 274.04 / 403
+DSXEPT28 | Dumbbell Sextavado Emborrachado Pegada Pintada 28kg | Planeta Vendas | par | 295.12 / 434
+DSXEPT30 | Dumbbell Sextavado Emborrachado Pegada Pintada 30kg | Planeta Vendas | par | 316.2 / 465
+DSXEPT32 | Dumbbell Sextavado Emborrachado Pegada Pintada 32kg | Planeta Vendas | par | 337.28 / 496
+DSXEPT34 | Dumbbell Sextavado Emborrachado Pegada Pintada 34kg | Planeta Vendas | par | 358.36 / 527
+DSXEPT36 | Dumbbell Sextavado Emborrachado Pegada Pintada 36kg | Planeta Vendas | par | 379.44 / 558
+DSXEPT38 | Dumbbell Sextavado Emborrachado Pegada Pintada 38kg | Planeta Vendas | par | 400.52 / 589
+DSXEPT40 | Dumbbell Sextavado Emborrachado Pegada Pintada 40kg | Planeta Vendas | par | 421.6 / 620
+DSXEPT42 | Dumbbell Sextavado Emborrachado Pegada Pintada 42kg | Planeta Vendas | par | 442.68 / 651
+DSXEPT44 | Dumbbell Sextavado Emborrachado Pegada Pintada 44kg | Planeta Vendas | par | 463.76 / 682
+DSXEPT46 | Dumbbell Sextavado Emborrachado Pegada Pintada 46kg | Planeta Vendas | par | 484.84 / 713
+DSXEPT48 | Dumbbell Sextavado Emborrachado Pegada Pintada 48kg | Planeta Vendas | par | 505.92 / 684.48
+DSXEPT50 | Dumbbell Sextavado Emborrachado Pegada Pintada 50kg | Planeta Vendas | par | 527 / 713
+SUP-041 | Suporte Dumbbell para 8 Pares | Anilhas e Halteres Brasil | peça | 558 / 620
+SUP-048 | Suporte Dumbbell para 8 Pares (c/ calço) | Anilhas e Halteres Brasil | peça | 682 / 744
+SUP-055 | Suporte Dumbbell Sextavado para 8 Pares | Anilhas e Halteres Brasil | peça | 620 / 682
+ACE-067 | Puxador Cross Over Braço/Mão/Perna/Tríceps | Anilhas e Halteres Brasil | peça | 43.4 / 74.4
+ACE-069 | Puxador Cross Over Tríceps - Peça | Anilhas e Halteres Brasil | peça | 62 / 86.8
+COL-BAG-90X | Colchonete Bagum 90x50x2,5 D80 | Caneleira e Cia | peça | 59.92 / 72.867
+COL-BAG-CIA | Colchonete Bagum & Cia 100x60x2,5 D80 | Caneleira e Cia | peça | 66.34 / 80.5389

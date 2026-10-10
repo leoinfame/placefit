@@ -1,0 +1,2415 @@
+[
+  {
+    "cod": "ACE-035",
+    "nome": "Corda de Escalada 36mm Com Suporte 3m",
+    "und": "peça",
+    "categoria": "Acessórios",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c6",
+    "precos": [
+      167.31,
+      286.65,
+      312.39,
+      353.34,
+      393.12,
+      421.2,
+      441.09,
+      460.98,
+      486.72
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a57be5ad8016d01e774bce9",
+        "preco": 167.31,
+        "margem": 0,
+        "cod_origem": "ACE-ACE-035",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a57be5ad8016d01e774bcea",
+        "preco": 286.65,
+        "margem": 0,
+        "cod_origem": "ACE-ACE-036",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a57be5ad8016d01e774bceb",
+        "preco": 312.39,
+        "margem": 0,
+        "cod_origem": "ACE-ACE-037",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a57be5ad8016d01e774bcec",
+        "preco": 353.34,
+        "margem": 0,
+        "cod_origem": "ACE-ACE-038",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a57be5ad8016d01e774bced",
+        "preco": 393.12,
+        "margem": 0,
+        "cod_origem": "ACE-ACE-039",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a57be5ad8016d01e774bcee",
+        "preco": 421.2,
+        "margem": 0,
+        "cod_origem": "ACE-ACE-040",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a57be5ad8016d01e774bcef",
+        "preco": 441.09,
+        "margem": 0,
+        "cod_origem": "ACE-ACE-041",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a57be5ad8016d01e774bcf0",
+        "preco": 460.98,
+        "margem": 0,
+        "cod_origem": "ACE-ACE-042",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a57be5ad8016d01e774bcf1",
+        "preco": 486.72,
+        "margem": 0,
+        "cod_origem": "ACE-ACE-043",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DMOASER10",
+    "nome": "Dumbbell Montado Anilha Sport Emborrachado Pegada Recartilhada 10kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      50.1,
+      75.14,
+      100.2,
+      125.24
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e836c",
+        "preco": 125.24,
+        "margem": 0,
+        "cod_origem": "dasepr10",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e8380",
+        "preco": 50.1,
+        "margem": 0,
+        "cod_origem": "dasepr04",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e8382",
+        "preco": 75.14,
+        "margem": 0,
+        "cod_origem": "dasepr06",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e8383",
+        "preco": 100.2,
+        "margem": 0,
+        "cod_origem": "dasepr08",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DMOASPR10",
+    "nome": "Dumbbell Montado Anilha Sport Pintado Pegada Recartilhada 10kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      34.03,
+      51.04,
+      68.05,
+      85.06
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e839c",
+        "preco": 85.06,
+        "margem": 0,
+        "cod_origem": "dasppr10",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83b0",
+        "preco": 34.03,
+        "margem": 0,
+        "cod_origem": "dasppr04",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83b2",
+        "preco": 51.04,
+        "margem": 0,
+        "cod_origem": "dasppr06",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83b3",
+        "preco": 68.05,
+        "margem": 0,
+        "cod_origem": "dasppr08",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "ACE-045",
+    "nome": "Corda Naval Fitness Pegada Emborrachada 36mm 6m",
+    "und": "peça",
+    "categoria": "Acessórios",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c6",
+    "precos": [
+      216.45,
+      372,
+      417.88,
+      461.28
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a57be5ad8016d01e774bcf3",
+        "preco": 216.45,
+        "margem": 0,
+        "cod_origem": "ACE-ACE-045",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a57d01f24ad6ec792ec7857",
+        "preco": 372,
+        "margem": 0,
+        "cod_origem": "COR-NAV-FIT",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a57d01f24ad6ec792ec7858",
+        "preco": 417.88,
+        "margem": 0,
+        "cod_origem": "COR-NAV-FIT",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a57d01f24ad6ec792ec7859",
+        "preco": 461.28,
+        "margem": 0,
+        "cod_origem": "COR-NAV-FIT",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "ATBO25",
+    "nome": "Anilha Tradicional Sem acabamento Olímpica 25kg",
+    "und": "peça",
+    "categoria": "Anilhas",
+    "fabricante_nome": "Muscular Fitness",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c8",
+    "precos": [
+      8.79,
+      15.82,
+      175.75
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a3de2fee1455e191a8b6e8b",
+        "preco": 8.79,
+        "margem": 0,
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a3de2fee1455e191a8b6e8d",
+        "preco": 15.82,
+        "margem": 0,
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a3de2fee1455e191a8b6e9c",
+        "preco": 175.75,
+        "margem": 0,
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "ATPO25",
+    "nome": "Anilha Tradicional Pintado Olímpica 25kg",
+    "und": "peça",
+    "categoria": "Anilhas",
+    "fabricante_nome": "Muscular Fitness",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c8",
+    "precos": [
+      9.05,
+      16.29,
+      181
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a3de2fee1455e191a8b6e90",
+        "preco": 9.05,
+        "margem": 0,
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a3de2fee1455e191a8b6e92",
+        "preco": 16.29,
+        "margem": 0,
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a3de2fee1455e191a8b6ea5",
+        "preco": 181,
+        "margem": 0,
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEIN16",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Injetada 16kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      194.63,
+      433.9,
+      496
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e831b",
+        "preco": 194.63,
+        "margem": 0,
+        "cod_origem": "daipe16",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83d3",
+        "preco": 433.9,
+        "margem": 0,
+        "cod_origem": "dsepc16",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83e7",
+        "preco": 496,
+        "margem": 0,
+        "cod_origem": "dsipc16",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEIN18",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Injetada 18kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      218.96,
+      488.14,
+      558
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e831c",
+        "preco": 218.96,
+        "margem": 0,
+        "cod_origem": "daipe18",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83d4",
+        "preco": 488.14,
+        "margem": 0,
+        "cod_origem": "dsepc18",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83e8",
+        "preco": 558,
+        "margem": 0,
+        "cod_origem": "dsipc18",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEIN20",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Injetada 20kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      243.29,
+      542.38,
+      620
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e831d",
+        "preco": 243.29,
+        "margem": 0,
+        "cod_origem": "daipe20",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83d5",
+        "preco": 542.38,
+        "margem": 0,
+        "cod_origem": "dsepc20",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83e9",
+        "preco": 620,
+        "margem": 0,
+        "cod_origem": "dsipc20",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEIN22",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Injetada 22kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      267.62,
+      596.61,
+      682
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e831e",
+        "preco": 267.62,
+        "margem": 0,
+        "cod_origem": "daipe22",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83d6",
+        "preco": 596.61,
+        "margem": 0,
+        "cod_origem": "dsepc22",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83ea",
+        "preco": 682,
+        "margem": 0,
+        "cod_origem": "dsipc22",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEIN24",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Injetada 24kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      291.95,
+      650.85,
+      744
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e831f",
+        "preco": 291.95,
+        "margem": 0,
+        "cod_origem": "daipe24",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83d7",
+        "preco": 650.85,
+        "margem": 0,
+        "cod_origem": "dsepc24",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83eb",
+        "preco": 744,
+        "margem": 0,
+        "cod_origem": "dsipc24",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEIN26",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Injetada 26kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      316.27,
+      705.09,
+      806
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e8320",
+        "preco": 316.27,
+        "margem": 0,
+        "cod_origem": "daipe26",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83d8",
+        "preco": 705.09,
+        "margem": 0,
+        "cod_origem": "dsepc26",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83ec",
+        "preco": 806,
+        "margem": 0,
+        "cod_origem": "dsipc26",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEIN28",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Injetada 28kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      340.6,
+      759.33,
+      868
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e8321",
+        "preco": 340.6,
+        "margem": 0,
+        "cod_origem": "daipe28",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83d9",
+        "preco": 759.33,
+        "margem": 0,
+        "cod_origem": "dsepc28",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83ed",
+        "preco": 868,
+        "margem": 0,
+        "cod_origem": "dsipc28",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEIN30",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Injetada 30kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      364.93,
+      813.56,
+      930
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e8322",
+        "preco": 364.93,
+        "margem": 0,
+        "cod_origem": "daipe30",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83da",
+        "preco": 813.56,
+        "margem": 0,
+        "cod_origem": "dsepc30",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83ee",
+        "preco": 930,
+        "margem": 0,
+        "cod_origem": "dsipc30",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DMOASEPT30",
+    "nome": "Dumbbell Montado Anilha Sport Emborrachado Pegada Pintada 30kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      40.52,
+      60.78,
+      303.92
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e838e",
+        "preco": 303.92,
+        "margem": 0,
+        "cod_origem": "dasppe30",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e8398",
+        "preco": 40.52,
+        "margem": 0,
+        "cod_origem": "dasppe04",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e839a",
+        "preco": 60.78,
+        "margem": 0,
+        "cod_origem": "dasppe06",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "ABO1",
+    "nome": "Anilha Bumper Olímpica 1kg",
+    "und": "peça",
+    "categoria": "Anilhas",
+    "fabricante_nome": "Muscular Fitness",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c8",
+    "precos": [
+      7.03,
+      7.24
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a3de2fee1455e191a8b6e8a",
+        "preco": 7.03,
+        "margem": 0,
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a3de2fee1455e191a8b6e8f",
+        "preco": 7.24,
+        "margem": 0,
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "ABO2",
+    "nome": "Anilha Bumper Olímpica 2kg",
+    "und": "peça",
+    "categoria": "Anilhas",
+    "fabricante_nome": "Muscular Fitness",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c8",
+    "precos": [
+      14.06,
+      14.48
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a3de2fee1455e191a8b6e8c",
+        "preco": 14.06,
+        "margem": 0,
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a3de2fee1455e191a8b6e91",
+        "preco": 14.48,
+        "margem": 0,
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "ABO2.5",
+    "nome": "Anilha Bumper Olímpica 2,5kg",
+    "und": "peça",
+    "categoria": "Anilhas",
+    "fabricante_nome": "Muscular Fitness",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c8",
+    "precos": [
+      17.57,
+      18.1
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a3de2fee1455e191a8b6e8e",
+        "preco": 17.57,
+        "margem": 0,
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a3de2fee1455e191a8b6e93",
+        "preco": 18.1,
+        "margem": 0,
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "ASR5",
+    "nome": "Anilha Sport Emborrachada 5kg",
+    "und": "peça",
+    "categoria": "Anilhas",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c6",
+    "precos": [
+      11.45,
+      54.6
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a57d3060e7870d7861ee839",
+        "preco": 54.6,
+        "margem": 0,
+        "cod_origem": "ANI-SPO-002",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a57d3060e7870d7861ee83b",
+        "preco": 11.45,
+        "margem": 0,
+        "cod_origem": "ANI-SPO-004",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "HBP1",
+    "nome": "Halter Bola Pintado 1kg",
+    "und": "peça",
+    "categoria": "Halteres",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      5.8,
+      5.9
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a3ea8a15490ebe6697f3834",
+        "preco": 5.8,
+        "margem": 0,
+        "cod_origem": "HBP1",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a3ea8a15490ebe6697f3848",
+        "preco": 5.9,
+        "margem": 0,
+        "cod_origem": "HSP1",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "HBP2",
+    "nome": "Halter Bola Pintado 2kg",
+    "und": "peça",
+    "categoria": "Halteres",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      11.6,
+      11.8
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a3ea8a15490ebe6697f3835",
+        "preco": 11.6,
+        "margem": 0,
+        "cod_origem": "HBP2",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a3ea8a15490ebe6697f3849",
+        "preco": 11.8,
+        "margem": 0,
+        "cod_origem": "HSP2",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "HBP3",
+    "nome": "Halter Bola Pintado 3kg",
+    "und": "peça",
+    "categoria": "Halteres",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      17.4,
+      17.7
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a3ea8a15490ebe6697f3836",
+        "preco": 17.4,
+        "margem": 0,
+        "cod_origem": "HBP3",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a3ea8a15490ebe6697f384a",
+        "preco": 17.7,
+        "margem": 0,
+        "cod_origem": "HSP3",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "HBP4",
+    "nome": "Halter Bola Pintado 4kg",
+    "und": "peça",
+    "categoria": "Halteres",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      23.2,
+      23.6
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a3ea8a15490ebe6697f3837",
+        "preco": 23.2,
+        "margem": 0,
+        "cod_origem": "HBP4",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a3ea8a15490ebe6697f384b",
+        "preco": 23.6,
+        "margem": 0,
+        "cod_origem": "HSP4",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "HBP5",
+    "nome": "Halter Bola Pintado 5kg",
+    "und": "peça",
+    "categoria": "Halteres",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      29,
+      29.5
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a3ea8a15490ebe6697f3838",
+        "preco": 29,
+        "margem": 0,
+        "cod_origem": "HBP5",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a3ea8a15490ebe6697f384c",
+        "preco": 29.5,
+        "margem": 0,
+        "cod_origem": "HSP5",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "HBP6",
+    "nome": "Halter Bola Pintado 6kg",
+    "und": "peça",
+    "categoria": "Halteres",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      34.8,
+      35.4
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a3ea8a15490ebe6697f3839",
+        "preco": 34.8,
+        "margem": 0,
+        "cod_origem": "HBP6",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a3ea8a15490ebe6697f384d",
+        "preco": 35.4,
+        "margem": 0,
+        "cod_origem": "HSP6",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "HBP7",
+    "nome": "Halter Bola Pintado 7kg",
+    "und": "peça",
+    "categoria": "Halteres",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      40.6,
+      41.3
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a3ea8a15490ebe6697f383a",
+        "preco": 40.6,
+        "margem": 0,
+        "cod_origem": "HBP7",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a3ea8a15490ebe6697f384e",
+        "preco": 41.3,
+        "margem": 0,
+        "cod_origem": "HSP7",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "HBP8",
+    "nome": "Halter Bola Pintado 8kg",
+    "und": "peça",
+    "categoria": "Halteres",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      46.4,
+      47.2
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a3ea8a15490ebe6697f383b",
+        "preco": 46.4,
+        "margem": 0,
+        "cod_origem": "HBP8",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a3ea8a15490ebe6697f384f",
+        "preco": 47.2,
+        "margem": 0,
+        "cod_origem": "HSP8",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "HBP9",
+    "nome": "Halter Bola Pintado 9kg",
+    "und": "peça",
+    "categoria": "Halteres",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      52.2,
+      53.1
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a3ea8a15490ebe6697f383c",
+        "preco": 52.2,
+        "margem": 0,
+        "cod_origem": "HBP9",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a3ea8a15490ebe6697f3850",
+        "preco": 53.1,
+        "margem": 0,
+        "cod_origem": "HSP9",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "HBP10",
+    "nome": "Halter Bola Pintado 10kg",
+    "und": "peça",
+    "categoria": "Halteres",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      58,
+      59
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a3ea8a15490ebe6697f383d",
+        "preco": 58,
+        "margem": 0,
+        "cod_origem": "HBP10",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a3ea8a15490ebe6697f3851",
+        "preco": 59,
+        "margem": 0,
+        "cod_origem": "HSP10",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "HBE1",
+    "nome": "Halter Bola Emborrachado 1kg",
+    "und": "peça",
+    "categoria": "Halteres",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      7.6,
+      7.7
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a3ea8a15490ebe6697f383e",
+        "preco": 7.6,
+        "margem": 0,
+        "cod_origem": "HBE1",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a3ea8a15490ebe6697f3852",
+        "preco": 7.7,
+        "margem": 0,
+        "cod_origem": "HSE1",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "HBE2",
+    "nome": "Halter Bola Emborrachado 2kg",
+    "und": "peça",
+    "categoria": "Halteres",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      15.2,
+      15.4
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a3ea8a15490ebe6697f383f",
+        "preco": 15.2,
+        "margem": 0,
+        "cod_origem": "HBE2",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a3ea8a15490ebe6697f3853",
+        "preco": 15.4,
+        "margem": 0,
+        "cod_origem": "HSE2",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "HBE3",
+    "nome": "Halter Bola Emborrachado 3kg",
+    "und": "peça",
+    "categoria": "Halteres",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      22.8,
+      23.1
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a3ea8a15490ebe6697f3840",
+        "preco": 22.8,
+        "margem": 0,
+        "cod_origem": "HBE3",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a3ea8a15490ebe6697f3854",
+        "preco": 23.1,
+        "margem": 0,
+        "cod_origem": "HSE3",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "HBE4",
+    "nome": "Halter Bola Emborrachado 4kg",
+    "und": "peça",
+    "categoria": "Halteres",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      30.4,
+      30.8
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a3ea8a15490ebe6697f3841",
+        "preco": 30.4,
+        "margem": 0,
+        "cod_origem": "HBE4",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a3ea8a15490ebe6697f3855",
+        "preco": 30.8,
+        "margem": 0,
+        "cod_origem": "HSE4",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "HBE5",
+    "nome": "Halter Bola Emborrachado 5kg",
+    "und": "peça",
+    "categoria": "Halteres",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      38,
+      38.5
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a3ea8a15490ebe6697f3842",
+        "preco": 38,
+        "margem": 0,
+        "cod_origem": "HBE5",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a3ea8a15490ebe6697f3856",
+        "preco": 38.5,
+        "margem": 0,
+        "cod_origem": "HSE5",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "HBE6",
+    "nome": "Halter Bola Emborrachado 6kg",
+    "und": "peça",
+    "categoria": "Halteres",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      45.6,
+      46.2
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a3ea8a15490ebe6697f3843",
+        "preco": 45.6,
+        "margem": 0,
+        "cod_origem": "HBE6",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a3ea8a15490ebe6697f3857",
+        "preco": 46.2,
+        "margem": 0,
+        "cod_origem": "HSE6",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "HBE7",
+    "nome": "Halter Bola Emborrachado 7kg",
+    "und": "peça",
+    "categoria": "Halteres",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      53.2,
+      53.9
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a3ea8a15490ebe6697f3844",
+        "preco": 53.2,
+        "margem": 0,
+        "cod_origem": "HBE7",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a3ea8a15490ebe6697f3858",
+        "preco": 53.9,
+        "margem": 0,
+        "cod_origem": "HSE7",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "HBE8",
+    "nome": "Halter Bola Emborrachado 8kg",
+    "und": "peça",
+    "categoria": "Halteres",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      60.8,
+      61.6
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a3ea8a15490ebe6697f3845",
+        "preco": 60.8,
+        "margem": 0,
+        "cod_origem": "HBE8",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a3ea8a15490ebe6697f3859",
+        "preco": 61.6,
+        "margem": 0,
+        "cod_origem": "HSE8",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "HBE9",
+    "nome": "Halter Bola Emborrachado 9kg",
+    "und": "peça",
+    "categoria": "Halteres",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      68.4,
+      69.3
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a3ea8a15490ebe6697f3846",
+        "preco": 68.4,
+        "margem": 0,
+        "cod_origem": "HBE9",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a3ea8a15490ebe6697f385a",
+        "preco": 69.3,
+        "margem": 0,
+        "cod_origem": "HSE9",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "HBE10",
+    "nome": "Halter Bola Emborrachado 10kg",
+    "und": "peça",
+    "categoria": "Halteres",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      76,
+      77
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a3ea8a15490ebe6697f3847",
+        "preco": 76,
+        "margem": 0,
+        "cod_origem": "HBE10",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a3ea8a15490ebe6697f385b",
+        "preco": 77,
+        "margem": 0,
+        "cod_origem": "HSE10",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXER14",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Recartilhada 14kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      142.35,
+      243.04
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e8305",
+        "preco": 142.35,
+        "margem": 0,
+        "cod_origem": "daepr14",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83d2",
+        "preco": 243.04,
+        "margem": 0,
+        "cod_origem": "dsepc14",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEIN12",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Injetada 12kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      145.97,
+      372
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e8319",
+        "preco": 145.97,
+        "margem": 0,
+        "cod_origem": "daipe12",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83e5",
+        "preco": 372,
+        "margem": 0,
+        "cod_origem": "dsipc12",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEIN14",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Injetada 14kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      170.3,
+      434
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e831a",
+        "preco": 170.3,
+        "margem": 0,
+        "cod_origem": "daipe14",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83e6",
+        "preco": 434,
+        "margem": 0,
+        "cod_origem": "dsipc14",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEIN32",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Injetada 32kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      389.26,
+      867.8
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e8323",
+        "preco": 389.26,
+        "margem": 0,
+        "cod_origem": "daipe32",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83db",
+        "preco": 867.8,
+        "margem": 0,
+        "cod_origem": "dsepc32",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEIN34",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Injetada 34kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      413.59,
+      922.04
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e8324",
+        "preco": 413.59,
+        "margem": 0,
+        "cod_origem": "daipe34",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83dc",
+        "preco": 922.04,
+        "margem": 0,
+        "cod_origem": "dsepc34",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEIN36",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Injetada 36kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      437.92,
+      976.28
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e8325",
+        "preco": 437.92,
+        "margem": 0,
+        "cod_origem": "daipe36",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83dd",
+        "preco": 976.28,
+        "margem": 0,
+        "cod_origem": "dsepc36",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEIN38",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Injetada 38kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      462.25,
+      1030.51
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e8326",
+        "preco": 462.25,
+        "margem": 0,
+        "cod_origem": "daipe38",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83de",
+        "preco": 1030.51,
+        "margem": 0,
+        "cod_origem": "dsepc38",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEIN40",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Injetada 40kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      486.58,
+      1084.75
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e8327",
+        "preco": 486.58,
+        "margem": 0,
+        "cod_origem": "daipe40",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83df",
+        "preco": 1084.75,
+        "margem": 0,
+        "cod_origem": "dsepc40",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEIN42",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Injetada 42kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      510.9,
+      1138.99
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e8328",
+        "preco": 510.9,
+        "margem": 0,
+        "cod_origem": "daipe42",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83e0",
+        "preco": 1138.99,
+        "margem": 0,
+        "cod_origem": "dsepc42",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEIN44",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Injetada 44kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      535.23,
+      1193.23
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e8329",
+        "preco": 535.23,
+        "margem": 0,
+        "cod_origem": "daipe44",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83e1",
+        "preco": 1193.23,
+        "margem": 0,
+        "cod_origem": "dsepc44",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEIN46",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Injetada 46kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      559.56,
+      1247.46
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e832a",
+        "preco": 559.56,
+        "margem": 0,
+        "cod_origem": "daipe46",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83e2",
+        "preco": 1247.46,
+        "margem": 0,
+        "cod_origem": "dsepc46",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEIN48",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Injetada 48kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      583.89,
+      1301.7
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e832b",
+        "preco": 583.89,
+        "margem": 0,
+        "cod_origem": "daipe48",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83e3",
+        "preco": 1301.7,
+        "margem": 0,
+        "cod_origem": "dsepc48",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEIN50",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Injetada 50kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      608.22,
+      1355.94
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e832c",
+        "preco": 608.22,
+        "margem": 0,
+        "cod_origem": "daipe50",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83e4",
+        "preco": 1355.94,
+        "margem": 0,
+        "cod_origem": "dsepc50",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEPT12",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Pintada 12kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      126.48,
+      186
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e8343",
+        "preco": 126.48,
+        "margem": 0,
+        "cod_origem": "dappe12",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83ef",
+        "preco": 186,
+        "margem": 0,
+        "cod_origem": "dsppc12",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEPT14",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Pintada 14kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      147.56,
+      217
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e8344",
+        "preco": 147.56,
+        "margem": 0,
+        "cod_origem": "dappe14",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83f0",
+        "preco": 217,
+        "margem": 0,
+        "cod_origem": "dsppc14",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEPT16",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Pintada 16kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      168.64,
+      248
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e8345",
+        "preco": 168.64,
+        "margem": 0,
+        "cod_origem": "dappe16",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83f1",
+        "preco": 248,
+        "margem": 0,
+        "cod_origem": "dsppc16",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEPT18",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Pintada 18kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      189.72,
+      279
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e8346",
+        "preco": 189.72,
+        "margem": 0,
+        "cod_origem": "dappe18",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83f2",
+        "preco": 279,
+        "margem": 0,
+        "cod_origem": "dsppc18",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEPT20",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Pintada 20kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      210.8,
+      310
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e8347",
+        "preco": 210.8,
+        "margem": 0,
+        "cod_origem": "dappe20",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83f3",
+        "preco": 310,
+        "margem": 0,
+        "cod_origem": "dsppc20",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEPT22",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Pintada 22kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      231.88,
+      341
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e8348",
+        "preco": 231.88,
+        "margem": 0,
+        "cod_origem": "dappe22",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83f4",
+        "preco": 341,
+        "margem": 0,
+        "cod_origem": "dsppc22",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEPT24",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Pintada 24kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      252.96,
+      372
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e8349",
+        "preco": 252.96,
+        "margem": 0,
+        "cod_origem": "dappe24",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83f5",
+        "preco": 372,
+        "margem": 0,
+        "cod_origem": "dsppc24",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEPT26",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Pintada 26kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      274.04,
+      403
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e834a",
+        "preco": 274.04,
+        "margem": 0,
+        "cod_origem": "dappe26",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83f6",
+        "preco": 403,
+        "margem": 0,
+        "cod_origem": "dsppc26",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEPT28",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Pintada 28kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      295.12,
+      434
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e834b",
+        "preco": 295.12,
+        "margem": 0,
+        "cod_origem": "dappe28",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83f7",
+        "preco": 434,
+        "margem": 0,
+        "cod_origem": "dsppc28",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEPT30",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Pintada 30kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      316.2,
+      465
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e834c",
+        "preco": 316.2,
+        "margem": 0,
+        "cod_origem": "dappe30",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83f8",
+        "preco": 465,
+        "margem": 0,
+        "cod_origem": "dsppc30",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEPT32",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Pintada 32kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      337.28,
+      496
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e834d",
+        "preco": 337.28,
+        "margem": 0,
+        "cod_origem": "dappe32",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83f9",
+        "preco": 496,
+        "margem": 0,
+        "cod_origem": "dsppc32",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEPT34",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Pintada 34kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      358.36,
+      527
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e834e",
+        "preco": 358.36,
+        "margem": 0,
+        "cod_origem": "dappe34",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83fa",
+        "preco": 527,
+        "margem": 0,
+        "cod_origem": "dsppc34",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEPT36",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Pintada 36kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      379.44,
+      558
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e834f",
+        "preco": 379.44,
+        "margem": 0,
+        "cod_origem": "dappe36",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83fb",
+        "preco": 558,
+        "margem": 0,
+        "cod_origem": "dsppc36",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEPT38",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Pintada 38kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      400.52,
+      589
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e8350",
+        "preco": 400.52,
+        "margem": 0,
+        "cod_origem": "dappe38",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83fc",
+        "preco": 589,
+        "margem": 0,
+        "cod_origem": "dsppc38",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEPT40",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Pintada 40kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      421.6,
+      620
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e8351",
+        "preco": 421.6,
+        "margem": 0,
+        "cod_origem": "dappe40",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83fd",
+        "preco": 620,
+        "margem": 0,
+        "cod_origem": "dsppc40",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEPT42",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Pintada 42kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      442.68,
+      651
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e8352",
+        "preco": 442.68,
+        "margem": 0,
+        "cod_origem": "dappe42",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83fe",
+        "preco": 651,
+        "margem": 0,
+        "cod_origem": "dsppc42",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEPT44",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Pintada 44kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      463.76,
+      682
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e8353",
+        "preco": 463.76,
+        "margem": 0,
+        "cod_origem": "dappe44",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e83ff",
+        "preco": 682,
+        "margem": 0,
+        "cod_origem": "dsppc44",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEPT46",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Pintada 46kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      484.84,
+      713
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e8354",
+        "preco": 484.84,
+        "margem": 0,
+        "cod_origem": "dappe46",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e8400",
+        "preco": 713,
+        "margem": 0,
+        "cod_origem": "dsppc46",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEPT48",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Pintada 48kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      505.92,
+      684.48
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e8355",
+        "preco": 505.92,
+        "margem": 0,
+        "cod_origem": "dappe48",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e8401",
+        "preco": 684.48,
+        "margem": 0,
+        "cod_origem": "dsppc48",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "DSXEPT50",
+    "nome": "Dumbbell Sextavado Emborrachado Pegada Pintada 50kg",
+    "und": "par",
+    "categoria": "Dumbbells",
+    "fabricante_nome": "Planeta Vendas",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c7",
+    "precos": [
+      527,
+      713
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a400539feda14ca239e8356",
+        "preco": 527,
+        "margem": 0,
+        "cod_origem": "dappe50",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a400539feda14ca239e8402",
+        "preco": 713,
+        "margem": 0,
+        "cod_origem": "dsppc50",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "SUP-041",
+    "nome": "Suporte Dumbbell para 8 Pares",
+    "und": "peça",
+    "categoria": "Suportes",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c6",
+    "precos": [
+      558,
+      620
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a57be5ad8016d01e774bc95",
+        "preco": 558,
+        "margem": 0,
+        "cod_origem": "SUP-SUP-031",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a57be5ad8016d01e774bc96",
+        "preco": 620,
+        "margem": 0,
+        "cod_origem": "SUP-SUP-032",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a57be5ad8016d01e774bc97",
+        "preco": 558,
+        "margem": 0,
+        "cod_origem": "SUP-SUP-031",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "SUP-048",
+    "nome": "Suporte Dumbbell para 8 Pares (c/ calço)",
+    "und": "peça",
+    "categoria": "Suportes",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c6",
+    "precos": [
+      682,
+      744
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a57be5ad8016d01e774bc9c",
+        "preco": 682,
+        "margem": 0,
+        "cod_origem": "SUP-SUP-038",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a57be5ad8016d01e774bc9d",
+        "preco": 744,
+        "margem": 0,
+        "cod_origem": "SUP-SUP-039",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a57be5ad8016d01e774bc9e",
+        "preco": 682,
+        "margem": 0,
+        "cod_origem": "SUP-SUP-038",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "SUP-055",
+    "nome": "Suporte Dumbbell Sextavado para 8 Pares",
+    "und": "peça",
+    "categoria": "Suportes",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c6",
+    "precos": [
+      620,
+      682
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a57be5ad8016d01e774bca3",
+        "preco": 620,
+        "margem": 0,
+        "cod_origem": "SUP-SUP-045",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a57be5ad8016d01e774bca4",
+        "preco": 682,
+        "margem": 0,
+        "cod_origem": "SUP-SUP-046",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a57be5ad8016d01e774bca5",
+        "preco": 620,
+        "margem": 0,
+        "cod_origem": "SUP-SUP-045",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "ACE-067",
+    "nome": "Puxador Cross Over Braço/Mão/Perna/Tríceps",
+    "und": "peça",
+    "categoria": "Puxadores",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c6",
+    "precos": [
+      43.4,
+      74.4
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a57d1fb0befa6078299d6b9",
+        "preco": 43.4,
+        "margem": 0,
+        "cod_origem": "PUX-CRO-OVE",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a57d1fb0befa6078299d6ba",
+        "preco": 74.4,
+        "margem": 0,
+        "cod_origem": "PUX-CRO-OVE",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "ACE-069",
+    "nome": "Puxador Cross Over Tríceps - Peça",
+    "und": "peça",
+    "categoria": "Puxadores",
+    "fabricante_nome": "Anilhas e Halteres Brasil",
+    "fabricante_id": "6a7a4fcfa3e5992c5a5cc2c6",
+    "precos": [
+      62,
+      86.8
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a57d1fb0befa6078299d6bb",
+        "preco": 86.8,
+        "margem": 0,
+        "cod_origem": "PUX-CRO-OVE",
+        "disponivel": true
+      },
+      {
+        "sp_id": "6a57d1fb0befa6078299d6bc",
+        "preco": 62,
+        "margem": 0,
+        "cod_origem": "PUX-CRO-OVE",
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "COL-BAG-90X",
+    "nome": "Colchonete Bagum 90x50x2,5 D80",
+    "und": "peça",
+    "categoria": "Colchonetes",
+    "fabricante_nome": "Caneleira e Cia",
+    "fabricante_id": "Caneleira e Cia",
+    "precos": [
+      59.92,
+      72.867
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a8d94fc5b7c051637e30f76",
+        "preco": 59.92,
+        "margem": 25,
+        "cod_origem": null,
+        "disponivel": true
+      },
+      {
+        "sp_id": "6ac15149801059e008fa88c0",
+        "preco": 72.867,
+        "margem": 24,
+        "cod_origem": null,
+        "disponivel": true
+      }
+    ]
+  },
+  {
+    "cod": "COL-BAG-CIA",
+    "nome": "Colchonete Bagum & Cia 100x60x2,5 D80",
+    "und": "peça",
+    "categoria": "Colchonetes",
+    "fabricante_nome": "Caneleira e Cia",
+    "fabricante_id": "Caneleira e Cia",
+    "precos": [
+      66.34,
+      80.5389
+    ],
+    "vinculos": [
+      {
+        "sp_id": "6a8d94fc5b7c051637e30f77",
+        "preco": 66.34,
+        "margem": 25,
+        "cod_origem": null,
+        "disponivel": true
+      },
+      {
+        "sp_id": "6ac15149801059e008fa88c1",
+        "preco": 80.5389,
+        "margem": 24,
+        "cod_origem": null,
+        "disponivel": true
+      }
+    ]
+  }
+]
