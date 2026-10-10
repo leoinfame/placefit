@@ -147,25 +147,33 @@ function removerFundoClaro(canvas) {
     if (fim >= 12) for (let k = 0; k < fim; k++) fundo[fila[k]] = 1;
   }
 
-  // sombra de chao da foto (cinza claro, sem cor, ligado ao fundo): vira sombra
-  // transparente de verdade em vez de mancha clara sobre a cor da marca
-  const sombraClara = (p) => {
-    const i = p * 4, mn = Math.min(px[i], px[i + 1], px[i + 2]), mx = Math.max(px[i], px[i + 1], px[i + 2]);
-    return px[i + 3] >= 16 && mn >= 200 && mx - mn <= 14;
+  // sombra de chao da foto: vira sombra transparente de verdade em vez de
+  // mancha cinza sobre a cor da marca. Sombra escurece GRADUALMENTE a partir do
+  // fundo; a borda de um cromado e abrupta. Por isso o preenchimento so avanca
+  // por passos suaves (<= 6 niveis), sem cor, na metade de baixo da foto.
+  const media = (p) => (px[p * 4] + px[p * 4 + 1] + px[p * 4 + 2]) / 3;
+  const semCor = (p) => {
+    const i = p * 4;
+    return px[i + 3] >= 16 && Math.max(px[i], px[i + 1], px[i + 2]) - Math.min(px[i], px[i + 1], px[i + 2]) <= 14;
   };
+  const inicioChao = Math.floor(h * 0.5) * w;
   const sombra = new Uint8Array(n);
   ini = 0; fim = 0;
-  for (let p = 0; p < n; p++) if (fundo[p]) fila[fim++] = p;
+  for (let p = inicioChao; p < n; p++) if (fundo[p]) fila[fim++] = p;
   while (ini < fim) {
-    const p = fila[ini++], x = p % w;
+    const p = fila[ini++], x = p % w, vp = fundo[p] ? Math.max(media(p), nivelFundo - 6) : media(p);
     const viz = [x > 0 ? p - 1 : -1, x < w - 1 ? p + 1 : -1, p >= w ? p - w : -1, p < n - w ? p + w : -1];
-    for (const q of viz) if (q >= 0 && !fundo[q] && !sombra[q] && sombraClara(q)) { sombra[q] = 1; fila[fim++] = q; }
+    for (const q of viz) {
+      if (q < inicioChao || fundo[q] || sombra[q] || !semCor(q)) continue;
+      const vq = media(q);
+      if (vq >= 120 && Math.abs(vq - vp) <= 6) { sombra[q] = 1; fila[fim++] = q; }
+    }
   }
   for (let p = 0; p < n; p++) {
     if (!sombra[p]) continue;
-    const i = p * 4, v = (px[i] + px[i + 1] + px[i + 2]) / 3;
+    const i = p * 4, v = media(p);
     px[i] = 0; px[i + 1] = 0; px[i + 2] = 0;
-    px[i + 3] = Math.min(255, Math.round((255 - v) * 1.6));
+    px[i + 3] = Math.max(0, Math.min(255, Math.round((nivelFundo - v) * 1.4)));
   }
 
   for (let p = 0; p < n; p++) if (fundo[p]) px[p * 4 + 3] = 0;
