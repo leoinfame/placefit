@@ -54,9 +54,11 @@ DB.Fabricante = [
 DB.Cliente = [{ id: 'C1', nome: 'Academia Força', cidade: 'Campinas', estado: 'SP', endereco: 'Av. X, 10', telefone: '19999' }];
 DB.Pedido = [{ id: 'V1', fornecedor_id: 'revenda', cliente_id: 'C1', cliente_nome: 'Academia Força', numero_pedido: 'ORC-1' }];
 DB.PedidoCompra = [
-  { id: 'PC1', revendedor_id: 'revenda', revendedor_nome: 'MuscularFit', fabricante_id: 'pendente', fabricante_nome: 'Metal Forma', venda_id: 'V1', total: 2000, itens: [{ nome: 'Barra 1,2m', quantidade: 2 }], status: 'rascunho' },
-  { id: 'PC2', revendedor_id: 'revenda', revendedor_nome: 'MuscularFit', fabricante_id: 'pendente', fabricante_nome: 'Anilhas e Halteres Brasil', venda_id: 'V1', total: 900, itens: [{ nome: 'Anilha 10kg', quantidade: 4 }], status: 'rascunho' },
+  { id: 'PC1', revendedor_id: 'revenda', revendedor_nome: 'MuscularFit', fabricante_id: 'pendente', fabricante_nome: 'Metal Forma', venda_id: 'V1', total: 2000, itens: [{ product_id: 'T1', nome: 'Barra 1,2m', quantidade: 2 }], status: 'rascunho' },
+  { id: 'PC2', revendedor_id: 'revenda', revendedor_nome: 'MuscularFit', fabricante_id: 'pendente', fabricante_nome: 'Anilhas e Halteres Brasil', venda_id: 'V1', total: 900, itens: [{ product_id: 'SP2', nome: 'Anilha 10kg', quantidade: 4 }, { product_id: 'T9', nome: 'Presilha', quantidade: 2 }], status: 'rascunho' },
 ];
+DB.ProductTemplate = [{ id: 'T1', peso_kg: 10 }, { id: 'T2', peso_kg: 10 }, { id: 'T9' }];
+DB.SupplierProduct = [{ id: 'SP2', product_id: 'T2' }];
 
 // Acesso
 await espera('sem perfil nao entra', 'curioso', { acao: 'fila_coletor' }, 403);
@@ -67,6 +69,8 @@ await espera('coletor nao inclui pedido', 'col1', { acao: 'incluir_pedido', vend
 
 // Admin: lista e sugere fabricante pelo nome
 const ap = await espera('admin_pedidos', 'admin', { acao: 'admin_pedidos' });
+passo('peso estimado na lista', ap.pedidos?.[0]?.subpedidos?.find((s: any) => s.pedido_compra_id === 'PC2')?.peso_estimado?.sem_peso === 1, ap.pedidos?.[0]?.subpedidos);
+passo('destino sugerido', ap.pedidos?.[0]?.destino_sugerido?.cidade === 'Campinas', ap.pedidos?.[0]?.destino_sugerido);
 passo('sugere fabricante', ap.pedidos?.[0]?.subpedidos?.find((s: any) => s.pedido_compra_id === 'PC1')?.fabricante_sugerido === 'F1', ap.pedidos?.[0]);
 const sug = Object.fromEntries(ap.pedidos[0].subpedidos.map((s: any) => [s.pedido_compra_id, { fabricante_id: s.fabricante_sugerido, valor_coleta: s.pedido_compra_id === 'PC1' ? 80 : '' }]));
 await espera('incluir pedido', 'admin', { acao: 'incluir_pedido', papel: 'admin', venda_id: 'V1', subpedidos: sug, valor_frete: 0 });
@@ -75,6 +79,10 @@ const [pk1, pk2] = DB.Pickup;
 const fr = DB.FreightLeg[0];
 passo('2 coletas + 1 frete', DB.Pickup.length === 2 && DB.FreightLeg.length === 1);
 passo('destino do cliente', fr.destino_cidade === 'Campinas' && fr.destino_uf === 'SP', fr);
+passo('peso estimado completo', pk1.peso_kg === 20 && pk1.peso_origem === 'estimado', pk1);
+passo('peso parcial via SupplierProduct', pk2.peso_kg === 40 && pk2.peso_origem === 'estimado_parcial', pk2);
+passo('itens gravados', pk2.itens?.length === 2 && pk2.itens[0].nome === 'Anilha 10kg', pk2.itens);
+passo('destino origem cliente', fr.destino_origem === 'cadastro_cliente', fr);
 passo('endereco do fabricante', pk1.fabricante_endereco === 'Rua A, 1' && pk1.fabricante_cidade === 'Cláudio', pk1);
 
 // Pronto: sem valor nao vai; coletor nao marca; base marca com confirmacao
@@ -114,7 +122,12 @@ await espera('conferir antes de chegar', 'base1', { acao: 'custodia', tipo: 'con
 await espera('entregar na base (digitado)', 'col1', { acao: 'custodia', tipo: 'entregue_na_base', papel: 'coletor', qr: DB.Pickup[0].qr_token.toLowerCase(), qr_digitado: true, foto_url: foto, geo_status: 'negado' });
 passo('evento sem geo registrado', DB.CustodyEvent.at(-1).geo_status === 'negado' && DB.CustodyEvent.at(-1).qr_digitado === true);
 await espera('coletor nao confere', 'col1', { acao: 'custodia', tipo: 'conferido', papel: 'coletor', qr: qr1, foto_url: foto }, 403);
-await espera('base confere', 'base1', { acao: 'custodia', tipo: 'conferido', papel: 'base', qr: qr1, foto_url: foto });
+const et1 = await espera('base le etiqueta', 'base1', { acao: 'ler_etiqueta', qr: qr1 });
+passo('etiqueta traz itens', et1.itens?.length === 1 && et1.itens[0].quantidade === 2, et1);
+await espera('coletor nao le etiqueta', 'col1', { acao: 'ler_etiqueta', qr: qr1 }, 403);
+await espera('conferir sem checklist', 'base1', { acao: 'custodia', tipo: 'conferido', papel: 'base', qr: qr1, foto_url: foto }, 400);
+await espera('base confere', 'base1', { acao: 'custodia', tipo: 'conferido', papel: 'base', qr: qr1, foto_url: foto, checklist: [{ ok: true }] });
+passo('sem divergencia', !DB.Pickup[0].divergencia && DB.CustodyEvent.at(-1).checklist?.[0]?.ok === true, DB.CustodyEvent.at(-1));
 passo('pagamento da coleta lancado', DB.HubLancamento.some((l: any) => l.tipo === 'pagamento_coleta' && l.valor === 80 && l.favorecido_nome === 'João'));
 
 // Coleta 2: falsa coleta -> taxa -> pronto de novo -> coleta normal
@@ -131,8 +144,10 @@ await espera('pronto de novo', 'base1', { acao: 'marcar_pronto', pickup_id: pk2.
 await espera('aceita 2 de novo', 'col1', { acao: 'acao_pickup', pickup_id: pk2.id, acao_pickup: 'aceitar' });
 await espera('coleta 2', 'col1', { acao: 'custodia', tipo: 'coletado_no_fabricante', papel: 'coletor', qr: qr2, foto_url: foto });
 await espera('base recebe 2 (coletor esqueceu)', 'base1', { acao: 'custodia', tipo: 'entregue_na_base', papel: 'base', qr: qr2, foto_url: foto });
-await espera('base confere 2 com divergencia', 'base1', { acao: 'custodia', tipo: 'conferido', papel: 'base', qr: qr2, foto_url: foto, divergencia: '1 anilha amassada' });
-passo('divergencia gravada', DB.Pickup[1].divergencia === '1 anilha amassada');
+await espera('base confere 2 com divergencia', 'base1', { acao: 'custodia', tipo: 'conferido', papel: 'base', qr: qr2, foto_url: foto,
+  checklist: [{ ok: false, quantidade_recebida: 3 }, { ok: true }], divergencia: '1 anilha amassada' });
+passo('divergencia nasce do checklist', DB.Pickup[1].divergencia === 'Veio 3 de 4: Anilha 10kg; Obs.: 1 anilha amassada', DB.Pickup[1].divergencia);
+passo('admin avisado com divergencia', DB.HubNotificacao.some((n: any) => n.tipo === 'conferido' && /Veio 3 de 4/.test(n.mensagem)));
 
 // Consolidacao e frete
 const pb = await espera('painel base', 'base1', { acao: 'painel_base' });
@@ -162,6 +177,24 @@ passo('acompanhar entregue', ac.pedidos?.[0]?.status === 'entregue' && ac.pedido
 passo('eventos de custodia (6 tipos + falsa)', new Set(DB.CustodyEvent.map((e: any) => e.tipo)).size === 7, DB.CustodyEvent.map((e: any) => e.tipo));
 await espera('marcar lidas', 'revenda', { acao: 'marcar_lidas' });
 passo('lidas', DB.HubNotificacao.filter((n: any) => n.destinatario_user_id === 'revenda').every((n: any) => n.lida));
+
+// Pedido da vitrine sem pedido interno: destino vem do endereco de entrega
+DB.LojaPedido = [{ id: 'L1', revendedor_id: 'revenda', numero_pedido: 'LOJA-1', cliente_nome: 'Maria Silva', cliente_telefone: '31 98888',
+  endereco_entrega: { logradouro: 'Rua das Flores', numero: '42', bairro: 'Centro', cidade: 'Belo Horizonte', estado: 'mg', cep: '30000-000' } }];
+DB.PedidoCompra.push({ id: 'PC3', revendedor_id: 'revenda', revendedor_nome: 'MuscularFit', fabricante_id: 'F1', fabricante_nome: 'Metal Forma', venda_id: 'L1', total: 300, itens: [{ product_id: 'T1', nome: 'Barra 1,2m', quantidade: 1 }], status: 'pendente' });
+const ap2 = await espera('admin_pedidos com vitrine', 'admin', { acao: 'admin_pedidos' });
+const pv = ap2.pedidos?.find((p: any) => p.venda_id === 'L1');
+passo('vitrine aparece com cliente e destino', pv?.cliente_nome === 'Maria Silva' && pv?.destino_sugerido?.origem === 'pedido_vitrine', pv);
+await espera('incluir vitrine', 'admin', { acao: 'incluir_pedido', papel: 'admin', venda_id: 'L1', subpedidos: { PC3: { fabricante_id: 'F1', valor_coleta: 40, peso_kg: 12 } } });
+const fv = DB.FreightLeg.find((f: any) => f.venda_id === 'L1');
+passo('destino da vitrine gravado', fv?.destino_cidade === 'Belo Horizonte' && fv.destino_uf === 'MG' && fv.destino_endereco === 'Rua das Flores, 42 — Centro' && fv.destino_origem === 'pedido_vitrine' && fv.cliente_nome === 'Maria Silva', fv);
+const pv3 = DB.Pickup.find((p: any) => p.venda_id === 'L1');
+passo('peso informado vence estimativa', pv3?.peso_kg === 12 && pv3.peso_origem === 'informado', pv3);
+// manual continua valendo
+DB.PedidoCompra.push({ id: 'PC4', revendedor_id: 'revenda', revendedor_nome: 'MuscularFit', fabricante_id: 'F1', fabricante_nome: 'Metal Forma', venda_id: 'L2', total: 100, itens: [], status: 'pendente' });
+await espera('incluir sem destino com manual', 'admin', { acao: 'incluir_pedido', papel: 'admin', venda_id: 'L2', destino_cidade: 'Divinópolis', destino_uf: 'mg' });
+const fm = DB.FreightLeg.find((f: any) => f.venda_id === 'L2');
+passo('destino manual', fm?.destino_cidade === 'Divinópolis' && fm.destino_uf === 'MG' && fm.destino_origem === 'manual', fm);
 
 // Flag desligada fecha o hub para a revenda
 DB.HubConfig[1].hub_ativo = false;

@@ -96,6 +96,30 @@
     },
     "recebedor_nome": {
       "type": "string"
+    },
+    "checklist": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "cod": {
+            "type": "string"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "quantidade": {
+            "type": "number"
+          },
+          "quantidade_recebida": {
+            "type": "number"
+          },
+          "ok": {
+            "type": "boolean"
+          }
+        }
+      },
+      "description": "Conferencia item a item (evento conferido); a divergencia e montada a partir dos itens nao ok"
     }
   },
   "required": [
