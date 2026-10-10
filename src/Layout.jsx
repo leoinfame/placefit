@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
+import HubSino from "@/hub/components/HubSino";
 import {
   Package,
   LayoutDashboard,
@@ -829,6 +830,7 @@ function LayoutContent({
                   </div>
                 )}
               </div>
+              <HubSino user={user} />
               <Button
                 onClick={handleInstallClick}
                 variant="outline"
