@@ -1,0 +1,165 @@
+{
+  "manifest_version": "1.0",
+  "lote": "LOTE 0 - BACKUP SOMENTE LEITURA",
+  "generated_at": "2026-10-10T11:16:19.606Z",
+  "generated_at_local": "10/10/2026, 08:16:19",
+  "app": {
+    "name": "PlaceFit",
+    "published_url": "https://placefit.base44.app",
+    "custom_domain": "https://app.placefit.com.br",
+    "catalog_reference_url": "https://app.placefit.com.br/Produtos?tab=catalogo",
+    "app_id": "68c9d5dd3cf0f8fd8a834875",
+    "environment": "PRODUCAO (nao existe ambiente de teste isolado - ver secao isolamento)"
+  },
+  "entities": {
+    "ProductTemplate": {
+      "description": "Catalogo padronizado de tipos de produtos (cada registro = uma variacao unica)",
+      "total_records": 2618,
+      "unique_ids": 2618,
+      "duplicate_ids": 0,
+      "active": 2508,
+      "inactive": 110,
+      "with_photo": 1251,
+      "without_photo": 1367,
+      "json_file": "ProductTemplate.json",
+      "csv_file": "ProductTemplate.csv",
+      "json_sha256": "336e62bbdcf62b7aa7efa7801de8e62261597f051f364478c7ad34e2623aad86",
+      "csv_sha256": "b7d2e6d52ed7269f5db00e0651eeb06e87cb09033d2396d49ea32cbfac8f2cc8"
+    },
+    "SupplierProduct": {
+      "description": "Vinculo de preco entre fornecedor (fabricante/revendedor) e ProductTemplate",
+      "total_records": 4584,
+      "unique_ids": 4584,
+      "duplicate_ids": 0,
+      "with_fabricante_id": 2516,
+      "with_supplier_id": 3656,
+      "both_refs": 1588,
+      "only_supplier_id": 2068,
+      "only_fabricante_id": 928,
+      "neither_ref": 0,
+      "json_file": "SupplierProduct.json",
+      "csv_file": "SupplierProduct.csv",
+      "json_sha256": "fe30582d752f93a0b7e0b2257d0976f7c26fb93374e68771a08cdbca274b3e61",
+      "csv_sha256": "77dfc53cedc194856ecc275deabc048c9e3e7442b732f2b115107e9e02ae4e26"
+    },
+    "SupplierSkuMap": {
+      "description": "De-para entre nomenclatura do fornecedor e catalogo padronizado",
+      "total_records": 266,
+      "unique_ids": 266,
+      "json_file": "SupplierSkuMap.json",
+      "csv_file": "SupplierSkuMap.csv",
+      "json_sha256": "07f4d157b6042ff02b242f701575fb3a646309e7e8ff69d935ac13f1b2e2ec43",
+      "csv_sha256": "2e5f1cccc8ad15c110fd7a959d0915ec071bbdccc84cb1e5eb1f212b258d57a9"
+    },
+    "Fabricante": {
+      "description": "Cadastro da fabrica como entidade propria",
+      "total_records": 16,
+      "unique_ids": 16,
+      "approved": 14,
+      "not_approved": 2,
+      "with_user_id": 15,
+      "without_user_id": 1,
+      "json_file": "Fabricante.json",
+      "csv_file": "Fabricante.csv",
+      "json_sha256": "aa47ce8835b77a47ab4dd81ae09321362e38a92371b6cd17541d103a31967f72",
+      "csv_sha256": "198c9807a47b97a6cb8a8ebf3e5c0f6cb9c4a20a283c0f4b88aaa1b03e1a476f"
+    },
+    "Category": {
+      "total_records": 7,
+      "json_file": "Category.json",
+      "csv_file": "Category.csv",
+      "json_sha256": "df7cff96313058d0b4ce43ff485f3e6910c5cf7bae07e6e7366c57b2bca2229f"
+    },
+    "Unit": {
+      "total_records": 3,
+      "json_file": "Unit.json",
+      "csv_file": "Unit.csv",
+      "json_sha256": "4265484f2106f6c587b7b02cbec5a6d64faa2ffdf0f1d3084a784ca434019d87"
+    },
+    "AtributoConfig": {
+      "total_records": 13,
+      "json_file": "AtributoConfig.json",
+      "csv_file": "AtributoConfig.csv",
+      "json_sha256": "5ed03ebf7edf00c644d3a3cf12a64487ffe08e4ecaf6bb8a06e14c1085ef4209"
+    },
+    "Product": {
+      "total_records": 0,
+      "note": "Entidade legada - vazia (0 registros). Nao sustenta o catalogo atual."
+    }
+  },
+  "reference_integrity": {
+    "SupplierProduct_to_ProductTemplate": {
+      "orphan_count": 0,
+      "status": "OK"
+    },
+    "SupplierProduct_to_Fabricante": {
+      "orphan_count": 0,
+      "status": "OK"
+    },
+    "SupplierSkuMap_to_ProductTemplate": {
+      "orphan_count": 0,
+      "status": "OK"
+    }
+  },
+  "images": {
+    "ProductTemplate_photos": 1251,
+    "Fabricante_logos": 6,
+    "total_image_urls": 1257,
+    "unique_hosts": [
+      "base44.app",
+      "anilhasehalteresbrasil.com.br",
+      "haxfit.com.br",
+      "img.irroba.com.br",
+      "metalformaadm.webtrafego.com.br",
+      "media.base44.com",
+      "placefit.com.br",
+      "app.placefit.com.br"
+    ],
+    "image_list_file": "image_urls.json",
+    "note": "URLs de imagens preservadas no JSON de cada entidade. Nao foi possivel copiar os arquivos binarios das imagens (sem acesso de download no sandbox). As URLs estao listadas em image_urls.json para download manual."
+  },
+  "schemas": {
+    "backup_dir": "schemas/",
+    "entities_copied": [
+      "ProductTemplate",
+      "SupplierProduct",
+      "SupplierSkuMap",
+      "Fabricante",
+      "Category",
+      "Unit",
+      "AtributoConfig",
+      "Product"
+    ]
+  },
+  "comparison_with_audit": {
+    "audit_cards_802": "A auditoria reportou 802 cards. O banco tem 2.618 ProductTemplate (2.508 ativos + 110 inativos). A diferenca pode ser: (a) filtro de ativos aprovados, (b) agrupamento por familia reduz o numero de cards visiveis, (c) auditoria contou apenas uma pagina. NAO forcar 802 - sao referencias para comparar.",
+    "audit_entries_2508": "A auditoria reportou 2.508 entradas carregadas. O banco tem 4.584 SupplierProduct. A diferenca pode ser: (a) filtro por fabricante especifico, (b) apenas entradas com fabricante_id preenchido (2.516 proximos de 2.508), (c) paginacao parcial. NAO forcar 2.508.",
+    "audit_unique_ids_2507": "A auditoria reportou 2.507 IDs distintos. O banco tem 4.584 IDs unicos (0 duplicados). A diferenca reflete volume maior no banco.",
+    "audit_ATI1_duplicate": "A auditoria notou ATI1 repetindo o mesmo ID. O banco tem 0 IDs duplicados em todas as entidades. Repeticao no carregamento NAO autoriza exclusao de registro."
+  },
+  "test_environment_isolation": {
+    "status": "NAO CONFIRMADO",
+    "explanation": "O Base44 nao possui ambiente de teste com banco de dados isolado. O preview do builder compartilha o MESMO banco de dados da app publicada. Operacoes de dados via SDK (create/update/delete) afetam producao imediatamente. Alteracoes de codigo no preview nao afetam dados, mas qualquer escrita via conector aparece no catalogo publico.",
+    "recommendation": "Sem isolamento comprovado, os proximos lotes DEVEM produzir propostas (dry-run) sem gravar em producao. Qualquer alteracao deve ser precedida de novo backup e executada com cautela."
+  },
+  "restoration_procedure": {
+    "warning": "NUNCA restaurar sobre producao sem antes fazer um novo backup. A restauracao por ID preserva registros especificos sem sobrescrever alteracoes posteriores.",
+    "steps": [
+      "1. Fazer novo backup do estado atual (LOTE 0 atual)",
+      "2. Identificar IDs especificos a restaurar do backup",
+      "3. Para cada ID: ler o registro do JSON de backup",
+      "4. Verificar se o registro atual diverge do backup",
+      "5. Restaurar apenas os campos necessarios via base44.entities.<Entity>.update(id, dados)",
+      "6. Para registros excluidos: usar base44.entities.<Entity>.create(dados) com o ID original (se possivel)",
+      "7. Validar integridade de referencias apos restauracao",
+      "8. Testar em ambiente isolado se disponivel (NAO disponivel no Base44)"
+    ]
+  },
+  "limitations": [
+    "Imagens binarias nao copiadas - apenas URLs preservadas em image_urls.json",
+    "Entidade Product legada esta vazia (0 registros) - sem dados para backup",
+    "Nao existe ambiente de teste isolado no Base44 - preview compartilha banco de producao",
+    "Esquemas copiados sao os atuais; alteracoes de esquema posteriores nao sao cobertas por este backup",
+    "Historico de alteracoes (updated_date) preservado, mas sem log de quem alterou cada campo"
+  ]
+}
