@@ -1,0 +1,126 @@
+{
+  "name": "CardGerado",
+  "type": "object",
+  "description": "Registro de cada card de produto gerado para redes sociais (funcao gerarCardProduto). Gravado so pelo servidor (service role). Guarda o que foi impresso no card e o custo de IA da camada artistica - por enquanto so registra, nao cobra do revendedor.",
+  "properties": {
+    "revendedor_id": {
+      "type": "string",
+      "description": "ID do User revendedor dono do produto"
+    },
+    "supplier_product_id": {
+      "type": "string",
+      "description": "SupplierProduct de onde saiu o preco"
+    },
+    "product_id": {
+      "type": "string",
+      "description": "ProductTemplate de onde saiu nome, peso e foto"
+    },
+    "formato": {
+      "type": "string",
+      "enum": [
+        "imagem",
+        "video"
+      ],
+      "default": "imagem",
+      "description": "imagem = PNG 1080x1080. video = fase futura (premium)"
+    },
+    "camada": {
+      "type": "string",
+      "enum": [
+        "padrao",
+        "artistica"
+      ],
+      "default": "padrao",
+      "description": "padrao = montagem pura, sem IA. artistica = fundo gerado por IA por baixo da mesma montagem"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "concluido",
+        "erro"
+      ],
+      "default": "concluido"
+    },
+    "nome_exibido": {
+      "type": "string",
+      "description": "Nome impresso no card (auditoria)"
+    },
+    "peso_exibido_kg": {
+      "type": "number",
+      "description": "Peso impresso no card (auditoria)"
+    },
+    "preco_exibido": {
+      "type": "number",
+      "description": "Preco impresso no card, ja com a margem (auditoria)"
+    },
+    "custo_credito": {
+      "type": "number",
+      "default": 0,
+      "description": "Custo de IA desta geracao, na unidade do provedor. 0 no card padrao e quando o fundo veio do cache"
+    },
+    "provedor_arte": {
+      "type": "string",
+      "description": "Servico de IA usado no fundo (camada artistica)"
+    },
+    "estilo_arte": {
+      "type": "string",
+      "description": "Estilo pedido para o fundo"
+    },
+    "fundo_url": {
+      "type": "string",
+      "description": "URL do fundo gerado por IA; reaproveitado por revendedor+estilo para nao gastar credito de novo"
+    },
+    "fundo_reaproveitado": {
+      "type": "boolean",
+      "default": false
+    },
+    "arquivo_url": {
+      "type": "string",
+      "description": "URL do arquivo final quando armazenado (reservado para video, que sera assincrono)"
+    },
+    "erro": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "revendedor_id",
+    "supplier_product_id",
+    "formato",
+    "camada"
+  ],
+  "x-security": {
+    "read": "authenticated",
+    "create": "admin",
+    "update": "admin",
+    "delete": "admin"
+  },
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.revendedor_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
