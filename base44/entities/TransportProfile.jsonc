@@ -1,0 +1,121 @@
+{
+  "name": "TransportProfile",
+  "type": "object",
+  "description": "Perfil de transporte do Hub PlaceFit (coletor, fretista ou base). Fica fora do User de proposito: o User tem update publico, entao um campo de perfil la seria auto-atribuivel. S\u00f3 o admin cria e edita; o app le o proprio perfil pela funcao hubApi.",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID do User dono do perfil"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "coletor",
+        "fretista",
+        "base"
+      ],
+      "description": "coletor = fabricante -> base; fretista = base -> cliente; base = operador do galpao (confere e consolida)"
+    },
+    "nome": {
+      "type": "string",
+      "description": "Nome exibido na operacao"
+    },
+    "whatsapp": {
+      "type": "string"
+    },
+    "documento": {
+      "type": "string",
+      "description": "CPF/CNPJ"
+    },
+    "veiculo": {
+      "type": "string",
+      "description": "Tipo de veiculo e placa"
+    },
+    "cidades": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Coletor: cidades dos fabricantes que atende. Vazio = todas"
+    },
+    "ufs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Fretista: UFs de destino que atende. Vazio = todas"
+    },
+    "base_id": {
+      "type": "string",
+      "description": "HubBase onde opera (base) ou para onde entrega (coletor)"
+    },
+    "verificacao": {
+      "type": "string",
+      "enum": [
+        "pendente",
+        "verificado",
+        "suspenso"
+      ],
+      "default": "pendente",
+      "description": "S\u00f3 perfil verificado ve a fila e aceita servico"
+    },
+    "documentos_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Fotos de CNH, documento do veiculo etc."
+    },
+    "limite_valor": {
+      "type": "number",
+      "description": "Valor maximo de mercadoria (R$) que pode ficar sob custodia desta pessoa por servico. Vazio = sem limite"
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true
+    },
+    "observacoes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "tipo",
+    "nome"
+  ],
+  "x-security": {
+    "read": "authenticated",
+    "create": "admin",
+    "update": "admin",
+    "delete": "admin"
+  },
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
