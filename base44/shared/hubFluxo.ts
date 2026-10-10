@@ -161,8 +161,10 @@ type PerfilFila = { id: string; cidades?: string[]; ufs?: string[]; limite_valor
 export function pickupVisivelParaColetor(p: { status: string; fabricante_cidade?: string; valor_mercadoria?: number; recusada_por?: string[] }, perfil: PerfilFila): boolean {
   if (p.status !== 'disponivel') return false;
   if ((p.recusada_por || []).includes(perfil.id)) return false;
+  // Fabricante sem cidade no cadastro (a maioria hoje) aparece para todos, senao some de toda fila regional.
   const cidades = (perfil.cidades || []).map(normalizarCidade).filter(Boolean);
-  if (cidades.length && !cidades.includes(normalizarCidade(p.fabricante_cidade || ''))) return false;
+  const cidade = normalizarCidade(p.fabricante_cidade || '');
+  if (cidades.length && cidade && !cidades.includes(cidade)) return false;
   if (perfil.limite_valor && (p.valor_mercadoria || 0) > perfil.limite_valor) return false;
   return true;
 }
