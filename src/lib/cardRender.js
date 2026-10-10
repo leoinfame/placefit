@@ -172,6 +172,14 @@ function removerFundoClaro(canvas) {
       if (vq >= 120 && Math.abs(vq - vp) <= 6) { sombra[q] = 1; fila[fim++] = q; }
     }
   }
+  // trava: sombra de chao e pequena perto do produto. Se a regiao passou de 8%
+  // do produto, ela invadiu uma superficie lisa (ex.: face cromada) - desfaz.
+  let qtdSombra = 0, qtdProduto = 0;
+  for (let p = 0; p < n; p++) {
+    if (sombra[p]) qtdSombra++;
+    else if (!fundo[p] && px[p * 4 + 3] >= 16) qtdProduto++;
+  }
+  if (qtdSombra > qtdProduto * 0.08) sombra.fill(0);
   for (let p = 0; p < n; p++) {
     if (!sombra[p]) continue;
     const i = p * 4, v = media(p);
