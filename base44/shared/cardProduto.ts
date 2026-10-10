@@ -11,10 +11,13 @@
 
 import satori from 'npm:satori@0.10.14';
 import { Resvg, initWasm } from 'npm:@resvg/resvg-wasm@2.6.2';
+import decodeWebp, { init as initWebp } from 'npm:@jsquash/webp@1.4.0/decode.js';
+import { Image } from 'https://deno.land/x/imagescript@1.3.0/mod.ts';
 
 export const CARD_LADO = 1080;
 
 const WASM_URL = 'https://cdn.jsdelivr.net/npm/@resvg/resvg-wasm@2.6.2/index_bg.wasm';
+const WEBP_WASM_URL = 'https://cdn.jsdelivr.net/npm/@jsquash/webp@1.4.0/codec/dec/webp_dec.wasm';
 const FONTES = [
   { weight: 500, url: 'https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.18/files/inter-latin-500-normal.woff' },
   { weight: 700, url: 'https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.18/files/inter-latin-700-normal.woff' },
@@ -141,26 +144,23 @@ const tipoPorAssinatura = (b: Uint8Array) => {
   return null;
 };
 
-// Satori nao decodifica WebP; resvg decodifica. Converte via resvg embrulhando
-// a imagem num SVG do mesmo tamanho.
-const larguraAlturaWebp = (b: Uint8Array): [number, number] | null => {
-  const tag = String.fromCharCode(b[12], b[13], b[14], b[15]);
-  if (tag === 'VP8X') return [1 + (b[24] | (b[25] << 8) | (b[26] << 16)), 1 + (b[27] | (b[28] << 8) | (b[29] << 16))];
-  if (tag === 'VP8 ') return [(b[26] | (b[27] << 8)) & 0x3fff, (b[28] | (b[29] << 8)) & 0x3fff];
-  if (tag === 'VP8L') {
-    const v = b[21] | (b[22] << 8) | (b[23] << 16) | (b[24] << 24);
-    return [1 + (v & 0x3fff), 1 + ((v >> 14) & 0x3fff)];
-  }
-  return null;
-};
+// Nem satori nem resvg-wasm decodificam WebP (muitas fotos de fornecedor sao
+// .webp). Decodifica com libwebp em wasm e regrava como PNG.
+let prontoWebp: Promise<void> | null = null;
+const garantirWebp = () =>
+  (prontoWebp ??= fetch(WEBP_WASM_URL)
+    .then((r) => r.arrayBuffer())
+    .then((buf) => WebAssembly.compile(buf))
+    .then((mod) => initWebp(mod))
+    .then(() => undefined));
 
 async function webpParaPng(bytes: Uint8Array): Promise<Uint8Array | null> {
-  const dim = larguraAlturaWebp(bytes);
-  if (!dim) return null;
-  const [w, h] = dim;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${w}" height="${h}"><image width="${w}" height="${h}" xlink:href="data:image/webp;base64,${toBase64(bytes)}"/></svg>`;
-  await garantirWasm();
-  return new Resvg(svg).render().asPng();
+  await garantirWebp();
+  const rgba = await decodeWebp(bytes.slice().buffer);
+  if (!rgba?.width) return null;
+  const img = new Image(rgba.width, rgba.height);
+  img.bitmap.set(rgba.data);
+  return await img.encode();
 }
 
 // Baixa uma imagem e devolve data URI que o satori aceita, ou null.
