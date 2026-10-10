@@ -54,22 +54,22 @@ export default async function printCatalogo(printWindow, source, title) {
   doc.title = `Catálogo - ${title}`;
   const style = doc.createElement('style');
   style.textContent = `
-    @page { size: A4 portrait; margin: 10mm; }
+    @page { size: A4 portrait; margin: 12mm 15mm; }
     * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     html, body { margin: 0; padding: 0; background: white; }
-    body { font-family: Arial, sans-serif; }
+    body { font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: #1e293b; }
     .catalogo-document { width: 100%; table-layout: fixed; border-collapse: collapse; }
     .catalogo-document thead { display: table-header-group; }
     .catalogo-document tbody { display: table-row-group; }
-    .catalogo-document td { vertical-align: top; padding: 4px; white-space: normal; }
+    .catalogo-document td { vertical-align: top; padding: 6px; white-space: normal; }
     .catalogo-document tr { break-inside: avoid; page-break-inside: avoid; }
     .catalogo-category-title { break-after: avoid; page-break-after: avoid; }
-    [data-catalogo-header] { margin: 0 0 8px !important; }
-    [data-catalogo-card] { height: 100%; break-inside: avoid; box-shadow: none; }
-    [data-catalogo-photo], [data-catalogo-photo] img { width: 64px !important; height: 64px !important; object-fit: contain; }
-    [data-catalogo-card] h5 { display: block !important; overflow: visible !important; }
-    [data-catalogo-footer] { margin-top: 12px; }
-    @media screen { body { max-width: 190mm; margin: 24px auto; } }
+    [data-catalogo-header] { margin: 0 0 12px !important; padding: 12px !important; border-radius: 8px; }
+    [data-catalogo-card] { height: 100%; break-inside: avoid; page-break-inside: avoid; box-shadow: none; padding: 10px !important; border: 1px solid #e2e8f0 !important; border-radius: 8px; }
+    [data-catalogo-photo], [data-catalogo-photo] img { width: 64px !important; height: 64px !important; object-fit: contain; background: #fff; border-radius: 4px; }
+    [data-catalogo-card] h5 { display: block !important; overflow: visible !important; margin-bottom: 4px; }
+    [data-catalogo-footer] { margin-top: 16px; padding-top: 10px; }
+    @media screen { body { max-width: 190mm; margin: 24px auto; padding: 0 8px; } }
   `;
   doc.head.appendChild(style);
   const table = doc.createElement('table');
