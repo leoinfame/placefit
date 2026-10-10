@@ -24,6 +24,16 @@
       "default": "imagem",
       "description": "imagem = PNG 1080x1080. video = fase futura (premium)"
     },
+    "proporcao": {
+      "type": "string",
+      "enum": [
+        "quadrado",
+        "retrato",
+        "vertical"
+      ],
+      "default": "quadrado",
+      "description": "Destino escolhido: quadrado 1:1 1080x1080 (feed), retrato 4:5 1080x1350 (feed Instagram), vertical 9:16 1080x1920 (Stories/Reels/TikTok/Status)"
+    },
     "camada": {
       "type": "string",
       "enum": [
