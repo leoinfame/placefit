@@ -1,13 +1,13 @@
-// Desenho do card de produto (PNG 1080x1080) no navegador, com Canvas 2D.
+// Desenho do card de produto (PNG) no navegador, com Canvas 2D.
+// Um so renderizador para todos os destinos (PROPORCOES): 1:1, 4:5 e 9:16.
 //
 // Recebe o pacote da funcao gerarCardProduto: dados ja verificados no servidor
 // (nome, peso, preco com margem, cores, WhatsApp) e imagens embutidas em data
 // URI. Aqui nao ha IA nem calculo de preco: so layout deterministico.
 // Formato "video" (premium, futuro) entra como outro renderizador em RENDERIZADORES.
 
-export const CARD_LADO = 1080;
-const MARGEM = 64; // area segura do feed
-const LARGURA_UTIL = CARD_LADO - 2 * MARGEM;
+const MARGEM = 64; // margem lateral segura (todos os destinos tem 1080 de largura)
+const LARGURA_UTIL = 1080 - 2 * MARGEM;
 const ALTURA_LINHA_NOME = 1.06;
 const FAMILIA = "CardInter";
 
@@ -250,9 +250,19 @@ function elipseRadial(ctx, cx, cy, rx, ry, cor, alfa) {
 
 // ---------------------------------------------------------------- layout
 
-export async function renderCardImagem(pacote) {
+// Destinos: so muda a moldura (tamanho e zona segura). Topo/base = faixa que a
+// interface do app cobre (Reels/Stories/TikTok/Status cobrem ~250px em cima e
+// ~300px embaixo); nome, preco e contato ficam sempre dentro da zona segura.
+export const PROPORCOES = {
+  quadrado: { largura: 1080, altura: 1080, topo: MARGEM, base: MARGEM },
+  retrato: { largura: 1080, altura: 1350, topo: MARGEM, base: MARGEM },
+  vertical: { largura: 1080, altura: 1920, topo: 250, base: 300 },
+};
+
+export async function renderCardImagem(pacote, proporcao = pacote.proporcao) {
   const { dados: d, imagens = {} } = pacote;
-  const L = CARD_LADO;
+  const moldura = PROPORCOES[proporcao] || PROPORCOES.quadrado;
+  const W = moldura.largura, H = moldura.altura;
   const c1 = d.marca.cor_primaria, c2 = d.marca.cor_secundaria;
   const temFundo = !!imagens.fundo;
   const texto = temFundo ? "#ffffff" : corDeTexto(c1);
@@ -268,8 +278,8 @@ export async function renderCardImagem(pacote) {
   ]);
 
   const canvas = document.createElement("canvas");
-  canvas.width = L;
-  canvas.height = L;
+  canvas.width = W;
+  canvas.height = H;
   const ctx = canvas.getContext("2d");
   ctx.imageSmoothingQuality = "high";
 
@@ -279,31 +289,32 @@ export async function renderCardImagem(pacote) {
   const seloFundo = contraste(c2, c1) >= 1.8 ? c2 : texto;
   const seloTexto = corDeTexto(seloFundo);
 
-  // Grade vertical: cabecalho | produto | nome | preco+contato
-  const topoCabecalho = MARGEM, alturaCabecalho = 92;
+  // Grade vertical dentro da zona segura: cabecalho | produto | nome | preco+contato
+  const topoCabecalho = moldura.topo, alturaCabecalho = 92;
+  const fimSeguro = H - moldura.base;
   const alturaLinhaPreco = fontePreco + 36;
   const alturaNome = Math.round(linhas.length * fonteNome * ALTURA_LINHA_NOME);
-  const topoNome = L - MARGEM - alturaLinhaPreco - 24 - alturaNome;
+  const topoNome = fimSeguro - alturaLinhaPreco - 24 - alturaNome;
   const topoProduto = topoCabecalho + alturaCabecalho + 16;
   const baseProduto = topoNome - 36;
   const alturaProduto = baseProduto - topoProduto;
 
-  // Fundo
+  // Fundo (preenche o quadro inteiro, inclusive fora da zona segura)
   ctx.fillStyle = fundoCard;
-  ctx.fillRect(0, 0, L, L);
+  ctx.fillRect(0, 0, W, H);
   if (fundo) {
-    const s = Math.max(L / fundo.naturalWidth, L / fundo.naturalHeight);
+    const s = Math.max(W / fundo.naturalWidth, H / fundo.naturalHeight);
     const fw = fundo.naturalWidth * s, fh = fundo.naturalHeight * s;
-    ctx.drawImage(fundo, (L - fw) / 2, (L - fh) / 2, fw, fh);
-    const g = ctx.createLinearGradient(0, 0, 0, L);
+    ctx.drawImage(fundo, (W - fw) / 2, (H - fh) / 2, fw, fh);
+    const g = ctx.createLinearGradient(0, 0, 0, H);
     g.addColorStop(0, "rgba(0,0,0,0.2)");
     g.addColorStop(0.35, "rgba(0,0,0,0)");
     g.addColorStop(1, "rgba(0,0,0,0.7)");
     ctx.fillStyle = g;
-    ctx.fillRect(0, 0, L, L);
+    ctx.fillRect(0, 0, W, H);
   } else {
     // brilho suave atras do produto para dar profundidade a cor chapada
-    elipseRadial(ctx, L / 2, topoProduto + alturaProduto / 2, 460, 400, "255,255,255", 0.3);
+    elipseRadial(ctx, W / 2, topoProduto + alturaProduto / 2, 460, Math.max(400, alturaProduto / 2 + 100), "255,255,255", 0.3);
   }
 
   // Produto: maior possivel na area, apoiado no "chao" com sombra
@@ -311,14 +322,14 @@ export async function renderCardImagem(pacote) {
     const escala = Math.min((LARGURA_UTIL * 0.9) / foto.width, (alturaProduto - 24) / foto.height, 3);
     const pw = Math.round(foto.width * escala), ph = Math.round(foto.height * escala);
     const larguraSombra = Math.max(220, Math.round(pw * 0.85));
-    elipseRadial(ctx, L / 2, baseProduto - 24, larguraSombra / 2, 28, "0,0,0", 0.32);
-    ctx.drawImage(foto, (L - pw) / 2, baseProduto - 24 - ph, pw, ph);
+    elipseRadial(ctx, W / 2, baseProduto - 24, larguraSombra / 2, 28, "0,0,0", 0.32);
+    ctx.drawImage(foto, (W - pw) / 2, baseProduto - 24 - ph, pw, ph);
   } else {
     ctx.fillStyle = textoSuave;
     ctx.font = fonte(500, 36);
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("Foto indisponível", L / 2, topoProduto + alturaProduto / 2);
+    ctx.fillText("Foto indisponível", W / 2, topoProduto + alturaProduto / 2);
     ctx.textAlign = "left";
   }
 
@@ -337,11 +348,11 @@ export async function renderCardImagem(pacote) {
   if (d.peso_texto) {
     ctx.font = fonte(700, 30);
     const bw = ctx.measureText(d.peso_texto).width + 52, bh = 54;
-    retanguloArredondado(ctx, L - MARGEM - bw, meioCabecalho - bh / 2, bw, bh, bh / 2);
+    retanguloArredondado(ctx, W - MARGEM - bw, meioCabecalho - bh / 2, bw, bh, bh / 2);
     ctx.fillStyle = veu;
     ctx.fill();
     ctx.fillStyle = texto;
-    ctx.fillText(d.peso_texto, L - MARGEM - bw + 26, meioCabecalho + 1);
+    ctx.fillText(d.peso_texto, W - MARGEM - bw + 26, meioCabecalho + 1);
   }
 
   // Nome (maior elemento)
@@ -352,7 +363,7 @@ export async function renderCardImagem(pacote) {
   linhas.forEach((linha, i) => ctx.fillText(linha, MARGEM, topoNome + passo * i + fonteNome * 0.86));
 
   // Preco (chamada) + contato
-  const topoLinha = L - MARGEM - alturaLinhaPreco;
+  const topoLinha = fimSeguro - alturaLinhaPreco;
   const meioLinha = topoLinha + alturaLinhaPreco / 2;
   ctx.font = fonte(800, fontePreco);
   const wPreco = ctx.measureText(d.preco_texto).width;
@@ -376,7 +387,7 @@ export async function renderCardImagem(pacote) {
     ctx.font = fonte(700, 34);
     ctx.textBaseline = "middle";
     const wNum = ctx.measureText(d.marca.whatsapp).width;
-    const xNum = L - MARGEM - wNum;
+    const xNum = W - MARGEM - wNum;
     ctx.fillStyle = texto;
     ctx.fillText(d.marca.whatsapp, xNum, meioLinha + 1);
     ctx.save();
