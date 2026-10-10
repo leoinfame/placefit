@@ -54,11 +54,11 @@ export function validarCustodia(
   const regra = REGRAS_CUSTODIA[tipo as TipoCustodia];
   if (!regra) throw new ErroHub(`Evento desconhecido: ${tipo}`);
   if (!regra.papeis.includes(papel)) throw new ErroHub('Seu perfil não registra este evento.', 403);
-  if (regra.dono && (papel === 'coletor' || papel === 'fretista') && alvo.dono_user_id !== userId) {
-    throw new ErroHub('Este serviço está com outra pessoa.', 403);
-  }
   if (!regra.de.includes(alvo.status)) {
     throw new ErroHub(`Fora de ordem: o serviço está "${ROTULO_STATUS[alvo.status] || alvo.status}".`, 409);
+  }
+  if (regra.dono && (papel === 'coletor' || papel === 'fretista') && alvo.dono_user_id !== userId) {
+    throw new ErroHub('Este serviço está com outra pessoa.', 403);
   }
   return { para: regra.para, alvo: regra.alvo };
 }
