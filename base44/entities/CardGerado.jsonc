@@ -22,7 +22,7 @@
         "video"
       ],
       "default": "imagem",
-      "description": "imagem = PNG 1080x1080. video = fase futura (premium)"
+      "description": "imagem = PNG (tamanho em proporcao). video = fase futura (premium)"
     },
     "proporcao": {
       "type": "string",
