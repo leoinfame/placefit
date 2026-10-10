@@ -32,9 +32,11 @@ export function calcularLayout(e) {
 
   // faixa 3 (rodape): altura vem do conteudo
   const pad = ESPACO.m;
-  const alturaLinhaPreco = Math.max(e.preco.h, e.contato && e.contatoAoLado ? e.contato.h : 0);
+  // contato so fica na linha do preco se couber com folga; senao desce
+  const aoLado = !!(e.contato && e.contatoAoLado && e.preco.w + ESPACO.m + e.contato.w <= largura - 2 * pad);
+  const alturaLinhaPreco = Math.max(e.preco.h, aoLado ? e.contato.h : 0);
   const alturaRodape = pad + e.alturaNome + ESPACO.p + alturaLinhaPreco
-    + (e.contato && !e.contatoAoLado ? ESPACO.p + e.contato.h : 0) + pad;
+    + (e.contato && !aoLado ? ESPACO.p + e.contato.h : 0) + pad;
 
   const faixas = {
     topo: { x: x0, y: yIni, w: largura, h: e.alturaTopo },
@@ -74,7 +76,7 @@ export function calcularLayout(e) {
   const yPreco = caixas.nome.y + e.alturaNome + ESPACO.p;
   caixas.preco = { x: r.x + pad, y: yPreco + (alturaLinhaPreco - e.preco.h) / 2, w: e.preco.w, h: e.preco.h };
   if (e.contato) {
-    caixas.contato = e.contatoAoLado
+    caixas.contato = aoLado
       ? { x: r.x + r.w - pad - e.contato.w, y: yPreco + (alturaLinhaPreco - e.contato.h) / 2, w: e.contato.w, h: e.contato.h }
       : { x: r.x + pad, y: yPreco + alturaLinhaPreco + ESPACO.p, w: e.contato.w, h: e.contato.h };
   }
