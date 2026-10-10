@@ -30,8 +30,10 @@ export default function Base() {
   const chamar = async (id, acao, extra) => {
     setOcupado(id);
     setErro("");
-    try { await hub(acao, { papel, ...extra }); await carregar(); } catch (e) { setErro(e.message); }
+    let ok = true;
+    try { await hub(acao, { papel, ...extra }); await carregar(); } catch (e) { setErro(e.message); ok = false; }
     setOcupado(null);
+    return ok;
   };
 
   if (!dados) return <div className="flex justify-center py-16">{erro ? <Erro texto={erro} /> : <Loader2 className="h-8 w-8 animate-spin text-slate-400" />}</div>;
@@ -141,8 +143,11 @@ export default function Base() {
               {f.pronto && (
                 <div className="mt-3 grid gap-2">
                   <Button variant="outline" className="h-12" disabled={ocupado === f.id} onClick={async () => {
-                    await chamar(f.id, "consolidar", { freight_leg_id: f.id });
-                    window.open(`/hub/etiquetas?frete=${f.id}`, "_blank");
+                    // abre a aba antes do await para o navegador nao bloquear o pop-up
+                    const aba = window.open("", "_blank");
+                    if (await chamar(f.id, "consolidar", { freight_leg_id: f.id })) {
+                      if (aba) aba.location.href = `/hub/etiquetas?frete=${f.id}`;
+                    } else aba?.close();
                   }}>
                     <Printer className="mr-2 h-5 w-5" />1. Imprimir etiqueta mestre
                   </Button>
