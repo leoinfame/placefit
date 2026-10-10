@@ -33,6 +33,26 @@
       "description": "Cor secundaria (hex)",
       "default": "#059669"
     },
+    "estilo_fundo": {
+      "type": "string",
+      "enum": [
+        "gradiente",
+        "claro",
+        "escuro",
+        "neutro"
+      ],
+      "default": "gradiente",
+      "description": "Identidade visual: estilo de fundo do card de produto (gradiente com a cor principal, claro, escuro ou cinza neutro)"
+    },
+    "identidade_descricao": {
+      "type": "string",
+      "description": "Identidade visual: descricao curta em texto livre (ex.: academia raiz, tons escuros). NAO usada no card padrao; reservada para a camada artistica futura"
+    },
+    "identidade_configurada": {
+      "type": "boolean",
+      "default": false,
+      "description": "true quando o revendedor salvou a secao Identidade visual do perfil; o card passa a usar cor_primaria/cor_secundaria/estilo_fundo. false = cores extraidas da logo"
+    },
     "descricao": {
       "type": "string",
       "description": "Descricao/sobre a loja"

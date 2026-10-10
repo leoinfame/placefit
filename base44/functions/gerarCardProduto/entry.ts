@@ -6,6 +6,9 @@ import { arteConfigurada, gerarFundoArtistico, ESTILOS_ARTE, ESTILO_PADRAO } fro
 // body: { supplier_product_id, camada?: 'padrao'|'artistica', formato?: 'imagem'|'video',
 //         proporcao?: 'quadrado'|'retrato'|'vertical', estilo? }
 // body: { acao: 'config' } -> diz quais camadas/formatos estao disponiveis (para a tela).
+// body: { acao: 'previa', supplier_product_id? } -> pacote de um produto do proprio
+//        revendedor (de preferencia com foto) para a miniatura da tela de
+//        Identidade visual. NAO grava CardGerado.
 // Resposta: { dados, imagens: { foto, logo, fundo }, card_id, nome_arquivo, ... }
 // O PNG e desenhado no navegador (src/lib/cardRender.js) a partir desta resposta.
 Deno.serve(async (req) => {
@@ -18,6 +21,22 @@ Deno.serve(async (req) => {
 
     if (body.acao === 'config') {
       return Response.json({ formatos: FORMATOS, proporcoes: PROPORCOES, arte_disponivel: arteConfigurada(), estilos: Object.keys(ESTILOS_ARTE) });
+    }
+
+    if (body.acao === 'previa') {
+      let spId = body.supplier_product_id;
+      if (!spId) {
+        const sps = (await base44.asServiceRole.entities.SupplierProduct.filter({ supplier_id: user.id }, '-updated_date', 50))
+          .filter((sp: any) => sp.preco > 0);
+        const tmpls = sps.length
+          ? await base44.asServiceRole.entities.ProductTemplate.filter({ id: { $in: sps.map((sp: any) => sp.product_id) } })
+          : [];
+        const comFoto = new Set(tmpls.filter((t: any) => t.foto).map((t: any) => t.id));
+        spId = (sps.find((sp: any) => comFoto.has(sp.product_id)) || sps[0])?.id;
+      }
+      if (!spId) throw new ErroCard('Adicione um produto com preço em Meus Produtos para ver a prévia.', 404);
+      const dadosPrevia = await carregarDadosCard(base44, user, spId);
+      return Response.json({ ...(await montarPacoteCard(dadosPrevia)), formato: 'imagem', proporcao: 'quadrado', previa: true });
     }
 
     const formato = body.formato || 'imagem';

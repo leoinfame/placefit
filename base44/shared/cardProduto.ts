@@ -18,8 +18,11 @@ export const normalizarProporcao = (v: unknown) =>
   typeof v === 'string' && PROPORCOES.includes(v) ? v : 'quadrado';
 const LIMITE_IMAGEM = 8 * 1024 * 1024;
 
+// Defaults do schema da LojaConfig: se as duas cores ainda sao essas, o
+// revendedor nunca escolheu - o navegador extrai as cores da logo.
 const COR_PRIMARIA_PADRAO = '#1e40af';
 const COR_SECUNDARIA_PADRAO = '#059669';
+export const ESTILOS_FUNDO = ['gradiente', 'claro', 'escuro', 'neutro'];
 
 export class ErroCard extends Error {
   status: number;
@@ -32,8 +35,9 @@ export class ErroCard extends Error {
 export type MarcaCard = {
   nome: string;
   logo: string | null;
-  cor_primaria: string;
-  cor_secundaria: string;
+  cor_primaria: string | null; // null = navegador extrai da logo
+  cor_secundaria: string | null;
+  estilo_fundo: string;
   whatsapp: string | null;
 };
 
@@ -51,8 +55,21 @@ export type DadosCard = {
 
 // ---------------------------------------------------------------- dados
 
-const hexValido = (v: unknown, padrao: string) =>
-  typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v.trim()) ? v.trim() : padrao;
+const hexOuNulo = (v: unknown) =>
+  typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v.trim()) ? v.trim().toLowerCase() : null;
+
+// Identidade visual do revendedor (LojaConfig):
+// 1) secao "Identidade visual" salva (identidade_configurada) -> usa os campos;
+// 2) cores da loja escolhidas antes (diferentes dos defaults) -> usa as cores;
+// 3) nada escolhido -> cores null (navegador extrai da logo), fundo gradiente.
+export function resolverIdentidade(loja: any) {
+  const estilo = ESTILOS_FUNDO.includes(loja?.estilo_fundo) ? loja.estilo_fundo : 'gradiente';
+  const c1 = hexOuNulo(loja?.cor_primaria), c2 = hexOuNulo(loja?.cor_secundaria);
+  if (loja?.identidade_configurada) return { cor_primaria: c1, cor_secundaria: c2, estilo_fundo: estilo };
+  const saoDefaults = c1 === COR_PRIMARIA_PADRAO && c2 === COR_SECUNDARIA_PADRAO;
+  if (c1 && !saoDefaults) return { cor_primaria: c1, cor_secundaria: c2, estilo_fundo: 'gradiente' };
+  return { cor_primaria: null, cor_secundaria: null, estilo_fundo: 'gradiente' };
+}
 
 // Mesma conta da tela "Meus Produtos": preco de fabrica x (1 + margem/100).
 export const precoRevendedor = (preco: number, margem: number) =>
@@ -93,8 +110,7 @@ export async function carregarDadosCard(base44: any, user: any, supplierProductI
     marca: {
       nome: String(loja.nome_loja || dono.empresa || dono.full_name || '').trim(),
       logo: loja.logo_url || dono.logomarca || null,
-      cor_primaria: hexValido(loja.cor_primaria, COR_PRIMARIA_PADRAO),
-      cor_secundaria: hexValido(loja.cor_secundaria, COR_SECUNDARIA_PADRAO),
+      ...resolverIdentidade(loja),
       whatsapp: loja.whatsapp_contato || dono.whatsapp || null,
     },
   };
@@ -155,7 +171,10 @@ export async function montarPacoteCard(d: DadosCard, fundoUrl: string | null = n
       preco_final: d.preco_final,
       preco_texto: formatarPreco(d.preco_final),
       peso_texto: d.peso_kg != null ? formatarPeso(d.peso_kg) : null,
-      marca: { nome: d.marca.nome, cor_primaria: d.marca.cor_primaria, cor_secundaria: d.marca.cor_secundaria, whatsapp: d.marca.whatsapp },
+      marca: {
+        nome: d.marca.nome, cor_primaria: d.marca.cor_primaria, cor_secundaria: d.marca.cor_secundaria,
+        estilo_fundo: d.marca.estilo_fundo, whatsapp: d.marca.whatsapp,
+      },
     },
     imagens: { foto, logo, fundo },
   };

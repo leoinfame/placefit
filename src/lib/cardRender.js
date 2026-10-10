@@ -7,6 +7,9 @@
 // Formato "video" (premium, futuro) entra como outro renderizador em RENDERIZADORES.
 
 import { calcularLayout, ESPACO } from "./cardLayout.js";
+import { hexParaRgb, luminancia, hexValido, extrairCoresDePixels, resolverPaleta } from "./cardCores.js";
+
+export { contraste, corDeTexto } from "./cardCores.js";
 
 const FAMILIA = "CardInter";
 
@@ -46,24 +49,6 @@ function carregarImagem(uri) {
     img.src = uri;
   });
 }
-
-// ---------------------------------------------------------------- cores
-
-const hexParaRgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
-
-const luminancia = ([r, g, b]) => {
-  const f = (c) => ((c /= 255) <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
-  return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
-};
-
-export const contraste = (a, b) => {
-  const [x, y] = [luminancia(hexParaRgb(a)), luminancia(hexParaRgb(b))].sort((p, q) => q - p);
-  return (x + 0.05) / (y + 0.05);
-};
-
-// Todo texto do card e grande e em negrito (>= 24px), onde 3:1 ja e legivel
-// (WCAG AA texto grande). Prefere branco; cai para quase-preto se nao der.
-export const corDeTexto = (fundo) => (contraste(fundo, "#ffffff") >= 3 ? "#ffffff" : "#111111");
 
 // ---------------------------------------------------------------- tratamento de imagem
 
@@ -238,9 +223,11 @@ function tingirSePoucoContraste(canvas, fundo, cor) {
     if (px[i + 3] < 128) continue;
     opacos++;
     const l = luminancia([px[i], px[i + 1], px[i + 2]]);
-    if ((Math.max(l, lumFundo) + 0.05) / (Math.min(l, lumFundo) + 0.05) < 3) fracos++;
+    if ((Math.max(l, lumFundo) + 0.05) / (Math.min(l, lumFundo) + 0.05) < 1.8) fracos++;
   }
-  if (!opacos || fracos / opacos < 0.3) return;
+  // logo e grafico, nao texto: so tinge se uma parte relevante (>= 8%) quase
+  // some no fundo (< 1.8:1); logo colorida legivel fica com as cores originais
+  if (!opacos || fracos / opacos < 0.08) return;
   for (let i = 0; i < px.length; i += 4) {
     if (Math.min(px[i], px[i + 1], px[i + 2]) >= 228) px[i + 3] = 0;
     px[i] = c[0]; px[i + 1] = c[1]; px[i + 2] = c[2];
@@ -260,6 +247,17 @@ async function prepararImagem(uri, { removerFundo = false, tingir = null } = {})
     c = paraCanvas(img);
   }
   return c;
+}
+
+function coresDoCanvas(canvas) {
+  const px = canvas.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, canvas.width, canvas.height).data;
+  return extrairCoresDePixels(px);
+}
+
+// Sugestao de identidade a partir da logo (data URI ou URL com CORS).
+export async function sugerirCoresDaLogo(uri) {
+  const c = await prepararImagem(uri, { removerFundo: true });
+  return c ? coresDoCanvas(c) : null;
 }
 
 // ---------------------------------------------------------------- texto
@@ -312,10 +310,6 @@ export const PROPORCOES = {
 const TAMANHOS_NOME = [56, 52, 48, 44, 40, 36, 34, 32, 30, 28];
 const VERDE_WHATSAPP = "#25D366";
 
-const misturar = (a, b, t) => {
-  const x = hexParaRgb(a), y = hexParaRgb(b);
-  return "#" + x.map((v, i) => Math.round(v + (y[i] - v) * t).toString(16).padStart(2, "0")).join("");
-};
 
 // Nome completo, nunca truncado: maior corpo que caiba em 2 linhas; se nem o
 // menor couber, aceita mais linhas.
@@ -359,23 +353,26 @@ export async function renderCardImagem(pacote, proporcao = pacote.proporcao) {
   const moldura = PROPORCOES[proporcao] || PROPORCOES.quadrado;
   const W = moldura.largura, H = moldura.altura, ui = moldura.ui;
   const RAIO = Math.round(24 * ui);
-  const c1 = d.marca.cor_primaria;
   const temFundo = !!imagens.fundo;
-
-  // Cores: rodape solido que contrasta com a marca
-  const marcaEscura = luminancia(hexParaRgb(c1)) < 0.2;
-  const marcaClara = luminancia(hexParaRgb(c1)) > 0.45;
-  const painel = marcaEscura ? "#ffffff" : misturar(c1, "#000000", 0.84);
-  const painelTexto = corDeTexto(painel);
-  const precoCor = contraste(c1, painel) >= 3 ? c1 : painelTexto;
-  const textoTopo = temFundo ? "#ffffff" : corDeTexto(c1);
 
   await carregarFontes();
   const [foto, logo, fundo] = await Promise.all([
     prepararImagem(imagens.foto, { removerFundo: true }),
-    prepararImagem(imagens.logo, { removerFundo: true, tingir: { fundo: temFundo ? "#111111" : c1, cor: textoTopo } }),
+    prepararImagem(imagens.logo, { removerFundo: true }),
     carregarImagem(imagens.fundo),
   ]);
+
+  // Identidade: cores configuradas pelo revendedor; se nao houver, extraidas da logo
+  let principal = d.marca.cor_primaria, secundaria = d.marca.cor_secundaria;
+  if (!hexValido(principal) || !hexValido(secundaria)) {
+    const daLogo = logo ? coresDoCanvas(logo) : null;
+    if (!hexValido(principal)) principal = daLogo?.principal;
+    if (!hexValido(secundaria)) secundaria = daLogo?.secundaria;
+  }
+  const pal = resolverPaleta({ principal, secundaria, estilo: d.marca.estilo_fundo });
+  const { painel, painelTexto, precoCor } = pal;
+  const textoTopo = temFundo ? "#ffffff" : pal.textoTopo;
+  if (logo) tingirSePoucoContraste(logo, temFundo ? "#111111" : pal.base, textoTopo);
 
   const canvas = document.createElement("canvas");
   canvas.width = W;
@@ -447,17 +444,17 @@ export async function renderCardImagem(pacote, proporcao = pacote.proporcao) {
   } else {
     const raioFundo = Math.hypot(W, H) * 0.62;
     const g = ctx.createRadialGradient(cxFoto, cyFoto, 0, cxFoto, cyFoto, raioFundo);
-    g.addColorStop(0, misturar(c1, "#ffffff", marcaClara ? 0.35 : 0.22));
-    g.addColorStop(0.45, c1);
-    g.addColorStop(1, misturar(c1, "#000000", marcaClara ? 0.22 : 0.38));
+    g.addColorStop(0, pal.paradas[0]);
+    g.addColorStop(0.45, pal.paradas[1]);
+    g.addColorStop(1, pal.paradas[2]);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
     const tam = caixas.foto ? Math.max(caixas.foto.w, caixas.foto.h) : 400;
-    texturaDiagonal(ctx, W, H, marcaClara ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.05)", cxFoto, cyFoto, tam * 0.6);
+    texturaDiagonal(ctx, W, H, pal.textura, cxFoto, cyFoto, tam * 0.6);
   }
   const vin = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.45, W / 2, H / 2, Math.hypot(W, H) * 0.6);
   vin.addColorStop(0, "rgba(0,0,0,0)");
-  vin.addColorStop(1, "rgba(0,0,0,0.28)");
+  vin.addColorStop(1, `rgba(0,0,0,${temFundo ? 0.28 : pal.vinheta})`);
   ctx.fillStyle = vin;
   ctx.fillRect(0, 0, W, H);
 
@@ -465,7 +462,7 @@ export async function renderCardImagem(pacote, proporcao = pacote.proporcao) {
   if (caixas.foto) {
     const f = caixas.foto, s = caixas.sombra;
     const tam = Math.max(f.w, f.h);
-    elipseRadial(ctx, cxFoto, cyFoto, tam * 0.62 + 80, tam * 0.55 + 60, "255,255,255", marcaClara ? 0.45 : 0.32);
+    elipseRadial(ctx, cxFoto, cyFoto, tam * 0.62 + 80, tam * 0.55 + 60, pal.luz[0], pal.luz[1]);
     const base = f.y + f.h;
     elipseRadial(ctx, s.x + s.w / 2, base - 2, s.w * 0.5, s.h * 0.5, "0,0,0", 0.35);
     elipseRadial(ctx, s.x + s.w / 2, base - 1, s.w * 0.38, s.h * 0.18, "0,0,0", 0.55);
@@ -529,9 +526,9 @@ export async function renderCardImagem(pacote, proporcao = pacote.proporcao) {
   if (caixas.badge) {
     const b = caixas.badge;
     retanguloArredondado(ctx, b.x, b.y, b.w, b.h, RAIO * 0.75);
-    ctx.fillStyle = painel;
+    ctx.fillStyle = pal.badgeFundo;
     ctx.fill();
-    ctx.fillStyle = painelTexto;
+    ctx.fillStyle = pal.badgeTexto;
     ctx.font = fonte(800, fonteBadge);
     ctx.fillText(d.peso_texto, b.x + padBadge, b.y + b.h / 2 + 1);
   }
