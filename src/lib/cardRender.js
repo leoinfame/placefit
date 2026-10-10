@@ -124,6 +124,28 @@ function removerFundoClaro(canvas) {
     if (fim >= areaMinima) for (let k = 0; k < fim; k++) fundo[fila[k]] = 1;
   }
 
+  // bolsoes da cor exata do fundo presos no chao (entre pes, sombra e base):
+  // so no quarto inferior da foto, para nao furar cromados do produto
+  let somaFundo = 0, qtdFundo = 0;
+  for (let p = 0; p < n; p += 7) if (fundo[p] && px[p * 4 + 3] >= 16) { somaFundo += (px[p * 4] + px[p * 4 + 1] + px[p * 4 + 2]) / 3; qtdFundo++; }
+  const nivelFundo = qtdFundo ? somaFundo / qtdFundo : 255;
+  const corDeFundo = (p) => {
+    const i = p * 4, mn = Math.min(px[i], px[i + 1], px[i + 2]), mx = Math.max(px[i], px[i + 1], px[i + 2]);
+    return px[i + 3] >= 16 && mx - mn <= 8 && Math.abs((px[i] + px[i + 1] + px[i + 2]) / 3 - nivelFundo) <= 10;
+  };
+  const linhaChao = Math.floor(h * 0.75) * w;
+  for (let s = linhaChao; s < n; s++) {
+    if (fundo[s] || visto[s] || !corDeFundo(s)) continue;
+    ini = 0; fim = 0;
+    visto[s] = 1; fila[fim++] = s;
+    while (ini < fim) {
+      const p = fila[ini++], x = p % w;
+      const viz = [x > 0 ? p - 1 : -1, x < w - 1 ? p + 1 : -1, p >= w ? p - w : -1, p < n - w ? p + w : -1];
+      for (const q of viz) if (q >= linhaChao && !visto[q] && !fundo[q] && corDeFundo(q)) { visto[q] = 1; fila[fim++] = q; }
+    }
+    if (fim >= 12) for (let k = 0; k < fim; k++) fundo[fila[k]] = 1;
+  }
+
   // sombra de chao da foto (cinza claro, sem cor, ligado ao fundo): vira sombra
   // transparente de verdade em vez de mancha clara sobre a cor da marca
   const sombraClara = (p) => {
