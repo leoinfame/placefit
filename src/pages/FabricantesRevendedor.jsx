@@ -330,47 +330,47 @@ export default function FabricantesRevendedor() {
       });
       const fmtPreco = (v) => 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+      // Tabela densa B2B: 1 linha por produto, variações como chips na mesma linha
       const categoriasBlocos = catsOrdenadas.map((cat) => {
         const itens = categorias[cat];
         const icon = categoryIcons[cat] || '📦';
-        const cards = itens.map((g) => {
+        // Linha separadora de categoria (colspan 5)
+        let rows = `<tr><td colspan="5" style="background:${c.light};padding:3px 5px;border-bottom:1px solid ${c.lightBorder};">
+          <span style="font-size:9pt;">${icon}</span>
+          <span style="font-size:8pt;font-weight:700;color:${c.primaryDark};letter-spacing:0.5px;text-transform:uppercase;margin-left:3px;">${cat}</span>
+          <span style="font-size:7pt;color:#64748b;font-weight:400;margin-left:4px;">${itens.length} ${itens.length === 1 ? 'item' : 'itens'}</span>
+        </td></tr>`;
+        // Linhas de produto: foto miniatura | nome | variações (chips com preço) | und | a partir de
+        for (const g of itens) {
           const precos = g.variants.map(v => v.preco);
           const mesmoPreco = precos.every(p => p === precos[0]);
           const temChips = g.variants.length > 1 || (g.variants[0] && g.variants[0].label);
           const fotoHtml = g.foto
-            ? `<img src="${g.foto}" alt="" style="width:30px;height:30px;object-fit:contain;background:#fff;border-radius:4px;border:1px solid #e2e8f0;flex-shrink:0;">`
-            : `<div style="width:30px;height:30px;border-radius:4px;border:1px solid #e2e8f0;background:#f8fafc;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">📦</div>`;
-          const chips = temChips ? g.variants.map(v => `<span style="display:inline-block;font-size:7px;color:#475569;background:#eff6ff;border:1px solid #dbeafe;padding:1px 4px;border-radius:8px;margin:1px 2px 1px 0;white-space:nowrap;">${v.label || v.cod}${mesmoPreco ? '' : ' · ' + fmtPreco(v.preco)}</span>`).join('') : '';
+            ? `<img src="${g.foto}" alt="" style="width:24px;height:24px;object-fit:contain;background:#fff;border-radius:3px;border:1px solid #e2e8f0;">`
+            : `<div style="width:24px;height:24px;border-radius:3px;border:1px solid #e2e8f0;background:#f8fafc;display:flex;align-items:center;justify-content:center;font-size:10px;">📦</div>`;
+          const chips = temChips
+            ? g.variants.map(v => `<span style="display:inline-block;font-size:7pt;color:#475569;background:#eff6ff;border:1px solid #dbeafe;padding:0 3px;border-radius:6px;margin:0 2px 1px 0;white-space:nowrap;line-height:1.5;">${v.label || v.cod}${mesmoPreco ? '' : ' · ' + fmtPreco(v.preco)}</span>`).join('')
+            : `<span style="font-size:7pt;color:#94a3b8;">—</span>`;
           const precoTxt = mesmoPreco ? fmtPreco(precos[0]) : 'a partir de ' + fmtPreco(Math.min(...precos));
-          const codTxt = g.cods.length > 1 ? g.cods[0] + ' … ' + g.cods[g.cods.length - 1] : g.cods[0];
-          return `
-          <div style="border:1px solid #e2e8f0;border-radius:6px;padding:8px;background:#ffffff;break-inside:avoid;display:flex;gap:6px;min-height:78px;">
-            ${fotoHtml}
-            <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;min-width:0;">
-              <div>
-                ${codTxt ? `<span style="display:inline-block;font-size:7px;font-family:monospace;color:#64748b;background:#f1f5f9;padding:1px 4px;border-radius:3px;margin-bottom:3px;">${codTxt}</span>` : ''}
-                <div style="font-size:9px;font-weight:600;color:#1e293b;line-height:1.25;">${g.nome}</div>
-              </div>
-              ${chips ? `<div style="margin:4px 0;line-height:1.4;">${chips}</div>` : `<div style="margin:4px 0;"><span style="font-size:7px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.3px;">${g.und || 'peça'}</span></div>`}
-              <div style="display:flex;align-items:flex-end;justify-content:space-between;border-top:1px solid #f1f5f9;padding-top:3px;">
-                <span style="font-size:7px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.3px;">${mesmoPreco ? 'Preço' : 'Preço (varia)'}</span>
-                <span style="font-size:${mesmoPreco ? 11 : 9}px;font-weight:700;color:#16a34a;">${precoTxt}</span>
-              </div>
-            </div>
-          </div>`;
-        }).join('');
-
-        return `
-          <div style="margin-bottom:12px;">
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
-              <div style="width:3px;height:14px;background:${c.secondary};border-radius:2px;"></div>
-              <span style="font-size:11px;">${icon}</span>
-              <span style="font-size:10px;font-weight:700;color:#1e293b;letter-spacing:1px;text-transform:uppercase;">${cat}</span>
-              <span style="margin-left:auto;font-size:8px;color:#64748b;font-weight:500;">${itens.length} ${itens.length === 1 ? 'item' : 'itens'}</span>
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;">${cards}</div>
-          </div>`;
+          const codTxt = g.cods.length > 1 ? g.cods[0] + '…' : g.cods[0];
+          rows += `<tr>
+            <td style="padding:2px 3px;border-bottom:1px solid #f1f5f9;vertical-align:middle;text-align:center;">${fotoHtml}</td>
+            <td style="padding:2px 3px;border-bottom:1px solid #f1f5f9;vertical-align:middle;">
+              <div style="font-size:8pt;font-weight:600;color:#1e293b;line-height:1.2;">${g.nome}</div>
+              ${codTxt ? `<div style="font-size:6pt;font-family:monospace;color:#94a3b8;">${codTxt}</div>` : ''}
+            </td>
+            <td style="padding:2px 3px;border-bottom:1px solid #f1f5f9;vertical-align:middle;line-height:1.6;">${chips}</td>
+            <td style="padding:2px 3px;border-bottom:1px solid #f1f5f9;vertical-align:middle;text-align:center;font-size:7pt;color:#64748b;">${g.und || 'peça'}</td>
+            <td style="padding:2px 3px;border-bottom:1px solid #f1f5f9;vertical-align:middle;text-align:right;font-size:8pt;font-weight:700;color:#16a34a;white-space:nowrap;">${precoTxt}</td>
+          </tr>`;
+        }
+        return rows;
       }).join('');
+
+      // Índice compacto de categorias
+      const indexHtml = catsOrdenadas.map(cat =>
+        `<span style="display:inline-block;font-size:7pt;color:${c.primaryDark};background:${c.light};border:1px solid ${c.lightBorder};padding:1px 5px;border-radius:8px;margin:1px 3px 1px 0;white-space:nowrap;">${categoryIcons[cat] || '📦'} ${cat} <span style="color:#94a3b8;font-size:6pt;">${categorias[cat].length}</span></span>`
+      ).join('');
 
       const html = `<!DOCTYPE html>
       <html lang="pt-BR">
@@ -402,6 +402,11 @@ export default function FabricantesRevendedor() {
     .footer-item-value { font-size: 8px; color: #1e293b; font-weight: 500; }
     .footer-disclaimer { font-size: 8px; color: #64748b; line-height: 1.4; background: transparent; border: 1px solid #e2e8f0; border-radius: 4px; padding: 6px 8px; }
     .footer-brand { font-size: 7px; color: #94a3b8; }
+    table.prod-table { width: 100%; border-collapse: collapse; }
+    table.prod-table thead { display: table-header-group; }
+    table.prod-table tr { page-break-inside: avoid; }
+    table.prod-table th { background: #f1f5f9; }
+    .index-bar { margin-bottom: 6px; page-break-inside: avoid; }
     @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
   </style>
 </head>
@@ -430,7 +435,25 @@ export default function FabricantesRevendedor() {
     <div class="stat-card"><div class="stat-num">${dataGeracao}</div><div class="stat-label">Atualizado em</div></div>
   </div>
 
-  ${categoriasBlocos}
+  <!-- Índice de Categorias -->
+  <div class="index-bar">
+    <div style="font-size:7pt;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">Índice</div>
+    <div>${indexHtml}</div>
+  </div>
+
+  <!-- Tabela de Produtos -->
+  <table class="prod-table">
+    <thead>
+      <tr>
+        <th style="padding:3px 4px;text-align:center;font-size:7pt;color:#64748b;text-transform:uppercase;border-bottom:1px solid #cbd5e1;width:28px;"></th>
+        <th style="padding:3px 4px;text-align:left;font-size:7pt;color:#64748b;text-transform:uppercase;border-bottom:1px solid #cbd5e1;width:32%;">Produto</th>
+        <th style="padding:3px 4px;text-align:left;font-size:7pt;color:#64748b;text-transform:uppercase;border-bottom:1px solid #cbd5e1;">Variações e Preços</th>
+        <th style="padding:3px 4px;text-align:center;font-size:7pt;color:#64748b;text-transform:uppercase;border-bottom:1px solid #cbd5e1;width:24px;">Und</th>
+        <th style="padding:3px 4px;text-align:right;font-size:7pt;color:#64748b;text-transform:uppercase;border-bottom:1px solid #cbd5e1;width:60px;">A partir de</th>
+      </tr>
+    </thead>
+    <tbody>${categoriasBlocos}</tbody>
+  </table>
 
   <div class="footer">
     <div class="footer-grid">
@@ -440,8 +463,8 @@ export default function FabricantesRevendedor() {
       <div class="footer-item"><div class="footer-item-label">Validade da Tabela</div><div class="footer-item-value">Válida na data de geração: ${dataGeracao}</div></div>
     </div>
     <div class="footer-disclaimer">⚠️ <strong>Aviso:</strong> Esta tabela pode sofrer alterações sem aviso prévio. Consulte disponibilidade antes de confirmar o pedido.</div>
-    <div style="margin-top:12px;display:flex;justify-content:space-between;">
-      <div class="footer-brand">Documento gerado automaticamente</div>
+    <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center;padding-top:4px;border-top:1px solid #e2e8f0;">
+      <div class="footer-brand">Total: ${grupos.length} produtos · ${Object.keys(categorias).length} categorias</div>
       <div class="footer-brand">${nomeEmpresa} · ${dataGeracao}</div>
     </div>
   </div>
@@ -1014,7 +1037,7 @@ RESPONDA EM PORTUGUÊS BRASILEIRO DE FORMA PROFISSIONAL E COMERCIAL.
               <DialogTitle>
                 Catálogo - {selectedFabricante?.nome_fantasia || selectedFabricante?.razao_social || selectedFabricante?.empresa || selectedFabricante?.full_name}
               </DialogTitle>
-              <Button onClick={() => window.print()} variant="outline" size="sm" className="gap-1.5">
+              <Button onClick={() => { setShowCatalogoDialog(false); downloadFabricanteTable(selectedFabricante); }} variant="outline" size="sm" className="gap-1.5">
                 <Download className="w-4 h-4" />
                 Exportar PDF
               </Button>
