@@ -124,10 +124,31 @@ function removerFundoClaro(canvas) {
     if (fim >= areaMinima) for (let k = 0; k < fim; k++) fundo[fila[k]] = 1;
   }
 
+  // sombra de chao da foto (cinza claro, sem cor, ligado ao fundo): vira sombra
+  // transparente de verdade em vez de mancha clara sobre a cor da marca
+  const sombraClara = (p) => {
+    const i = p * 4, mn = Math.min(px[i], px[i + 1], px[i + 2]), mx = Math.max(px[i], px[i + 1], px[i + 2]);
+    return px[i + 3] >= 16 && mn >= 200 && mx - mn <= 14;
+  };
+  const sombra = new Uint8Array(n);
+  ini = 0; fim = 0;
+  for (let p = 0; p < n; p++) if (fundo[p]) fila[fim++] = p;
+  while (ini < fim) {
+    const p = fila[ini++], x = p % w;
+    const viz = [x > 0 ? p - 1 : -1, x < w - 1 ? p + 1 : -1, p >= w ? p - w : -1, p < n - w ? p + w : -1];
+    for (const q of viz) if (q >= 0 && !fundo[q] && !sombra[q] && sombraClara(q)) { sombra[q] = 1; fila[fim++] = q; }
+  }
+  for (let p = 0; p < n; p++) {
+    if (!sombra[p]) continue;
+    const i = p * 4, v = (px[i] + px[i + 1] + px[i + 2]) / 3;
+    px[i] = 0; px[i + 1] = 0; px[i + 2] = 0;
+    px[i + 3] = Math.min(255, Math.round((255 - v) * 1.6));
+  }
+
   for (let p = 0; p < n; p++) if (fundo[p]) px[p * 4 + 3] = 0;
   // contorno: pixels claros vizinhos do fundo ficam semitransparentes (sem halo branco)
   for (let p = 0; p < n; p++) {
-    if (fundo[p]) continue;
+    if (fundo[p] || sombra[p]) continue;
     const x = p % w;
     const vizinho = (x > 0 && fundo[p - 1]) || (x < w - 1 && fundo[p + 1]) || (p >= w && fundo[p - w]) || (p < n - w && fundo[p + w]);
     if (!vizinho) continue;
@@ -160,19 +181,22 @@ function aparar(canvas) {
   return c;
 }
 
-// Logo que some no fundo (ex.: simbolo laranja sobre laranja) vira
-// monocromatica na cor do texto. Brancos internos viram vazados.
+// Logo com pouco contraste com o fundo (simbolo laranja sobre laranja, logo
+// preta sobre azul escuro) vira monocromatica na cor do texto. Brancos
+// internos viram vazados.
 function tingirSePoucoContraste(canvas, fundo, cor) {
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
   const dados = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const px = dados.data, bg = hexParaRgb(fundo), c = hexParaRgb(cor);
-  let opacos = 0, perto = 0;
+  const px = dados.data, c = hexParaRgb(cor);
+  const lumFundo = luminancia(hexParaRgb(fundo));
+  let opacos = 0, fracos = 0;
   for (let i = 0; i < px.length; i += 4) {
     if (px[i + 3] < 128) continue;
     opacos++;
-    if (Math.hypot(px[i] - bg[0], px[i + 1] - bg[1], px[i + 2] - bg[2]) < 90) perto++;
+    const l = luminancia([px[i], px[i + 1], px[i + 2]]);
+    if ((Math.max(l, lumFundo) + 0.05) / (Math.min(l, lumFundo) + 0.05) < 3) fracos++;
   }
-  if (!opacos || perto / opacos < 0.08) return;
+  if (!opacos || fracos / opacos < 0.3) return;
   for (let i = 0; i < px.length; i += 4) {
     if (Math.min(px[i], px[i + 1], px[i + 2]) >= 228) px[i + 3] = 0;
     px[i] = c[0]; px[i + 1] = c[1]; px[i + 2] = c[2];
