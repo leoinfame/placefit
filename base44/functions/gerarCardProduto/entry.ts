@@ -92,6 +92,6 @@ Deno.serve(async (req) => {
   } catch (error) {
     const status = error instanceof ErroCard ? error.status : 500;
     if (status === 500) console.error('Erro gerarCardProduto:', error);
-    return Response.json({ error: error.message || 'Erro ao gerar o card' }, { status });
+    return Response.json({ error: (error as Error)?.message || 'Erro ao gerar o card' }, { status });
   }
 });
