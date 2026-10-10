@@ -199,3 +199,72 @@ export const NOTIFICAR: Record<string, { papeis: ('base' | 'admin' | 'revenda' |
   retirado_pelo_fretista: { papeis: ['revenda', 'admin'], titulo: 'Pedido saiu para entrega' },
   entregue_ao_cliente: { papeis: ['revenda', 'admin'], titulo: 'Pedido entregue' },
 };
+
+// ---- Peso estimado pelo catalogo ----
+// pesoPorProduto: product_id -> peso_kg do ProductTemplate. Item sem peso no catalogo deixa a estimativa parcial.
+export function estimarPeso(
+  itens: { product_id?: string; quantidade?: number }[],
+  pesoPorProduto: Record<string, number | undefined>,
+): { peso_kg: number | null; completo: boolean; sem_peso: number } {
+  let total = 0, semPeso = 0;
+  for (const it of itens || []) {
+    const p = it.product_id ? Number(pesoPorProduto[it.product_id]) : NaN;
+    if (Number.isFinite(p) && p > 0) total += p * (Number(it.quantidade) || 1);
+    else semPeso++;
+  }
+  const arred = Math.round(total * 10) / 10;
+  return { peso_kg: arred > 0 ? arred : null, completo: semPeso === 0 && arred > 0, sem_peso: semPeso };
+}
+
+// ---- Destino do frete ----
+// Prioridade: o que o admin digitou > endereco de entrega do pedido da vitrine > cadastro do cliente.
+type Destino = { endereco?: string; cidade?: string; uf?: string; cep?: string; telefone?: string };
+export function resolverDestino(
+  manual: Destino,
+  vitrine: { endereco_entrega?: any; cliente_telefone?: string } | null,
+  cliente: { endereco?: string; cidade?: string; estado?: string; cep?: string; telefone?: string } | null,
+): Destino & { origem: 'manual' | 'pedido_vitrine' | 'cadastro_cliente' | 'sem_destino' } {
+  const e = vitrine?.endereco_entrega || {};
+  const daVitrine: Destino = {
+    endereco: [e.logradouro && `${e.logradouro}${e.numero ? ', ' + e.numero : ''}`, e.complemento, e.bairro].filter(Boolean).join(' — ') || undefined,
+    cidade: e.cidade || undefined,
+    uf: e.estado || undefined,
+    cep: e.cep || undefined,
+    telefone: vitrine?.cliente_telefone || undefined,
+  };
+  const doCliente: Destino = cliente ? {
+    endereco: cliente.endereco || undefined, cidade: cliente.cidade || undefined, uf: cliente.estado || undefined,
+    cep: cliente.cep || undefined, telefone: cliente.telefone || undefined,
+  } : {};
+  const base = daVitrine.cidade ? daVitrine : doCliente;
+  const limpo = (v?: string) => (v && String(v).trim()) || undefined;
+  const r: Destino = {};
+  for (const k of ['endereco', 'cidade', 'uf', 'cep', 'telefone'] as const) r[k] = limpo(manual?.[k]) || limpo(base[k]);
+  if (r.uf) r.uf = r.uf.toUpperCase().slice(0, 2);
+  const temManual = (['endereco', 'cidade', 'uf'] as const).some((k) => limpo(manual?.[k]));
+  const origem = temManual ? 'manual' : !r.cidade ? 'sem_destino' : base === daVitrine ? 'pedido_vitrine' : 'cadastro_cliente';
+  return { ...r, origem };
+}
+
+// ---- Checklist da conferencia ----
+// itens: o que o subpedido devia trazer. marcados: um por item (mesma ordem), ok=true se veio tudo;
+// se ok=false, quantidade_recebida diz quanto veio (0 = faltou). A divergencia nasce do que nao foi marcado.
+export type ItemChecklist = { cod?: string; nome?: string; quantidade?: number };
+export type Marcacao = { ok: boolean; quantidade_recebida?: number };
+
+export function conferirChecklist(itens: ItemChecklist[], marcados: Marcacao[]) {
+  if (!Array.isArray(marcados) || marcados.length !== (itens || []).length) {
+    throw new ErroHub('Confira todos os itens da lista antes de confirmar.');
+  }
+  const linhas = itens.map((it, i) => {
+    const esperado = Number(it.quantidade) || 1;
+    const m = marcados[i] || { ok: false };
+    const recebido = m.ok ? esperado : Math.max(0, Math.min(esperado, Math.floor(Number(m.quantidade_recebida) || 0)));
+    return { cod: it.cod, nome: it.nome, quantidade: esperado, quantidade_recebida: recebido, ok: recebido === esperado };
+  });
+  const problemas = linhas.filter((l) => !l.ok).map((l) =>
+    l.quantidade_recebida === 0
+      ? `Faltou ${l.quantidade}x ${l.nome || l.cod || 'item'}`
+      : `Veio ${l.quantidade_recebida} de ${l.quantidade}: ${l.nome || l.cod || 'item'}`);
+  return { linhas, divergencia: problemas.length ? problemas.join('; ') : null };
+}

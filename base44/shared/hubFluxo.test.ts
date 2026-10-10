@@ -2,6 +2,7 @@
 import {
   validarCustodia, validarAcao, ACOES_PICKUP, ACOES_FRETE, lerQr, conteudoQr, gerarToken,
   pickupVisivelParaColetor, freteVisivelParaFretista, prontoParaConsolidar, ErroHub,
+  estimarPeso, resolverDestino, conferirChecklist,
 } from './hubFluxo.ts';
 
 let ok = 0, falhas = 0;
@@ -76,6 +77,28 @@ t('frete outra UF', () => igual(freteVisivelParaFretista({ status: 'disponivel',
 t('consolidar ok', () => igual(prontoParaConsolidar([{ status: 'conferida' }, { status: 'cancelada' }]), { ok: true, faltam: 0 }));
 t('consolidar falta', () => igual(prontoParaConsolidar([{ status: 'conferida' }, { status: 'coletada' }]), { ok: false, faltam: 1 }));
 t('consolidar vazio', () => igual(prontoParaConsolidar([{ status: 'cancelada' }]).ok, false));
+
+// Peso estimado
+t('peso completo', () => igual(estimarPeso([{ product_id: 'a', quantidade: 4 }, { product_id: 'b', quantidade: 1 }], { a: 10, b: 2.5 }), { peso_kg: 42.5, completo: true, sem_peso: 0 }));
+t('peso parcial', () => igual(estimarPeso([{ product_id: 'a', quantidade: 2 }, { product_id: 'x', quantidade: 1 }], { a: 10 }), { peso_kg: 20, completo: false, sem_peso: 1 }));
+t('peso nenhum', () => igual(estimarPeso([{ product_id: 'x' }], {}), { peso_kg: null, completo: false, sem_peso: 1 }));
+
+// Destino
+const vit = { endereco_entrega: { logradouro: 'Rua X', numero: '10', bairro: 'Centro', cidade: 'Campinas', estado: 'sp', cep: '13000-000' }, cliente_telefone: '19 9999' };
+const cli = { endereco: 'Av. Y, 5', cidade: 'Itu', estado: 'SP' };
+t('destino da vitrine', () => igual(resolverDestino({}, vit, cli), { endereco: 'Rua X, 10 — Centro', cidade: 'Campinas', uf: 'SP', cep: '13000-000', telefone: '19 9999', origem: 'pedido_vitrine' }));
+t('destino do cliente', () => igual(resolverDestino({}, null, cli).origem, 'cadastro_cliente'));
+t('manual vence', () => { const d = resolverDestino({ cidade: 'Sorocaba', uf: 'sp' }, vit, cli); igual([d.cidade, d.uf, d.endereco, d.origem], ['Sorocaba', 'SP', 'Rua X, 10 — Centro', 'manual']); });
+t('vitrine sem cidade cai no cliente', () => igual(resolverDestino({}, { endereco_entrega: {} }, cli).cidade, 'Itu'));
+t('sem destino', () => igual(resolverDestino({}, null, null).origem, 'sem_destino'));
+
+// Checklist
+const itensC = [{ nome: 'Anilha 10kg', quantidade: 4 }, { nome: 'Barra 1,2m', quantidade: 2 }, { nome: 'Presilha', quantidade: 2 }];
+t('checklist tudo ok', () => igual(conferirChecklist(itensC, [{ ok: true }, { ok: true }, { ok: true }]).divergencia, null));
+t('checklist falta e parcial', () => igual(conferirChecklist(itensC, [{ ok: false, quantidade_recebida: 3 }, { ok: true }, { ok: false }]).divergencia, 'Veio 3 de 4: Anilha 10kg; Faltou 2x Presilha'));
+t('checklist incompleto', () => erro(() => conferirChecklist(itensC, [{ ok: true }])));
+t('desmarcado com qtd cheia conta como ok', () => igual(conferirChecklist([{ nome: 'A', quantidade: 2 }], [{ ok: false, quantidade_recebida: 2 }]).divergencia, null));
+t('qtd acima do esperado limita', () => igual(conferirChecklist([{ nome: 'A', quantidade: 2 }], [{ ok: false, quantidade_recebida: 9 }]).linhas[0].quantidade_recebida, 2));
 
 console.log(`${ok} ok, ${falhas} falha(s)`);
 if (falhas) Deno.exit(1);
