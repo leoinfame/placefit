@@ -16,7 +16,8 @@ const perto = (a, b) => Math.hypot(...hexParaRgb(a).map((v, i) => v - hexParaRgb
 
 const mf = extrairCoresDePixels(logo([["#ec673c", 900], ["#0c5f6d", 500]]));
 t(perto(mf.principal, "#ec673c") && perto(mf.secundaria, "#0c5f6d"), `laranja+azul petroleo -> ${JSON.stringify(mf)}`);
-const pf = extrairCoresDePixels(logo([["#111111", 2000], ["#d32f2f", 300]]));
+// com borda serrilhada entre vermelho e preto (tom vinho), como na logo real
+const pf = extrairCoresDePixels(logo([["#111111", 2000], ["#d32f2f", 300], ["#4a0201", 120]]));
 t(perto(pf.principal, "#d32f2f") && perto(pf.secundaria, "#111111"), `preto+vermelho: cor viva vence -> ${JSON.stringify(pf)}`);
 const mono = extrairCoresDePixels(logo([["#222222", 800]]));
 t(mono && perto(mono.principal, "#222222"), `logo sem cor -> ${JSON.stringify(mono)}`);
