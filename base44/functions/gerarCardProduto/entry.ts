@@ -1,11 +1,12 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
-import { carregarDadosCard, RENDERIZADORES, ErroCard, toBase64 } from '../../shared/cardProduto.ts';
+import { carregarDadosCard, montarPacoteCard, FORMATOS, ErroCard } from '../../shared/cardProduto.ts';
 import { arteConfigurada, gerarFundoArtistico, ESTILOS_ARTE, ESTILO_PADRAO } from '../../shared/cardArte.ts';
 
-// Gera o card de um produto selecionado do revendedor.
+// Camada de DADOS do card de um produto selecionado do revendedor.
 // body: { supplier_product_id, camada?: 'padrao'|'artistica', formato?: 'imagem'|'video', estilo? }
 // body: { acao: 'config' } -> diz quais camadas/formatos estao disponiveis (para a tela).
-// Resposta: { png_base64, nome_arquivo, card_id, preco_exibido, ... }
+// Resposta: { dados, imagens: { foto, logo, fundo }, card_id, nome_arquivo, ... }
+// O PNG e desenhado no navegador (src/lib/cardRender.js) a partir desta resposta.
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -15,17 +16,12 @@ Deno.serve(async (req) => {
     const body = req.method === 'POST' ? await req.json().catch(() => ({})) : {};
 
     if (body.acao === 'config') {
-      return Response.json({
-        formatos: Object.keys(RENDERIZADORES).filter((f) => RENDERIZADORES[f]),
-        arte_disponivel: arteConfigurada(),
-        estilos: Object.keys(ESTILOS_ARTE),
-      });
+      return Response.json({ formatos: FORMATOS, arte_disponivel: arteConfigurada(), estilos: Object.keys(ESTILOS_ARTE) });
     }
 
     const formato = body.formato || 'imagem';
     const camada = body.camada === 'artistica' ? 'artistica' : 'padrao';
-    const renderizar = RENDERIZADORES[formato];
-    if (!renderizar) throw new ErroCard(`Formato "${formato}" ainda não disponível.`, 501);
+    if (!FORMATOS.includes(formato)) throw new ErroCard(`Formato "${formato}" ainda não disponível.`, 501);
 
     const dados = await carregarDadosCard(base44, user, body.supplier_product_id);
 
@@ -54,7 +50,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    const png = await renderizar(dados, { fundoUrl });
+    const pacote = await montarPacoteCard(dados, fundoUrl);
 
     const registro = await base44.asServiceRole.entities.CardGerado.create({
       revendedor_id: dados.revendedor_id,
@@ -79,14 +75,11 @@ Deno.serve(async (req) => {
     const slug = dados.nome.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
 
     return Response.json({
-      png_base64: toBase64(png),
+      ...pacote,
       nome_arquivo: `${slug || 'produto'}-${camada}.png`,
       card_id: registro?.id ?? null,
       camada,
       formato,
-      nome_exibido: dados.nome,
-      peso_exibido_kg: dados.peso_kg,
-      preco_exibido: dados.preco_final,
       custo_credito: custo,
     });
   } catch (error) {
