@@ -1,0 +1,66 @@
+{
+  "name": "SupplierSkuMap",
+  "type": "object",
+  "description": "De-para entre a nomenclatura do fornecedor e o cat\u00e1logo padronizado. Guarda cada casamento j\u00e1 confirmado para que as importa\u00e7\u00f5es seguintes n\u00e3o precisem adivinhar de novo.",
+  "properties": {
+    "supplier_id": {
+      "type": "string",
+      "description": "ID do fornecedor (fabricante ou revendedor) dono deste mapeamento"
+    },
+    "chave": {
+      "type": "string",
+      "description": "Chave normalizada usada na busca: c\u00f3digo ou descri\u00e7\u00e3o do fornecedor sem acento, pontua\u00e7\u00e3o ou espa\u00e7os extras"
+    },
+    "tipo_chave": {
+      "type": "string",
+      "enum": [
+        "codigo",
+        "nome"
+      ],
+      "description": "Se a chave veio da coluna de c\u00f3digo ou da descri\u00e7\u00e3o do produto"
+    },
+    "cod_origem": {
+      "type": "string",
+      "description": "C\u00f3digo do produto exatamente como o fornecedor envia"
+    },
+    "descricao_origem": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o do produto exatamente como o fornecedor envia"
+    },
+    "product_id": {
+      "type": "string",
+      "description": "ID do ProductTemplate correspondente"
+    },
+    "origem_match": {
+      "type": "string",
+      "enum": [
+        "sku_exato",
+        "fuzzy_confirmado",
+        "manual",
+        "importado_historico"
+      ],
+      "default": "manual",
+      "description": "Como este mapeamento foi estabelecido"
+    },
+    "confirmado_por": {
+      "type": "string",
+      "description": "Email de quem confirmou o mapeamento"
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Se o mapeamento deve ser considerado nas importa\u00e7\u00f5es"
+    }
+  },
+  "required": [
+    "supplier_id",
+    "chave",
+    "product_id"
+  ],
+  "x-security": {
+    "read": "authenticated",
+    "create": "admin",
+    "update": "admin",
+    "delete": "admin"
+  }
+}
