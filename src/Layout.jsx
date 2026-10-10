@@ -25,7 +25,8 @@ import {
   Crown,
   ShieldCheck,
   Truck,
-  CreditCard
+  CreditCard,
+  Warehouse
 } from "lucide-react";
 import {
   Sidebar,
@@ -356,6 +357,11 @@ export default function Layout({ children, currentPageName }) {
           title: "Tabela de Frete",
           url: createPageUrl("TabelaFrete"),
           icon: Truck,
+        },
+        {
+          title: "Hub Logística",
+          url: "/hub",
+          icon: Warehouse,
         },
         {
           title: "Atendente IA",
