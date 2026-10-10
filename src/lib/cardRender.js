@@ -256,7 +256,7 @@ function elipseRadial(ctx, cx, cy, rx, ry, cor, alfa) {
 export const PROPORCOES = {
   quadrado: { largura: 1080, altura: 1080, topo: MARGEM, base: MARGEM },
   retrato: { largura: 1080, altura: 1350, topo: MARGEM, base: MARGEM },
-  vertical: { largura: 1080, altura: 1920, topo: 250, base: 300 },
+  vertical: { largura: 1080, altura: 1920, topo: 250, base: 300, centralizar: true },
 };
 
 export async function renderCardImagem(pacote, proporcao = pacote.proporcao) {
@@ -294,10 +294,22 @@ export async function renderCardImagem(pacote, proporcao = pacote.proporcao) {
   const fimSeguro = H - moldura.base;
   const alturaLinhaPreco = fontePreco + 36;
   const alturaNome = Math.round(linhas.length * fonteNome * ALTURA_LINHA_NOME);
-  const topoNome = fimSeguro - alturaLinhaPreco - 24 - alturaNome;
   const topoProduto = topoCabecalho + alturaCabecalho + 16;
-  const baseProduto = topoNome - 36;
+  let topoNome = fimSeguro - alturaLinhaPreco - 24 - alturaNome;
+  let baseProduto = topoNome - 36;
   const alturaProduto = baseProduto - topoProduto;
+
+  // Tamanho do produto: maior possivel na area (no 9:16 pode usar a largura util toda)
+  const larguraMaxProduto = moldura.centralizar ? LARGURA_UTIL : LARGURA_UTIL * 0.9;
+  const escala = foto ? Math.min(larguraMaxProduto / foto.width, (alturaProduto - 24) / foto.height, 3) : 0;
+  const pw = foto ? Math.round(foto.width * escala) : 0, ph = foto ? Math.round(foto.height * escala) : 0;
+
+  // No 9:16, produto deitado sobra altura: centraliza o bloco produto+nome+preco
+  // na zona segura em vez de deixar o vazio todo em cima.
+  const subir = moldura.centralizar && foto ? Math.max(0, alturaProduto - 24 - ph) / 2 : 0;
+  topoNome -= subir;
+  baseProduto -= subir;
+  const topoLinha = fimSeguro - alturaLinhaPreco - subir;
 
   // Fundo (preenche o quadro inteiro, inclusive fora da zona segura)
   ctx.fillStyle = fundoCard;
@@ -314,13 +326,12 @@ export async function renderCardImagem(pacote, proporcao = pacote.proporcao) {
     ctx.fillRect(0, 0, W, H);
   } else {
     // brilho suave atras do produto para dar profundidade a cor chapada
-    elipseRadial(ctx, W / 2, topoProduto + alturaProduto / 2, 460, Math.max(400, alturaProduto / 2 + 100), "255,255,255", 0.3);
+    const centroProduto = foto ? baseProduto - 24 - ph / 2 : topoProduto + alturaProduto / 2;
+    elipseRadial(ctx, W / 2, centroProduto, 460, Math.max(400, ph / 2 + 160), "255,255,255", 0.3);
   }
 
   // Produto: maior possivel na area, apoiado no "chao" com sombra
   if (foto) {
-    const escala = Math.min((LARGURA_UTIL * 0.9) / foto.width, (alturaProduto - 24) / foto.height, 3);
-    const pw = Math.round(foto.width * escala), ph = Math.round(foto.height * escala);
     const larguraSombra = Math.max(220, Math.round(pw * 0.85));
     elipseRadial(ctx, W / 2, baseProduto - 24, larguraSombra / 2, 28, "0,0,0", 0.32);
     ctx.drawImage(foto, (W - pw) / 2, baseProduto - 24 - ph, pw, ph);
@@ -363,7 +374,6 @@ export async function renderCardImagem(pacote, proporcao = pacote.proporcao) {
   linhas.forEach((linha, i) => ctx.fillText(linha, MARGEM, topoNome + passo * i + fonteNome * 0.86));
 
   // Preco (chamada) + contato
-  const topoLinha = fimSeguro - alturaLinhaPreco;
   const meioLinha = topoLinha + alturaLinhaPreco / 2;
   ctx.font = fonte(800, fontePreco);
   const wPreco = ctx.measureText(d.preco_texto).width;
