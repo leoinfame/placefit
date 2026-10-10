@@ -4,7 +4,7 @@ import { getProdutosData } from "@/functions/getProdutosData";
 import {
   Loader2, Package, Search, X, ChevronDown, ChevronRight,
   Trash2, Download, Tag, Weight, DollarSign, Pencil, Power, PowerOff,
-  RefreshCw, CheckSquare
+  RefreshCw, CheckSquare, Image as ImageIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useToast } from "@/components/ui/use-toast";
 import { expandTemplates } from "@/utils/expandTemplates";
 import ConfirmDialog from "@/components/ui/confirm-dialog";
+import GerarCardModal from "@/components/produtos/GerarCardModal";
 
 const formatBRL = (v) => v != null && !isNaN(v) ? v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "—";
 
@@ -64,6 +65,7 @@ export default function MeusProdutos({ user }) {
   const [bulkModal, setBulkModal] = useState(null); // { type: 'margin'|'enable'|'disable'|'delete', margem }
   const [saving, setSaving] = useState(false);
   const [removeConfirm, setRemoveConfirm] = useState(null);
+  const [cardGroup, setCardGroup] = useState(null); // grupo aberto no gerador de card
   const { toast } = useToast();
 
   useEffect(() => { loadData(); }, []);
@@ -597,6 +599,15 @@ export default function MeusProdutos({ user }) {
                           >
                             <Pencil className="w-3 h-3 mr-1" /> Margem
                           </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setCardGroup(g)}
+                            className="h-7 text-xs border-blue-300 text-blue-700 hover:bg-blue-50"
+                            title="Gerar imagem para Instagram e WhatsApp"
+                          >
+                            <ImageIcon className="w-3 h-3 mr-1" /> Gerar imagem
+                          </Button>
                           <div className="flex items-center gap-1">
                             {status !== 'published' && (
                               <Button
@@ -695,6 +706,8 @@ export default function MeusProdutos({ user }) {
           </DialogContent>
         </Dialog>
       )}
+
+      {cardGroup && <GerarCardModal group={cardGroup} onClose={() => setCardGroup(null)} />}
 
       <ConfirmDialog
         open={!!removeConfirm}
