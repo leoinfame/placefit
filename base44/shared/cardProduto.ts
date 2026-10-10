@@ -234,6 +234,26 @@ function removerFundoClaro(img: Image) {
     if (p >= w) marcar(p - w);
     if (p < n - w) marcar(p + w);
   }
+  // vazados internos (furo da anilha, miolo do tijolinho): manchas brancas
+  // uniformes e grandes que nao encostam na borda tambem sao fundo
+  const branco = (p: number) => {
+    const i = p * 4;
+    return px[i + 3] >= 16 && px[i] >= 242 && px[i + 1] >= 242 && px[i + 2] >= 242;
+  };
+  const areaMinima = Math.max(150, Math.round(n * 0.0012));
+  const visto = new Uint8Array(n);
+  for (let s = 0; s < n; s++) {
+    if (fundo[s] || visto[s] || !branco(s)) continue;
+    ini = 0; fim = 0;
+    visto[s] = 1; fila[fim++] = s;
+    while (ini < fim) {
+      const p = fila[ini++], x = p % w;
+      for (const q of [x > 0 ? p - 1 : -1, x < w - 1 ? p + 1 : -1, p >= w ? p - w : -1, p < n - w ? p + w : -1]) {
+        if (q >= 0 && !visto[q] && !fundo[q] && branco(q)) { visto[q] = 1; fila[fim++] = q; }
+      }
+    }
+    if (fim >= areaMinima) for (let k = 0; k < fim; k++) fundo[fila[k]] = 1;
+  }
   for (let p = 0; p < n; p++) if (fundo[p]) px[p * 4 + 3] = 0;
   // contorno: pixels claros vizinhos do fundo ficam semitransparentes (sem halo branco)
   for (let p = 0; p < n; p++) {
@@ -382,7 +402,7 @@ function montarArvore(d: DadosCard, foto: ImagemPreparada | null, logo: ImagemPr
 
   // Produto: maior possivel na area, apoiado no "chao" com sombra
   if (foto && foto.w > 0) {
-    const escala = Math.min(LARGURA_UTIL / foto.w, (alturaProduto - 24) / foto.h, 3);
+    const escala = Math.min((LARGURA_UTIL * 0.9) / foto.w, (alturaProduto - 24) / foto.h, 3);
     const pw = Math.round(foto.w * escala), ph = Math.round(foto.h * escala);
     const topo = baseProduto - 24 - ph;
     const larguraSombra = Math.max(220, Math.round(pw * 0.85));
