@@ -38,6 +38,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import CrmPrivacidade from './components/crm-legal/CrmPrivacidade';
 import CrmTermos from './components/crm-legal/CrmTermos';
 import CrmExclusaoDados from './components/crm-legal/CrmExclusaoDados';
+import HubApp from './hub/HubApp';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -56,6 +57,12 @@ const isPublicPath = () => {
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+
+  // hub.placefit.com.br abre direto na area do Hub
+  if (window.location.hostname.startsWith('hub.') && window.location.pathname === '/') {
+    window.location.replace('/hub');
+    return null;
+  }
 
   // Always render public paths without auth check
   if (isPublicPath()) {
@@ -137,6 +144,7 @@ const AuthenticatedApp = () => {
       <Route path="/LojaEcommerce" element={<LayoutWrapper currentPageName="LojaEcommerce"><LojaEcommerce /></LayoutWrapper>} />
       <Route path="/LojaRevendedor" element={<LayoutWrapper currentPageName="LojaRevendedor"><LojaRevendedor /></LayoutWrapper>} />
       <Route path="/MinhaConta" element={<LayoutWrapper currentPageName="MinhaConta"><MinhaConta /></LayoutWrapper>} />
+      <Route path="/hub/*" element={<ErrorBoundary><HubApp /></ErrorBoundary>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

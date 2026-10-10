@@ -1,0 +1,143 @@
+{
+  "name": "CustodyEvent",
+  "type": "object",
+  "description": "Registro imutavel de custodia do Hub. Nasce só pela funcao hubApi depois de validar QR, perfil e sequencia; ninguem edita nem apaga (nem o admin pelo app). Update/delete exigem id do registro == id do usuario, o que nunca acontece: a regra fecha a edicao para todos (service role ignora RLS, mas a hubApi nunca edita evento).",
+  "properties": {
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "coletado_no_fabricante",
+        "entregue_na_base",
+        "conferido",
+        "pedido_consolidado",
+        "retirado_pelo_fretista",
+        "entregue_ao_cliente",
+        "falsa_coleta"
+      ]
+    },
+    "pickup_id": {
+      "type": "string"
+    },
+    "freight_leg_id": {
+      "type": "string"
+    },
+    "venda_id": {
+      "type": "string"
+    },
+    "revendedor_id": {
+      "type": "string"
+    },
+    "referencia": {
+      "type": "string",
+      "description": "Numero da coleta/frete para leitura humana"
+    },
+    "qr_lido": {
+      "type": "string",
+      "description": "Conteudo do QR escaneado (vazio na falsa coleta)"
+    },
+    "qr_digitado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Codigo digitado a mao em vez de escaneado"
+    },
+    "ator_user_id": {
+      "type": "string"
+    },
+    "ator_nome": {
+      "type": "string"
+    },
+    "ator_papel": {
+      "type": "string",
+      "enum": [
+        "coletor",
+        "fretista",
+        "base",
+        "admin"
+      ]
+    },
+    "ator_profile_id": {
+      "type": "string"
+    },
+    "registrado_em": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Hora do servidor"
+    },
+    "hora_dispositivo": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "lat": {
+      "type": "number"
+    },
+    "lng": {
+      "type": "number"
+    },
+    "precisao_m": {
+      "type": "number"
+    },
+    "geo_status": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "negado",
+        "indisponivel"
+      ],
+      "default": "ok"
+    },
+    "foto_url": {
+      "type": "string"
+    },
+    "observacao": {
+      "type": "string"
+    },
+    "divergencia": {
+      "type": "string"
+    },
+    "recebedor_nome": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "tipo",
+    "ator_user_id",
+    "registrado_em",
+    "foto_url"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "$and": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "id": "{{user.id}}"
+        }
+      ]
+    },
+    "delete": {
+      "$and": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "id": "{{user.id}}"
+        }
+      ]
+    }
+  }
+}
