@@ -223,9 +223,11 @@ function tingirSePoucoContraste(canvas, fundo, cor) {
     if (px[i + 3] < 128) continue;
     opacos++;
     const l = luminancia([px[i], px[i + 1], px[i + 2]]);
-    if ((Math.max(l, lumFundo) + 0.05) / (Math.min(l, lumFundo) + 0.05) < 3) fracos++;
+    if ((Math.max(l, lumFundo) + 0.05) / (Math.min(l, lumFundo) + 0.05) < 1.8) fracos++;
   }
-  if (!opacos || fracos / opacos < 0.3) return;
+  // logo e grafico, nao texto: so tinge se uma parte relevante (>= 15%) quase
+  // some no fundo (< 1.8:1); logo colorida legivel fica com as cores originais
+  if (!opacos || fracos / opacos < 0.15) return;
   for (let i = 0; i < px.length; i += 4) {
     if (Math.min(px[i], px[i + 1], px[i + 2]) >= 228) px[i + 3] = 0;
     px[i] = c[0]; px[i + 1] = c[1]; px[i + 2] = c[2];
