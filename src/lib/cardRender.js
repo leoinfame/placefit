@@ -134,14 +134,15 @@ function removerFundoClaro(canvas) {
     return px[i + 3] >= 16 && mx - mn <= 8 && Math.abs((px[i] + px[i + 1] + px[i + 2]) / 3 - nivelFundo) <= 10;
   };
   const linhaChao = Math.floor(h * 0.75) * w;
+  const vistoChao = new Uint8Array(n);
   for (let s = linhaChao; s < n; s++) {
-    if (fundo[s] || visto[s] || !corDeFundo(s)) continue;
+    if (fundo[s] || vistoChao[s] || !corDeFundo(s)) continue;
     ini = 0; fim = 0;
-    visto[s] = 1; fila[fim++] = s;
+    vistoChao[s] = 1; fila[fim++] = s;
     while (ini < fim) {
       const p = fila[ini++], x = p % w;
       const viz = [x > 0 ? p - 1 : -1, x < w - 1 ? p + 1 : -1, p >= w ? p - w : -1, p < n - w ? p + w : -1];
-      for (const q of viz) if (q >= linhaChao && !visto[q] && !fundo[q] && corDeFundo(q)) { visto[q] = 1; fila[fim++] = q; }
+      for (const q of viz) if (q >= linhaChao && !vistoChao[q] && !fundo[q] && corDeFundo(q)) { vistoChao[q] = 1; fila[fim++] = q; }
     }
     if (fim >= 12) for (let k = 0; k < fim; k++) fundo[fila[k]] = 1;
   }
