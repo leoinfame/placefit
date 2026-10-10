@@ -8,13 +8,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { RENDERIZADORES } from "@/lib/cardRender";
 
-// Card de produto para Instagram/WhatsApp (PNG 1080x1080). A funcao
+const DESTINOS = [
+  { id: "quadrado", titulo: "Feed", medida: "1:1 · 1080×1080", uso: "Instagram e Facebook" },
+  { id: "vertical", titulo: "Vertical", medida: "9:16 · 1080×1920", uso: "Stories, Reels, TikTok e Status" },
+  { id: "retrato", titulo: "Retrato", medida: "4:5 · 1080×1350", uso: "Feed do Instagram" },
+];
+
+// Card de produto para redes sociais (PNG, 3 destinos). A funcao
 // gerarCardProduto le nome, peso e preco do banco (nunca de IA) e o PNG e
 // desenhado aqui no navegador por src/lib/cardRender.js.
 export default function GerarCardModal({ group, onClose }) {
   const variacoes = (group?.variations || []).filter(v => v.sp?.preco > 0);
   const [spId, setSpId] = useState(variacoes[0]?.sp.id || "");
   const [camada, setCamada] = useState("padrao");
+  const [proporcao, setProporcao] = useState("quadrado");
   const [config, setConfig] = useState(null);
   const [gerando, setGerando] = useState(false);
   const [resultado, setResultado] = useState(null); // { dataUrl, file, nome_arquivo }
@@ -31,7 +38,7 @@ export default function GerarCardModal({ group, onClose }) {
     setErro("");
     setResultado(null);
     try {
-      const r = await base44.functions.invoke("gerarCardProduto", { supplier_product_id: spId, camada, formato: "imagem" });
+      const r = await base44.functions.invoke("gerarCardProduto", { supplier_product_id: spId, camada, formato: "imagem", proporcao });
       const pacote = r.data;
       const blob = await RENDERIZADORES[pacote.formato || "imagem"](pacote);
       const file = new File([blob], pacote.nome_arquivo, { type: "image/png" });
@@ -40,7 +47,7 @@ export default function GerarCardModal({ group, onClose }) {
         leitor.onload = () => resolve(leitor.result);
         leitor.readAsDataURL(blob);
       });
-      setResultado({ dataUrl, file, nome_arquivo: pacote.nome_arquivo });
+      setResultado({ dataUrl, file, nome_arquivo: pacote.nome_arquivo, proporcao: pacote.proporcao || proporcao });
     } catch (e) {
       setErro(e?.response?.data?.error || e?.message || "Erro ao gerar a imagem.");
     }
@@ -98,6 +105,24 @@ export default function GerarCardModal({ group, onClose }) {
                 </div>
               )}
 
+              <div>
+                <Label>Destino</Label>
+                <div className="grid grid-cols-3 gap-2 mt-1">
+                  {DESTINOS.map(dst => (
+                    <button
+                      key={dst.id}
+                      type="button"
+                      onClick={() => { setProporcao(dst.id); setResultado(null); }}
+                      className={`rounded-lg border p-2.5 text-left transition ${proporcao === dst.id ? "border-blue-500 ring-1 ring-blue-200 bg-blue-50" : "border-gray-200 hover:bg-gray-50"}`}
+                    >
+                      <p className="text-sm font-semibold">{dst.titulo}</p>
+                      <p className="text-[11px] text-gray-500 leading-tight">{dst.medida}</p>
+                      <p className="text-[11px] text-gray-500 leading-tight mt-0.5">{dst.uso}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
@@ -133,9 +158,11 @@ export default function GerarCardModal({ group, onClose }) {
 
           {resultado && (
             <div className="space-y-3">
-              <img src={resultado.dataUrl} alt={`Card de ${group.baseName}`} className="w-full rounded-lg border" />
+              <img src={resultado.dataUrl} alt={`Card de ${group.baseName}`} className="w-full max-h-[60vh] object-contain rounded-lg border bg-gray-50" />
               <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-xs">1080×1080 · Instagram e WhatsApp</Badge>
+                <Badge variant="outline" className="text-xs">
+                  {DESTINOS.find(dst => dst.id === resultado.proporcao)?.medida} · {DESTINOS.find(dst => dst.id === resultado.proporcao)?.uso}
+                </Badge>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <Button variant="outline" onClick={baixar}>
