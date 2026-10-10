@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { Truck } from "lucide-react";
 import { useHub } from "./HubContexto";
 import HubSino from "./HubSino";
@@ -20,7 +20,7 @@ export default function HubLayout() {
     { to: "/hub/admin/financeiro", rotulo: "Financeiro" },
     { to: "/hub/admin/cadastros", rotulo: "Cadastros" },
   ];
-  const naAdmin = typeof window !== "undefined" && window.location.pathname.startsWith("/hub/admin");
+  const naAdmin = useLocation().pathname.startsWith("/hub/admin");
 
   const pilula = ({ isActive }) =>
     `whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold ${isActive ? "bg-white text-slate-900" : "text-slate-200 hover:bg-white/10"}`;
