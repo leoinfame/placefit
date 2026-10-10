@@ -1,0 +1,86 @@
+[
+  {
+    "subcategorias": [],
+    "ordem": 1,
+    "nome": "Anilhas",
+    "ativo": true,
+    "id": "6a3ada8da1955e9d23434804",
+    "created_date": "2026-06-23T19:12:13.849000",
+    "updated_date": "2026-06-23T19:12:13.849000",
+    "created_by_id": "68c9d5dd3cf0f8fd8a834876",
+    "created_by": "fatuex@gmail.com",
+    "is_sample": false
+  },
+  {
+    "subcategorias": [],
+    "ordem": 2,
+    "nome": "Halteres",
+    "ativo": true,
+    "id": "6a3ada8da1955e9d23434805",
+    "created_date": "2026-06-23T19:12:13.849000",
+    "updated_date": "2026-06-23T19:12:13.849000",
+    "created_by_id": "68c9d5dd3cf0f8fd8a834876",
+    "created_by": "fatuex@gmail.com",
+    "is_sample": false
+  },
+  {
+    "subcategorias": [],
+    "ordem": 3,
+    "nome": "Dumbells",
+    "ativo": true,
+    "id": "6a3ada8da1955e9d23434806",
+    "created_date": "2026-06-23T19:12:13.849000",
+    "updated_date": "2026-06-23T19:12:13.849000",
+    "created_by_id": "68c9d5dd3cf0f8fd8a834876",
+    "created_by": "fatuex@gmail.com",
+    "is_sample": false
+  },
+  {
+    "subcategorias": [],
+    "ordem": 5,
+    "nome": "Tijolinhos",
+    "ativo": true,
+    "id": "6a3ada8da1955e9d23434808",
+    "created_date": "2026-06-23T19:12:13.849000",
+    "updated_date": "2026-06-23T19:12:13.849000",
+    "created_by_id": "68c9d5dd3cf0f8fd8a834876",
+    "created_by": "fatuex@gmail.com",
+    "is_sample": false
+  },
+  {
+    "subcategorias": [],
+    "ordem": 6,
+    "nome": "Pisos",
+    "ativo": true,
+    "id": "6a3ada8da1955e9d23434809",
+    "created_date": "2026-06-23T19:12:13.849000",
+    "updated_date": "2026-06-23T19:12:13.849000",
+    "created_by_id": "68c9d5dd3cf0f8fd8a834876",
+    "created_by": "fatuex@gmail.com",
+    "is_sample": false
+  },
+  {
+    "subcategorias": [],
+    "ordem": 7,
+    "nome": "Kettlebells",
+    "ativo": true,
+    "id": "6a3ada8da1955e9d2343480a",
+    "created_date": "2026-06-23T19:12:13.849000",
+    "updated_date": "2026-06-23T19:12:13.849000",
+    "created_by_id": "68c9d5dd3cf0f8fd8a834876",
+    "created_by": "fatuex@gmail.com",
+    "is_sample": false
+  },
+  {
+    "subcategorias": [],
+    "ordem": 9,
+    "nome": "Outros",
+    "ativo": true,
+    "id": "6a3ada8da1955e9d2343480c",
+    "created_date": "2026-06-23T19:12:13.849000",
+    "updated_date": "2026-06-23T19:12:13.849000",
+    "created_by_id": "68c9d5dd3cf0f8fd8a834876",
+    "created_by": "fatuex@gmail.com",
+    "is_sample": false
+  }
+]

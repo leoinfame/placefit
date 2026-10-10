@@ -1,0 +1,278 @@
+[
+  {
+    "tipo": "select",
+    "categorias_aplicaveis": [
+      "Anilhas",
+      "Halteres",
+      "Dumbells",
+      "Kettlebells"
+    ],
+    "ativo": true,
+    "ordem": 1,
+    "opcoes": [
+      "Bruto",
+      "Pintado",
+      "Emborrachado",
+      "Injetado",
+      "Bumper",
+      "N/A"
+    ],
+    "label": "Acabamento",
+    "campo": "acabamento",
+    "id": "6a3ad547d736bb27abab2c7e",
+    "created_date": "2026-06-23T18:49:43.503000",
+    "updated_date": "2026-06-23T22:43:09.743000",
+    "created_by_id": "68c9d5dd3cf0f8fd8a834876",
+    "created_by": "fatuex@gmail.com",
+    "is_sample": false
+  },
+  {
+    "tipo": "select",
+    "categorias_aplicaveis": [
+      "Anilhas"
+    ],
+    "ativo": true,
+    "ordem": 2,
+    "opcoes": [
+      "Normal (Furo Pequeno)",
+      "Olímpico (Furo 50mm)",
+      "N/A"
+    ],
+    "label": "Tipo de Furo",
+    "campo": "tipo_furo",
+    "id": "6a3ad547d736bb27abab2c7f",
+    "created_date": "2026-06-23T18:49:43.503000",
+    "updated_date": "2026-06-23T18:49:43.503000",
+    "created_by_id": "68c9d5dd3cf0f8fd8a834876",
+    "created_by": "fatuex@gmail.com",
+    "is_sample": false
+  },
+  {
+    "tipo": "number",
+    "categorias_aplicaveis": [
+      "Anilhas",
+      "Halteres",
+      "Dumbells",
+      "Kettlebells"
+    ],
+    "ativo": true,
+    "ordem": 1,
+    "opcoes": [],
+    "label": "Peso (kg)",
+    "campo": "peso_kg",
+    "id": "6a3ad547d736bb27abab2c80",
+    "created_date": "2026-06-23T18:49:43.503000",
+    "updated_date": "2026-06-30T14:21:22.809000",
+    "created_by_id": "68c9d5dd3cf0f8fd8a834876",
+    "created_by": "fatuex@gmail.com",
+    "is_sample": false
+  },
+  {
+    "tipo": "boolean",
+    "categorias_aplicaveis": [
+      "Anilhas"
+    ],
+    "ativo": true,
+    "ordem": 3,
+    "opcoes": [],
+    "label": "Peso Fracionado (1.5kg, 2.5kg)",
+    "campo": "peso_fracionado",
+    "id": "6a3ad547d736bb27abab2c81",
+    "created_date": "2026-06-23T18:49:43.503000",
+    "updated_date": "2026-06-23T18:49:43.503000",
+    "created_by_id": "68c9d5dd3cf0f8fd8a834876",
+    "created_by": "fatuex@gmail.com",
+    "is_sample": false
+  },
+  {
+    "tipo": "select",
+    "categorias_aplicaveis": [
+      "Halteres",
+      "Dumbells"
+    ],
+    "ativo": true,
+    "ordem": 2,
+    "opcoes": [
+      "Sextavado (Hexagonal)",
+      "Bola",
+      "N/A"
+    ],
+    "label": "Bojo (Formato das extremidades)",
+    "campo": "bojo_formato",
+    "id": "6a3ad547d736bb27abab2c82",
+    "created_date": "2026-06-23T18:49:43.503000",
+    "updated_date": "2026-06-23T22:42:46.390000",
+    "created_by_id": "68c9d5dd3cf0f8fd8a834876",
+    "created_by": "fatuex@gmail.com",
+    "is_sample": false
+  },
+  {
+    "tipo": "select",
+    "categorias_aplicaveis": [
+      "Halteres"
+    ],
+    "ativo": true,
+    "ordem": 3,
+    "opcoes": [
+      "Cromado Recartilhado",
+      "Pintado",
+      "Injetado",
+      "N/A"
+    ],
+    "label": "Acabamento da Barra",
+    "campo": "barra_acabamento",
+    "id": "6a3ad547d736bb27abab2c83",
+    "created_date": "2026-06-23T18:49:43.503000",
+    "updated_date": "2026-06-30T14:21:22.390000",
+    "created_by_id": "68c9d5dd3cf0f8fd8a834876",
+    "created_by": "fatuex@gmail.com",
+    "is_sample": false
+  },
+  {
+    "tipo": "select",
+    "categorias_aplicaveis": [
+      "Dumbells"
+    ],
+    "ativo": true,
+    "ordem": 3,
+    "opcoes": [
+      "Monobloco",
+      "Anilhas Montadas",
+      "N/A"
+    ],
+    "label": "Tipo de Dumbell",
+    "campo": "dumbell_tipo",
+    "id": "6a3ad547d736bb27abab2c85",
+    "created_date": "2026-06-23T18:49:43.503000",
+    "updated_date": "2026-06-23T18:49:43.503000",
+    "created_by_id": "68c9d5dd3cf0f8fd8a834876",
+    "created_by": "fatuex@gmail.com",
+    "is_sample": false
+  },
+  {
+    "tipo": "select",
+    "categorias_aplicaveis": [
+      "Pisos"
+    ],
+    "ativo": true,
+    "ordem": 1,
+    "opcoes": [
+      "1x1m",
+      "50x50cm"
+    ],
+    "label": "Espessura do Piso (mm)",
+    "campo": "piso_espessura_mm",
+    "id": "6a3ad547d736bb27abab2c86",
+    "created_date": "2026-06-23T18:49:43.503000",
+    "updated_date": "2026-06-23T19:00:23.759000",
+    "created_by_id": "68c9d5dd3cf0f8fd8a834876",
+    "created_by": "fatuex@gmail.com",
+    "is_sample": false
+  },
+  {
+    "tipo": "select",
+    "categorias_aplicaveis": [
+      "Pisos"
+    ],
+    "ativo": true,
+    "ordem": 2,
+    "opcoes": [
+      "1x1m (Peça única)",
+      "4x 50x50cm (Modular)",
+      "N/A"
+    ],
+    "label": "Formato do Piso",
+    "campo": "piso_formato",
+    "id": "6a3ad547d736bb27abab2c87",
+    "created_date": "2026-06-23T18:49:43.503000",
+    "updated_date": "2026-06-23T18:49:43.503000",
+    "created_by_id": "68c9d5dd3cf0f8fd8a834876",
+    "created_by": "fatuex@gmail.com",
+    "is_sample": false
+  },
+  {
+    "tipo": "select",
+    "categorias_aplicaveis": [
+      "Tijolinhos"
+    ],
+    "ativo": true,
+    "ordem": 1,
+    "opcoes": [
+      "Jaú",
+      "Meia-Lua",
+      "Retangular"
+    ],
+    "label": "Tipo de Tijolinho",
+    "campo": "tijolinho_tipo",
+    "id": "6a3ad547d736bb27abab2c88",
+    "created_date": "2026-06-23T18:49:43.503000",
+    "updated_date": "2026-06-23T18:59:51.776000",
+    "created_by_id": "68c9d5dd3cf0f8fd8a834876",
+    "created_by": "fatuex@gmail.com",
+    "is_sample": false
+  },
+  {
+    "tipo": "select",
+    "categorias_aplicaveis": [
+      "Tijolinhos"
+    ],
+    "ativo": true,
+    "ordem": 2,
+    "opcoes": [
+      "5kg",
+      "10kg",
+      "N/A"
+    ],
+    "label": "Torre Compatível",
+    "campo": "tijolinho_torre",
+    "id": "6a3ad547d736bb27abab2c89",
+    "created_date": "2026-06-23T18:49:43.503000",
+    "updated_date": "2026-06-23T18:49:43.503000",
+    "created_by_id": "68c9d5dd3cf0f8fd8a834876",
+    "created_by": "fatuex@gmail.com",
+    "is_sample": false
+  },
+  {
+    "tipo": "text",
+    "categorias_aplicaveis": [
+      "Outros"
+    ],
+    "ativo": true,
+    "ordem": 1,
+    "opcoes": [],
+    "label": "Subcategoria",
+    "campo": "subcategoria",
+    "id": "6a3ad547d736bb27abab2c8a",
+    "created_date": "2026-06-23T18:49:43.503000",
+    "updated_date": "2026-06-30T14:21:20.884000",
+    "created_by_id": "68c9d5dd3cf0f8fd8a834876",
+    "created_by": "fatuex@gmail.com",
+    "is_sample": false
+  },
+  {
+    "tipo": "select",
+    "categorias_aplicaveis": [
+      "Anilhas"
+    ],
+    "ativo": true,
+    "ordem": 0,
+    "opcoes": [
+      "Vazada",
+      "Bumper",
+      "Prime",
+      "Tradicional",
+      "Extreme",
+      "Evolution",
+      "Decagonal",
+      "N/A"
+    ],
+    "label": "Tipo de Anilha",
+    "campo": "tipo_anilha",
+    "id": "6a3e6f232a8c17d2bd86456a",
+    "created_date": "2026-06-26T12:22:59.451000",
+    "updated_date": "2026-06-26T13:34:17.709000",
+    "created_by_id": "68c9d5dd3cf0f8fd8a834876",
+    "created_by": "fatuex@gmail.com",
+    "is_sample": false
+  }
+]

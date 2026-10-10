@@ -1,0 +1,14 @@
+id;campo;label;tipo;opcoes;categorias_aplicaveis;ordem;ativo
+6a3ad547d736bb27abab2c7e;acabamento;Acabamento;select;Bruto|Pintado|Emborrachado|Injetado|Bumper|N/A;Anilhas|Halteres|Dumbells|Kettlebells;1;true
+6a3ad547d736bb27abab2c7f;tipo_furo;Tipo de Furo;select;Normal (Furo Pequeno)|Olímpico (Furo 50mm)|N/A;Anilhas;2;true
+6a3ad547d736bb27abab2c80;peso_kg;Peso (kg);number;;Anilhas|Halteres|Dumbells|Kettlebells;1;true
+6a3ad547d736bb27abab2c81;peso_fracionado;Peso Fracionado (1.5kg, 2.5kg);boolean;;Anilhas;3;true
+6a3ad547d736bb27abab2c82;bojo_formato;Bojo (Formato das extremidades);select;Sextavado (Hexagonal)|Bola|N/A;Halteres|Dumbells;2;true
+6a3ad547d736bb27abab2c83;barra_acabamento;Acabamento da Barra;select;Cromado Recartilhado|Pintado|Injetado|N/A;Halteres;3;true
+6a3ad547d736bb27abab2c85;dumbell_tipo;Tipo de Dumbell;select;Monobloco|Anilhas Montadas|N/A;Dumbells;3;true
+6a3ad547d736bb27abab2c86;piso_espessura_mm;Espessura do Piso (mm);select;1x1m|50x50cm;Pisos;1;true
+6a3ad547d736bb27abab2c87;piso_formato;Formato do Piso;select;1x1m (Peça única)|4x 50x50cm (Modular)|N/A;Pisos;2;true
+6a3ad547d736bb27abab2c88;tijolinho_tipo;Tipo de Tijolinho;select;Jaú|Meia-Lua|Retangular;Tijolinhos;1;true
+6a3ad547d736bb27abab2c89;tijolinho_torre;Torre Compatível;select;5kg|10kg|N/A;Tijolinhos;2;true
+6a3ad547d736bb27abab2c8a;subcategoria;Subcategoria;text;;Outros;1;true
+6a3e6f232a8c17d2bd86456a;tipo_anilha;Tipo de Anilha;select;Vazada|Bumper|Prime|Tradicional|Extreme|Evolution|Decagonal|N/A;Anilhas;0;true

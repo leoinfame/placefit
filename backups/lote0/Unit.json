@@ -1,0 +1,35 @@
+[
+  {
+    "nome": "Peça",
+    "ativo": true,
+    "ordem": 0,
+    "id": "69338c0e9d20d863b78fe5c4",
+    "created_date": "2025-12-06T01:51:10.323000",
+    "updated_date": "2025-12-06T01:51:10.323000",
+    "created_by_id": "68c9d5dd3cf0f8fd8a834876",
+    "created_by": "fatuex@gmail.com",
+    "is_sample": false
+  },
+  {
+    "nome": "KG",
+    "ativo": true,
+    "ordem": 0,
+    "id": "69338c1f9c7f2e4abecfeb3e",
+    "created_date": "2025-12-06T01:51:27.919000",
+    "updated_date": "2025-12-06T01:51:27.919000",
+    "created_by_id": "68c9d5dd3cf0f8fd8a834876",
+    "created_by": "fatuex@gmail.com",
+    "is_sample": false
+  },
+  {
+    "ordem": 0,
+    "nome": "Par",
+    "ativo": true,
+    "id": "699695c4066c8077934aac57",
+    "created_date": "2026-02-19T04:47:00.608000",
+    "updated_date": "2026-02-19T04:47:00.608000",
+    "created_by_id": "68c9d5dd3cf0f8fd8a834876",
+    "created_by": "fatuex@gmail.com",
+    "is_sample": false
+  }
+]
