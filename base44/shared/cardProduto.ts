@@ -12,6 +12,10 @@
 // canvas. Formato "video" (premium) entra como outro renderizador la.
 
 export const FORMATOS = ['imagem'];
+// Destinos (so muda a moldura no renderizador): 1:1 1080x1080, 4:5 1080x1350, 9:16 1080x1920
+export const PROPORCOES = ['quadrado', 'retrato', 'vertical'];
+export const normalizarProporcao = (v: unknown) =>
+  typeof v === 'string' && PROPORCOES.includes(v) ? v : 'quadrado';
 const LIMITE_IMAGEM = 8 * 1024 * 1024;
 
 const COR_PRIMARIA_PADRAO = '#1e40af';
