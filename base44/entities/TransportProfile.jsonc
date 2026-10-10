@@ -1,7 +1,7 @@
 {
   "name": "TransportProfile",
   "type": "object",
-  "description": "Perfil de transporte do Hub PlaceFit (coletor, fretista ou base). Fica fora do User de proposito: o User tem update publico, entao um campo de perfil la seria auto-atribuivel. S\u00f3 o admin cria e edita; o app le o proprio perfil pela funcao hubApi.",
+  "description": "Perfil de transporte do Hub PlaceFit (coletor, fretista ou base). Fica fora do User de proposito: o User tem update publico, entao um campo de perfil la seria auto-atribuivel. Só o admin cria e edita; o app le o proprio perfil pela funcao hubApi.",
   "properties": {
     "user_id": {
       "type": "string",
@@ -57,7 +57,7 @@
         "suspenso"
       ],
       "default": "pendente",
-      "description": "S\u00f3 perfil verificado ve a fila e aceita servico"
+      "description": "Só perfil verificado ve a fila e aceita servico"
     },
     "documentos_urls": {
       "type": "array",
@@ -83,12 +83,6 @@
     "tipo",
     "nome"
   ],
-  "x-security": {
-    "read": "authenticated",
-    "create": "admin",
-    "update": "admin",
-    "delete": "admin"
-  },
   "rls": {
     "read": {
       "$or": [

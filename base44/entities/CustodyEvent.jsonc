@@ -104,12 +104,6 @@
     "registrado_em",
     "foto_url"
   ],
-  "x-security": {
-    "read": "authenticated",
-    "create": "admin",
-    "update": "admin",
-    "delete": "admin"
-  },
   "rls": {
     "read": {
       "user_condition": {

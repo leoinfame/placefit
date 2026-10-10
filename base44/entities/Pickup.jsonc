@@ -3,51 +3,169 @@
   "type": "object",
   "description": "Coleta do Hub: o subpedido (PedidoCompra) de um fabricante levado ate a base. Gravado só pela funcao hubApi (service role), que aplica a sequencia de status. O historico de custodia fica em CustodyEvent.",
   "properties": {
-    "pedido_compra_id": { "type": "string", "description": "PedidoCompra (subpedido) de origem" },
-    "venda_id": { "type": "string", "description": "Pedido da revenda que junta os subpedidos" },
-    "freight_leg_id": { "type": "string", "description": "FreightLeg do pedido consolidado" },
-    "revendedor_id": { "type": "string" },
-    "revendedor_nome": { "type": "string" },
-    "numero": { "type": "string", "description": "Codigo curto exibido na etiqueta (ex: COL-4F7K2)" },
-    "fabricante_id": { "type": "string", "description": "Entidade Fabricante" },
-    "fabricante_nome": { "type": "string" },
-    "fabricante_endereco": { "type": "string" },
-    "fabricante_cidade": { "type": "string" },
-    "fabricante_uf": { "type": "string" },
-    "fabricante_whatsapp": { "type": "string" },
-    "base_id": { "type": "string" },
-    "itens_resumo": { "type": "string", "description": "Itens do subpedido no momento da inclusao" },
-    "volumes": { "type": "number" },
-    "peso_kg": { "type": "number" },
-    "valor_mercadoria": { "type": "number", "description": "Total do subpedido; comparado ao limite_valor do coletor" },
-    "valor_coleta": { "type": "number", "description": "Valor pago ao coletor, definido pelo admin" },
+    "pedido_compra_id": {
+      "type": "string",
+      "description": "PedidoCompra (subpedido) de origem"
+    },
+    "venda_id": {
+      "type": "string",
+      "description": "Pedido da revenda que junta os subpedidos"
+    },
+    "freight_leg_id": {
+      "type": "string",
+      "description": "FreightLeg do pedido consolidado"
+    },
+    "revendedor_id": {
+      "type": "string"
+    },
+    "revendedor_nome": {
+      "type": "string"
+    },
+    "numero": {
+      "type": "string",
+      "description": "Codigo curto exibido na etiqueta (ex: COL-4F7K2)"
+    },
+    "fabricante_id": {
+      "type": "string",
+      "description": "Entidade Fabricante"
+    },
+    "fabricante_nome": {
+      "type": "string"
+    },
+    "fabricante_endereco": {
+      "type": "string"
+    },
+    "fabricante_cidade": {
+      "type": "string"
+    },
+    "fabricante_uf": {
+      "type": "string"
+    },
+    "fabricante_whatsapp": {
+      "type": "string"
+    },
+    "base_id": {
+      "type": "string"
+    },
+    "itens_resumo": {
+      "type": "string",
+      "description": "Itens do subpedido no momento da inclusao"
+    },
+    "volumes": {
+      "type": "number"
+    },
+    "peso_kg": {
+      "type": "number"
+    },
+    "valor_mercadoria": {
+      "type": "number",
+      "description": "Total do subpedido; comparado ao limite_valor do coletor"
+    },
+    "valor_coleta": {
+      "type": "number",
+      "description": "Valor pago ao coletor, definido pelo admin"
+    },
     "status": {
       "type": "string",
-      "enum": ["aguardando_pronto", "disponivel", "aceita", "janela_confirmada", "coletada", "entregue_base", "conferida", "falsa_coleta", "cancelada"],
+      "enum": [
+        "aguardando_pronto",
+        "disponivel",
+        "aceita",
+        "janela_confirmada",
+        "coletada",
+        "entregue_base",
+        "conferida",
+        "falsa_coleta",
+        "cancelada"
+      ],
       "default": "aguardando_pronto"
     },
-    "pronto_em": { "type": "string", "format": "date-time" },
-    "pronto_por_nome": { "type": "string", "description": "Quem marcou pronto pelo fabricante (admin/base)" },
-    "pronto_confirmacao": { "type": "string", "description": "Como foi confirmado (ex: WhatsApp com Fulano 14h)" },
-    "coletor_profile_id": { "type": "string" },
-    "coletor_user_id": { "type": "string" },
-    "coletor_nome": { "type": "string" },
-    "atribuida_por_admin": { "type": "boolean", "default": false },
-    "recusada_por": { "type": "array", "items": { "type": "string" }, "description": "Perfis que recusaram; a coleta some da fila deles" },
-    "janela_inicio": { "type": "string", "format": "date-time" },
-    "janela_fim": { "type": "string", "format": "date-time" },
-    "qr_token": { "type": "string", "description": "Codigo da etiqueta QR do subpedido" },
-    "etiqueta_impressa_em": { "type": "string", "format": "date-time" },
-    "falsas_coletas": { "type": "number", "default": 0 },
-    "divergencia": { "type": "string", "description": "Divergencia registrada na conferencia" },
-    "observacoes": { "type": "string" }
+    "pronto_em": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "pronto_por_nome": {
+      "type": "string",
+      "description": "Quem marcou pronto pelo fabricante (admin/base)"
+    },
+    "pronto_confirmacao": {
+      "type": "string",
+      "description": "Como foi confirmado (ex: WhatsApp com Fulano 14h)"
+    },
+    "coletor_profile_id": {
+      "type": "string"
+    },
+    "coletor_user_id": {
+      "type": "string"
+    },
+    "coletor_nome": {
+      "type": "string"
+    },
+    "atribuida_por_admin": {
+      "type": "boolean",
+      "default": false
+    },
+    "recusada_por": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Perfis que recusaram; a coleta some da fila deles"
+    },
+    "janela_inicio": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "janela_fim": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "qr_token": {
+      "type": "string",
+      "description": "Codigo da etiqueta QR do subpedido"
+    },
+    "etiqueta_impressa_em": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "falsas_coletas": {
+      "type": "number",
+      "default": 0
+    },
+    "divergencia": {
+      "type": "string",
+      "description": "Divergencia registrada na conferencia"
+    },
+    "observacoes": {
+      "type": "string"
+    }
   },
-  "required": ["pedido_compra_id", "venda_id", "revendedor_id", "status"],
-  "x-security": { "read": "authenticated", "create": "admin", "update": "admin", "delete": "admin" },
+  "required": [
+    "pedido_compra_id",
+    "venda_id",
+    "revendedor_id",
+    "status"
+  ],
   "rls": {
-    "read": { "user_condition": { "role": "admin" } },
-    "create": { "user_condition": { "role": "admin" } },
-    "update": { "user_condition": { "role": "admin" } },
-    "delete": { "user_condition": { "role": "admin" } }
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
   }
 }

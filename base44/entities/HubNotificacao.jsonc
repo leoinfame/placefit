@@ -3,29 +3,87 @@
   "type": "object",
   "description": "Notificacao interna do Hub (sino). Separada da Notification da loja. Criada pela funcao hubApi a cada evento; quando ha webhook_url no HubConfig global, tambem e enviada por POST.",
   "properties": {
-    "destinatario_user_id": { "type": "string" },
-    "papel": { "type": "string", "enum": ["coletor", "fretista", "base", "admin", "revenda"] },
-    "tipo": { "type": "string", "description": "Evento que gerou (ex: coletado_no_fabricante, saiu_para_entrega)" },
-    "titulo": { "type": "string" },
-    "mensagem": { "type": "string" },
-    "link": { "type": "string", "description": "Rota dentro do app (ex: /hub/base)" },
-    "pickup_id": { "type": "string" },
-    "freight_leg_id": { "type": "string" },
-    "venda_id": { "type": "string" },
-    "lida": { "type": "boolean", "default": false },
-    "webhook_status": { "type": "string", "enum": ["desligado", "enviado", "erro"], "default": "desligado" }
+    "destinatario_user_id": {
+      "type": "string"
+    },
+    "papel": {
+      "type": "string",
+      "enum": [
+        "coletor",
+        "fretista",
+        "base",
+        "admin",
+        "revenda"
+      ]
+    },
+    "tipo": {
+      "type": "string",
+      "description": "Evento que gerou (ex: coletado_no_fabricante, saiu_para_entrega)"
+    },
+    "titulo": {
+      "type": "string"
+    },
+    "mensagem": {
+      "type": "string"
+    },
+    "link": {
+      "type": "string",
+      "description": "Rota dentro do app (ex: /hub/base)"
+    },
+    "pickup_id": {
+      "type": "string"
+    },
+    "freight_leg_id": {
+      "type": "string"
+    },
+    "venda_id": {
+      "type": "string"
+    },
+    "lida": {
+      "type": "boolean",
+      "default": false
+    },
+    "webhook_status": {
+      "type": "string",
+      "enum": [
+        "desligado",
+        "enviado",
+        "erro"
+      ],
+      "default": "desligado"
+    }
   },
-  "required": ["destinatario_user_id", "titulo"],
-  "x-security": { "read": "authenticated", "create": "admin", "update": "admin", "delete": "admin" },
+  "required": [
+    "destinatario_user_id",
+    "titulo"
+  ],
   "rls": {
     "read": {
       "$or": [
-        { "data.destinatario_user_id": "{{user.id}}" },
-        { "user_condition": { "role": "admin" } }
+        {
+          "data.destinatario_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
       ]
     },
-    "create": { "user_condition": { "role": "admin" } },
-    "update": { "user_condition": { "role": "admin" } },
-    "delete": { "user_condition": { "role": "admin" } }
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
   }
 }

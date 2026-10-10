@@ -3,20 +3,50 @@
   "type": "object",
   "description": "Galpao do Hub PlaceFit onde os subpedidos dos fabricantes chegam, sao conferidos e consolidados num pedido completo.",
   "properties": {
-    "nome": { "type": "string" },
-    "endereco": { "type": "string" },
-    "cidade": { "type": "string" },
-    "uf": { "type": "string" },
-    "lat": { "type": "number" },
-    "lng": { "type": "number" },
-    "whatsapp": { "type": "string" },
-    "ativo": { "type": "boolean", "default": true }
+    "nome": {
+      "type": "string"
+    },
+    "endereco": {
+      "type": "string"
+    },
+    "cidade": {
+      "type": "string"
+    },
+    "uf": {
+      "type": "string"
+    },
+    "lat": {
+      "type": "number"
+    },
+    "lng": {
+      "type": "number"
+    },
+    "whatsapp": {
+      "type": "string"
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true
+    }
   },
-  "required": ["nome"],
-  "x-security": { "read": "authenticated", "create": "admin", "update": "admin", "delete": "admin" },
+  "required": [
+    "nome"
+  ],
   "rls": {
-    "create": { "user_condition": { "role": "admin" } },
-    "update": { "user_condition": { "role": "admin" } },
-    "delete": { "user_condition": { "role": "admin" } }
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
   }
 }
