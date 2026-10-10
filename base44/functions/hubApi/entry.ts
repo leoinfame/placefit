@@ -632,14 +632,19 @@ async function adminPedidos({ db, ctx }: Args) {
   const fabricantes = (await db.Fabricante.filter({}, 'nome_fantasia', 500)).filter((f: any) => f.ativo !== false);
   const pedidos: any[] = [];
   for (const flag of flags) {
-    const [pcs, vendas, pks, fretes, vitrines, clientes] = await Promise.all([
+    const [pcs, vendas, pks, fretes, vitrines] = await Promise.all([
       db.PedidoCompra.filter({ revendedor_id: flag.revendedor_id }, '-created_date', 300),
       db.Pedido.filter({ fornecedor_id: flag.revendedor_id }, '-created_date', 300),
       db.Pickup.filter({ revendedor_id: flag.revendedor_id }, '-created_date', 500),
       db.FreightLeg.filter({ revendedor_id: flag.revendedor_id }, '-created_date', 200),
       db.LojaPedido.filter({ revendedor_id: flag.revendedor_id }, '-created_date', 300),
-      db.Cliente.filter({ fornecedor_id: flag.revendedor_id }, '-created_date', 1000),
     ]);
+    const clienteIds = [...new Set(vendas.map((v: any) => v.cliente_id).filter(Boolean))] as string[];
+    const clientes: any[] = [];
+    for (let i = 0; i < clienteIds.length; i += 200) {
+      const lote = clienteIds.slice(i, i + 200);
+      clientes.push(...await db.Cliente.filter({ id: { $in: lote } }, '-created_date', lote.length));
+    }
     const pesos = await pesosDoCatalogo(db, pcs.filter((pc: any) => !pks.some((p: any) => p.pedido_compra_id === pc.id)).flatMap((pc: any) => pc.itens || []));
     const porVenda = new Map<string, any[]>();
     for (const pc of pcs) {
