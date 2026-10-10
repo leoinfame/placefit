@@ -6,10 +6,13 @@
 //
 // GET  ?info=1                         -> build e quantidade de hashes
 // POST ?run=<TOKEN>  {sha, tipo, b64}  -> sobe 1 arquivo, devolve a url no app
+// POST ?troca=<TOKEN> [{id, foto}]      -> troca ProductTemplate.foto, so se a foto
+//                                          atual for hotlink de uma das 5 origens e
+//                                          a nova for arquivo do proprio app
 
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.41";
 
-const BUILD = "2026-10-10-hotlinks-v1";
+const BUILD = "2026-10-10-hotlinks-v2-troca";
 const TOKEN = "pf-hotlinks-2026-10-10-b93e07d2";
 const TIPOS: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
 
@@ -21,9 +24,29 @@ const sha256 = async (b: Uint8Array) =>
   Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", b)))
     .map((x) => x.toString(16).padStart(2, "0")).join("");
 
+const ORIGENS = ["anilhasehalteresbrasil.com.br", "haxfit.com.br", "metalformaadm.webtrafego.com.br", "img.irroba.com.br", "placefit.com.br"];
+const PREFIXO_APP = "https://base44.app/api/apps/68c9d5dd3cf0f8fd8a834875/files/mp/public/68c9d5dd3cf0f8fd8a834875/";
+
+const trocar = async (req: Request) => {
+  const base44 = createClientFromRequest(req);
+  const itens: { id: string; foto: string }[] = await req.json();
+  const out = { trocados: 0, pulados: [] as unknown[] };
+  for (const { id, foto } of itens) {
+    if (typeof foto !== "string" || !foto.startsWith(PREFIXO_APP)) { out.pulados.push({ id, motivo: "foto nova fora do app" }); continue; }
+    const [t] = await base44.asServiceRole.entities.ProductTemplate.filter({ id });
+    const host = t?.foto ? new URL(t.foto).hostname : "";
+    if (!t || !ORIGENS.includes(host)) { out.pulados.push({ id, motivo: `foto atual nao e hotlink (${t?.foto ?? "sem registro"})` }); continue; }
+    await base44.asServiceRole.entities.ProductTemplate.update(id, { foto });
+    out.trocados++;
+    await new Promise((r) => setTimeout(r, 250));
+  }
+  return Response.json(out);
+};
+
 Deno.serve(async (req) => {
   const url = new URL(req.url);
   if (url.searchParams.get("info")) return Response.json({ build: BUILD, hashes: PERMITIDOS.size });
+  if (req.method === "POST" && url.searchParams.get("troca") === TOKEN) return trocar(req);
   if (req.method !== "POST" || url.searchParams.get("run") !== TOKEN) {
     return Response.json({ error: "token" }, { status: 403 });
   }
