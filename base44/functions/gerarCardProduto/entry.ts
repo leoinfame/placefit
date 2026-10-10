@@ -1,9 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
-import { carregarDadosCard, montarPacoteCard, FORMATOS, ErroCard } from '../../shared/cardProduto.ts';
+import { carregarDadosCard, montarPacoteCard, FORMATOS, PROPORCOES, normalizarProporcao, ErroCard } from '../../shared/cardProduto.ts';
 import { arteConfigurada, gerarFundoArtistico, ESTILOS_ARTE, ESTILO_PADRAO } from '../../shared/cardArte.ts';
 
 // Camada de DADOS do card de um produto selecionado do revendedor.
-// body: { supplier_product_id, camada?: 'padrao'|'artistica', formato?: 'imagem'|'video', estilo? }
+// body: { supplier_product_id, camada?: 'padrao'|'artistica', formato?: 'imagem'|'video',
+//         proporcao?: 'quadrado'|'retrato'|'vertical', estilo? }
 // body: { acao: 'config' } -> diz quais camadas/formatos estao disponiveis (para a tela).
 // Resposta: { dados, imagens: { foto, logo, fundo }, card_id, nome_arquivo, ... }
 // O PNG e desenhado no navegador (src/lib/cardRender.js) a partir desta resposta.
@@ -16,11 +17,12 @@ Deno.serve(async (req) => {
     const body = req.method === 'POST' ? await req.json().catch(() => ({})) : {};
 
     if (body.acao === 'config') {
-      return Response.json({ formatos: FORMATOS, arte_disponivel: arteConfigurada(), estilos: Object.keys(ESTILOS_ARTE) });
+      return Response.json({ formatos: FORMATOS, proporcoes: PROPORCOES, arte_disponivel: arteConfigurada(), estilos: Object.keys(ESTILOS_ARTE) });
     }
 
     const formato = body.formato || 'imagem';
     const camada = body.camada === 'artistica' ? 'artistica' : 'padrao';
+    const proporcao = normalizarProporcao(body.proporcao);
     if (!FORMATOS.includes(formato)) throw new ErroCard(`Formato "${formato}" ainda não disponível.`, 501);
 
     const dados = await carregarDadosCard(base44, user, body.supplier_product_id);
@@ -57,6 +59,7 @@ Deno.serve(async (req) => {
       supplier_product_id: dados.supplier_product_id,
       product_id: dados.product_id,
       formato,
+      proporcao,
       camada,
       status: 'concluido',
       nome_exibido: dados.nome,
@@ -76,10 +79,11 @@ Deno.serve(async (req) => {
 
     return Response.json({
       ...pacote,
-      nome_arquivo: `${slug || 'produto'}-${camada}.png`,
+      nome_arquivo: `${slug || 'produto'}-${proporcao}.png`,
       card_id: registro?.id ?? null,
       camada,
       formato,
+      proporcao,
       custo_credito: custo,
     });
   } catch (error) {
