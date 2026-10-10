@@ -105,6 +105,9 @@ function removerFundoClaro(canvas) {
     if (p < n - w) marcar(p + w);
   }
 
+  // fundo externo (encosta na borda): unica origem permitida para a sombra de chao
+  const externo = fundo.slice();
+
   // vazados internos (furo da anilha etc.): manchas brancas uniformes e grandes
   const branco = (p) => {
     const i = p * 4;
@@ -159,7 +162,7 @@ function removerFundoClaro(canvas) {
   const inicioChao = Math.floor(h * 0.5) * w;
   const sombra = new Uint8Array(n);
   ini = 0; fim = 0;
-  for (let p = inicioChao; p < n; p++) if (fundo[p]) fila[fim++] = p;
+  for (let p = inicioChao; p < n; p++) if (externo[p]) fila[fim++] = p;
   while (ini < fim) {
     const p = fila[ini++], x = p % w, vp = media(p);
     const viz = [x > 0 ? p - 1 : -1, x < w - 1 ? p + 1 : -1, p >= w ? p - w : -1, p < n - w ? p + w : -1];
