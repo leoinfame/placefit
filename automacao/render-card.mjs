@@ -10,7 +10,7 @@
 //               marca: { nome, logo_url, cor_primaria, cor_secundaria, estilo_fundo, whatsapp } }]
 import fs from "node:fs";
 import path from "node:path";
-import { createCanvas, Image as NImage, GlobalFonts } from "@napi-rs/canvas";
+import { createCanvas, Image as NImage, GlobalFonts, Path2D } from "@napi-rs/canvas";
 
 // ---------------- polyfills do navegador ----------------
 function novoCanvas() {
@@ -30,6 +30,7 @@ globalThis.document = {
 };
 // O Image nativo do @napi-rs/canvas ja aceita data URI, onload/onerror e naturalWidth.
 globalThis.Image = NImage;
+globalThis.Path2D = Path2D;
 globalThis.FontFace = class FontFace {
   constructor(familia, src) {
     this.familia = familia;
