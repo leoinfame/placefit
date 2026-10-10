@@ -6,9 +6,6 @@
 // URI. Aqui nao ha IA nem calculo de preco: so layout deterministico.
 // Formato "video" (premium, futuro) entra como outro renderizador em RENDERIZADORES.
 
-const MARGEM = 64; // margem lateral segura (todos os destinos tem 1080 de largura)
-const LARGURA_UTIL = 1080 - 2 * MARGEM;
-const ALTURA_LINHA_NOME = 1.06;
 const FAMILIA = "CardInter";
 
 const FONTES = [500, 700, 800].map((peso) => ({
