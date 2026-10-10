@@ -28,25 +28,8 @@ globalThis.document = {
   },
   fonts: { add() {} },
 };
-globalThis.Image = function Image() {
-  const img = new NImage();
-  let atual = null;
-  Object.defineProperty(img, "src", {
-    configurable: true,
-    get: () => atual,
-    set: (v) => {
-      atual = v;
-      try {
-        const buf = typeof v === "string" && v.startsWith("data:") ? Buffer.from(v.split(",")[1], "base64") : v;
-        // dispara onload/onerror nativos do @napi-rs/canvas
-        NImage.prototype.__lookupSetter__("src")?.call(img, buf) ?? Reflect.set(NImage.prototype, "src", buf, img);
-      } catch (e) {
-        img.onerror?.(e);
-      }
-    },
-  });
-  return img;
-};
+// O Image nativo do @napi-rs/canvas ja aceita data URI, onload/onerror e naturalWidth.
+globalThis.Image = NImage;
 globalThis.FontFace = class FontFace {
   constructor(familia, src) {
     this.familia = familia;
