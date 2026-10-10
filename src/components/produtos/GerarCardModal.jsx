@@ -6,9 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { RENDERIZADORES } from "@/lib/cardRender";
 
-// Card de produto para Instagram/WhatsApp (PNG 1080x1080), gerado no servidor
-// pela funcao gerarCardProduto. Nome, peso e preco vem do banco, nunca de IA.
+// Card de produto para Instagram/WhatsApp (PNG 1080x1080). A funcao
+// gerarCardProduto le nome, peso e preco do banco (nunca de IA) e o PNG e
+// desenhado aqui no navegador por src/lib/cardRender.js.
 export default function GerarCardModal({ group, onClose }) {
   const variacoes = (group?.variations || []).filter(v => v.sp?.preco > 0);
   const [spId, setSpId] = useState(variacoes[0]?.sp.id || "");
@@ -30,10 +32,15 @@ export default function GerarCardModal({ group, onClose }) {
     setResultado(null);
     try {
       const r = await base44.functions.invoke("gerarCardProduto", { supplier_product_id: spId, camada, formato: "imagem" });
-      const d = r.data;
-      const bytes = Uint8Array.from(atob(d.png_base64), c => c.charCodeAt(0));
-      const file = new File([bytes], d.nome_arquivo, { type: "image/png" });
-      setResultado({ dataUrl: `data:image/png;base64,${d.png_base64}`, file, nome_arquivo: d.nome_arquivo });
+      const pacote = r.data;
+      const blob = await RENDERIZADORES[pacote.formato || "imagem"](pacote);
+      const file = new File([blob], pacote.nome_arquivo, { type: "image/png" });
+      const dataUrl = await new Promise((resolve) => {
+        const leitor = new FileReader();
+        leitor.onload = () => resolve(leitor.result);
+        leitor.readAsDataURL(blob);
+      });
+      setResultado({ dataUrl, file, nome_arquivo: pacote.nome_arquivo });
     } catch (e) {
       setErro(e?.response?.data?.error || e?.message || "Erro ao gerar a imagem.");
     }
