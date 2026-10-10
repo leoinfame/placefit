@@ -235,6 +235,22 @@ export default function FabricantesRevendedor() {
     });
   };
 
+  // Converte imagem URL -> base64 data URL para embed no HTML de impressão
+  const fetchImageAsDataURL = async (url) => {
+    if (!url) return null;
+    try {
+      const resp = await fetch(url, { mode: 'cors' });
+      if (!resp.ok) return null;
+      const blob = await resp.blob();
+      return await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(blob);
+      });
+    } catch { return null; }
+  };
+
   const downloadFabricanteTable = async (fabricante) => {
     setDownloadingTable(fabricante.id);
     try {
@@ -295,8 +311,22 @@ export default function FabricantesRevendedor() {
       }
       grupos.sort((x, y) => (x.nome || '').localeCompare(y.nome || '', 'pt-BR', { numeric: true }));
 
-      // Extrair cores da logo
-      const logoColors = await extractLogoColors(fabricante.logomarca);
+      // Embedar imagens (logo + fotos) como base64 para garantir exibição no PDF
+      const imgUrls = new Set();
+      if (fabricante.logomarca) imgUrls.add(fabricante.logomarca);
+      for (const g of grupos) {
+        if (g.foto) imgUrls.add(g.foto);
+      }
+      const imgMap = {};
+      await Promise.all([...imgUrls].map(async (url) => {
+        const dataUrl = await fetchImageAsDataURL(url);
+        imgMap[url] = dataUrl || url;
+      }));
+      const getImg = (url) => imgMap[url] || url || '';
+
+      // Extrair cores da logo (usar base64 se disponível para evitar CORS no canvas)
+      const logoForColors = imgMap[fabricante.logomarca] || fabricante.logomarca;
+      const logoColors = await extractLogoColors(logoForColors);
       const c = logoColors || {
         primary: '#1e3a5f', primaryDark: '#0f172a', secondary: '#1e40af',
         light: '#eff6ff', lightBorder: '#bfdbfe', textOnPrimary: '#ffffff', textAccent: '#1e40af'
@@ -346,7 +376,7 @@ export default function FabricantesRevendedor() {
           const mesmoPreco = precos.every(p => p === precos[0]);
           const temChips = g.variants.length > 1 || (g.variants[0] && g.variants[0].label);
           const fotoHtml = g.foto
-            ? `<img src="${g.foto}" alt="" style="width:24px;height:24px;object-fit:contain;background:#fff;border-radius:3px;border:1px solid #e2e8f0;">`
+            ? `<img src="${getImg(g.foto)}" alt="" style="width:24px;height:24px;object-fit:contain;background:#fff;border-radius:3px;border:1px solid #e2e8f0;">`
             : `<div style="width:24px;height:24px;border-radius:3px;border:1px solid #e2e8f0;background:#f8fafc;display:flex;align-items:center;justify-content:center;font-size:10px;">📦</div>`;
           const chips = temChips
             ? g.variants.map(v => `<span style="display:inline-block;font-size:7pt;color:#475569;background:#eff6ff;border:1px solid #dbeafe;padding:0 3px;border-radius:6px;margin:0 2px 1px 0;white-space:nowrap;line-height:1.5;">${v.label || v.cod}${mesmoPreco ? '' : ' · ' + fmtPreco(v.preco)}</span>`).join('')
@@ -413,7 +443,7 @@ export default function FabricantesRevendedor() {
 <body>
 <div class="page-wrapper">
   <div class="cover">
-    ${fabricante.logomarca ? `<img src="${fabricante.logomarca}" alt="Logo" class="cover-logo">` : `<div class="cover-logo-placeholder">🏭</div>`}
+    ${fabricante.logomarca ? `<img src="${getImg(fabricante.logomarca)}" alt="Logo" class="cover-logo">` : `<div class="cover-logo-placeholder">🏭</div>`}
     <div style="flex:1;">
       <div class="cover-title">${nomeEmpresa}</div>
       <div style="margin-top:6px;">
@@ -477,7 +507,12 @@ export default function FabricantesRevendedor() {
         if (printWindow) {
           printWindow.document.write(html);
           printWindow.document.close();
-          setTimeout(() => printWindow.print(), 800);
+          // Aguardar todas as imagens carregarem antes de imprimir
+          const imgs = printWindow.document.querySelectorAll('img');
+          await Promise.all(Array.from(imgs).map(img =>
+            img.complete ? Promise.resolve() : new Promise(r => { img.onload = r; img.onerror = r; })
+          ));
+          setTimeout(() => printWindow.print(), 300);
         }
 
         toast({
