@@ -3,6 +3,7 @@ import {
   ErroHub, Papel, REGRAS_CUSTODIA, ACOES_PICKUP, ACOES_FRETE, NOTIFICAR, ROTULO_STATUS,
   validarCustodia, validarAcao, lerQr, gerarToken, conteudoQr, numeroCurto,
   pickupVisivelParaColetor, freteVisivelParaFretista, prontoParaConsolidar, normalizarCidade,
+  estimarPeso, resolverDestino, conferirChecklist,
 } from '../../shared/hubFluxo.ts';
 
 // API do Hub PlaceFit. Todas as gravacoes de Pickup, FreightLeg, CustodyEvent, HubLancamento
@@ -174,6 +175,44 @@ async function enviarWebhook(url: string, payload: unknown): Promise<boolean> {
 
 function resumoItens(itens: any[]): string {
   return (itens || []).map((i) => `${i.quantidade ?? 1}x ${i.nome || i.cod || 'item'}`).join(' · ');
+}
+
+function itensEstruturados(itens: any[]) {
+  return (itens || []).map((i) => ({ product_id: i.product_id, cod: i.cod, nome: i.nome, quantidade: Number(i.quantidade) || 1 }));
+}
+
+// Itens que a coleta deve trazer (gravados na inclusao; coletas antigas leem do PedidoCompra).
+async function itensDaColeta(db: any, p: any) {
+  if (Array.isArray(p.itens) && p.itens.length) return p.itens;
+  const pc = (await db.PedidoCompra.filter({ id: p.pedido_compra_id }, '-created_date', 1))[0];
+  return itensEstruturados(pc?.itens);
+}
+
+// product_id -> peso_kg. Os itens apontam para ProductTemplate (vitrine) ou SupplierProduct (orcamento).
+async function pesosDoCatalogo(db: any, itens: any[]) {
+  const ids = [...new Set(itens.map((i) => i?.product_id).filter(Boolean))] as string[];
+  const mapa: Record<string, number | undefined> = {};
+  for (let i = 0; i < ids.length; i += 200) {
+    const lote = ids.slice(i, i + 200);
+    for (const t of await db.ProductTemplate.filter({ id: { $in: lote } }, '-created_date', lote.length)) mapa[t.id] = t.peso_kg;
+  }
+  const faltam = ids.filter((id) => !(id in mapa));
+  for (let i = 0; i < faltam.length; i += 200) {
+    const lote = faltam.slice(i, i + 200);
+    const sps = await db.SupplierProduct.filter({ id: { $in: lote } }, '-created_date', lote.length);
+    const tplIds = [...new Set(sps.map((x: any) => x.product_id).filter(Boolean))] as string[];
+    const tpls = tplIds.length ? await db.ProductTemplate.filter({ id: { $in: tplIds } }, '-created_date', tplIds.length) : [];
+    const porTpl = Object.fromEntries(tpls.map((t: any) => [t.id, t.peso_kg]));
+    for (const sp of sps) mapa[sp.id] = porTpl[sp.product_id];
+  }
+  return mapa;
+}
+
+// Pedido da vitrine ligado a esta venda: o PedidoCompra aponta para o LojaPedido direto ou para o Pedido interno gerado dele.
+async function pedidoDaVitrine(db: any, vendaId: string) {
+  return (await db.LojaPedido.filter({ id: vendaId }, '-created_date', 1))[0]
+    || (await db.LojaPedido.filter({ pedido_interno_id: vendaId }, '-created_date', 1))[0]
+    || null;
 }
 
 function publicoPickup(p: any, comQr = false) {
@@ -468,6 +507,18 @@ async function custodia({ db, ctx, user, body }: Args) {
     dono_user_id: pickup ? pickup.coletor_user_id : frete.fretista_user_id,
   }, papel, user.id);
 
+  // Conferencia item a item: a divergencia nasce do que nao foi marcado (+ observacao livre opcional).
+  let checklist: any[] | undefined;
+  let divergencia: string | undefined = body.divergencia ? String(body.divergencia).trim() || undefined : undefined;
+  if (tipo === 'conferido') {
+    const itens = await itensDaColeta(db, pickup);
+    if (itens.length) {
+      const r = conferirChecklist(itens, body.checklist);
+      checklist = r.linhas;
+      divergencia = [r.divergencia, divergencia && `Obs.: ${divergencia}`].filter(Boolean).join('; ') || undefined;
+    }
+  }
+
   if (tipo === 'entregue_ao_cliente' && !String(body.recebedor_nome || '').trim()) {
     throw new ErroHub('Informe o nome de quem recebeu.');
   }
@@ -495,12 +546,13 @@ async function custodia({ db, ctx, user, body }: Args) {
     ...dadosGeo(body),
     foto_url: body.foto_url,
     observacao: body.observacao || undefined,
-    divergencia: body.divergencia || undefined,
+    divergencia,
+    checklist,
     recebedor_nome: body.recebedor_nome || undefined,
   });
 
   if (pickup) {
-    await db.Pickup.update(pickup.id, { status: para, ...(tipo === 'conferido' && body.divergencia ? { divergencia: body.divergencia } : {}) });
+    await db.Pickup.update(pickup.id, { status: para, ...(tipo === 'conferido' && divergencia ? { divergencia } : {}) });
   } else {
     await db.FreightLeg.update(frete.id, {
       status: para,
@@ -532,7 +584,7 @@ async function custodia({ db, ctx, user, body }: Args) {
   const msg: Record<string, string> = {
     coletado_no_fabricante: `${pickup?.numero} coletada por ${quem} em ${pickup?.fabricante_nome}. A caminho da base.`,
     entregue_na_base: `${pickup?.numero} (${pickup?.fabricante_nome}) chegou na base. Falta conferir.`,
-    conferido: `${pickup?.numero} (${pickup?.fabricante_nome}) conferida${body.divergencia ? ' COM DIVERGÊNCIA: ' + body.divergencia : ''}.`,
+    conferido: `${pickup?.numero} (${pickup?.fabricante_nome}) conferida${divergencia ? ' COM DIVERGÊNCIA: ' + divergencia : ' sem divergência'}.`,
     pedido_consolidado: `${frete?.numero} consolidado — ${frete?.cliente_nome || ''} ${frete?.destino_cidade || ''}/${frete?.destino_uf || ''}. Pronto para liberar ao frete.`,
     retirado_pelo_fretista: `Seu pedido ${frete?.numero} saiu para entrega com ${quem}. Destino: ${frete?.destino_cidade}/${frete?.destino_uf}.`,
     entregue_ao_cliente: `Pedido ${frete?.numero} entregue. Recebido por ${body.recebedor_nome}.`,
@@ -580,12 +632,15 @@ async function adminPedidos({ db, ctx }: Args) {
   const fabricantes = (await db.Fabricante.filter({}, 'nome_fantasia', 500)).filter((f: any) => f.ativo !== false);
   const pedidos: any[] = [];
   for (const flag of flags) {
-    const [pcs, vendas, pks, fretes] = await Promise.all([
+    const [pcs, vendas, pks, fretes, vitrines, clientes] = await Promise.all([
       db.PedidoCompra.filter({ revendedor_id: flag.revendedor_id }, '-created_date', 300),
       db.Pedido.filter({ fornecedor_id: flag.revendedor_id }, '-created_date', 300),
       db.Pickup.filter({ revendedor_id: flag.revendedor_id }, '-created_date', 500),
       db.FreightLeg.filter({ revendedor_id: flag.revendedor_id }, '-created_date', 200),
+      db.LojaPedido.filter({ revendedor_id: flag.revendedor_id }, '-created_date', 300),
+      db.Cliente.filter({ fornecedor_id: flag.revendedor_id }, '-created_date', 1000),
     ]);
+    const pesos = await pesosDoCatalogo(db, pcs.filter((pc: any) => !pks.some((p: any) => p.pedido_compra_id === pc.id)).flatMap((pc: any) => pc.itens || []));
     const porVenda = new Map<string, any[]>();
     for (const pc of pcs) {
       if (pc.status === 'cancelado' || !pc.venda_id) continue;
@@ -595,12 +650,15 @@ async function adminPedidos({ db, ctx }: Args) {
     for (const [vendaId, subs] of porVenda) {
       const venda = vendas.find((v: any) => v.id === vendaId);
       const frete = fretes.find((f: any) => f.venda_id === vendaId);
+      const vitrine = vitrines.find((l: any) => l.id === vendaId || l.pedido_interno_id === vendaId) || null;
+      const cliente = venda?.cliente_id ? clientes.find((c: any) => c.id === venda.cliente_id) || null : null;
       pedidos.push({
         venda_id: vendaId,
         revendedor_id: flag.revendedor_id,
         revendedor_nome: flag.revendedor_nome || subs[0]?.revendedor_nome,
-        numero_pedido: venda?.numero_pedido,
-        cliente_nome: venda?.cliente_nome,
+        numero_pedido: venda?.numero_pedido || vitrine?.numero_pedido,
+        cliente_nome: venda?.cliente_nome || vitrine?.cliente_nome || cliente?.nome,
+        destino_sugerido: frete ? null : resolverDestino({}, vitrine, cliente),
         data: venda?.data_pedido || subs[0]?.data_pedido || subs[0]?.created_date,
         total: subs.reduce((s: number, pc: any) => s + (pc.total || 0), 0),
         no_hub: !!frete,
@@ -612,6 +670,7 @@ async function adminPedidos({ db, ctx }: Args) {
             fabricante_nome: pc.fabricante_nome,
             total: pc.total,
             itens: resumoItens(pc.itens),
+            peso_estimado: pk ? null : estimarPeso(pc.itens || [], pesos),
             fabricante_sugerido: sugerirFabricante(pc.fabricante_nome, fabricantes)?.id || null,
             pickup: pk ? publicoPickup(pk, true) : null,
           };
@@ -653,7 +712,13 @@ async function incluirPedido({ db, ctx, body }: Args) {
 
   const venda = (await db.Pedido.filter({ id: vendaId }, '-created_date', 1))[0];
   const cliente = venda?.cliente_id ? (await db.Cliente.filter({ id: venda.cliente_id }, '-created_date', 1))[0] : null;
+  const vitrine = await pedidoDaVitrine(db, vendaId);
+  const destino = resolverDestino(
+    { endereco: body.destino_endereco, cidade: body.destino_cidade, uf: body.destino_uf, cep: body.destino_cep, telefone: body.destino_telefone },
+    vitrine, cliente,
+  );
   const escolhas: Record<string, any> = body.subpedidos || {};
+  const pesos = await pesosDoCatalogo(db, pcs.flatMap((pc: any) => pc.itens || []));
 
   const tokenF = gerarToken();
   const frete = await db.FreightLeg.create({
@@ -663,12 +728,13 @@ async function incluirPedido({ db, ctx, body }: Args) {
     revendedor_id: revendedorId,
     revendedor_nome: pcs[0].revendedor_nome,
     base_id: baseId,
-    cliente_nome: venda?.cliente_nome || cliente?.nome,
-    destino_endereco: body.destino_endereco || cliente?.endereco,
-    destino_cidade: body.destino_cidade || cliente?.cidade,
-    destino_uf: String(body.destino_uf || cliente?.estado || '').toUpperCase().slice(0, 2) || undefined,
-    destino_cep: cliente?.cep,
-    destino_telefone: cliente?.telefone,
+    cliente_nome: venda?.cliente_nome || vitrine?.cliente_nome || cliente?.nome,
+    destino_endereco: destino.endereco,
+    destino_cidade: destino.cidade,
+    destino_uf: destino.uf,
+    destino_cep: destino.cep,
+    destino_telefone: destino.telefone,
+    destino_origem: destino.origem,
     valor_mercadoria: pcs.reduce((s: number, pc: any) => s + (pc.total || 0), 0),
     valor_frete: Number(body.valor_frete) > 0 ? Number(body.valor_frete) : undefined,
     status: 'aguardando_consolidacao',
@@ -678,6 +744,8 @@ async function incluirPedido({ db, ctx, body }: Args) {
     const escolha = escolhas[pc.id] || {};
     const fab = escolha.fabricante_id ? (await db.Fabricante.filter({ id: escolha.fabricante_id }, '-created_date', 1))[0] : null;
     const token = gerarToken();
+    const informado = Number(escolha.peso_kg) > 0 ? Number(escolha.peso_kg) : null;
+    const estimado = estimarPeso(pc.itens || [], pesos);
     await db.Pickup.create({
       pedido_compra_id: pc.id,
       venda_id: vendaId,
@@ -694,8 +762,10 @@ async function incluirPedido({ db, ctx, body }: Args) {
       fabricante_whatsapp: fab?.whatsapp || fab?.telefone,
       base_id: baseId,
       itens_resumo: resumoItens(pc.itens),
+      itens: itensEstruturados(pc.itens),
       volumes: Number(escolha.volumes) || undefined,
-      peso_kg: Number(escolha.peso_kg) || undefined,
+      peso_kg: informado ?? estimado.peso_kg ?? undefined,
+      peso_origem: informado ? 'informado' : estimado.peso_kg ? (estimado.completo ? 'estimado' : 'estimado_parcial') : undefined,
       valor_mercadoria: pc.total,
       valor_coleta: Number(escolha.valor_coleta) > 0 ? Number(escolha.valor_coleta) : undefined,
       status: 'aguardando_pronto',
@@ -716,6 +786,7 @@ async function definirValores({ db, ctx, body }: Args) {
     }
     const dados: any = {};
     for (const k of ['valor_coleta', 'volumes', 'peso_kg']) if (body[k] !== undefined && body[k] !== '') dados[k] = Number(body[k]);
+    if (dados.peso_kg !== undefined) dados.peso_origem = 'informado';
     if (body.fabricante_id) {
       const fab = await pegar(db.Fabricante, body.fabricante_id, 'Fabricante');
       Object.assign(dados, {
@@ -737,6 +808,16 @@ async function definirValores({ db, ctx, body }: Args) {
   if (body.destino_uf) dados.destino_uf = String(body.destino_uf).toUpperCase().slice(0, 2);
   await db.FreightLeg.update(f.id, dados);
   return { ok: true };
+}
+
+// Base le a etiqueta antes de conferir, para montar o checklist dos itens.
+async function lerEtiqueta({ db, ctx, body }: Args) {
+  perfilAtivo(ctx, body.papel === 'admin' ? 'admin' : 'base');
+  const qr = lerQr(body.qr);
+  if (qr.tipo === 'F') throw new ErroHub('Este é o QR mestre do pedido. Escaneie a etiqueta do subpedido.');
+  const p = (await db.Pickup.filter({ qr_token: qr.token }, '-created_date', 1))[0];
+  if (!p) throw new ErroHub('Etiqueta não encontrada no Hub.', 404);
+  return { coleta: publicoPickup(p), itens: await itensDaColeta(db, p) };
 }
 
 async function marcarLidas({ db, user, body }: Args) {
@@ -768,5 +849,6 @@ const ACOES: Record<string, (a: Args) => Promise<any>> = {
   admin_pedidos: adminPedidos,
   incluir_pedido: incluirPedido,
   definir_valores: definirValores,
+  ler_etiqueta: lerEtiqueta,
   marcar_lidas: marcarLidas,
 };
