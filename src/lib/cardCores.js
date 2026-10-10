@@ -68,7 +68,9 @@ export function extrairCoresDePixels(px) {
   const vivas = juntas.filter((c) => c.viva).sort((a, b) => b.peso - a.peso);
   const todas = [...juntas].sort((a, b) => b.n - a.n);
   const principal = (vivas[0] || todas[0]).rgb;
-  const segunda = [...vivas, ...todas].find((c) => distancia(c.rgb, principal) > 80);
+  // segunda: a mais frequente bem diferente da principal (tons de borda/serrilhado
+  // da propria principal sao pouco frequentes e ficam de fora)
+  const segunda = todas.find((c) => distancia(c.rgb, principal) > 80);
   return {
     principal: rgbParaHex(principal),
     secundaria: segunda ? rgbParaHex(segunda.rgb) : misturar(rgbParaHex(principal), "#000000", 0.55),
