@@ -70,3 +70,25 @@ export const linkWhats = (numero, texto = "") => {
 
 export const linkMapa = (endereco) =>
   endereco ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(endereco)}` : null;
+
+// Peso como o coletor/fretista deve ler: estimado pelo catalogo vem com "≈"; estimativa parcial com "≥".
+export function textoPeso(x) {
+  if (!x?.peso_kg) return null;
+  const kg = `${Number(x.peso_kg).toLocaleString("pt-BR")} kg`;
+  if (x.peso_origem === "estimado") return `≈ ${kg}`;
+  if (x.peso_origem === "estimado_parcial") return `≥ ${kg} (parcial)`;
+  return kg;
+}
+
+// Mesma regra do servidor (conferirChecklist), so para mostrar a divergencia antes de confirmar.
+export function previaDivergencia(itens, marcados) {
+  return itens
+    .map((it, i) => {
+      const esperado = Number(it.quantidade) || 1;
+      const m = marcados[i] || {};
+      const recebido = m.ok ? esperado : Math.max(0, Math.min(esperado, Math.floor(Number(m.quantidade_recebida) || 0)));
+      if (recebido === esperado) return null;
+      return recebido === 0 ? `Faltou ${esperado}x ${it.nome || it.cod}` : `Veio ${recebido} de ${esperado}: ${it.nome || it.cod}`;
+    })
+    .filter(Boolean);
+}

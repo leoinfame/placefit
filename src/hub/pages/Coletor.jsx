@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Loader2, MapPin, MessageCircle, Package, Clock, XCircle, Warehouse, RefreshCw } from "lucide-react";
-import { hub, brl, dataHora, linkWhats, linkMapa } from "../lib/hubApi";
+import { hub, brl, dataHora, linkWhats, linkMapa, textoPeso } from "../lib/hubApi";
 import { enviarFoto, pegarLocalizacao } from "../lib/captura";
 import { Cartao, Vazio, Abas, Erro } from "../components/Cartao";
 import Status from "../components/Status";
@@ -68,7 +68,7 @@ export default function Coletor() {
                   </div>
                 </div>
                 <p className="mt-2 flex items-center gap-1 text-sm text-slate-600">
-                  <Package className="h-4 w-4" />{[p.volumes && `${p.volumes} vol.`, p.peso_kg && `${p.peso_kg} kg`].filter(Boolean).join(" · ") || "Volumes a confirmar"}
+                  <Package className="h-4 w-4" />{[p.volumes && `${p.volumes} vol.`, textoPeso(p) || "peso a confirmar"].filter(Boolean).join(" · ")}
                 </p>
                 <p className="mt-1 line-clamp-2 text-xs text-slate-500">{p.itens_resumo}</p>
                 <div className="mt-3 grid grid-cols-3 gap-2">
