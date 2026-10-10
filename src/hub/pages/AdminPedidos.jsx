@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Loader2, Plus, Printer, RefreshCw, ChevronDown, ChevronUp, Save } from "lucide-react";
-import { hub, brl, dataHora } from "../lib/hubApi";
+import { hub, brl, dataHora, textoPeso } from "../lib/hubApi";
 import { Cartao, Vazio, Erro } from "../components/Cartao";
 import { Campo, Selecao } from "../components/Campos";
 import Status from "../components/Status";
@@ -117,6 +117,7 @@ export default function AdminPedidos() {
                         <span className="text-slate-500">{p.fabricante_cidade}</span>
                         {p.coletor_nome && <span className="text-slate-500">· {p.coletor_nome}</span>}
                         {p.falsas_coletas > 0 && <span className="text-xs text-red-600">{p.falsas_coletas} falsa(s)</span>}
+                        <span className="text-xs text-slate-500">{textoPeso(p) || "sem peso"}</span>
                         <span className="ml-auto"><Status status={p.status} /></span>
                       </div>
                       <p className="mt-1 text-xs text-slate-500">{p.itens_resumo}</p>
@@ -125,6 +126,8 @@ export default function AdminPedidos() {
                       <div className="mt-2 flex flex-wrap items-end gap-2">
                         <ValorEditavel rotulo="Valor da coleta" valor={p.valor_coleta} bloqueado={!antesDaColeta}
                           onSalvar={(v) => agir("definir_valores", { pickup_id: p.id, valor_coleta: v })} />
+                        <ValorEditavel rotulo="Peso (kg)" valor={p.peso_kg} bloqueado={!antesDaColeta} placeholder="kg" passo="0.1"
+                          onSalvar={(v) => agir("definir_valores", { pickup_id: p.id, peso_kg: v })} />
                         {!p.fabricante_cidade && antesDaColeta && (
                           <Campo rotulo="Fabricante (cadastro)">
                             <Selecao value="" onChange={(id) => id && agir("definir_valores", { pickup_id: p.id, fabricante_id: id })} className="w-48">
@@ -165,7 +168,7 @@ export default function AdminPedidos() {
   );
 }
 
-function ValorEditavel({ rotulo, valor, bloqueado, onSalvar }) {
+function ValorEditavel({ rotulo, valor, bloqueado, onSalvar, placeholder = "R$", passo = "0.01" }) {
   const [v, setV] = useState(valor ?? "");
   const [salvando, setSalvando] = useState(false);
   useEffect(() => setV(valor ?? ""), [valor]);
@@ -173,7 +176,7 @@ function ValorEditavel({ rotulo, valor, bloqueado, onSalvar }) {
   return (
     <Campo rotulo={rotulo}>
       <div className="flex gap-1">
-        <Input type="number" min="0" step="0.01" value={v} disabled={bloqueado} onChange={(e) => setV(e.target.value)} className="h-9 w-28" placeholder="R$" />
+        <Input type="number" min="0" step={passo} value={v} disabled={bloqueado} onChange={(e) => setV(e.target.value)} className="h-9 w-28" placeholder={placeholder} />
         {mudou && !bloqueado && (
           <Button size="icon" className="h-9 w-9" disabled={salvando || !(Number(v) > 0)} onClick={async () => { setSalvando(true); await onSalvar(Number(v)); setSalvando(false); }}>
             {salvando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
@@ -197,7 +200,9 @@ function Atribuir({ perfis, rotulo, onEscolher }) {
 
 function IncluirDialog({ pedido, fabricantes, onFechar, onFeito }) {
   const [subs, setSubs] = useState(() => Object.fromEntries(pedido.subpedidos.map((s) => [s.pedido_compra_id, { fabricante_id: s.fabricante_sugerido || "", valor_coleta: "", volumes: "", peso_kg: "" }])));
-  const [frete, setFrete] = useState({ valor_frete: "", destino_cidade: "", destino_uf: "" });
+  const sug = pedido.destino_sugerido || {};
+  const [frete, setFrete] = useState({ valor_frete: "", destino_endereco: sug.endereco || "", destino_cidade: sug.cidade || "", destino_uf: sug.uf || "" });
+  const ORIGEM = { pedido_vitrine: "endereço de entrega do pedido da vitrine", cadastro_cliente: "cadastro do cliente" };
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState("");
   const muda = (id, campo, valor) => setSubs({ ...subs, [id]: { ...subs[id], [campo]: valor } });
@@ -206,7 +211,12 @@ function IncluirDialog({ pedido, fabricantes, onFechar, onFeito }) {
     setEnviando(true);
     setErro("");
     try {
-      await hub("incluir_pedido", { papel: "admin", venda_id: pedido.venda_id, subpedidos: subs, ...frete });
+      // So manda o destino que o admin mudou; o resto o servidor le da vitrine/cadastro (e registra a origem certa).
+      const mudou = (campo, chave) => (String(frete[campo] || "").trim() !== String(sug[chave] || "").trim() ? frete[campo] : undefined);
+      await hub("incluir_pedido", {
+        papel: "admin", venda_id: pedido.venda_id, subpedidos: subs, valor_frete: frete.valor_frete,
+        destino_endereco: mudou("destino_endereco", "endereco"), destino_cidade: mudou("destino_cidade", "cidade"), destino_uf: mudou("destino_uf", "uf"),
+      });
       onFeito();
     } catch (e) { setErro(e.message); }
     setEnviando(false);
@@ -232,13 +242,28 @@ function IncluirDialog({ pedido, fabricantes, onFechar, onFeito }) {
               </Campo>
               <Campo rotulo="Valor coleta (R$)"><Input type="number" value={subs[s.pedido_compra_id].valor_coleta} onChange={(e) => muda(s.pedido_compra_id, "valor_coleta", e.target.value)} /></Campo>
               <Campo rotulo="Volumes"><Input type="number" value={subs[s.pedido_compra_id].volumes} onChange={(e) => muda(s.pedido_compra_id, "volumes", e.target.value)} /></Campo>
+              <Campo rotulo="Peso (kg) — o coletor vê antes de aceitar" className="col-span-2">
+                <Input type="number" step="0.1" value={subs[s.pedido_compra_id].peso_kg} onChange={(e) => muda(s.pedido_compra_id, "peso_kg", e.target.value)}
+                  placeholder={s.peso_estimado?.peso_kg ? `catálogo: ${s.peso_estimado.peso_kg} kg` : "sem peso no catálogo"} />
+              </Campo>
+              <p className="col-span-2 self-end text-xs text-slate-500">
+                {!s.peso_estimado?.peso_kg
+                  ? "Nenhum item tem peso no catálogo: informe o peso, senão o coletor vê \"peso a confirmar\"."
+                  : s.peso_estimado.completo
+                    ? "Em branco = usa a estimativa do catálogo (≈)."
+                    : `Em branco = estimativa parcial (≥): ${s.peso_estimado.sem_peso} item(ns) sem peso no catálogo.`}
+              </p>
             </div>
           </div>
         ))}
         <div className="grid grid-cols-3 gap-2 rounded-xl bg-slate-50 p-3">
-          <Campo rotulo="Valor do frete (R$)"><Input type="number" value={frete.valor_frete} onChange={(e) => setFrete({ ...frete, valor_frete: e.target.value })} /></Campo>
-          <Campo rotulo="Cidade destino"><Input value={frete.destino_cidade} onChange={(e) => setFrete({ ...frete, destino_cidade: e.target.value })} placeholder="do cadastro do cliente" /></Campo>
+          <p className="col-span-3 text-xs text-slate-600">
+            {ORIGEM[sug.origem] ? `Destino lido do ${ORIGEM[sug.origem]}. Corrija se precisar.` : "Pedido sem endereço de destino: preencha à mão."}
+          </p>
+          <Campo rotulo="Endereço de entrega" className="col-span-3"><Input value={frete.destino_endereco} onChange={(e) => setFrete({ ...frete, destino_endereco: e.target.value })} /></Campo>
+          <Campo rotulo="Cidade destino"><Input value={frete.destino_cidade} onChange={(e) => setFrete({ ...frete, destino_cidade: e.target.value })} /></Campo>
           <Campo rotulo="UF"><Input maxLength={2} value={frete.destino_uf} onChange={(e) => setFrete({ ...frete, destino_uf: e.target.value.toUpperCase() })} /></Campo>
+          <Campo rotulo="Valor do frete (R$)"><Input type="number" value={frete.valor_frete} onChange={(e) => setFrete({ ...frete, valor_frete: e.target.value })} /></Campo>
         </div>
         <Erro texto={erro} />
         <Button className="h-12" disabled={enviando} onClick={enviar}>

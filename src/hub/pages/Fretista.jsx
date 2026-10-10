@@ -63,7 +63,7 @@ export default function Fretista() {
                   </div>
                 </div>
                 <p className="mt-2 flex items-center gap-1 text-sm text-slate-600">
-                  <Package className="h-4 w-4" />{[f.volumes && `${f.volumes} vol.`, f.peso_kg && `${f.peso_kg} kg`].filter(Boolean).join(" · ") || "Volumes a confirmar na base"}
+                  <Package className="h-4 w-4" />{[f.volumes && `${f.volumes} vol.`, f.peso_kg && `${Number(f.peso_kg).toLocaleString("pt-BR")} kg`].filter(Boolean).join(" · ") || "Volumes a confirmar na base"}
                 </p>
                 <div className="mt-3 grid grid-cols-3 gap-2">
                   <Button variant="outline" className="h-12" disabled={!!ocupado} onClick={() => agir(f, "recusar")}>Recusar</Button>
