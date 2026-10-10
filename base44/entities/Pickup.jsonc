@@ -138,6 +138,36 @@
     },
     "observacoes": {
       "type": "string"
+    },
+    "itens": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "product_id": {
+            "type": "string"
+          },
+          "cod": {
+            "type": "string"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "quantidade": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Itens do subpedido gravados na inclusao; base de checklist da conferencia"
+    },
+    "peso_origem": {
+      "type": "string",
+      "enum": [
+        "informado",
+        "estimado",
+        "estimado_parcial"
+      ],
+      "description": "informado = admin digitou; estimado = soma do peso_kg do catalogo; estimado_parcial = algum item sem peso no catalogo (peso real e maior)"
     }
   },
   "required": [

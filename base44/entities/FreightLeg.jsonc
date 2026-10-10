@@ -100,6 +100,16 @@
     },
     "observacoes": {
       "type": "string"
+    },
+    "destino_origem": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "pedido_vitrine",
+        "cadastro_cliente",
+        "sem_destino"
+      ],
+      "description": "De onde veio o destino: digitado pelo admin, endereco de entrega do pedido da vitrine ou cadastro do cliente"
     }
   },
   "required": [

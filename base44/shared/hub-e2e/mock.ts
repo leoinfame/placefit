@@ -5,7 +5,8 @@ const col = (nome: string) => (DB[nome] ||= []);
 function entidade(nome: string) {
   return {
     async filter(q: Record<string, any> = {}, sort?: string, limit = 50) {
-      let r = col(nome).filter((x) => Object.entries(q).every(([k, v]) => x[k] === v));
+      let r = col(nome).filter((x) => Object.entries(q).every(([k, v]) =>
+        v && typeof v === 'object' && Array.isArray((v as any).$in) ? (v as any).$in.includes(x[k]) : x[k] === v));
       if (sort) {
         const desc = sort.startsWith('-'); const k = sort.replace('-', '');
         r = [...r].sort((a, b) => String(a[k] ?? '').localeCompare(String(b[k] ?? '')) * (desc ? -1 : 1));
