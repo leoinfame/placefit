@@ -1065,6 +1065,9 @@ RESPONDA EM PORTUGUÊS BRASILEIRO DE FORMA PROFISSIONAL E COMERCIAL.
               .catalogo-dialog-content { position: static !important; transform: none !important; max-height: none !important; overflow: visible !important; box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; background: #fff !important; }
               #catalogo-print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 16px; background: #fff !important; }
               .no-print { display: none !important; }
+              #catalogo-print-area .grid { grid-template-columns: repeat(3, 1fr) !important; gap: 8px !important; }
+              #catalogo-print-area .grid > * { page-break-inside: avoid; break-inside: avoid; }
+              * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             }
           `}</style>
           <DialogHeader className="no-print">
@@ -1072,7 +1075,7 @@ RESPONDA EM PORTUGUÊS BRASILEIRO DE FORMA PROFISSIONAL E COMERCIAL.
               <DialogTitle>
                 Catálogo - {selectedFabricante?.nome_fantasia || selectedFabricante?.razao_social || selectedFabricante?.empresa || selectedFabricante?.full_name}
               </DialogTitle>
-              <Button onClick={() => { setShowCatalogoDialog(false); downloadFabricanteTable(selectedFabricante); }} variant="outline" size="sm" className="gap-1.5">
+              <Button onClick={() => window.print()} variant="outline" size="sm" className="gap-1.5">
                 <Download className="w-4 h-4" />
                 Exportar PDF
               </Button>
