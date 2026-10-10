@@ -211,18 +211,19 @@ function quebrarLinhas(ctx, texto, largura) {
   return linhas;
 }
 
-// Maior corpo do nome que caiba em 2 linhas; abaixo disso, corta com reticencias.
-function medirNome(ctx, nome) {
-  for (const f of [84, 76, 68, 60, 54, 48]) {
+// Maior corpo do nome que caiba em maxLinhas; abaixo disso, corta com reticencias.
+function medirNome(ctx, nome, tamanhos, maxLinhas) {
+  for (const f of tamanhos) {
     ctx.font = fonte(800, f);
     const linhas = quebrarLinhas(ctx, nome, LARGURA_UTIL);
-    if (linhas.length <= 2) return { fonteNome: f, linhas };
+    if (linhas.length <= maxLinhas) return { fonteNome: f, linhas };
   }
-  const f = 44;
+  const f = Math.min(44, tamanhos[tamanhos.length - 1]);
   ctx.font = fonte(800, f);
-  const linhas = quebrarLinhas(ctx, nome, LARGURA_UTIL).slice(0, 2);
-  while (ctx.measureText(`${linhas[1]}…`).width > LARGURA_UTIL && linhas[1].length > 1) linhas[1] = linhas[1].slice(0, -1);
-  linhas[1] = `${linhas[1].trimEnd()}…`;
+  const linhas = quebrarLinhas(ctx, nome, LARGURA_UTIL).slice(0, maxLinhas);
+  const u = linhas.length - 1;
+  while (ctx.measureText(`${linhas[u]}…`).width > LARGURA_UTIL && linhas[u].length > 1) linhas[u] = linhas[u].slice(0, -1);
+  linhas[u] = `${linhas[u].trimEnd()}…`;
   return { fonteNome: f, linhas };
 }
 
@@ -250,23 +251,33 @@ function elipseRadial(ctx, cx, cy, rx, ry, cor, alfa) {
 
 // ---------------------------------------------------------------- layout
 
-// Destinos: so muda a moldura (tamanho e zona segura). Topo/base = faixa que a
-// interface do app cobre (Reels/Stories/TikTok/Status cobrem ~250px em cima e
-// ~300px embaixo); nome, preco e contato ficam sempre dentro da zona segura.
+// Destinos: so muda a moldura. Topo/base = faixa que a interface do app cobre
+// (Reels/Stories/TikTok/Status cobrem ~250px em cima e ~300px embaixo); nome,
+// preco e contato ficam sempre dentro da zona segura. No 9:16 a escala da
+// interface (ui) e maior, o nome pode ter 3 linhas, o contato ganha linha
+// propria e o fundo recebe profundidade (peso gigante translucido + degrade).
 export const PROPORCOES = {
   quadrado: { largura: 1080, altura: 1080, topo: MARGEM, base: MARGEM },
   retrato: { largura: 1080, altura: 1350, topo: MARGEM, base: MARGEM },
-  vertical: { largura: 1080, altura: 1920, topo: 250, base: 300, centralizar: true },
+  vertical: {
+    largura: 1080, altura: 1920, topo: 250, base: 300,
+    ui: 1.3, nomeTamanhos: [112, 104, 96, 88, 80, 72, 64], nomeMaxLinhas: 3,
+    contatoEmLinha: true, larguraProduto: 1000, escalaMaxProduto: 4, centralizarProduto: true, profundidade: true,
+  },
 };
+
+const TAMANHOS_NOME_PADRAO = [84, 76, 68, 60, 54, 48];
 
 export async function renderCardImagem(pacote, proporcao = pacote.proporcao) {
   const { dados: d, imagens = {} } = pacote;
   const moldura = PROPORCOES[proporcao] || PROPORCOES.quadrado;
   const W = moldura.largura, H = moldura.altura;
+  const ui = moldura.ui || 1;
   const c1 = d.marca.cor_primaria, c2 = d.marca.cor_secundaria;
   const temFundo = !!imagens.fundo;
   const texto = temFundo ? "#ffffff" : corDeTexto(c1);
-  const textoSuave = texto === "#ffffff" ? "rgba(255,255,255,0.86)" : "rgba(17,17,17,0.78)";
+  const textoRgb = texto === "#ffffff" ? "255,255,255" : "17,17,17";
+  const textoSuave = `rgba(${textoRgb},${texto === "#ffffff" ? 0.86 : 0.78})`;
   const veu = texto === "#ffffff" ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.10)";
   const fundoCard = temFundo ? "#111111" : c1;
 
@@ -284,32 +295,32 @@ export async function renderCardImagem(pacote, proporcao = pacote.proporcao) {
   ctx.imageSmoothingQuality = "high";
 
   // Hierarquia: nome (maior) > preco (segundo) > peso (badge discreto)
-  const { fonteNome, linhas } = medirNome(ctx, d.nome);
-  const fontePreco = Math.max(44, Math.min(64, fonteNome - 12));
+  const { fonteNome, linhas } = medirNome(ctx, d.nome, moldura.nomeTamanhos || TAMANHOS_NOME_PADRAO, moldura.nomeMaxLinhas || 2);
+  const fontePreco = Math.round(Math.max(44, Math.min(64 * ui, fonteNome - 12 * ui)));
+  const fonteSufixo = Math.round(26 * ui), fonteContato = Math.round(34 * ui), iconeContato = Math.round(40 * ui);
   const seloFundo = contraste(c2, c1) >= 1.8 ? c2 : texto;
   const seloTexto = corDeTexto(seloFundo);
 
-  // Grade vertical dentro da zona segura: cabecalho | produto | nome | preco+contato
-  const topoCabecalho = moldura.topo, alturaCabecalho = 92;
+  // Grade vertical dentro da zona segura: cabecalho | produto | nome | preco | (contato)
+  const topoCabecalho = moldura.topo, alturaCabecalho = Math.round(92 * ui);
   const fimSeguro = H - moldura.base;
   const alturaLinhaPreco = fontePreco + 36;
+  const alturaContato = d.marca.whatsapp && moldura.contatoEmLinha ? iconeContato + 28 : 0;
   const alturaNome = Math.round(linhas.length * fonteNome * ALTURA_LINHA_NOME);
   const topoProduto = topoCabecalho + alturaCabecalho + 16;
-  let topoNome = fimSeguro - alturaLinhaPreco - 24 - alturaNome;
-  let baseProduto = topoNome - 36;
-  const alturaProduto = baseProduto - topoProduto;
+  const topoContato = fimSeguro - alturaContato;
+  const topoLinha = topoContato - alturaLinhaPreco;
+  const topoNome = topoLinha - 24 - alturaNome;
+  const baseArea = topoNome - 36;
+  const alturaProduto = baseArea - topoProduto;
 
-  // Tamanho do produto: maior possivel na area (no 9:16 pode usar a largura util toda)
-  const larguraMaxProduto = moldura.centralizar ? LARGURA_UTIL : LARGURA_UTIL * 0.9;
-  const escala = foto ? Math.min(larguraMaxProduto / foto.width, (alturaProduto - 24) / foto.height, 3) : 0;
+  // Produto: maior possivel na area
+  const larguraMaxProduto = moldura.larguraProduto || LARGURA_UTIL * 0.9;
+  const escala = foto ? Math.min(larguraMaxProduto / foto.width, (alturaProduto - 24) / foto.height, moldura.escalaMaxProduto || 3) : 0;
   const pw = foto ? Math.round(foto.width * escala) : 0, ph = foto ? Math.round(foto.height * escala) : 0;
-
-  // No 9:16, produto deitado sobra altura: centraliza o bloco produto+nome+preco
-  // na zona segura em vez de deixar o vazio todo em cima.
-  const subir = moldura.centralizar && foto ? Math.max(0, alturaProduto - 24 - ph) / 2 : 0;
-  topoNome -= subir;
-  baseProduto -= subir;
-  const topoLinha = fimSeguro - alturaLinhaPreco - subir;
+  // apoiado no "chao" (feed) ou centralizado na area (9:16, onde sobra altura)
+  const baseProduto = moldura.centralizarProduto && foto ? baseArea - Math.max(0, alturaProduto - 24 - ph) / 2 : baseArea;
+  const centroProduto = foto ? baseProduto - 24 - ph / 2 : topoProduto + alturaProduto / 2;
 
   // Fundo (preenche o quadro inteiro, inclusive fora da zona segura)
   ctx.fillStyle = fundoCard;
@@ -325,15 +336,37 @@ export async function renderCardImagem(pacote, proporcao = pacote.proporcao) {
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
   } else {
+    if (moldura.profundidade) {
+      // degrade: escurece de leve as pontas para as faixas da interface nao ficarem chapadas
+      const g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, "rgba(0,0,0,0.16)");
+      g.addColorStop(0.22, "rgba(0,0,0,0)");
+      g.addColorStop(0.7, "rgba(0,0,0,0)");
+      g.addColorStop(1, "rgba(0,0,0,0.24)");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+    }
     // brilho suave atras do produto para dar profundidade a cor chapada
-    const centroProduto = foto ? baseProduto - 24 - ph / 2 : topoProduto + alturaProduto / 2;
-    elipseRadial(ctx, W / 2, centroProduto, 460, Math.max(400, ph / 2 + 160), "255,255,255", 0.3);
+    elipseRadial(ctx, W / 2, centroProduto, moldura.profundidade ? 560 : 460, Math.max(400, ph / 2 + 160) * (moldura.profundidade ? 1.5 : 1), "255,255,255", 0.3);
   }
 
-  // Produto: maior possivel na area, apoiado no "chao" com sombra
+  // Peso gigante translucido atras do produto (decorativo, so 9:16)
+  if (moldura.profundidade && d.peso_texto && !temFundo) {
+    const marca = d.peso_texto.replace(/\s+/g, "");
+    let f = 420;
+    ctx.font = fonte(800, f);
+    f = Math.min(f, Math.floor(f * (W * 0.92) / ctx.measureText(marca).width));
+    ctx.font = fonte(800, f);
+    ctx.fillStyle = `rgba(${textoRgb},0.09)`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(marca, W / 2, centroProduto);
+    ctx.textAlign = "left";
+  }
+
   if (foto) {
     const larguraSombra = Math.max(220, Math.round(pw * 0.85));
-    elipseRadial(ctx, W / 2, baseProduto - 24, larguraSombra / 2, 28, "0,0,0", 0.32);
+    elipseRadial(ctx, W / 2, baseProduto - 24, larguraSombra / 2, 28 * ui, "0,0,0", 0.32);
     ctx.drawImage(foto, (W - pw) / 2, baseProduto - 24 - ph, pw, ph);
   } else {
     ctx.fillStyle = textoSuave;
@@ -348,22 +381,23 @@ export async function renderCardImagem(pacote, proporcao = pacote.proporcao) {
   ctx.textBaseline = "middle";
   const meioCabecalho = topoCabecalho + alturaCabecalho / 2;
   if (logo) {
-    const s = Math.min(alturaCabecalho / logo.height, 420 / logo.width);
+    const s = Math.min(alturaCabecalho / logo.height, (420 * ui) / logo.width);
     const lw = logo.width * s, lh = logo.height * s;
     ctx.drawImage(logo, MARGEM, meioCabecalho - lh / 2, lw, lh);
   } else if (d.marca.nome) {
     ctx.fillStyle = texto;
-    ctx.font = fonte(800, 44);
+    ctx.font = fonte(800, Math.round(44 * ui));
     ctx.fillText(d.marca.nome, MARGEM, meioCabecalho);
   }
   if (d.peso_texto) {
-    ctx.font = fonte(700, 30);
-    const bw = ctx.measureText(d.peso_texto).width + 52, bh = 54;
+    ctx.font = fonte(700, Math.round(30 * ui));
+    const pad = Math.round(26 * ui), bh = Math.round(54 * ui);
+    const bw = ctx.measureText(d.peso_texto).width + pad * 2;
     retanguloArredondado(ctx, W - MARGEM - bw, meioCabecalho - bh / 2, bw, bh, bh / 2);
     ctx.fillStyle = veu;
     ctx.fill();
     ctx.fillStyle = texto;
-    ctx.fillText(d.peso_texto, W - MARGEM - bw + 26, meioCabecalho + 1);
+    ctx.fillText(d.peso_texto, W - MARGEM - bw + pad, meioCabecalho + 1);
   }
 
   // Nome (maior elemento)
@@ -373,36 +407,40 @@ export async function renderCardImagem(pacote, proporcao = pacote.proporcao) {
   const passo = fonteNome * ALTURA_LINHA_NOME;
   linhas.forEach((linha, i) => ctx.fillText(linha, MARGEM, topoNome + passo * i + fonteNome * 0.86));
 
-  // Preco (chamada) + contato
+  // Preco (chamada)
   const meioLinha = topoLinha + alturaLinhaPreco / 2;
   ctx.font = fonte(800, fontePreco);
   const wPreco = ctx.measureText(d.preco_texto).width;
   const sufixo = `/${d.und || "unid."}`;
-  ctx.font = fonte(700, 26);
+  ctx.font = fonte(700, fonteSufixo);
   const wSufixo = ctx.measureText(sufixo).width;
-  const pillH = fontePreco + 28, pillW = 30 + wPreco + 10 + wSufixo + 30;
-  retanguloArredondado(ctx, MARGEM, meioLinha - pillH / 2, pillW, pillH, 22);
+  const padPill = Math.round(30 * ui);
+  const pillH = fontePreco + 28, pillW = padPill + wPreco + 10 + wSufixo + padPill;
+  retanguloArredondado(ctx, MARGEM, meioLinha - pillH / 2, pillW, pillH, Math.round(22 * ui));
   ctx.fillStyle = seloFundo;
   ctx.fill();
   const basePreco = meioLinha + fontePreco * 0.36;
   ctx.fillStyle = seloTexto;
   ctx.font = fonte(800, fontePreco);
-  ctx.fillText(d.preco_texto, MARGEM + 30, basePreco);
+  ctx.fillText(d.preco_texto, MARGEM + padPill, basePreco);
   ctx.globalAlpha = 0.8;
-  ctx.font = fonte(700, 26);
-  ctx.fillText(sufixo, MARGEM + 30 + wPreco + 10, basePreco);
+  ctx.font = fonte(700, fonteSufixo);
+  ctx.fillText(sufixo, MARGEM + padPill + wPreco + 10, basePreco);
   ctx.globalAlpha = 1;
 
+  // Contato: icone do WhatsApp + numero (ao lado do preco, ou em linha propria no 9:16)
   if (d.marca.whatsapp) {
-    ctx.font = fonte(700, 34);
+    ctx.font = fonte(700, fonteContato);
     ctx.textBaseline = "middle";
     const wNum = ctx.measureText(d.marca.whatsapp).width;
-    const xNum = W - MARGEM - wNum;
+    const emLinha = moldura.contatoEmLinha;
+    const meio = emLinha ? topoContato + alturaContato / 2 + 6 : meioLinha;
+    const xIcone = emLinha ? MARGEM : W - MARGEM - wNum - 14 - iconeContato;
     ctx.fillStyle = texto;
-    ctx.fillText(d.marca.whatsapp, xNum, meioLinha + 1);
+    ctx.fillText(d.marca.whatsapp, xIcone + iconeContato + 14, meio + 1);
     ctx.save();
-    ctx.translate(xNum - 14 - 40, meioLinha - 20);
-    ctx.scale(40 / 24, 40 / 24);
+    ctx.translate(xIcone, meio - iconeContato / 2);
+    ctx.scale(iconeContato / 24, iconeContato / 24);
     ctx.fill(new Path2D(WHATSAPP_PATH));
     ctx.restore();
   }
