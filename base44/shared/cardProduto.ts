@@ -169,7 +169,7 @@ export async function imagemParaDataUri(url: string | null): Promise<string | nu
   try {
     const resp = await fetch(url, { signal: AbortSignal.timeout(15000) });
     if (!resp.ok) return null;
-    let bytes = new Uint8Array(await resp.arrayBuffer());
+    let bytes: Uint8Array = new Uint8Array(await resp.arrayBuffer());
     let tipo = tipoPorAssinatura(bytes);
     if (tipo === 'image/webp') {
       const png = await webpParaPng(bytes);
