@@ -66,6 +66,7 @@ t('fila cidade com acento', () => igual(pickupVisivelParaColetor({ status: 'disp
 t('fila outra cidade', () => igual(pickupVisivelParaColetor({ status: 'disponivel', fabricante_cidade: 'Divinópolis' }, perfil), false));
 t('fila acima do limite', () => igual(pickupVisivelParaColetor({ status: 'disponivel', fabricante_cidade: 'Cláudio', valor_mercadoria: 9000 }, perfil), false));
 t('fila recusada', () => igual(pickupVisivelParaColetor({ status: 'disponivel', fabricante_cidade: 'Cláudio', recusada_por: ['p1'] }, perfil), false));
+t('fabricante sem cidade aparece para todos', () => igual(pickupVisivelParaColetor({ status: 'disponivel', fabricante_cidade: '' }, perfil), true));
 t('fila sem cidades = todas', () => igual(pickupVisivelParaColetor({ status: 'disponivel', fabricante_cidade: 'X' }, { id: 'p2' }), true));
 t('fila so disponivel', () => igual(pickupVisivelParaColetor({ status: 'aguardando_pronto', fabricante_cidade: 'Cláudio' }, perfil), false));
 t('frete por UF', () => igual(freteVisivelParaFretista({ status: 'disponivel', destino_uf: 'sp' }, { id: 'f', ufs: ['SP'] }), true));
