@@ -1,0 +1,36 @@
+{
+  "name": "HubLancamento",
+  "type": "object",
+  "description": "Financeiro manual do Hub. Cada lancamento tem devedor e favorecido; a PlaceFit intermedia (recebe do devedor quando aplicavel e paga o favorecido). Pagamento de coleta/frete nasce a_pagar quando o servico termina; taxa de falsa coleta nasce com devedor = fabricante e favorecido = coletor.",
+  "properties": {
+    "tipo": { "type": "string", "enum": ["pagamento_coleta", "pagamento_frete", "taxa_falsa_coleta", "ajuste"] },
+    "pickup_id": { "type": "string" },
+    "freight_leg_id": { "type": "string" },
+    "venda_id": { "type": "string" },
+    "referencia": { "type": "string" },
+    "descricao": { "type": "string" },
+    "valor": { "type": "number" },
+    "devedor_tipo": { "type": "string", "enum": ["placefit", "fabricante", "revenda", "coletor", "fretista"] },
+    "devedor_id": { "type": "string" },
+    "devedor_nome": { "type": "string" },
+    "favorecido_tipo": { "type": "string", "enum": ["placefit", "fabricante", "revenda", "coletor", "fretista"] },
+    "favorecido_id": { "type": "string", "description": "TransportProfile do coletor/fretista, Fabricante ou User" },
+    "favorecido_nome": { "type": "string" },
+    "status_recebimento": { "type": "string", "enum": ["nao_aplica", "pendente", "recebido", "cancelado"], "default": "nao_aplica", "description": "Cobranca do devedor pela PlaceFit" },
+    "recebido_em": { "type": "string", "format": "date-time" },
+    "status_pagamento": { "type": "string", "enum": ["pendente", "pago", "cancelado"], "default": "pendente", "description": "Repasse da PlaceFit ao favorecido" },
+    "pago_em": { "type": "string", "format": "date-time" },
+    "forma_pagamento": { "type": "string" },
+    "comprovante_url": { "type": "string" },
+    "registrado_por": { "type": "string" },
+    "observacoes": { "type": "string" }
+  },
+  "required": ["tipo", "valor"],
+  "x-security": { "read": "authenticated", "create": "admin", "update": "admin", "delete": "admin" },
+  "rls": {
+    "read": { "user_condition": { "role": "admin" } },
+    "create": { "user_condition": { "role": "admin" } },
+    "update": { "user_condition": { "role": "admin" } },
+    "delete": { "user_condition": { "role": "admin" } }
+  }
+}

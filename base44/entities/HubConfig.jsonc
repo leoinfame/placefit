@@ -1,0 +1,24 @@
+{
+  "name": "HubConfig",
+  "type": "object",
+  "description": "Configuracao do Hub. escopo=global guarda os padroes (taxa de falsa coleta, webhook, base padrao); escopo=revenda e a feature flag por revenda (hub_ativo). Piloto: flag hub_muscularfit = revenda MuscularFit.",
+  "properties": {
+    "escopo": { "type": "string", "enum": ["global", "revenda"] },
+    "revendedor_id": { "type": "string", "description": "User da revenda (escopo revenda)" },
+    "revendedor_nome": { "type": "string" },
+    "flag": { "type": "string", "description": "Nome da flag (ex: hub_muscularfit)" },
+    "hub_ativo": { "type": "boolean", "default": false },
+    "base_padrao_id": { "type": "string" },
+    "taxa_falsa_coleta": { "type": "number", "default": 50, "description": "Valor padrao da taxa de falsa coleta (R$)" },
+    "webhook_url": { "type": "string", "description": "Opcional: recebe POST JSON de cada notificacao do hub" },
+    "atualizado_por": { "type": "string" }
+  },
+  "required": ["escopo"],
+  "x-security": { "read": "authenticated", "create": "admin", "update": "admin", "delete": "admin" },
+  "rls": {
+    "read": { "user_condition": { "role": "admin" } },
+    "create": { "user_condition": { "role": "admin" } },
+    "update": { "user_condition": { "role": "admin" } },
+    "delete": { "user_condition": { "role": "admin" } }
+  }
+}

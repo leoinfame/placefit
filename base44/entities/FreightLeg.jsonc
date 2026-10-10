@@ -1,0 +1,45 @@
+{
+  "name": "FreightLeg",
+  "type": "object",
+  "description": "Frete do Hub: o pedido completo da revenda, consolidado na base, levado ate o cliente. Gravado só pela funcao hubApi (service role).",
+  "properties": {
+    "venda_id": { "type": "string", "description": "Pedido da revenda" },
+    "numero": { "type": "string", "description": "Codigo curto da etiqueta mestre (ex: FRT-9QX3M)" },
+    "revendedor_id": { "type": "string" },
+    "revendedor_nome": { "type": "string" },
+    "base_id": { "type": "string" },
+    "cliente_nome": { "type": "string" },
+    "destino_endereco": { "type": "string" },
+    "destino_cidade": { "type": "string" },
+    "destino_uf": { "type": "string" },
+    "destino_cep": { "type": "string" },
+    "destino_telefone": { "type": "string" },
+    "volumes": { "type": "number" },
+    "peso_kg": { "type": "number" },
+    "valor_mercadoria": { "type": "number" },
+    "valor_frete": { "type": "number", "description": "Valor pago ao fretista, definido pelo admin" },
+    "status": {
+      "type": "string",
+      "enum": ["aguardando_consolidacao", "consolidado", "disponivel", "aceito", "retirado", "entregue", "cancelado"],
+      "default": "aguardando_consolidacao"
+    },
+    "qr_mestre_token": { "type": "string" },
+    "fretista_profile_id": { "type": "string" },
+    "fretista_user_id": { "type": "string" },
+    "fretista_nome": { "type": "string" },
+    "atribuido_por_admin": { "type": "boolean", "default": false },
+    "recusado_por": { "type": "array", "items": { "type": "string" } },
+    "liberado_em": { "type": "string", "format": "date-time" },
+    "entregue_em": { "type": "string", "format": "date-time" },
+    "recebedor_nome": { "type": "string", "description": "Quem recebeu no cliente" },
+    "observacoes": { "type": "string" }
+  },
+  "required": ["venda_id", "revendedor_id", "status"],
+  "x-security": { "read": "authenticated", "create": "admin", "update": "admin", "delete": "admin" },
+  "rls": {
+    "read": { "user_condition": { "role": "admin" } },
+    "create": { "user_condition": { "role": "admin" } },
+    "update": { "user_condition": { "role": "admin" } },
+    "delete": { "user_condition": { "role": "admin" } }
+  }
+}
