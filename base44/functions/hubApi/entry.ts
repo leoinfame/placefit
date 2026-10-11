@@ -4,7 +4,11 @@ import {
   validarCustodia, validarAcao, lerQr, gerarToken, conteudoQr, numeroCurto,
   pickupVisivelParaColetor, freteVisivelParaFretista, prontoParaConsolidar, normalizarCidade,
   estimarPeso, resolverDestino, conferirChecklist, pcEntraNoHub,
+  TIPOS_CONVITE, DIAS_CONVITE, estadoConvite, validarConvite, dadosDoAceite,
 } from '../../shared/hubFluxo.ts';
+
+// Acoes que qualquer conta logada pode chamar, mesmo sem acesso ao Hub (convite e contexto).
+const ACOES_ABERTAS = new Set(['contexto', 'ver_convite', 'aceitar_convite']);
 
 // Todo PedidoCompra lido pelo Hub passa por aqui: so subpedidos novos (desde o corte) de venda efetivada.
 // Coletas, consolidacao e financeiro nascem do incluir_pedido, entao herdam o filtro.
@@ -47,7 +51,7 @@ Deno.serve(async (req) => {
     const acao = String(body.acao || '');
     const handler = ACOES[acao];
     if (!handler) throw new ErroHub(`Ação desconhecida: ${acao}`, 404);
-    if (acao !== 'contexto' && !ctx.temAcesso) throw new ErroHub('O Hub não está liberado para a sua conta.', 403);
+    if (!ACOES_ABERTAS.has(acao) && !ctx.temAcesso) throw new ErroHub('O Hub não está liberado para a sua conta.', 403);
     const resultado = await handler({ base44, db, user, ctx, body });
     return Response.json(resultado ?? { ok: true });
   } catch (e) {
@@ -144,7 +148,7 @@ const LINK_PAPEL: Record<string, string> = {
   coletor: '/hub/coletor', fretista: '/hub/fretista', base: '/hub/base', admin: '/hub/admin', revenda: '/hub/acompanhar',
 };
 
-async function notificar(db: any, evento: string, ref: { pickup?: any; frete?: any; donoUserId?: string }, mensagem: string) {
+async function notificar(db: any, evento: string, ref: { pickup?: any; frete?: any; donoUserId?: string }, mensagem: string, link?: string) {
   const regra = NOTIFICAR[evento];
   if (!regra) return;
   const cfg = await configGlobal(db);
@@ -161,7 +165,7 @@ async function notificar(db: any, evento: string, ref: { pickup?: any; frete?: a
         tipo: evento,
         titulo: regra.titulo,
         mensagem,
-        link: LINK_PAPEL[papel],
+        link: link || LINK_PAPEL[papel],
         pickup_id: ref.pickup?.id,
         freight_leg_id: ref.frete?.id,
         venda_id: ref.frete?.venda_id || ref.pickup?.venda_id,
@@ -847,6 +851,83 @@ async function lerEtiqueta({ db, ctx, body }: Args) {
   return { coleta: publicoPickup(p), itens: await itensDaColeta(db, p) };
 }
 
+// ---------------- convites ----------------
+
+function publicoConvite(c: any) {
+  return {
+    id: c.id, tipo: c.tipo, nome: c.nome, whatsapp: c.whatsapp, observacoes: c.observacoes,
+    estado: estadoConvite(c), expira_em: c.expira_em, criado_por_nome: c.criado_por_nome,
+    usado_em: c.usado_em, transport_profile_id: c.transport_profile_id, created_date: c.created_date,
+    link: `/hub/convite/${c.token}`,
+  };
+}
+
+async function criarConvite({ db, ctx, user, body }: Args) {
+  perfilAtivo(ctx, 'admin');
+  const tipo = String(body.tipo || '');
+  if (!TIPOS_CONVITE.includes(tipo)) throw new ErroHub('Escolha coletor ou fretista.');
+  const c = await db.HubConvite.create({
+    token: gerarToken(16),
+    tipo,
+    nome: String(body.nome || '').trim() || undefined,
+    whatsapp: String(body.whatsapp || '').trim() || undefined,
+    observacoes: String(body.observacoes || '').trim() || undefined,
+    status: 'aberto',
+    expira_em: new Date(Date.now() + DIAS_CONVITE * 86400000).toISOString(),
+    criado_por_nome: user.full_name || user.email,
+  });
+  return { convite: publicoConvite(c) };
+}
+
+async function listarConvites({ db, ctx }: Args) {
+  perfilAtivo(ctx, 'admin');
+  return { convites: (await db.HubConvite.filter({}, '-created_date', 200)).map(publicoConvite) };
+}
+
+async function cancelarConvite({ db, ctx, body }: Args) {
+  perfilAtivo(ctx, 'admin');
+  const c = await pegar(db.HubConvite, body.convite_id, 'Convite');
+  if (c.status !== 'aberto') throw new ErroHub('Só convite em aberto pode ser cancelado.', 409);
+  await db.HubConvite.update(c.id, { status: 'cancelado' });
+  return { ok: true };
+}
+
+async function conviteDoToken(db: any, token: unknown) {
+  const t = String(token || '').trim().toUpperCase();
+  return t ? (await db.HubConvite.filter({ token: t }, '-created_date', 1))[0] || null : null;
+}
+
+// Quem abriu o link ve o convite (sem token nem dados do admin) antes de preencher.
+async function verConvite({ db, ctx, user, body }: Args) {
+  const c = validarConvite(await conviteDoToken(db, body.token));
+  return {
+    tipo: c.tipo,
+    nome_sugerido: c.nome || user.full_name || '',
+    whatsapp_sugerido: c.whatsapp || '',
+    expira_em: c.expira_em,
+    ja_tem_perfil: ctx.perfis.some((p: any) => p.tipo === c.tipo),
+  };
+}
+
+async function aceitarConvite({ db, ctx, user, body }: Args) {
+  const c = validarConvite(await conviteDoToken(db, body.token));
+  if (ctx.perfis.some((p: any) => p.tipo === c.tipo)) throw new ErroHub(`Sua conta já tem perfil de ${c.tipo} no Hub.`, 409);
+  const dados = dadosDoAceite(c.tipo, body);
+  const cfg = await configGlobal(db);
+  const perfil = await db.TransportProfile.create({
+    ...dados,
+    user_id: user.id,
+    tipo: c.tipo,
+    base_id: cfg?.base_padrao_id || undefined,
+    verificacao: 'pendente',
+    ativo: true,
+    observacoes: `Entrou por convite${c.criado_por_nome ? ` de ${c.criado_por_nome}` : ''} em ${new Date().toLocaleDateString('pt-BR')}.`,
+  });
+  await db.HubConvite.update(c.id, { status: 'usado', usado_por_user_id: user.id, usado_em: new Date().toISOString(), transport_profile_id: perfil.id });
+  await notificar(db, 'convite_aceito', {}, `${dados.nome} aceitou o convite de ${c.tipo}. Confira os dados e libere o perfil.`, '/hub/admin/cadastros');
+  return { ok: true, perfil_id: perfil.id };
+}
+
 async function marcarLidas({ db, user, body }: Args) {
   const ids: string[] = Array.isArray(body.ids) ? body.ids : [];
   const minhas = await db.HubNotificacao.filter({ destinatario_user_id: user.id, lida: false }, '-created_date', 200);
@@ -878,4 +959,9 @@ const ACOES: Record<string, (a: Args) => Promise<any>> = {
   definir_valores: definirValores,
   ler_etiqueta: lerEtiqueta,
   marcar_lidas: marcarLidas,
+  criar_convite: criarConvite,
+  listar_convites: listarConvites,
+  cancelar_convite: cancelarConvite,
+  ver_convite: verConvite,
+  aceitar_convite: aceitarConvite,
 };
