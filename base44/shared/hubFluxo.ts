@@ -262,6 +262,7 @@ export const NOTIFICAR: Record<string, { papeis: ('base' | 'admin' | 'revenda' |
   frete_atribuido: { papeis: ['fretista'], titulo: 'Frete atribuído a você' },
   retirado_pelo_fretista: { papeis: ['revenda', 'admin'], titulo: 'Pedido saiu para entrega' },
   entregue_ao_cliente: { papeis: ['revenda', 'admin'], titulo: 'Pedido entregue' },
+  convite_aceito: { papeis: ['admin'], titulo: 'Convite aceito: verificar perfil' },
 };
 
 // ---- Peso estimado pelo catalogo ----
