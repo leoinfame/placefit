@@ -2,7 +2,7 @@
 import {
   validarCustodia, validarAcao, ACOES_PICKUP, ACOES_FRETE, lerQr, conteudoQr, gerarToken,
   pickupVisivelParaColetor, freteVisivelParaFretista, prontoParaConsolidar, ErroHub,
-  estimarPeso, resolverDestino, conferirChecklist,
+  estimarPeso, resolverDestino, conferirChecklist, pedidoCompraEfetivado,
 } from './hubFluxo.ts';
 
 let ok = 0, falhas = 0;
@@ -99,6 +99,11 @@ t('checklist falta e parcial', () => igual(conferirChecklist(itensC, [{ ok: fals
 t('checklist incompleto', () => erro(() => conferirChecklist(itensC, [{ ok: true }])));
 t('desmarcado com qtd cheia conta como ok', () => igual(conferirChecklist([{ nome: 'A', quantidade: 2 }], [{ ok: false, quantidade_recebida: 2 }]).divergencia, null));
 t('qtd acima do esperado limita', () => igual(conferirChecklist([{ nome: 'A', quantidade: 2 }], [{ ok: false, quantidade_recebida: 9 }]).linhas[0].quantidade_recebida, 2));
+
+// Filtro de PedidoCompra do Hub: so venda efetivada
+for (const s of ['confirmado', 'em_producao', 'despachado', 'recebido']) t(`pc ${s} entra`, () => igual(pedidoCompraEfetivado({ status: s }), true));
+for (const s of ['rascunho', 'pendente', 'enviado', 'cancelado', 'orcamento', '', undefined]) t(`pc ${s} fora`, () => igual(pedidoCompraEfetivado({ status: s as any }), false));
+t('pc nulo fora', () => igual(pedidoCompraEfetivado(null), false));
 
 console.log(`${ok} ok, ${falhas} falha(s)`);
 if (falhas) Deno.exit(1);
