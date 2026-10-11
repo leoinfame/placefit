@@ -21,6 +21,7 @@ Coletor, fretista e base só veem a fila depois que o admin marca o perfil como 
 ## Timeline do pedido (corrigida)
 
 1. **A revenda fecha o pedido.** Pode ser venda feita no painel (orçamento → venda) ou pedido pago na vitrine. O sistema cria um subpedido (`PedidoCompra`) por fabricante.
+   - **O Hub só enxerga subpedido efetivado**: status `confirmado`, `em_producao`, `despachado` ou `recebido`. `rascunho`, `pendente`, `enviado` e `cancelado` não aparecem em Admin → Pedidos e não podem ser incluídos (logo não viram coleta, consolidação nem lançamento). Numa venda mista, só os subpedidos efetivados entram. A loja continua vendo todos os status. Regra em `pedidoCompraEfetivado` (`base44/shared/hubFluxo.ts`).
 
 2. **Admin inclui no Hub** — Admin → Pedidos → *Incluir no Hub*.
    - Confere o fabricante de cada subpedido (o sistema sugere pelo nome; o endereço de coleta vem do cadastro do fabricante).
