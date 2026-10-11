@@ -34,6 +34,9 @@ async function stripeFetch(path, init) {
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
+    // Seguranca: so a conta dona da assinatura (ou admin) dispara a cobranca.
+    const user = await base44.auth.me().catch(() => null);
+    if (!user) return Response.json({ error: "Não autorizado" }, { status: 401 });
     const body = await req.json();
     const { assinatura_id } = body;
 
@@ -45,6 +48,9 @@ export default async function (req) {
     const ass = await base44.asServiceRole.entities.AssinaturaUsuario.get(assinatura_id);
     if (!ass) {
       return Response.json({ error: "Assinatura não encontrada" }, { status: 404 });
+    }
+    if (user.role !== "admin" && ass.usuario_id !== user.id) {
+      return Response.json({ error: "Assinatura de outra conta" }, { status: 403 });
     }
     if (ass.status === "cancelado") {
       return Response.json({ error: "Assinatura cancelada" }, { status: 400 });
