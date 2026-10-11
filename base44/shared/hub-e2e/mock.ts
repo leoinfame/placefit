@@ -14,6 +14,10 @@ function entidade(nome: string) {
       return structuredClone(r.slice(0, limit));
     },
     async list(sort?: string, limit = 50) { return this.filter({}, sort, limit); },
+    async get(id: string) {
+      const rec = col(nome).find((x) => x.id === id); if (!rec) throw new Error('nao existe ' + id);
+      return structuredClone(rec);
+    },
     async create(d: any) {
       const t = new Date(Date.now() + seq).toISOString();
       const rec = { id: `${nome}-${++seq}`, created_date: t, updated_date: t, ...structuredClone(d) };

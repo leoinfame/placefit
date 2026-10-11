@@ -16,7 +16,7 @@
     },
     "numero_pedido": {
       "type": "string",
-      "description": "N\u00famero do pedido"
+      "description": "Número do pedido"
     },
     "data_pedido": {
       "type": "string",
@@ -30,7 +30,7 @@
         "venda"
       ],
       "default": "orcamento",
-      "description": "Se \u00e9 or\u00e7amento ou venda conclu\u00edda"
+      "description": "Se é orçamento ou venda concluída"
     },
     "itens": {
       "type": "array",
@@ -92,12 +92,74 @@
     },
     "observacoes": {
       "type": "string",
-      "description": "Observa\u00e7\u00f5es sobre o pedido"
+      "description": "Observações sobre o pedido"
     }
   },
   "required": [
     "fornecedor_id",
     "cliente_id",
     "itens"
-  ]
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.fornecedor_id": "{{user.id}}"
+        },
+        {
+          "data.cliente_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "data.fornecedor_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.fornecedor_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.fornecedor_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
 }

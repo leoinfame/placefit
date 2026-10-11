@@ -14,6 +14,9 @@ const fetchAll = async (fn, sort = '-created_date', pageSize = 500) => {
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
+    // Seguranca: so a revenda dona da loja (ou admin) confirma pagamento.
+    const user = await base44.auth.me().catch(() => null);
+    if (!user) return Response.json({ error: 'Não autorizado' }, { status: 401 });
     const body = req.method === 'POST' ? await req.json().catch(() => ({})) : {};
     const { loja_pedido_id } = body;
 
@@ -21,6 +24,9 @@ export default async function (req) {
 
     const loja = await base44.asServiceRole.entities.LojaPedido.get(loja_pedido_id).catch(() => null);
     if (!loja) return Response.json({ error: 'Pedido da loja nao encontrado' }, { status: 404 });
+    if (user.role !== 'admin' && loja.revendedor_id !== user.id) {
+      return Response.json({ error: 'Pedido de outra loja' }, { status: 403 });
+    }
     if (loja.pagamento_status === 'pago') return Response.json({ error: 'Pagamento ja confirmado' }, { status: 400 });
 
     // 1. Marcar pedido da loja como pago

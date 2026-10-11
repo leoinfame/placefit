@@ -24,7 +24,7 @@
     },
     "endereco": {
       "type": "string",
-      "description": "Endere\u00e7o completo"
+      "description": "Endereço completo"
     },
     "cidade": {
       "type": "string",
@@ -40,16 +40,75 @@
     },
     "observacoes": {
       "type": "string",
-      "description": "Observa\u00e7\u00f5es sobre o cliente"
+      "description": "Observações sobre o cliente"
     },
     "ativo": {
       "type": "boolean",
       "default": true,
-      "description": "Se o cliente est\u00e1 ativo"
+      "description": "Se o cliente está ativo"
     }
   },
   "required": [
     "fornecedor_id",
     "nome"
-  ]
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.fornecedor_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "data.fornecedor_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.fornecedor_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.fornecedor_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
 }

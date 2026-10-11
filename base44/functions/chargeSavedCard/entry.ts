@@ -34,8 +34,14 @@ async function stripeFetch(path, init) {
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
-    const body = await req.json();
+    // Seguranca: dispara a cobranca so (a) a automacao com a chave COBRANCA_KEY (segredo do app)
+    // ou (b) a conta dona da assinatura / admin. Sem chave e sem login: 401.
+    const body = await req.json().catch(() => ({}));
     const { assinatura_id } = body;
+    const chave = Deno.env.get("COBRANCA_KEY");
+    const viaAutomacao = !!chave && body.key === chave;
+    const user = viaAutomacao ? null : await base44.auth.me().catch(() => null);
+    if (!viaAutomacao && !user) return Response.json({ error: "Não autorizado" }, { status: 401 });
 
     if (!assinatura_id) {
       return Response.json({ error: "assinatura_id obrigatório" }, { status: 400 });
@@ -45,6 +51,9 @@ export default async function (req) {
     const ass = await base44.asServiceRole.entities.AssinaturaUsuario.get(assinatura_id);
     if (!ass) {
       return Response.json({ error: "Assinatura não encontrada" }, { status: 404 });
+    }
+    if (!viaAutomacao && user.role !== "admin" && ass.usuario_id !== user.id) {
+      return Response.json({ error: "Assinatura de outra conta" }, { status: 403 });
     }
     if (ass.status === "cancelado") {
       return Response.json({ error: "Assinatura cancelada" }, { status: 400 });
