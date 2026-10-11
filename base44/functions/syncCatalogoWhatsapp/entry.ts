@@ -29,11 +29,23 @@ const CAMPOS_RELEVANTES = ["preco", "margem", "sale_price", "disponivel", "produ
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
-    const { event, data, old_data } = await req.json();
+    const { event, data: recebido, old_data } = await req.json();
     const tipo = event?.type;
 
-    if (!data?.supplier_id || !data?.id) {
+    if (!recebido?.supplier_id || !recebido?.id) {
       return Response.json({ skipped: "sem supplier_id/id" });
+    }
+
+    // Seguranca: esta funcao e chamada por HTTP sem login, entao nao confia no corpo.
+    // Em create/update usa o registro real do banco; em delete so age se o registro ja nao existe.
+    // Um evento forjado, no maximo, reenvia o estado verdadeiro.
+    const real = await base44.asServiceRole.entities.SupplierProduct.get(recebido.id).catch(() => null);
+    let data = recebido;
+    if (tipo === "delete") {
+      if (real) return Response.json({ skipped: "registro ainda existe" });
+    } else {
+      if (!real) return Response.json({ skipped: "registro nao existe" });
+      data = real;
     }
 
     if (tipo === "update" && old_data) {
