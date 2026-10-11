@@ -7,7 +7,10 @@ const mock = new URL('../hub-e2e/mock.ts', import.meta.url).href;
 async function carregar(nome: string) {
   const src = await Deno.readTextFile(new URL(`../../functions/${nome}/entry.ts`, import.meta.url));
   const dir = await Deno.makeTempDir();
-  await Deno.writeTextFile(`${dir}/entry.ts`, src.replace(/from ["']npm:@base44\/sdk@[^"']+["']/, `from '${mock}'`));
+  const runtime = 'data:text/javascript,export const secrets = { get: () => "sk_test_x" };';
+  await Deno.writeTextFile(`${dir}/entry.ts`, src
+    .replace(/from ["']npm:@base44\/sdk@[^"']+["']/, `from '${mock}'`)
+    .replace(/from ["']base44:runtime["']/, `from '${runtime}'`));
   return (await import(`file://${dir}/entry.ts`)).default as (r: Request) => Promise<Response>;
 }
 const chamar = async (fn: (r: Request) => Promise<Response>, uid: string | null, corpo: unknown) => {
@@ -38,6 +41,14 @@ r = await chamar(charge, 'dono', { assinatura_id: 'A1' });
 passo('charge: dono passa da checagem (para em sem cartao)', r.status === 400 && /cart/i.test(r.corpo.error || ''), r);
 r = await chamar(charge, 'admin', { assinatura_id: 'A1' });
 passo('charge: admin passa da checagem', r.status === 400 && /cart/i.test(r.corpo.error || ''), r);
+r = await chamar(charge, null, { assinatura_id: 'A1', key: 'chute' });
+passo('charge: chave errada 401 (sem COBRANCA_KEY configurada)', r.status === 401, r);
+Deno.env.set('COBRANCA_KEY', 'segredo-teste');
+r = await chamar(charge, null, { assinatura_id: 'A1', key: 'chute' });
+passo('charge: chave errada 401', r.status === 401, r);
+r = await chamar(charge, null, { assinatura_id: 'A1', key: 'segredo-teste' });
+passo('charge: automacao com chave passa da checagem', r.status === 400 && /cart/i.test(r.corpo.error || ''), r);
+Deno.env.delete('COBRANCA_KEY');
 
 // ---- confirmarPagamentoLoja
 const confirmar = await carregar('confirmarPagamentoLoja');
