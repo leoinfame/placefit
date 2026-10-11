@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import { mapaAprovacoes, aprovadoComo } from '../../shared/aprovacao.ts';
 
 /**
  * Serve a tabela pública de um fabricante SEM exigir autenticação.
@@ -32,7 +33,8 @@ Deno.serve(async (req) => {
     const users = await base44.asServiceRole.entities.User.filter({ id: fabricanteId });
     const u = users?.[0];
 
-    if (!u || u.aprovado !== true || u.tipo_usuario !== 'fabricante') {
+    const aprovacoes = u ? await mapaAprovacoes(base44.asServiceRole) : new Map();
+    if (!u || !aprovadoComo(aprovacoes, u, 'fabricante')) {
       return Response.json({ error: 'Fabricante não encontrado.' }, { status: 404 });
     }
 
