@@ -52,10 +52,27 @@ DB.Fabricante = [
   { id: 'F2', nome_fantasia: 'Anilhas e Halteres Brasil', cidade: 'Cláudio', estado: 'MG', endereco: 'Rua B, 2' },
 ];
 DB.Cliente = [{ id: 'C1', nome: 'Academia Força', cidade: 'Campinas', estado: 'SP', endereco: 'Av. X, 10', telefone: '19999' }];
-DB.Pedido = [{ id: 'V1', fornecedor_id: 'revenda', cliente_id: 'C1', cliente_nome: 'Academia Força', numero_pedido: 'ORC-1' }];
+// Corte do Hub: 11/10/2026 18:35Z. NOVO = depois, VELHO = antes.
+const NOVO = '2026-10-12T10:00:00Z', VELHO = '2026-09-01T10:00:00Z';
+DB.Pedido = [
+  { id: 'V1', fornecedor_id: 'revenda', cliente_id: 'C1', cliente_nome: 'Academia Força', numero_pedido: 'ORC-1', tipo: 'venda', status: 'confirmado' },
+  { id: 'VR', fornecedor_id: 'revenda', tipo: 'orcamento', status: 'pendente' },
+  { id: 'VP', fornecedor_id: 'revenda', tipo: 'venda', status: 'pendente' },
+  { id: 'VOLD', fornecedor_id: 'revenda', tipo: 'venda', status: 'confirmado' },
+  { id: 'VM', fornecedor_id: 'revenda', tipo: 'venda', status: 'confirmado' },
+];
+const pcBase = { revendedor_id: 'revenda', revendedor_nome: 'MuscularFit', created_date: NOVO };
 DB.PedidoCompra = [
-  { id: 'PC1', revendedor_id: 'revenda', revendedor_nome: 'MuscularFit', fabricante_id: 'pendente', fabricante_nome: 'Metal Forma', venda_id: 'V1', total: 2000, itens: [{ product_id: 'T1', nome: 'Barra 1,2m', quantidade: 2 }], status: 'rascunho' },
-  { id: 'PC2', revendedor_id: 'revenda', revendedor_nome: 'MuscularFit', fabricante_id: 'pendente', fabricante_nome: 'Anilhas e Halteres Brasil', venda_id: 'V1', total: 900, itens: [{ product_id: 'SP2', nome: 'Anilha 10kg', quantidade: 4 }, { product_id: 'T9', nome: 'Presilha', quantidade: 2 }], status: 'rascunho' },
+  // Venda fechada pelo orcamento -> venda: subpedidos nascem rascunho/pendente e ainda assim entram
+  { ...pcBase, id: 'PC1', fabricante_id: 'pendente', fabricante_nome: 'Metal Forma', venda_id: 'V1', total: 2000, itens: [{ product_id: 'T1', nome: 'Barra 1,2m', quantidade: 2 }], status: 'rascunho' },
+  { ...pcBase, id: 'PC2', fabricante_id: 'pendente', fabricante_nome: 'Anilhas e Halteres Brasil', venda_id: 'V1', total: 900, itens: [{ product_id: 'SP2', nome: 'Anilha 10kg', quantidade: 4 }, { product_id: 'T9', nome: 'Presilha', quantidade: 2 }], status: 'pendente' },
+  // Fora do Hub: orcamento, venda nao fechada, historico antigo
+  { ...pcBase, id: 'PCR', fabricante_id: 'pendente', fabricante_nome: 'Metal Forma', venda_id: 'VR', total: 500, itens: [{ product_id: 'T1', nome: 'Barra', quantidade: 1 }], status: 'rascunho' },
+  { ...pcBase, id: 'PCP', fabricante_id: 'F1', fabricante_nome: 'Metal Forma', venda_id: 'VP', total: 700, itens: [{ product_id: 'T1', nome: 'Barra', quantidade: 1 }], status: 'pendente' },
+  { ...pcBase, id: 'PCOLD', created_date: VELHO, fabricante_id: 'F1', fabricante_nome: 'Metal Forma', venda_id: 'VOLD', total: 300, itens: [{ product_id: 'T1', nome: 'Barra', quantidade: 1 }], status: 'confirmado' },
+  // Venda com subpedido cancelado: so o ativo entra
+  { ...pcBase, id: 'PCM1', fabricante_id: 'F1', fabricante_nome: 'Metal Forma', venda_id: 'VM', total: 100, itens: [{ product_id: 'T1', nome: 'Barra', quantidade: 1 }], status: 'pendente' },
+  { ...pcBase, id: 'PCM2', fabricante_id: 'F2', fabricante_nome: 'Anilhas e Halteres Brasil', venda_id: 'VM', total: 200, itens: [{ product_id: 'T1', nome: 'Barra', quantidade: 1 }], status: 'cancelado' },
 ];
 DB.ProductTemplate = [{ id: 'T1', peso_kg: 10 }, { id: 'T2', peso_kg: 10 }, { id: 'T9' }];
 DB.SupplierProduct = [{ id: 'SP2', product_id: 'T2' }];
@@ -67,8 +84,20 @@ passo('contexto tem perfil', ctxCol.perfis?.[0]?.tipo === 'coletor', ctxCol);
 await espera('outra revenda sem hub', 'outra', { acao: 'acompanhar' }, 403);
 await espera('coletor nao inclui pedido', 'col1', { acao: 'incluir_pedido', venda_id: 'V1' }, 403);
 
+// Filtro: so venda efetivada criada a partir do corte
+const apF = await espera('admin_pedidos filtrado', 'admin', { acao: 'admin_pedidos' });
+const vendasF = (apF.pedidos || []).map((p: any) => p.venda_id).sort();
+passo('lista so tem vendas efetivadas novas', JSON.stringify(vendasF) === '["V1","VM"]', vendasF);
+passo('venda do orcamento entra com os 2 subpedidos', apF.pedidos?.find((p: any) => p.venda_id === 'V1')?.subpedidos?.length === 2, apF.pedidos?.find((p: any) => p.venda_id === 'V1'));
+passo('subpedido cancelado fora', JSON.stringify(apF.pedidos?.find((p: any) => p.venda_id === 'VM')?.subpedidos?.map((s: any) => s.pedido_compra_id)) === '["PCM1"]', apF.pedidos?.find((p: any) => p.venda_id === 'VM'));
+await espera('incluir orcamento bloqueado', 'admin', { acao: 'incluir_pedido', papel: 'admin', venda_id: 'VR', destino_cidade: 'X', destino_uf: 'MG' }, 409);
+await espera('incluir venda pendente bloqueado', 'admin', { acao: 'incluir_pedido', papel: 'admin', venda_id: 'VP', destino_cidade: 'X', destino_uf: 'MG' }, 409);
+await espera('incluir venda antiga bloqueado', 'admin', { acao: 'incluir_pedido', papel: 'admin', venda_id: 'VOLD', destino_cidade: 'X', destino_uf: 'MG' }, 409);
+passo('nada criado para bloqueados', DB.Pickup.length === 0 && DB.FreightLeg.length === 0, { pk: DB.Pickup.length, fr: DB.FreightLeg.length });
+
 // Admin: lista e sugere fabricante pelo nome
-const ap = await espera('admin_pedidos', 'admin', { acao: 'admin_pedidos' });
+const ap0 = await espera('admin_pedidos', 'admin', { acao: 'admin_pedidos' });
+const ap = { pedidos: [ap0.pedidos?.find((p: any) => p.venda_id === 'V1')] };
 passo('peso estimado na lista', ap.pedidos?.[0]?.subpedidos?.find((s: any) => s.pedido_compra_id === 'PC2')?.peso_estimado?.sem_peso === 1, ap.pedidos?.[0]?.subpedidos);
 passo('destino sugerido', ap.pedidos?.[0]?.destino_sugerido?.cidade === 'Campinas', ap.pedidos?.[0]?.destino_sugerido);
 passo('sugere fabricante', ap.pedidos?.[0]?.subpedidos?.find((s: any) => s.pedido_compra_id === 'PC1')?.fabricante_sugerido === 'F1', ap.pedidos?.[0]);
@@ -179,22 +208,34 @@ await espera('marcar lidas', 'revenda', { acao: 'marcar_lidas' });
 passo('lidas', DB.HubNotificacao.filter((n: any) => n.destinatario_user_id === 'revenda').every((n: any) => n.lida));
 
 // Pedido da vitrine sem pedido interno: destino vem do endereco de entrega
-DB.LojaPedido = [{ id: 'L1', revendedor_id: 'revenda', numero_pedido: 'LOJA-1', cliente_nome: 'Maria Silva', cliente_telefone: '31 98888',
-  endereco_entrega: { logradouro: 'Rua das Flores', numero: '42', bairro: 'Centro', cidade: 'Belo Horizonte', estado: 'mg', cep: '30000-000' } }];
-DB.PedidoCompra.push({ id: 'PC3', revendedor_id: 'revenda', revendedor_nome: 'MuscularFit', fabricante_id: 'F1', fabricante_nome: 'Metal Forma', venda_id: 'L1', total: 300, itens: [{ product_id: 'T1', nome: 'Barra 1,2m', quantidade: 1 }], status: 'pendente' });
+DB.LojaPedido = [
+  { id: 'L1', revendedor_id: 'revenda', numero_pedido: 'LOJA-1', cliente_nome: 'Maria Silva', cliente_telefone: '31 98888', status: 'pago', pagamento_status: 'pago',
+    endereco_entrega: { logradouro: 'Rua das Flores', numero: '42', bairro: 'Centro', cidade: 'Belo Horizonte', estado: 'mg', cep: '30000-000' } },
+  { id: 'L2', revendedor_id: 'revenda', numero_pedido: 'LOJA-2', status: 'pago', pagamento_status: 'pago' },
+  { id: 'L3', revendedor_id: 'revenda', numero_pedido: 'LOJA-3', status: 'pendente', pagamento_status: 'pendente' },
+];
+DB.PedidoCompra.push({ ...pcBase, id: 'PC3', fabricante_id: 'F1', fabricante_nome: 'Metal Forma', venda_id: 'L1', total: 300, itens: [{ product_id: 'T1', nome: 'Barra 1,2m', quantidade: 1 }], status: 'pendente' });
+DB.PedidoCompra.push({ ...pcBase, id: 'PC5', fabricante_id: 'F1', fabricante_nome: 'Metal Forma', venda_id: 'L3', total: 50, itens: [], status: 'pendente' });
 const ap2 = await espera('admin_pedidos com vitrine', 'admin', { acao: 'admin_pedidos' });
 const pv = ap2.pedidos?.find((p: any) => p.venda_id === 'L1');
 passo('vitrine aparece com cliente e destino', pv?.cliente_nome === 'Maria Silva' && pv?.destino_sugerido?.origem === 'pedido_vitrine', pv);
+passo('vitrine nao paga fora', !ap2.pedidos?.some((p: any) => p.venda_id === 'L3'), ap2.pedidos?.map((p: any) => p.venda_id));
+await espera('incluir vitrine nao paga bloqueado', 'admin', { acao: 'incluir_pedido', papel: 'admin', venda_id: 'L3', destino_cidade: 'X', destino_uf: 'MG' }, 409);
 await espera('incluir vitrine', 'admin', { acao: 'incluir_pedido', papel: 'admin', venda_id: 'L1', subpedidos: { PC3: { fabricante_id: 'F1', valor_coleta: 40, peso_kg: 12 } } });
 const fv = DB.FreightLeg.find((f: any) => f.venda_id === 'L1');
 passo('destino da vitrine gravado', fv?.destino_cidade === 'Belo Horizonte' && fv.destino_uf === 'MG' && fv.destino_endereco === 'Rua das Flores, 42 — Centro' && fv.destino_origem === 'pedido_vitrine' && fv.cliente_nome === 'Maria Silva', fv);
 const pv3 = DB.Pickup.find((p: any) => p.venda_id === 'L1');
 passo('peso informado vence estimativa', pv3?.peso_kg === 12 && pv3.peso_origem === 'informado', pv3);
 // manual continua valendo
-DB.PedidoCompra.push({ id: 'PC4', revendedor_id: 'revenda', revendedor_nome: 'MuscularFit', fabricante_id: 'F1', fabricante_nome: 'Metal Forma', venda_id: 'L2', total: 100, itens: [], status: 'pendente' });
+DB.PedidoCompra.push({ ...pcBase, id: 'PC4', fabricante_id: 'F1', fabricante_nome: 'Metal Forma', venda_id: 'L2', total: 100, itens: [], status: 'pendente' });
 await espera('incluir sem destino com manual', 'admin', { acao: 'incluir_pedido', papel: 'admin', venda_id: 'L2', destino_cidade: 'Divinópolis', destino_uf: 'mg' });
 const fm = DB.FreightLeg.find((f: any) => f.venda_id === 'L2');
 passo('destino manual', fm?.destino_cidade === 'Divinópolis' && fm.destino_uf === 'MG' && fm.destino_origem === 'manual', fm);
+// Subpedido cancelado nunca vira coleta
+await espera('incluir venda com cancelado', 'admin', { acao: 'incluir_pedido', papel: 'admin', venda_id: 'VM', destino_cidade: 'Itu', destino_uf: 'sp' });
+const pkM = DB.Pickup.filter((p: any) => p.venda_id === 'VM').map((p: any) => p.pedido_compra_id);
+passo('gera coleta so do ativo', JSON.stringify(pkM) === '["PCM1"]', pkM);
+passo('nenhuma coleta de orcamento/pendente/antigo/nao pago', !DB.Pickup.some((p: any) => ['PCR', 'PCP', 'PCOLD', 'PCM2', 'PC5'].includes(p.pedido_compra_id)));
 
 // Flag desligada fecha o hub para a revenda
 DB.HubConfig[1].hub_ativo = false;
