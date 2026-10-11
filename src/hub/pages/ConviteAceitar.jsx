@@ -52,7 +52,7 @@ export default function ConviteAceitar({ logado, onAceito }) {
         <p className="text-sm text-slate-600">
           A PlaceFit vai conferir seus dados e liberar seu acesso. Quando for liberado, a fila aparece no Hub e você recebe o aviso no sino.
         </p>
-        <Button className="h-12 w-full" onClick={() => navigate("/hub", { replace: true })}>Ir para o Hub</Button>
+        <Button className="h-12 w-full" onClick={async () => { await onAceito?.(); navigate("/hub", { replace: true }); }}>Ir para o Hub</Button>
       </Cartao>
     );
   }
@@ -88,7 +88,6 @@ export default function ConviteAceitar({ logado, onAceito }) {
     try {
       await hub("aceitar_convite", { token, ...f });
       setFeito(true);
-      onAceito?.();
     } catch (e) { setErro(e.message); }
     setEnviando(false);
   };
