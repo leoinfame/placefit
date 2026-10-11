@@ -11,6 +11,15 @@ export class ErroHub extends Error {
 
 export type Papel = 'coletor' | 'fretista' | 'base' | 'admin';
 
+// PedidoCompra que o Hub enxerga: so subpedido de venda efetivada (fabricante confirmou em diante).
+// Ficam fora: rascunho (orcamento convertido, nao enviado), pendente, enviado e cancelado.
+// So o Hub usa isto; as telas da loja continuam vendo todos os status.
+export const STATUS_PC_EFETIVADO = ['confirmado', 'em_producao', 'despachado', 'recebido'];
+
+export function pedidoCompraEfetivado(pc: { status?: string } | null | undefined): boolean {
+  return !!pc && STATUS_PC_EFETIVADO.includes(String(pc.status || ''));
+}
+
 export type TipoCustodia =
   | 'coletado_no_fabricante'
   | 'entregue_na_base'
