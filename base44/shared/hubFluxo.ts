@@ -11,13 +11,24 @@ export class ErroHub extends Error {
 
 export type Papel = 'coletor' | 'fretista' | 'base' | 'admin';
 
-// PedidoCompra que o Hub enxerga: so subpedido de venda efetivada (fabricante confirmou em diante).
-// Ficam fora: rascunho (orcamento convertido, nao enviado), pendente, enviado e cancelado.
-// So o Hub usa isto; as telas da loja continuam vendo todos os status.
-export const STATUS_PC_EFETIVADO = ['confirmado', 'em_producao', 'despachado', 'recebido'];
+// Quais PedidoCompra o Hub enxerga. So o Hub usa isto; as telas da loja continuam vendo tudo.
+// Regra: subpedido criado a partir do corte, nao cancelado, de uma VENDA EFETIVADA:
+//  - Pedido com tipo 'venda' e status confirmado em diante (orcamento e venda pendente ficam fora), ou
+//  - pedido da vitrine pago.
+// O que veio antes do corte (historico desorganizado) nunca entra.
+export const HUB_PEDIDOS_DESDE = '2026-10-11T18:35:00Z'; // 11/10/2026 15:35 (Brasilia)
+export const STATUS_VENDA_EFETIVADA = ['confirmado', 'em_separacao', 'enviado', 'entregue'];
 
-export function pedidoCompraEfetivado(pc: { status?: string } | null | undefined): boolean {
-  return !!pc && STATUS_PC_EFETIVADO.includes(String(pc.status || ''));
+export function vendaEfetivada(venda: any, vitrine: any): boolean {
+  if (vitrine && vitrine.pagamento_status === 'pago' && vitrine.status !== 'cancelado') return true;
+  return !!venda && venda.tipo === 'venda' && STATUS_VENDA_EFETIVADA.includes(String(venda.status || ''));
+}
+
+export function pcEntraNoHub(pc: any, venda: any, vitrine: any, desde = HUB_PEDIDOS_DESDE): boolean {
+  if (!pc || pc.status === 'cancelado' || !pc.venda_id) return false;
+  const criado = Date.parse(String(pc.created_date || ''));
+  if (!Number.isFinite(criado) || criado < Date.parse(desde)) return false;
+  return vendaEfetivada(venda, vitrine);
 }
 
 export type TipoCustodia =
