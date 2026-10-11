@@ -1,22 +1,24 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 import { loadMargemMap, applyMargem } from "../../shared/margem.ts";
+import { mapaAprovacoes, aprovadoComo } from "../../shared/aprovacao.ts";
 
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
 
         // Buscar dados usando service role (sem exigir autenticação)
-        const [templates, supplierProducts, allUsers, allFabricantes, margemMaps] = await Promise.all([
+        const [templates, supplierProducts, allUsers, allFabricantes, margemMaps, aprovacoes] = await Promise.all([
             base44.asServiceRole.entities.ProductTemplate.list(),
             base44.asServiceRole.entities.SupplierProduct.list(),
             base44.asServiceRole.entities.User.list(),
             base44.asServiceRole.entities.Fabricante.list(),
-            loadMargemMap(base44)
+            loadMargemMap(base44),
+            mapaAprovacoes(base44.asServiceRole)
         ]);
 
         // Fabricantes aprovados da entidade User (com login próprio)
         const fabricanteUsers = allUsers
-            .filter(u => u.aprovado === true && u.role === 'user' && u.tipo_usuario === 'fabricante')
+            .filter(u => aprovadoComo(aprovacoes, u, 'fabricante'))
             .map(u => ({
                 id: u.id,
                 full_name: u.full_name,
