@@ -237,6 +237,42 @@ const pkM = DB.Pickup.filter((p: any) => p.venda_id === 'VM').map((p: any) => p.
 passo('gera coleta so do ativo', JSON.stringify(pkM) === '["PCM1"]', pkM);
 passo('nenhuma coleta de orcamento/pendente/antigo/nao pago', !DB.Pickup.some((p: any) => ['PCR', 'PCP', 'PCOLD', 'PCM2', 'PC5'].includes(p.pedido_compra_id)));
 
+// Convites: admin gera, pessoa sem acesso aceita, perfil nasce pendente
+USERS.novo = { id: 'novo', role: 'user', full_name: 'Paulo Novo' };
+USERS.novo2 = { id: 'novo2', role: 'user', full_name: 'Ana Nova' };
+await espera('so admin gera convite', 'col1', { acao: 'criar_convite', tipo: 'coletor' }, 403);
+await espera('convite tipo invalido', 'admin', { acao: 'criar_convite', tipo: 'base' }, 400);
+const cv = await espera('admin gera convite', 'admin', { acao: 'criar_convite', tipo: 'coletor', nome: 'Paulo', whatsapp: '37 98888-0000' });
+const tokenCv = String(cv.convite?.link || '').split('/').pop();
+passo('link do convite', /^\/hub\/convite\/[A-Z2-9]{16}$/.test(cv.convite?.link || '') && cv.convite.estado === 'aberto', cv);
+passo('lista nao vaza token fora do link', !('token' in (cv.convite || {})), cv.convite);
+const vc = await espera('sem acesso ve convite', 'novo', { acao: 'ver_convite', token: tokenCv.toLowerCase() });
+passo('convite mostra tipo e sugestoes', vc.tipo === 'coletor' && vc.nome_sugerido === 'Paulo' && vc.ja_tem_perfil === false, vc);
+await espera('sem acesso nao ve fila', 'novo', { acao: 'fila_coletor' }, 403);
+await espera('aceite sem dados', 'novo', { acao: 'aceitar_convite', token: tokenCv, nome: 'Paulo' }, 400);
+await espera('aceitar convite', 'novo', { acao: 'aceitar_convite', token: tokenCv, nome: 'Paulo Novo', whatsapp: '37 98888-0000', documento: '111.222.333-44', veiculo: 'Saveiro ABC1D23', cidades: 'Cláudio, Itaúna' });
+const pNovo = DB.TransportProfile.find((p: any) => p.user_id === 'novo');
+passo('perfil pendente criado', pNovo?.tipo === 'coletor' && pNovo.verificacao === 'pendente' && pNovo.base_id === 'B1' && pNovo.cidades?.join() === 'Cláudio,Itaúna', pNovo);
+passo('convite marcado usado', DB.HubConvite.find((c: any) => c.token === tokenCv)?.status === 'usado');
+passo('admin avisado do convite', DB.HubNotificacao.some((n: any) => n.destinatario_user_id === 'admin' && n.tipo === 'convite_aceito' && n.link === '/hub/admin/cadastros'));
+await espera('convite nao reusa', 'novo2', { acao: 'ver_convite', token: tokenCv }, 409);
+const ctxNovo = await espera('contexto do convidado', 'novo', { acao: 'contexto' });
+passo('convidado entra no hub como pendente', ctxNovo.tem_acesso === true && ctxNovo.perfis?.[0]?.verificacao === 'pendente', ctxNovo);
+await espera('pendente nao ve fila', 'novo', { acao: 'fila_coletor' }, 403);
+const cv2 = await espera('convite 2', 'admin', { acao: 'criar_convite', tipo: 'coletor' });
+const tok2 = cv2.convite.link.split('/').pop();
+await espera('quem ja e coletor nao aceita outro', 'novo', { acao: 'aceitar_convite', token: tok2, nome: 'P', whatsapp: '37988880000', documento: '11122233344', veiculo: 'X' }, 409);
+await espera('cancelar convite', 'admin', { acao: 'cancelar_convite', convite_id: cv2.convite.id });
+await espera('cancelado nao abre', 'novo2', { acao: 'ver_convite', token: tok2 }, 409);
+await espera('cancelar de novo', 'admin', { acao: 'cancelar_convite', convite_id: cv2.convite.id }, 409);
+const cv3 = await espera('convite fretista', 'admin', { acao: 'criar_convite', tipo: 'fretista' });
+DB.HubConvite.find((c: any) => c.id === cv3.convite.id).expira_em = '2020-01-01T00:00:00Z';
+await espera('vencido nao abre', 'novo2', { acao: 'ver_convite', token: cv3.convite.link.split('/').pop() }, 409);
+await espera('token inventado', 'novo2', { acao: 'ver_convite', token: 'NAOEXISTE' }, 404);
+const lc = await espera('admin lista convites', 'admin', { acao: 'listar_convites' });
+passo('estados na lista', JSON.stringify(lc.convites?.map((c: any) => c.estado).sort()) === '["cancelado","expirado","usado"]', lc.convites?.map((c: any) => c.estado));
+await espera('nao admin nao lista', 'novo', { acao: 'listar_convites' }, 403);
+
 // Flag desligada fecha o hub para a revenda
 DB.HubConfig[1].hub_ativo = false;
 await espera('flag desligada', 'revenda', { acao: 'acompanhar' }, 403);
