@@ -31,6 +31,50 @@ export function pcEntraNoHub(pc: any, venda: any, vitrine: any, desde = HUB_PEDI
   return vendaEfetivada(venda, vitrine);
 }
 
+// ---------------- convites ----------------
+// Convite individual (uso unico) para coletor ou fretista. Base continua sendo cadastrada pelo admin.
+export const TIPOS_CONVITE = ['coletor', 'fretista'];
+export const DIAS_CONVITE = 14;
+
+export function estadoConvite(c: any, agora = Date.now()): 'aberto' | 'usado' | 'cancelado' | 'expirado' | 'inexistente' {
+  if (!c) return 'inexistente';
+  if (c.status === 'usado' || c.status === 'cancelado') return c.status;
+  const exp = Date.parse(String(c.expira_em || ''));
+  if (Number.isFinite(exp) && exp < agora) return 'expirado';
+  return 'aberto';
+}
+
+export function validarConvite(c: any, agora = Date.now()) {
+  const e = estadoConvite(c, agora);
+  if (e === 'inexistente') throw new ErroHub('Convite não encontrado. Confira o link com a PlaceFit.', 404);
+  if (e === 'usado') throw new ErroHub('Este convite já foi usado.', 409);
+  if (e === 'cancelado') throw new ErroHub('Este convite foi cancelado. Peça um novo à PlaceFit.', 409);
+  if (e === 'expirado') throw new ErroHub('Este convite venceu. Peça um novo à PlaceFit.', 409);
+  return c;
+}
+
+// Dados que a pessoa preenche ao aceitar. Devolve o que vai para o TransportProfile.
+export function dadosDoAceite(tipo: string, b: any) {
+  const txt = (v: unknown) => String(v ?? '').trim();
+  const lista = (v: unknown) => (Array.isArray(v) ? v : String(v ?? '').split(',')).map((x) => txt(x)).filter(Boolean);
+  const d = {
+    nome: txt(b.nome),
+    whatsapp: txt(b.whatsapp),
+    documento: txt(b.documento),
+    veiculo: txt(b.veiculo),
+    cidades: tipo === 'coletor' ? lista(b.cidades) : [],
+    ufs: tipo === 'fretista' ? lista(b.ufs).map((u) => u.toUpperCase().slice(0, 2)) : [],
+  };
+  const faltam = [
+    !d.nome && 'nome',
+    d.whatsapp.replace(/\D/g, '').length < 10 && 'WhatsApp com DDD',
+    d.documento.replace(/\D/g, '').length < 11 && 'CPF ou CNPJ',
+    !d.veiculo && 'veículo e placa',
+  ].filter(Boolean);
+  if (faltam.length) throw new ErroHub(`Preencha: ${faltam.join(', ')}.`);
+  return d;
+}
+
 export type TipoCustodia =
   | 'coletado_no_fabricante'
   | 'entregue_na_base'
