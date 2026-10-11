@@ -4,7 +4,7 @@
   "properties": {
     "revendedor_id": {
       "type": "string",
-      "description": "ID do revendedor dono desta configura\u00e7\u00e3o"
+      "description": "ID do revendedor dono desta configuração"
     },
     "agent_name": {
       "type": "string",
@@ -13,12 +13,12 @@
     },
     "regras": {
       "type": "string",
-      "description": "Regras e instru\u00e7\u00f5es para o agente (texto longo)"
+      "description": "Regras e instruções para o agente (texto longo)"
     },
     "ativo": {
       "type": "boolean",
       "default": true,
-      "description": "Se o agente est\u00e1 ativo"
+      "description": "Se o agente está ativo"
     },
     "plano": {
       "type": "string",
@@ -28,7 +28,7 @@
         "unlimited"
       ],
       "default": "starter",
-      "description": "Plano de servi\u00e7o IA"
+      "description": "Plano de serviço IA"
     },
     "mensagem_boas_vindas": {
       "type": "string",
@@ -43,5 +43,55 @@
     "create": "authenticated",
     "update": "authenticated",
     "delete": "authenticated"
+  },
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.revendedor_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "data.revendedor_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.revendedor_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.revendedor_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
   }
 }

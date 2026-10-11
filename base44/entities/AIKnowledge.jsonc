@@ -4,19 +4,19 @@
   "properties": {
     "fabricante_id": {
       "type": "string",
-      "description": "ID do fabricante dono deste conhecimento (se aplic\u00e1vel)"
+      "description": "ID do fabricante dono deste conhecimento (se aplicável)"
     },
     "supplier_id": {
       "type": "string",
-      "description": "ID do revendedor dono deste conhecimento (se aplic\u00e1vel)"
+      "description": "ID do revendedor dono deste conhecimento (se aplicável)"
     },
     "titulo": {
       "type": "string",
-      "description": "T\u00edtulo do conhecimento"
+      "description": "Título do conhecimento"
     },
     "conteudo": {
       "type": "string",
-      "description": "Conte\u00fado do conhecimento"
+      "description": "Conteúdo do conhecimento"
     },
     "categoria": {
       "type": "string",
@@ -24,7 +24,7 @@
         "Produtos",
         "Fornecedores",
         "Frete",
-        "Pol\u00edticas",
+        "Políticas",
         "Procedimentos",
         "FAQ",
         "Outros",
@@ -35,7 +35,7 @@
     "ativo": {
       "type": "boolean",
       "default": true,
-      "description": "Se o conhecimento est\u00e1 ativo"
+      "description": "Se o conhecimento está ativo"
     }
   },
   "required": [
@@ -48,5 +48,49 @@
     "create": "public",
     "update": "public",
     "delete": "public"
+  },
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.supplier_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.supplier_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.supplier_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
   }
 }

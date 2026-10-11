@@ -1,11 +1,11 @@
 {
   "name": "MetodoPagamento",
   "type": "object",
-  "description": "Cart\u00e3o de cr\u00e9dito salvo no Stripe para cobran\u00e7a recorrente das assinaturas PlaceFit.",
+  "description": "Cartão de crédito salvo no Stripe para cobrança recorrente das assinaturas PlaceFit.",
   "properties": {
     "usuario_id": {
       "type": "string",
-      "description": "ID do User dono do cart\u00e3o"
+      "description": "ID do User dono do cartão"
     },
     "stripe_customer_id": {
       "type": "string",
@@ -17,28 +17,28 @@
     },
     "card_last4": {
       "type": "string",
-      "description": "\u00daltimos 4 d\u00edgitos do cart\u00e3o"
+      "description": "Últimos 4 dígitos do cartão"
     },
     "card_brand": {
       "type": "string",
-      "description": "Bandeira do cart\u00e3o (visa, mastercard, amex, elo, etc)"
+      "description": "Bandeira do cartão (visa, mastercard, amex, elo, etc)"
     },
     "card_exp_month": {
       "type": "number",
-      "description": "M\u00eas de expira\u00e7\u00e3o (1-12)"
+      "description": "Mês de expiração (1-12)"
     },
     "card_exp_year": {
       "type": "number",
-      "description": "Ano de expira\u00e7\u00e3o (4 d\u00edgitos)"
+      "description": "Ano de expiração (4 dígitos)"
     },
     "card_holder_name": {
       "type": "string",
-      "description": "Nome impresso no cart\u00e3o"
+      "description": "Nome impresso no cartão"
     },
     "ativo": {
       "type": "boolean",
       "default": true,
-      "description": "Se o cart\u00e3o est\u00e1 ativo para cobran\u00e7a"
+      "description": "Se o cartão está ativo para cobrança"
     }
   },
   "required": [
@@ -64,6 +64,21 @@
           }
         }
       ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
     }
   }
 }

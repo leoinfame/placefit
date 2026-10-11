@@ -105,10 +105,8 @@ export default function Suppliers() {
 
   const handleApprovalToggle = async (supplier) => {
     try {
-      await User.update(supplier.id, { 
-        ...supplier,
-        aprovado: !supplier.aprovado 
-      });
+      // Pela funcao de admin: grava tambem o registro de aprovacao conferido pelo servidor.
+      await base44.functions.invoke("adminUpdateUser", { userId: supplier.id, data: { aprovado: !supplier.aprovado } });
       loadSuppliers();
     } catch (error) {
       console.error("Erro ao alterar aprovação:", error);

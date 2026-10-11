@@ -25,8 +25,14 @@ const BUILD = "2026-08-21-ml-export";
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
+    // Seguranca: so a propria revenda (ou admin) publica no Mercado Livre dela.
+    const me = await base44.auth.me().catch(() => null);
+    if (!me) return Response.json({ error: "Não autorizado" }, { status: 401 });
     const body = await req.json();
     const { revendedor_id, sp_ids } = body;
+    if (revendedor_id && me.role !== "admin" && revendedor_id !== me.id) {
+      return Response.json({ error: "Loja de outra revenda" }, { status: 403 });
+    }
 
     if (!revendedor_id || !Array.isArray(sp_ids) || sp_ids.length === 0) {
       return Response.json(

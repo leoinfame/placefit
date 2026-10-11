@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { registrarAprovacao } from '../../shared/aprovacao.ts';
 
 Deno.serve(async (req) => {
   try {
@@ -16,7 +17,13 @@ Deno.serve(async (req) => {
       return Response.json({ applied: false });
     }
 
-    const pre = precadastros[0];
+    // Seguranca: so vale pre-cadastro feito por um admin (antes, qualquer conta podia criar um
+    // PreCadastro com o proprio e-mail e se autoaprovar como fabricante).
+    const admins = new Set(
+      (await base44.asServiceRole.entities.User.filter({ role: 'admin' }, '-created_date', 100)).map((u) => u.id),
+    );
+    const pre = precadastros.find((p) => admins.has(p.created_by_id));
+    if (!pre) return Response.json({ applied: false });
 
     // Dados a aplicar no usuário
     const updateData = {};
@@ -35,6 +42,10 @@ Deno.serve(async (req) => {
 
     // Marcar pré-cadastro como aplicado
     await base44.asServiceRole.entities.PreCadastro.update(pre.id, { aplicado: true });
+
+    // O admin aprovou no pre-cadastro: grava o registro que o servidor confere.
+    const [atual] = await base44.asServiceRole.entities.User.filter({ id: user.id });
+    if (atual) await registrarAprovacao(base44.asServiceRole, atual, 'pre-cadastro');
 
     return Response.json({ applied: true });
   } catch (error) {

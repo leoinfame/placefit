@@ -1,0 +1,66 @@
+{
+  "name": "AprovacaoUsuario",
+  "type": "object",
+  "description": "Registro de aprovacao de conta feito pelo admin. E a fonte de verdade para 'fabricante/transportador aprovado' nas funcoes do servidor (marketplace, tabela publica, lista de fabricantes). Os campos User.aprovado e User.tipo_usuario continuam existindo para a interface, mas o proprio usuario consegue edita-los, entao o servidor nao confia neles sozinhos. S\u00f3 o admin grava (pela funcao adminUpdateUser ou aplicarPreCadastro).",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID do User aprovado"
+    },
+    "tipo_usuario": {
+      "type": "string",
+      "enum": [
+        "fabricante",
+        "transportador",
+        "revendedor",
+        "admin"
+      ],
+      "description": "Tipo com que a conta foi aprovada (revendedor = sem tipo_usuario)"
+    },
+    "aprovado": {
+      "type": "boolean",
+      "default": false
+    },
+    "por": {
+      "type": "string",
+      "description": "Quem aprovou (nome ou e-mail do admin, ou 'pre-cadastro')"
+    },
+    "em": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "user_id",
+    "aprovado"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

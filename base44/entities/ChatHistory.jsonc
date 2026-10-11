@@ -8,7 +8,7 @@
     },
     "client_phone": {
       "type": "string",
-      "description": "N\u00famero de telefone do cliente (WhatsApp)"
+      "description": "Número de telefone do cliente (WhatsApp)"
     },
     "user_message": {
       "type": "string",
@@ -30,7 +30,7 @@
     },
     "observacoes": {
       "type": "string",
-      "description": "Observa\u00e7\u00f5es do administrador"
+      "description": "Observações do administrador"
     }
   },
   "required": [
@@ -44,5 +44,52 @@
     "create": "public",
     "update": "authenticated",
     "delete": "authenticated"
+  },
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.revendedor_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.revendedor_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.revendedor_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
   }
 }

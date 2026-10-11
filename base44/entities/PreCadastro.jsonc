@@ -4,7 +4,7 @@
   "properties": {
     "email": {
       "type": "string",
-      "description": "Email do usu\u00e1rio convidado"
+      "description": "Email do usuário convidado"
     },
     "nome": {
       "type": "string",
@@ -41,7 +41,7 @@
     "aplicado": {
       "type": "boolean",
       "default": false,
-      "description": "Se j\u00e1 foi aplicado ao usu\u00e1rio"
+      "description": "Se já foi aplicado ao usuário"
     }
   },
   "required": [
@@ -52,5 +52,27 @@
     "create": "admin",
     "update": "authenticated",
     "delete": "admin"
+  },
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
   }
 }

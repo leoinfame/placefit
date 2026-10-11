@@ -77,9 +77,8 @@ export default function Transportadores() {
 
   const handleApprovalToggle = async (transportador) => {
     try {
-      await base44.entities.User.update(transportador.id, { 
-        aprovado: !transportador.aprovado 
-      });
+      // Pela funcao de admin: grava tambem o registro de aprovacao conferido pelo servidor.
+      await base44.functions.invoke("adminUpdateUser", { userId: transportador.id, data: { aprovado: !transportador.aprovado } });
       loadData();
       toast({
         title: "Status atualizado",

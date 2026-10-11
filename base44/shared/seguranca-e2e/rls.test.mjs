@@ -25,5 +25,21 @@ t('LojaPedido.create so admin', so_admin(lp.create));
 t('LojaPedido.delete so admin', so_admin(lp.delete));
 t('LojaPedido.read dono', dono(lp.read, 'revendedor_id'));
 
+// ---- etapa 2 (itens 5 a 9)
+const escritaAdmin = (e) => ['create', 'update', 'delete'].forEach((op) => t(`${e}.${op} so admin`, so_admin(ler(e)[op])));
+for (const e of ['AssinaturaUsuario', 'FaturaAssinatura', 'MetodoPagamento', 'PlanoServico', 'LojaCliente', 'AcordoFabricante',
+  'Revendedor', 'Fabricante', 'FabricantePerfilPublico', 'PreCadastro', 'InscricaoApp', 'TabelaFrete', 'FabricanteChina', 'AprovacaoUsuario']) escritaAdmin(e);
+for (const [e, c] of [['AssinaturaUsuario', 'usuario_id'], ['FaturaAssinatura', 'usuario_id'], ['MetodoPagamento', 'usuario_id'],
+  ['LojaCliente', 'revendedor_id'], ['InscricaoApp', 'user_id'], ['AprovacaoUsuario', 'user_id']]) t(`${e}.read dono`, dono(ler(e).read, c));
+for (const e of ['AcordoFabricante', 'Revendedor', 'PreCadastro']) t(`${e}.read so admin`, so_admin(ler(e).read));
+for (const [e, c] of [['AcordoComissao', 'revendedor_id'], ['IAConfig', 'revendedor_id']])
+  for (const op of ['read', 'create', 'update', 'delete']) t(`${e}.${op} dono`, dono(ler(e)[op], c));
+for (const [e, c] of [['AIKnowledge', 'supplier_id'], ['FreightOffer', 'supplier_id'], ['TransportadorRota', 'transportador_id']])
+  for (const op of ['create', 'update', 'delete']) t(`${e}.${op} dono`, dono(ler(e)[op], c));
+const porCriador = (r) => JSON.stringify(r || {}).includes('"created_by_id":"{{user.id}}"');
+for (const e of ['ChatHistory', 'PedidoChina']) for (const op of ['read', 'update', 'delete']) t(`${e}.${op} criador`, porCriador(ler(e)[op]));
+t('Notification.read destinatario', dono(ler('Notification').read, 'supplier_id'));
+t('Notification.update destinatario', dono(ler('Notification').update, 'supplier_id'));
+
 console.log(`${ok} ok, ${falhas} falha(s)`);
 if (falhas) process.exit(1);

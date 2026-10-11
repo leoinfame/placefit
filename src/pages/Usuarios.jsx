@@ -101,9 +101,8 @@ export default function Usuarios() {
 
   const handleApprovalToggle = async (usuario) => {
     try {
-      await base44.entities.User.update(usuario.id, {
-        aprovado: !usuario.aprovado
-      });
+      // Pela funcao de admin: grava tambem o registro de aprovacao conferido pelo servidor.
+      await adminUpdateUser({ userId: usuario.id, data: { aprovado: !usuario.aprovado } });
       loadData();
       toast({
         title: "Status atualizado",
@@ -126,7 +125,7 @@ export default function Usuarios() {
         role: newType === 'admin' ? 'admin' : 'user'
       };
 
-      await base44.entities.User.update(usuario.id, updateData);
+      await adminUpdateUser({ userId: usuario.id, data: updateData });
       loadData();
       toast({
         title: "Categoria alterada!",
