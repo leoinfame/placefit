@@ -2,7 +2,7 @@
 import {
   validarCustodia, validarAcao, ACOES_PICKUP, ACOES_FRETE, lerQr, conteudoQr, gerarToken,
   pickupVisivelParaColetor, freteVisivelParaFretista, prontoParaConsolidar, ErroHub,
-  estimarPeso, resolverDestino, conferirChecklist, pedidoCompraEfetivado,
+  estimarPeso, resolverDestino, conferirChecklist, vendaEfetivada, pcEntraNoHub,
 } from './hubFluxo.ts';
 
 let ok = 0, falhas = 0;
@@ -100,10 +100,23 @@ t('checklist incompleto', () => erro(() => conferirChecklist(itensC, [{ ok: true
 t('desmarcado com qtd cheia conta como ok', () => igual(conferirChecklist([{ nome: 'A', quantidade: 2 }], [{ ok: false, quantidade_recebida: 2 }]).divergencia, null));
 t('qtd acima do esperado limita', () => igual(conferirChecklist([{ nome: 'A', quantidade: 2 }], [{ ok: false, quantidade_recebida: 9 }]).linhas[0].quantidade_recebida, 2));
 
-// Filtro de PedidoCompra do Hub: so venda efetivada
-for (const s of ['confirmado', 'em_producao', 'despachado', 'recebido']) t(`pc ${s} entra`, () => igual(pedidoCompraEfetivado({ status: s }), true));
-for (const s of ['rascunho', 'pendente', 'enviado', 'cancelado', 'orcamento', '', undefined]) t(`pc ${s} fora`, () => igual(pedidoCompraEfetivado({ status: s as any }), false));
-t('pc nulo fora', () => igual(pedidoCompraEfetivado(null), false));
+// Filtro de PedidoCompra do Hub: venda efetivada, a partir do corte
+const novo = '2026-10-11T19:00:00Z', velho = '2026-10-11T18:00:00Z';
+const vendaOk = { tipo: 'venda', status: 'confirmado' };
+for (const s of ['confirmado', 'em_separacao', 'enviado', 'entregue']) t(`venda ${s} efetivada`, () => igual(vendaEfetivada({ tipo: 'venda', status: s }, null), true));
+t('venda pendente fora', () => igual(vendaEfetivada({ tipo: 'venda', status: 'pendente' }, null), false));
+t('venda cancelada fora', () => igual(vendaEfetivada({ tipo: 'venda', status: 'cancelado' }, null), false));
+t('orcamento fora mesmo confirmado', () => igual(vendaEfetivada({ tipo: 'orcamento', status: 'confirmado' }, null), false));
+t('vitrine paga entra', () => igual(vendaEfetivada(null, { pagamento_status: 'pago', status: 'pago' }), true));
+t('vitrine nao paga fora', () => igual(vendaEfetivada(null, { pagamento_status: 'pendente' }), false));
+t('vitrine paga cancelada fora', () => igual(vendaEfetivada(null, { pagamento_status: 'pago', status: 'cancelado' }), false));
+for (const s of ['pendente', 'rascunho', 'confirmado', 'em_producao']) t(`pc ${s} novo de venda efetivada entra`, () => igual(pcEntraNoHub({ status: s, venda_id: 'V', created_date: novo }, vendaOk, null), true));
+t('pc antes do corte fora', () => igual(pcEntraNoHub({ status: 'confirmado', venda_id: 'V', created_date: velho }, vendaOk, null), false));
+t('pc sem data fora', () => igual(pcEntraNoHub({ status: 'pendente', venda_id: 'V' }, vendaOk, null), false));
+t('pc cancelado fora', () => igual(pcEntraNoHub({ status: 'cancelado', venda_id: 'V', created_date: novo }, vendaOk, null), false));
+t('pc sem venda fora', () => igual(pcEntraNoHub({ status: 'pendente', venda_id: 'V', created_date: novo }, null, null), false));
+t('pc de orcamento fora', () => igual(pcEntraNoHub({ status: 'rascunho', venda_id: 'V', created_date: novo }, { tipo: 'orcamento', status: 'pendente' }, null), false));
+t('pc nulo fora', () => igual(pcEntraNoHub(null, vendaOk, null), false));
 
 console.log(`${ok} ok, ${falhas} falha(s)`);
 if (falhas) Deno.exit(1);
