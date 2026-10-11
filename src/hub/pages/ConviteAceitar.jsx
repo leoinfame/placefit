@@ -50,9 +50,9 @@ export default function ConviteAceitar({ logado, onAceito }) {
         <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-600" />
         <h1 className="text-xl font-bold text-slate-900">Cadastro enviado!</h1>
         <p className="text-sm text-slate-600">
-          A PlaceFit vai conferir seus dados e liberar seu acesso. Quando for liberado, a fila aparece no Hub e você recebe o aviso no sino.
+          A PlaceFit vai conferir seus dados e liberar seu acesso. Quando for liberado, a fila aparece aqui no Hub, entrando com esta mesma conta.
         </p>
-        <Button className="h-12 w-full" onClick={async () => { await onAceito?.(); navigate("/hub", { replace: true }); }}>Ir para o Hub</Button>
+        <Button className="h-12 w-full" onClick={() => { navigate("/hub", { replace: true }); onAceito?.(); }}>Ir para o Hub</Button>
       </Cartao>
     );
   }
