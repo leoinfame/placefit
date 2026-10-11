@@ -18,6 +18,15 @@ Documentação viva da operação do Hub (logística fabricante → base → cli
 
 Coletor, fretista e base só veem a fila depois que o admin marca o perfil como **verificado** (Admin → Cadastros → Pessoas).
 
+### Convites (coletor e fretista)
+
+- Admin → **Convites** (ou o cartão "Convidar coletor ou fretista" na página inicial): escolhe o tipo, nome e WhatsApp (opcionais) e gera o link. Envia pelo botão do WhatsApp ou copia a mensagem.
+- O link (`/hub/convite/<código>`) vale para **uma pessoa** por **14 dias**. Dá para cancelar enquanto estiver aguardando.
+- A pessoa abre o link, entra com a conta PlaceFit (ou cria) e preenche nome, WhatsApp, CPF/CNPJ, veículo e cidades (coletor) ou estados (fretista).
+- Nasce o perfil **pendente**, ligado à base padrão, e o admin recebe aviso no sino. Falta só conferir os dados, ajustar limite de valor se quiser e marcar **verificado** em Cadastros.
+- Operador de base continua sendo cadastrado direto pelo admin em Cadastros.
+- Quem não tem acesso e abre `/hub` vê a página **Como funciona** (também em `/hub/como-funciona` para quem já está no Hub).
+
 ## Timeline do pedido (corrigida)
 
 1. **A revenda fecha o pedido.** Pode ser venda feita no painel (orçamento → venda) ou pedido pago na vitrine. O sistema cria um subpedido (`PedidoCompra`) por fabricante.
