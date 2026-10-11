@@ -1,7 +1,7 @@
 {
   "name": "AtributoConfig",
   "type": "object",
-  "description": "Configura\u00e7\u00e3o de atributos do cat\u00e1logo padronizado. Define quais campos aparecem em cada categoria e quais op\u00e7\u00f5es est\u00e3o dispon\u00edveis para campos do tipo select.",
+  "description": "Configuração de atributos do catálogo padronizado. Define quais campos aparecem em cada categoria e quais opções estão disponíveis para campos do tipo select.",
   "properties": {
     "campo": {
       "type": "string",
@@ -9,7 +9,7 @@
     },
     "label": {
       "type": "string",
-      "description": "R\u00f3tulo de exibi\u00e7\u00e3o (ex: Acabamento, Tipo de Furo)"
+      "description": "Rótulo de exibição (ex: Acabamento, Tipo de Furo)"
     },
     "tipo": {
       "type": "string",
@@ -26,24 +26,24 @@
       "items": {
         "type": "string"
       },
-      "description": "Lista de op\u00e7\u00f5es para campos tipo select"
+      "description": "Lista de opções para campos tipo select"
     },
     "categorias_aplicaveis": {
       "type": "array",
       "items": {
         "type": "string"
       },
-      "description": "Categorias onde este atributo \u00e9 relevante"
+      "description": "Categorias onde este atributo é relevante"
     },
     "ordem": {
       "type": "number",
       "default": 0,
-      "description": "Ordem de exibi\u00e7\u00e3o dentro da categoria"
+      "description": "Ordem de exibição dentro da categoria"
     },
     "ativo": {
       "type": "boolean",
       "default": true,
-      "description": "Se este atributo est\u00e1 ativo"
+      "description": "Se este atributo está ativo"
     }
   },
   "required": [
@@ -56,5 +56,22 @@
     "create": "admin",
     "update": "admin",
     "delete": "admin"
+  },
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
   }
 }
