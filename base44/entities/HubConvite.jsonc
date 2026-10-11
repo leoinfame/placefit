@@ -1,0 +1,82 @@
+{
+  "name": "HubConvite",
+  "type": "object",
+  "description": "Convite individual para entrar no Hub como coletor ou fretista. O admin cria pela funcao hubApi; a pessoa abre /hub/convite/<token>, entra com a conta PlaceFit e preenche os dados. Ao aceitar, nasce um TransportProfile 'pendente' que o admin verifica em Cadastros. Uso unico, com validade. S\u00f3 o admin le pelo app; o resto passa pela hubApi (service role).",
+  "properties": {
+    "token": {
+      "type": "string",
+      "description": "Codigo do link (secreto)"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "coletor",
+        "fretista"
+      ],
+      "description": "Perfil que sera criado ao aceitar"
+    },
+    "nome": {
+      "type": "string",
+      "description": "Nome de quem foi convidado (referencia do admin)"
+    },
+    "whatsapp": {
+      "type": "string"
+    },
+    "observacoes": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "aberto",
+        "usado",
+        "cancelado"
+      ],
+      "default": "aberto"
+    },
+    "expira_em": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "criado_por_nome": {
+      "type": "string"
+    },
+    "usado_por_user_id": {
+      "type": "string"
+    },
+    "usado_em": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "transport_profile_id": {
+      "type": "string",
+      "description": "Perfil criado no aceite"
+    }
+  },
+  "required": [
+    "token",
+    "tipo"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
