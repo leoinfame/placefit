@@ -19,6 +19,7 @@ export default function HubLayout() {
     { to: "/hub/admin/pedidos", rotulo: "Pedidos" },
     { to: "/hub/admin/financeiro", rotulo: "Financeiro" },
     { to: "/hub/admin/cadastros", rotulo: "Cadastros" },
+    { to: "/hub/admin/convites", rotulo: "Convites" },
   ];
   const naAdmin = useLocation().pathname.startsWith("/hub/admin");
 
