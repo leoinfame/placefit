@@ -3,6 +3,7 @@ import {
   validarCustodia, validarAcao, ACOES_PICKUP, ACOES_FRETE, lerQr, conteudoQr, gerarToken,
   pickupVisivelParaColetor, freteVisivelParaFretista, prontoParaConsolidar, ErroHub,
   estimarPeso, resolverDestino, conferirChecklist, vendaEfetivada, pcEntraNoHub,
+  estadoConvite, validarConvite, dadosDoAceite,
 } from './hubFluxo.ts';
 
 let ok = 0, falhas = 0;
@@ -117,6 +118,20 @@ t('pc cancelado fora', () => igual(pcEntraNoHub({ status: 'cancelado', venda_id:
 t('pc sem venda fora', () => igual(pcEntraNoHub({ status: 'pendente', venda_id: 'V', created_date: novo }, null, null), false));
 t('pc de orcamento fora', () => igual(pcEntraNoHub({ status: 'rascunho', venda_id: 'V', created_date: novo }, { tipo: 'orcamento', status: 'pendente' }, null), false));
 t('pc nulo fora', () => igual(pcEntraNoHub(null, vendaOk, null), false));
+
+// Convites
+const agoraC = Date.parse('2026-10-11T12:00:00Z');
+t('convite aberto', () => igual(estadoConvite({ status: 'aberto', expira_em: '2026-10-20T00:00:00Z' }, agoraC), 'aberto'));
+t('convite vencido', () => igual(estadoConvite({ status: 'aberto', expira_em: '2026-10-01T00:00:00Z' }, agoraC), 'expirado'));
+t('convite usado vence vencido', () => igual(estadoConvite({ status: 'usado', expira_em: '2026-10-01T00:00:00Z' }, agoraC), 'usado'));
+t('convite inexistente 404', () => erro(() => validarConvite(null, agoraC), 404));
+t('convite usado 409', () => erro(() => validarConvite({ status: 'usado' }, agoraC), 409));
+t('convite cancelado 409', () => erro(() => validarConvite({ status: 'cancelado' }, agoraC), 409));
+t('convite vencido 409', () => erro(() => validarConvite({ status: 'aberto', expira_em: '2026-10-01T00:00:00Z' }, agoraC), 409));
+const aceite = { nome: ' João ', whatsapp: '(37) 99999-0000', documento: '123.456.789-00', veiculo: 'Fiorino', cidades: 'Cláudio, Itaúna,', ufs: 'mg, sp' };
+t('aceite coletor', () => igual(dadosDoAceite('coletor', aceite), { nome: 'João', whatsapp: '(37) 99999-0000', documento: '123.456.789-00', veiculo: 'Fiorino', cidades: ['Cláudio', 'Itaúna'], ufs: [] }));
+t('aceite fretista UFs', () => igual(dadosDoAceite('fretista', aceite).ufs, ['MG', 'SP']));
+t('aceite sem dados', () => erro(() => dadosDoAceite('coletor', { nome: 'A', whatsapp: '123' })));
 
 console.log(`${ok} ok, ${falhas} falha(s)`);
 if (falhas) Deno.exit(1);
