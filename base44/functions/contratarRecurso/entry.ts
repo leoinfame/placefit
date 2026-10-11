@@ -10,12 +10,18 @@ const BUILD = "2026-08-23-contratar-recurso";
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
+    // Seguranca: a assinatura e sempre da conta logada (antes vinha do corpo e dava para criar em nome de outro).
+    const me = await base44.auth.me().catch(() => null);
+    if (!me) return Response.json({ error: "Não autorizado" }, { status: 401 });
     const body = await req.json();
-    const { user_id, user_email, user_nome, plano_slug } = body;
+    const { plano_slug } = body;
+    const user_id = me.id;
+    const user_email = me.email;
+    const user_nome = me.full_name;
 
-    if (!user_id || !plano_slug) {
+    if (!plano_slug) {
       return Response.json(
-        { error: "user_id e plano_slug obrigatorios" },
+        { error: "plano_slug obrigatorio" },
         { status: 400 },
       );
     }
