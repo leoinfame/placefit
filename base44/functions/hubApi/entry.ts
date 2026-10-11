@@ -3,14 +3,29 @@ import {
   ErroHub, Papel, REGRAS_CUSTODIA, ACOES_PICKUP, ACOES_FRETE, NOTIFICAR, ROTULO_STATUS,
   validarCustodia, validarAcao, lerQr, gerarToken, conteudoQr, numeroCurto,
   pickupVisivelParaColetor, freteVisivelParaFretista, prontoParaConsolidar, normalizarCidade,
-  estimarPeso, resolverDestino, conferirChecklist, STATUS_PC_EFETIVADO, pedidoCompraEfetivado,
+  estimarPeso, resolverDestino, conferirChecklist, pcEntraNoHub,
 } from '../../shared/hubFluxo.ts';
 
-// Todo PedidoCompra lido pelo Hub passa por aqui: so subpedidos de venda efetivada.
+// Todo PedidoCompra lido pelo Hub passa por aqui: so subpedidos novos (desde o corte) de venda efetivada.
 // Coletas, consolidacao e financeiro nascem do incluir_pedido, entao herdam o filtro.
 async function pcsEfetivados(db: any, query: Record<string, unknown>, sort: string, limit: number) {
-  const lista = await db.PedidoCompra.filter({ ...query, status: { $in: STATUS_PC_EFETIVADO } }, sort, limit);
-  return lista.filter(pedidoCompraEfetivado);
+  const pcs = (await db.PedidoCompra.filter(query, sort, limit)).filter((pc: any) => pc.status !== 'cancelado' && pc.venda_id);
+  const ids = [...new Set(pcs.map((pc: any) => pc.venda_id))] as string[];
+  const vendas: any[] = [], vitrines: any[] = [];
+  for (let i = 0; i < ids.length; i += 200) {
+    const lote = ids.slice(i, i + 200);
+    const [v, l1, l2] = await Promise.all([
+      db.Pedido.filter({ id: { $in: lote } }, '-created_date', lote.length),
+      db.LojaPedido.filter({ id: { $in: lote } }, '-created_date', lote.length),
+      db.LojaPedido.filter({ pedido_interno_id: { $in: lote } }, '-created_date', lote.length),
+    ]);
+    vendas.push(...v); vitrines.push(...l1, ...l2);
+  }
+  return pcs.filter((pc: any) => pcEntraNoHub(
+    pc,
+    vendas.find((v) => v.id === pc.venda_id),
+    vitrines.find((l) => l.id === pc.venda_id || l.pedido_interno_id === pc.venda_id),
+  ));
 }
 
 // API do Hub PlaceFit. Todas as gravacoes de Pickup, FreightLeg, CustodyEvent, HubLancamento
@@ -712,7 +727,7 @@ async function incluirPedido({ db, ctx, body }: Args) {
   perfilAtivo(ctx, 'admin');
   const vendaId = String(body.venda_id || '');
   const pcs = await pcsEfetivados(db, { venda_id: vendaId }, 'created_date', 50);
-  if (!pcs.length) throw new ErroHub('Pedido sem subpedido efetivado (confirmado pelo fabricante). Rascunho, pendente e orçamento não entram no Hub.', 409);
+  if (!pcs.length) throw new ErroHub('Este pedido não entra no Hub: só vendas efetivadas (venda confirmada ou vitrine paga) a partir de 11/10/2026.', 409);
   const revendedorId = pcs[0].revendedor_id;
   const flag = (await db.HubConfig.filter({ escopo: 'revenda', revendedor_id: revendedorId }, '-created_date', 1))[0];
   if (!flag?.hub_ativo) throw new ErroHub('O Hub não está ligado para esta revenda.', 403);
