@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { Routes, Route, Navigate, Outlet, NavLink } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet, NavLink, useLocation } from "react-router-dom";
 import { Loader2, Truck, LogIn } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { hub } from "./lib/hubApi";
@@ -41,6 +41,7 @@ export default function HubApp() {
   if (!logado || !ctx.tem_acesso) return (
     <Routes>
       <Route element={<LayoutPublico logado={logado} />}>
+        <Route index element={<ComoFunciona />} />
         <Route path="convite/:token" element={<ConviteAceitar logado={logado} onAceito={recarregar} />} />
         <Route path="*" element={<ComoFunciona />} />
       </Route>
@@ -76,6 +77,7 @@ export default function HubApp() {
 
 // Casca para quem ainda nao entrou no Hub: explicacao + convite.
 function LayoutPublico({ logado }) {
+  const noConvite = useLocation().pathname.includes("/convite/");
   return (
     <div className="min-h-screen bg-slate-100">
       <header className="sticky top-0 z-30 bg-slate-900 text-white shadow">
@@ -92,7 +94,7 @@ function LayoutPublico({ logado }) {
         </div>
       </header>
       <main className="mx-auto max-w-6xl px-4 py-5">
-        {logado && (
+        {logado && !noConvite && (
           <p className="mx-auto mb-4 max-w-3xl rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
             Sua conta ainda não tem acesso ao Hub. Se você recebeu um convite, abra o link dele; se não, peça o seu à PlaceFit.
           </p>
