@@ -1,7 +1,7 @@
 {
   "name": "TabelaFrete",
   "type": "object",
-  "description": "Tabela de frete por estado: valor fixo para cargas de 100 a 500kg e pre\u00e7o por kg (capital/interior) acima do peso limite. Usada para sugerir automaticamente o frete no or\u00e7amento com base no endere\u00e7o do cliente e no peso total do pedido.",
+  "description": "Tabela de frete por estado: valor fixo para cargas de 100 a 500kg e preço por kg (capital/interior) acima do peso limite. Usada para sugerir automaticamente o frete no orçamento com base no endereço do cliente e no peso total do pedido.",
   "properties": {
     "estado": {
       "type": "string",
@@ -47,20 +47,20 @@
     },
     "preco_kg_capital": {
       "type": "number",
-      "description": "Pre\u00e7o por kg para entregas na capital do estado, para pedidos acima do peso_limite (R$/kg)"
+      "description": "Preço por kg para entregas na capital do estado, para pedidos acima do peso_limite (R$/kg)"
     },
     "preco_kg_interior": {
       "type": "number",
-      "description": "Pre\u00e7o por kg para entregas no interior do estado, para pedidos acima do peso_limite (R$/kg)"
+      "description": "Preço por kg para entregas no interior do estado, para pedidos acima do peso_limite (R$/kg)"
     },
     "observacoes": {
       "type": "string",
-      "description": "Observa\u00e7\u00f5es, ajustes de fronteira, sobretaxas ou condi\u00e7\u00f5es especiais desta faixa"
+      "description": "Observações, ajustes de fronteira, sobretaxas ou condições especiais desta faixa"
     },
     "ativo": {
       "type": "boolean",
       "default": true,
-      "description": "Se esta faixa est\u00e1 ativa e deve ser considerada nas sugest\u00f5es de frete"
+      "description": "Se esta faixa está ativa e deve ser considerada nas sugestões de frete"
     }
   },
   "required": [
@@ -74,5 +74,22 @@
     "create": "admin",
     "update": "admin",
     "delete": "admin"
+  },
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
   }
 }

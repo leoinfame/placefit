@@ -4,7 +4,7 @@
   "properties": {
     "fabricante_china_id": {
       "type": "string",
-      "description": "ID do fabricante chin\u00eas"
+      "description": "ID do fabricante chinês"
     },
     "fabricante_nome": {
       "type": "string",
@@ -16,7 +16,7 @@
     },
     "numero_pedido": {
       "type": "string",
-      "description": "N\u00famero do pedido"
+      "description": "Número do pedido"
     },
     "data_pedido": {
       "type": "string",
@@ -59,7 +59,7 @@
     },
     "comprovante_entrega_hub": {
       "type": "string",
-      "description": "URL do comprovante de entrega no HUB ou c\u00f3digo de rastreio"
+      "description": "URL do comprovante de entrega no HUB ou código de rastreio"
     },
     "itens": {
       "type": "array",
@@ -71,7 +71,7 @@
           },
           "descricao_aduaneira_en": {
             "type": "string",
-            "description": "Termo aduaneiro em ingl\u00eas"
+            "description": "Termo aduaneiro em inglês"
           },
           "quantidade": {
             "type": "number"
@@ -118,15 +118,15 @@
     },
     "taxa_cambio_rmb_brl": {
       "type": "number",
-      "description": "Taxa de c\u00e2mbio RMB\u2192BRL no momento do fechamento"
+      "description": "Taxa de câmbio RMB→BRL no momento do fechamento"
     },
     "taxa_cambio_usd_brl": {
       "type": "number",
-      "description": "Taxa de c\u00e2mbio USD\u2192BRL no momento do fechamento"
+      "description": "Taxa de câmbio USD→BRL no momento do fechamento"
     },
     "taxa_consolidacao_aplicada": {
       "type": "number",
-      "description": "Taxa de consolida\u00e7\u00e3o log\u00edstica aplicada em %"
+      "description": "Taxa de consolidação logística aplicada em %"
     },
     "pdf_invoice_url": {
       "type": "string",
@@ -134,7 +134,7 @@
     },
     "observacoes": {
       "type": "string",
-      "description": "Observa\u00e7\u00f5es"
+      "description": "Observações"
     }
   },
   "required": [
@@ -146,5 +146,52 @@
     "create": "admin",
     "update": "admin",
     "delete": "admin"
+  },
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.revendedor_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.revendedor_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.revendedor_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
   }
 }

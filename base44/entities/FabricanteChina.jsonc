@@ -4,11 +4,11 @@
   "properties": {
     "nome_fabrica": {
       "type": "string",
-      "description": "Nome da F\u00e1brica / Raz\u00e3o Social (China)"
+      "description": "Nome da Fábrica / Razão Social (China)"
     },
     "id_integracao": {
       "type": "string",
-      "description": "Link ou ID de integra\u00e7\u00e3o 1688/Alibaba"
+      "description": "Link ou ID de integração 1688/Alibaba"
     },
     "hub": {
       "type": "string",
@@ -18,7 +18,7 @@
         "Shenzhen",
         "Guangzhou"
       ],
-      "description": "Localiza\u00e7\u00e3o (Hub) para c\u00e1lculo de frete interno"
+      "description": "Localização (Hub) para cálculo de frete interno"
     },
     "moeda": {
       "type": "string",
@@ -27,36 +27,36 @@
         "USD"
       ],
       "default": "RMB",
-      "description": "Moeda padr\u00e3o do fornecedor"
+      "description": "Moeda padrão do fornecedor"
     },
     "lead_time_min": {
       "type": "number",
-      "description": "Prazo m\u00ednimo de produ\u00e7\u00e3o em dias"
+      "description": "Prazo mínimo de produção em dias"
     },
     "lead_time_max": {
       "type": "number",
-      "description": "Prazo m\u00e1ximo de produ\u00e7\u00e3o em dias"
+      "description": "Prazo máximo de produção em dias"
     },
     "rating_exportacao": {
       "type": "number",
-      "description": "Rating de exporta\u00e7\u00e3o de 1 a 5"
+      "description": "Rating de exportação de 1 a 5"
     },
     "ncm": {
       "type": "string",
       "default": "9506.91.00",
-      "description": "C\u00f3digo NCM do produto"
+      "description": "Código NCM do produto"
     },
     "notas_verificacao": {
       "type": "string",
-      "description": "Notas de verifica\u00e7\u00e3o, certificados de qualidade"
+      "description": "Notas de verificação, certificados de qualidade"
     },
     "taxa_consolidacao": {
       "type": "number",
-      "description": "Taxa de consolida\u00e7\u00e3o log\u00edstica em % aplicada automaticamente"
+      "description": "Taxa de consolidação logística em % aplicada automaticamente"
     },
     "contato_nome": {
       "type": "string",
-      "description": "Nome do contato na f\u00e1brica"
+      "description": "Nome do contato na fábrica"
     },
     "contato_wechat": {
       "type": "string",
@@ -69,7 +69,7 @@
     "ativo": {
       "type": "boolean",
       "default": true,
-      "description": "Se o fabricante est\u00e1 ativo"
+      "description": "Se o fabricante está ativo"
     }
   },
   "required": [
@@ -81,5 +81,22 @@
     "create": "admin",
     "update": "admin",
     "delete": "admin"
+  },
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
   }
 }
