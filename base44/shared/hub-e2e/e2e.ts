@@ -84,7 +84,8 @@ await espera('incluir pendente bloqueado', 'admin', { acao: 'incluir_pedido', pa
 passo('nada criado para nao efetivados', DB.Pickup.length === 0 && DB.FreightLeg.length === 0, { pk: DB.Pickup.length, fr: DB.FreightLeg.length });
 
 // Admin: lista e sugere fabricante pelo nome
-const ap = await espera('admin_pedidos', 'admin', { acao: 'admin_pedidos' });
+const ap0 = await espera('admin_pedidos', 'admin', { acao: 'admin_pedidos' });
+const ap = { pedidos: [ap0.pedidos?.find((p: any) => p.venda_id === 'V1')] };
 passo('peso estimado na lista', ap.pedidos?.[0]?.subpedidos?.find((s: any) => s.pedido_compra_id === 'PC2')?.peso_estimado?.sem_peso === 1, ap.pedidos?.[0]?.subpedidos);
 passo('destino sugerido', ap.pedidos?.[0]?.destino_sugerido?.cidade === 'Campinas', ap.pedidos?.[0]?.destino_sugerido);
 passo('sugere fabricante', ap.pedidos?.[0]?.subpedidos?.find((s: any) => s.pedido_compra_id === 'PC1')?.fabricante_sugerido === 'F1', ap.pedidos?.[0]);
