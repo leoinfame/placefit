@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { mapaAprovacoes, aprovadoComo } from '../../shared/aprovacao.ts';
 
 Deno.serve(async (req) => {
     try {
@@ -11,12 +12,13 @@ Deno.serve(async (req) => {
         }
 
         // Buscar todos os usuários usando service role
-        const allUsers = await base44.asServiceRole.entities.User.list();
-        
-        // Filtrar apenas fabricantes aprovados
-        const fabricantes = allUsers.filter(u => 
-            u.tipo_usuario === 'fabricante' && u.aprovado === true
-        );
+        const [allUsers, aprovacoes] = await Promise.all([
+            base44.asServiceRole.entities.User.list(),
+            mapaAprovacoes(base44.asServiceRole),
+        ]);
+
+        // Filtrar apenas fabricantes aprovados pelo admin (registro AprovacaoUsuario)
+        const fabricantes = allUsers.filter(u => aprovadoComo(aprovacoes, u, 'fabricante'));
 
         return Response.json({ fabricantes });
     } catch (error) {
