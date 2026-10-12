@@ -22,6 +22,8 @@ const TZ = 'America/Sao_Paulo';
 const CONFIRMA = /^(grava|gravar|grave|confirma|confirmo|confirmado|confirmar|pode gravar|pode confirmar|pode salvar|salva|ok,? grava|sim,? grava|sim,? pode gravar)\b/;
 const CANCELA = /^(cancela|cancelar|descarta|descartar|esquece|apaga o rascunho|deixa pra la)\b/;
 const GATILHO = /\b(orcamento|orcamentos|cotacao|cotar|orcar|rascunho)\b/;
+// Com rascunho aberto, frases vagas de "segue" NÃO gravam: reapresentam o resumo
+const SEGUE = /\b(pode|faz|faca|fazer|fecha|fechar|segue|seguir|manda|esses|estes|essas|estas|isso|certo|corretos?|corretas?|ok|beleza|blz|sim|perfeito|confere)\b/;
 
 const digitos = (s: string) => String(s || '').replace(/\D/g, '');
 const brl = (v: number) => 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -58,6 +60,10 @@ Decida "acao":
   "troca o de 2kg por 30", "a cidade é Vitória/ES", "o frete é 300", "a primeira opção").
 - "consulta": qualquer outra coisa (perguntas sobre orçamentos existentes, leads, números, conversa).
 
+Se existe RASCUNHO ATUAL e a mensagem fala do orçamento, dos itens, dos produtos, do cliente ou do
+frete — mesmo de forma vaga ("pode fazer", "são esses mesmo", "tá certo") — a acao é "orcamento".
+Frase vaga não escolhe opção: se havia opções listadas e ele não disse qual, mantenha a descricao como estava.
+
 Quando for "orcamento", devolva o pedido COMPLETO já atualizado: o RASCUNHO ATUAL (se houver) com as mudanças da mensagem.
 - cliente: só o que foi dito (CNPJ/CPF, nome, cidade, estado em sigla UF, telefone). Não informado = "".
 - itens: descricao = o produto completo SEM a quantidade (tipo, acabamento, peso, medida). Se ele diz "20 de 2kg"
@@ -68,6 +74,15 @@ Quando for "orcamento", devolva o pedido COMPLETO já atualizado: o RASCUNHO ATU
 Nunca invente produto, cliente nem valor. Quando for "consulta", devolva cliente vazio, itens [] e frete_informado -1.`;
 
 // ── Rascunho na conversa do dono ─────────────────────────────────────────────
+/** Uma linha sobre o rascunho aberto, para a consulta do gerente não inventar nada. */
+export function statusRascunho(conversa: any): string {
+  const a = lerRascunho(conversa);
+  if (!a?.r) return 'nenhum';
+  if (a.vencido) return 'havia um, mas venceu (30 min) — nada foi gravado';
+  if (a.r.pronto) return `aberto e PRONTO (${a.r.cliente?.nome || 'cliente'}, total ${brl(a.r.total)}) — NÃO gravado; só grava se o dono responder "grava"`;
+  return `aberto, NÃO gravado, faltando: ${(a.r.pendencias || []).join(' | ')}`;
+}
+
 function lerRascunho(conversa: any) {
   try {
     const r = JSON.parse(String(conversa?.rascunho_orcamento || ''));
@@ -305,7 +320,13 @@ export async function tratarOrcamentoGerente(base44: any, tenantId: string, conv
     response_json_schema: SCHEMA_PEDIDO
   });
   const pedido = typeof ai === 'string' ? JSON.parse(ai) : ai;
-  if (pedido?.acao !== 'orcamento') return { tratou: false, resposta: '' };
+  if (pedido?.acao !== 'orcamento') {
+    // Rede de segurança: "pode fazer", "são esses"... com rascunho aberto reapresenta o resumo
+    if (atual?.r && !atual.vencido && SEGUE.test(t)) {
+      return { tratou: true, resposta: textoResumo(atual.r, '*Nada foi gravado ainda.* Esse é o rascunho:') };
+    }
+    return { tratou: false, resposta: '' };
+  }
 
   const r = await montarRascunho(base44, tenantId, pedido);
   await salvarRascunho(base44, conversa, r);
