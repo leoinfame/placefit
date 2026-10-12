@@ -9,14 +9,19 @@ import {
   eventKeyDe,
   onlyDigits
 } from '../../shared/whatsappCoexistence.ts';
+import { responderSeCabivel } from '../../shared/respondedorLeo.ts';
 
 // ─── Webhook oficial Meta (Cloud API + Coexistence) v2 ───────────────────────
 // Handler robusto para os eventos da Meta: messages, history,
 // smb_app_state_sync e smb_message_echoes. Preparação para o Embedded Signup
 // v4 com coexistência do número comercial (+55 37 99914-7206) no WhatsApp
-// Business App. Este handler NÃO envia mensagens e NÃO responde
-// automaticamente: o atendente IA continua desligado e o fluxo WAHA atual
-// (crm-whatsapp / crm-whatsapp-webhook) segue intacto.
+// Business App. O fluxo WAHA atual (crm-whatsapp / crm-whatsapp-webhook)
+// segue intacto.
+//
+// Respondedor automático ("Léo da Muscular", shared/respondedorLeo.ts):
+// responde texto recebido pela Cloud API SOMENTE com o segredo
+// RESPONDEDOR_ATIVO=true, respeitando RESPONDEDOR_ALLOWLIST e as travas de lá.
+// O resultado fica em whatsapp_webhook_events.reply_status.
 //
 // Segurança:
 // - GET: desafio hub.verify_token (env WPP_VERIFY_TOKEN ou token por usuário).
@@ -78,16 +83,16 @@ function textoDaMensagem(msg: any) {
 
 async function registrarMensagem(base44: any, connection: any, msg: any, direcao: string, origem: string, nomeContato: string) {
   const wamid = String(msg?.id || '');
-  if (!wamid) return { dedup: false, ok: false };
+  if (!wamid) return { dedup: false, ok: false, conversa: null };
   // Deduplicação: reentrega ou eco repetido não grava de novo
   const dup = await base44.asServiceRole.entities.CRMMensagem.filter({
     owner_id: connection.tenant_id, meta_message_id: wamid
   });
-  if (dup && dup.length) return { dedup: true, ok: true };
+  if (dup && dup.length) return { dedup: true, ok: true, conversa: null };
 
   const outro = direcao === 'recebida' ? msg.from : msg.to;
   const conversa = await conversaDoContato(base44, connection, outro, nomeContato);
-  if (!conversa) return { dedup: false, ok: false };
+  if (!conversa) return { dedup: false, ok: false, conversa: null };
 
   const ts = msg.timestamp ? new Date(Number(msg.timestamp) * 1000).toISOString() : new Date().toISOString();
   await base44.asServiceRole.entities.CRMMensagem.create({
@@ -106,7 +111,7 @@ async function registrarMensagem(base44: any, connection: any, msg: any, direcao
     ultima_mensagem: textoDaMensagem(msg).slice(0, 200),
     ultima_interacao: ts
   });
-  return { dedup: false, ok: true };
+  return { dedup: false, ok: true, conversa };
 }
 
 async function atualizarStatus(base44: any, connection: any, st: any) {
@@ -144,7 +149,11 @@ async function processarChange(base44: any, connection: any, change: any) {
     const contatos = value.contacts || [];
     for (const msg of value.messages || []) {
       const nome = contatos.find((c: any) => onlyDigits(c.wa_id) === onlyDigits(msg.from))?.profile?.name || '';
-      await registrarMensagem(base44, connection, msg, 'recebida', 'cloud_api', nome);
+      const reg = await registrarMensagem(base44, connection, msg, 'recebida', 'cloud_api', nome);
+      // O evento guarda o wamid da primeira mensagem do lote: só ela é avaliada
+      if (!reg.dedup && reg.conversa && String(msg.id) === String(ev.record?.wamid || '')) {
+        await responderSeCabivel(base44, connection, ev, msg, reg.conversa);
+      }
     }
     for (const st of value.statuses || []) await atualizarStatus(base44, connection, st);
     if (!ev.dedup) await finalizarEvento(base44, ev.record.id, 'processado');
