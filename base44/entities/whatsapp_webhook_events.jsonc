@@ -75,6 +75,33 @@
     "error": {
       "type": "string",
       "description": "Erro de processamento, quando aplic\u00e1vel"
+    },
+    "reply_status": {
+      "type": "string",
+      "enum": [
+        "respondendo",
+        "respondido",
+        "ignorado",
+        "erro"
+      ],
+      "description": "Respondedor autom\u00e1tico (L\u00e9o da Muscular). Vazio = nunca avaliado. 'respondendo' \u00e9 gravado ANTES de chamar a IA, para que uma reentrega nunca gere resposta duplicada."
+    },
+    "reply_reason": {
+      "type": "string",
+      "description": "Motivo quando ignorado (desligado, fora_allowlist, nao_texto, antiga, humano_assumiu, teto_hora)"
+    },
+    "reply_wamid": {
+      "type": "string",
+      "description": "wamid da resposta enviada pela Cloud API"
+    },
+    "replied_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Quando a resposta autom\u00e1tica foi enviada"
+    },
+    "reply_error": {
+      "type": "string",
+      "description": "Erro do respondedor (IA ou envio), quando aplic\u00e1vel"
     }
   },
   "required": [
