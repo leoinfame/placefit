@@ -35,7 +35,7 @@ export default function LojaProductCard({ group, onAdd, primaryColor, slug }) {
         {group.variacoes.length > 1 && (
           <select value={idx} onChange={(e) => setIdx(Number(e.target.value))} className="mt-2 w-full border rounded-lg px-2 py-1.5 text-sm">
             {group.variacoes.map((v, i) => (
-              <option key={v.sp_id} value={i}>{v.peso_kg ? v.peso_kg + ' kg' : v.nome} — R$ {fmt(v.preco)}</option>
+              <option key={v.sp_id} value={i}>{v.rotulo || (v.peso_kg ? v.peso_kg + ' kg' : v.nome)} — R$ {fmt(v.preco)}</option>
             ))}
           </select>
         )}
