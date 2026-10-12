@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.41';
-import { computeStorePrice } from "../../shared/loja.ts";
+import { computeStorePrice, fotosPorGrupo, medidaDoRotulo } from "../../shared/loja.ts";
 
 const fetchAll = async (fn, sort = '-created_date', pageSize = 500) => {
   let all = []; let skip = 0;
@@ -40,9 +40,11 @@ export default async function(req) {
       : [];
     const tplById = {};
     for (const t of templates) tplById[t.id] = t;
+    const fotosGrupo = fotosPorGrupo(templates);
 
     const baseName = (nome) => (nome || '').replace(/\s+\d+([.,]\d+)?\s*kg$/i, '').trim();
-    const groupKey = (t) => [baseName(t.nome), t.categoria, t.subcategoria, t.tipo_anilha, t.tipo_furo, t.acabamento, t.pegada, t.barra_acabamento, t.bojo_formato, t.dumbell_tipo, t.piso_formato, t.tijolinho_tipo].map(v => v ?? '').join('|');
+    // Grupo de variacao explicito (grupo_variacao) manda; sem ele, regra antiga (peso no fim do nome)
+    const groupKey = (t) => t.grupo_variacao ? `gv|${t.grupo_variacao}` : [baseName(t.nome), t.categoria, t.subcategoria, t.tipo_anilha, t.tipo_furo, t.acabamento, t.pegada, t.barra_acabamento, t.bojo_formato, t.dumbell_tipo, t.piso_formato, t.tijolinho_tipo].map(v => v ?? '').join('|');
 
     const items = available.map(sp => {
       const t = tplById[sp.product_id];
@@ -55,11 +57,14 @@ export default async function(req) {
     const gmap = new Map();
     for (const it of items) {
       const key = groupKey(it.t);
-      if (!gmap.has(key)) gmap.set(key, { id: key, nome: baseName(it.t.nome), categoria: it.t.categoria, subcategoria: it.t.subcategoria, foto: it.t.foto, und: it.t.und, descricao: it.t.descricao_padrao, variacoes: [] });
-      gmap.get(key).variacoes.push({ sp_id: it.sp_id, product_id: it.product_id, peso_kg: it.t.peso_kg, preco: it.price, nome: it.t.nome, cod: it.t.cod, cod_origem: it.cod_origem });
+      const gv = it.t.grupo_variacao;
+      if (!gmap.has(key)) gmap.set(key, { id: key, nome: gv || baseName(it.t.nome), categoria: it.t.categoria, subcategoria: it.t.subcategoria, foto: (gv && fotosGrupo[gv]) || it.t.foto, und: it.t.und, descricao: it.t.descricao_padrao, variacoes: [] });
+      gmap.get(key).variacoes.push({ sp_id: it.sp_id, product_id: it.product_id, peso_kg: it.t.peso_kg, preco: it.price, nome: it.t.nome, cod: it.t.cod, cod_origem: it.cod_origem, rotulo: gv ? (it.t.variacao_rotulo || "") : "" });
     }
     const products = [...gmap.values()].map(g => {
-      g.variacoes.sort((a, b) => (a.peso_kg || 0) - (b.peso_kg || 0));
+      g.variacoes.sort((a, b) => (a.rotulo || b.rotulo)
+        ? (medidaDoRotulo(a.rotulo) - medidaDoRotulo(b.rotulo)) || String(a.rotulo).localeCompare(String(b.rotulo), "pt-BR")
+        : (a.peso_kg || 0) - (b.peso_kg || 0));
       const WEIGHT_CATEGORIES = ["Anilhas", "Halteres", "Dumbbells", "Kettlebells"];
       const isWeightCategory = WEIGHT_CATEGORIES.includes(g.categoria);
       const withWeight = isWeightCategory ? g.variacoes.filter(v => v.peso_kg > 0) : [];
