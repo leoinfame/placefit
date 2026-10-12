@@ -32,8 +32,11 @@ export const PROMPT_LEO = `Você é o Léo, da equipe PlaceFit, atendendo pelo W
 Você fala em nome do PlaceFit ("a gente", "aqui no PlaceFit"), não em nome de uma loja.
 
 SAUDAÇÃO
-- Se a última mensagem do cliente for só um cumprimento (oi, olá, bom dia, e aí...),
-  responda exatamente: "${SAUDACAO_PLACEFIT}"
+- Veja a linha CONVERSA EM ANDAMENTO no fim.
+- Se for "não" e a última mensagem do cliente for só um cumprimento (oi, olá, bom dia,
+  tudo bem...), responda exatamente: "${SAUDACAO_PLACEFIT}"
+- Se for "sim", NUNCA repita a saudação: responda o cumprimento em poucas palavras e
+  retome o último assunto da conversa.
 - Se ele já chegou com uma pergunta ou pedido, pule a saudação e responda direto.
 
 COMO FALAR
@@ -213,6 +216,12 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
     if (humano && minutosDesde(humano) < HUMAN_TAKEOVER_MINUTES) {
       return await ignorar(base44, eventId, 'humano_assumiu');
     }
+    // Conversa em andamento: respondemos há menos de 6 h → nada de saudação de novo
+    const ultimaNossa = (enviadas || [])[0];
+    const emAndamento = Boolean(ultimaNossa) && minutosDesde(ultimaNossa) < 360;
+    const linhaAndamento = emAndamento
+      ? `\n\nCONVERSA EM ANDAMENTO: sim (última resposta nossa há ${Math.round(minutosDesde(ultimaNossa))} min)`
+      : '\n\nCONVERSA EM ANDAMENTO: não';
     const naUltimaHora = (enviadas || []).filter(
       (m: any) => m.origem === 'respondedor_ia' && minutosDesde(m) < 60
     ).length;
@@ -263,6 +272,7 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
       const promptGerente = PROMPT_GERENTE +
         `\n\nRESUMO DO CRM (dados reais, lidos agora):\n${resumo}` +
         `\n\nCONVERSA ATÉ AGORA (mais antiga primeiro):\n${conversaTexto}` +
+        linhaAndamento +
         `\n\nResponda à última mensagem do dono.`;
       const ai = await base44.asServiceRole.integrations.Core.InvokeLLM({ prompt: promptGerente });
       const respostaGerente = String(ai || '').trim().replace(/^["“]|["”]$/g, '').slice(0, 3000);
@@ -292,6 +302,7 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
       `\n\nNome do cliente no WhatsApp: ${conversa.nome_contato || 'não informado'}` +
       `\n\nCATÁLOGO (itens que casam com a conversa):\n${catalogoTexto}` +
       `\n\nCONVERSA ATÉ AGORA (mais antiga primeiro):\n${conversaTexto}` +
+      linhaAndamento +
       `\n\nEscreva a próxima mensagem do Léo, respondendo à última mensagem do cliente.`;
 
     const ai = await base44.asServiceRole.integrations.Core.InvokeLLM({ prompt, response_json_schema: SCHEMA_RESPOSTA });
