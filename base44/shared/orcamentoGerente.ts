@@ -173,6 +173,8 @@ async function montarRascunho(base44: any, tenantId: string, pedido: any) {
     const r = resolverItem(catalogo, pi.descricao);
     if (r.status === 'ok') {
       const it = r.item;
+      // Regra do óbvio: a suposição fica sempre visível no resumo
+      if (r.suposicao) avisos.push(`"${pi.descricao}": ${r.suposicao}`);
       itens.push({ product_id: it.product_id, cod: it.cod, nome: it.nome, quantidade: qtd, preco_unitario: it.preco, subtotal: Math.round(it.preco * qtd * 100) / 100, und: it.und, peso_kg: it.peso_kg });
       const up = normalizar(pi.unidade_pedida || '');
       if (up && /^(m|m2|metro|metros|kg|quilo|quilos)$/.test(up) && !normalizar(it.und).startsWith(up[0])) {
@@ -334,5 +336,8 @@ export async function tratarOrcamentoGerente(base44: any, tenantId: string, conv
 
   const r = await montarRascunho(base44, tenantId, pedido);
   await salvarRascunho(base44, conversa, r);
-  return { tratou: true, resposta: textoResumo(r) };
+  // Mesmo rascunho de antes: deixa claro que nada mudou (não parece mensagem repetida)
+  const assinatura = (x: any) => JSON.stringify([x?.cliente, x?.itens, x?.frete, x?.pendencias]);
+  const igual = atual?.r && !atual.vencido && assinatura(atual.r) === assinatura(r);
+  return { tratou: true, resposta: textoResumo(r, igual ? '*Nada mudou no rascunho.*' : '*Rascunho de orçamento*') };
 }
