@@ -95,7 +95,10 @@ async function statusMerchant(offerIds: Set<string>) {
       const destinos = st.destinationStatuses || [];
       const temReprovado = destinos.some((d: any) => (d.disapprovedCountries || []).length);
       const temAprovado = destinos.some((d: any) => (d.approvedCountries || []).length);
-      const problemas = (st.itemLevelIssues || []).filter((i: any) => i.severity === "DISAPPROVED" || i.severity === "NOT_IMPACTED" ? i.severity === "DISAPPROVED" : true);
+      // Motivo da reprovação: os problemas que reprovam; se a API não marcar, todos os que impactam
+      const todos = (st.itemLevelIssues || []).filter((i: any) => i.severity !== "NOT_IMPACTED");
+      const reprovam = todos.filter((i: any) => i.severity === "DISAPPROVED");
+      const problemas = reprovam.length ? reprovam : todos;
       if (temReprovado && !temAprovado) {
         reprovados++;
         const descr = [...new Set(problemas.map((i: any) => String(i.description || i.code || "motivo não informado")))] as string[];
