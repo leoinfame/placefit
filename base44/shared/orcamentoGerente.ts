@@ -1,7 +1,8 @@
 // ─── Orçamento assistido (só modo gerente, número do dono) ──────────────────
 // O dono pede um orçamento no chat; o código resolve cliente e itens no
 // catálogo, calcula com as MESMAS regras do painel (preço da vitrine/painel e
-// sugerirFrete de src/utils/frete.js com TabelaFrete) e mostra um resumo.
+// sugerirFrete de shared/freteCrm.js, a mesma que o painel usa, com TabelaFrete)
+// e mostra um resumo.
 //
 // Travas:
 //  - nada é gravado sem o "grava"/"confirma"/"pode gravar" do dono, conferido
