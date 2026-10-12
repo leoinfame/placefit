@@ -14,6 +14,7 @@
 import { onlyDigits } from './whatsappCoexistence.ts';
 import { carregarCatalogo, buscarNoCatalogo, catalogoParaPrompt } from './catalogoRespondedor.ts';
 import { transcreverAudio } from './audioRespondedor.ts';
+import { montarResumoGerente, PROMPT_GERENTE } from './gerenteRespondedor.ts';
 
 export const PEDIR_TEXTO = 'Não consegui ouvir teu áudio aqui. Manda por texto pra mim?';
 
@@ -242,12 +243,39 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
       await base44.asServiceRole.entities.CRMConversa.update(conversa.id, { ultima_mensagem: ('[áudio] ' + t.texto).slice(0, 200) });
     }
 
+    // Modo gerente: só o OWNER_PHONE, e "#cliente" no início força o modo vendedor.
+    const dono = onlyDigits(env('OWNER_PHONE'));
+    const forcaCliente = /^\s*#cliente\b/i.test(textoCliente);
+    if (forcaCliente) textoCliente = textoCliente.replace(/^\s*#cliente\b\s*/i, '');
+    const modoGerente = Boolean(dono) && cliente === dono && !forcaCliente;
+
     const historico = await base44.asServiceRole.entities.CRMMensagem.filter(
       { conversa_id: conversa.id }, '-created_date', HISTORICO
     );
     const conversaTexto = (historico || []).reverse()
-      .map((m: any) => (m.direcao === 'recebida' ? 'Cliente: ' : 'Léo: ') + String(m.conteudo || ''))
+      .map((m: any) => (m.direcao === 'recebida' ? (modoGerente ? 'Dono: ' : 'Cliente: ') : (modoGerente ? 'Gerente: ' : 'Léo: ')) +
+        String(m.conteudo || '').replace(/^\s*#cliente\b\s*/i, ''))
       .join('\n');
+
+    if (modoGerente) {
+      // Somente leitura: só consultas; a resposta vai exclusivamente para o dono (cliente === dono).
+      const resumo = await montarResumoGerente(base44, connection.tenant_id, dono);
+      const promptGerente = PROMPT_GERENTE +
+        `\n\nRESUMO DO CRM (dados reais, lidos agora):\n${resumo}` +
+        `\n\nCONVERSA ATÉ AGORA (mais antiga primeiro):\n${conversaTexto}` +
+        `\n\nResponda à última mensagem do dono.`;
+      const ai = await base44.asServiceRole.integrations.Core.InvokeLLM({ prompt: promptGerente });
+      const respostaGerente = String(ai || '').trim().replace(/^["“]|["”]$/g, '').slice(0, 3000);
+      if (!respostaGerente) {
+        await marcar(base44, eventId, { reply_status: 'erro', reply_reason: 'modo_gerente', reply_error: 'IA devolveu vazio' });
+        return;
+      }
+      const envioG = await enviarERegistrar(base44, connection, conversa, dono, respostaGerente);
+      await marcar(base44, eventId, envioG.ok
+        ? { reply_status: 'respondido', reply_reason: 'modo_gerente', reply_wamid: envioG.id, replied_at: envioG.quando, reply_error: '' }
+        : { reply_status: 'erro', reply_reason: 'modo_gerente', reply_error: envioG.error });
+      return;
+    }
 
     // Catálogo: busca pelas últimas falas do cliente (a atual pesa junto com o contexto)
     let catalogoTexto = 'Catálogo indisponível agora: trate qualquer pergunta de produto como pendência.';
