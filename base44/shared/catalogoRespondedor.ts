@@ -198,7 +198,9 @@ export function resolverItem(itens: ItemCatalogo[], descricao: string): Resoluca
       const outros = comExtras.filter((c) => c !== padrao);
       const soVariacao = outros.every((c) => c.ex.filter((w) => !padrao.ex.includes(w)).every((w) => QUALIFICADORES.has(w)));
       if (minimo === 0 || soVariacao) {
-        const alternativas = outros.slice(0, 2).map((c) => c.item.nome).join(' / ');
+        // Na suposição, cita primeiro as variações (ex.: olímpica); produto de outra natureza só se não houver
+        const variacoes = outros.filter((c) => c.ex.filter((w) => !padrao.ex.includes(w)).every((w) => QUALIFICADORES.has(w)));
+        const alternativas = (variacoes.length ? variacoes : outros).slice(0, 2).map((c) => c.item.nome).join(' / ');
         return {
           status: 'ok',
           item: padrao.item,
