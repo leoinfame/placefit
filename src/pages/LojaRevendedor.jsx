@@ -4,8 +4,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Loader2, Store, ExternalLink } from "lucide-react";
 import AdminStoreForm from "@/components/loja/AdminStoreForm";
 import AdminOrders from "@/components/loja/AdminOrders";
-import WhatsappCatalogo from "@/components/loja/WhatsappCatalogo";
-import MercadoLivreExport from "@/components/loja/MercadoLivreExport";
+import ConexoesExternas from "@/components/loja/ConexoesExternas";
 
 export default function LojaRevendedor() {
   const [user, setUser] = useState(null);
@@ -39,8 +38,7 @@ export default function LojaRevendedor() {
         <TabsList>
           <TabsTrigger value="loja">Minha Loja</TabsTrigger>
           <TabsTrigger value="visualizar">Visualizar Loja</TabsTrigger>
-          <TabsTrigger value="whatsapp">Catálogo WhatsApp</TabsTrigger>
-          <TabsTrigger value="mercadolivre">Mercado Livre</TabsTrigger>
+          <TabsTrigger value="conexoes">Conexões externas</TabsTrigger>
           <TabsTrigger value="pedidos">Meus Pedidos</TabsTrigger>
         </TabsList>
 
@@ -70,12 +68,9 @@ export default function LojaRevendedor() {
           )}
         </TabsContent>
 
-        <TabsContent value="whatsapp">
-          <WhatsappCatalogo config={config} onSaved={load} />
-        </TabsContent>
-
-        <TabsContent value="mercadolivre">
-          <MercadoLivreExport config={config} onSaved={load} />
+        {/* WhatsApp, Google e Mercado Livre: as telas de configuração antigas abrem pelo "Configurar" de cada card */}
+        <TabsContent value="conexoes">
+          <ConexoesExternas config={config} onSaved={load} />
         </TabsContent>
 
         <TabsContent value="pedidos">
