@@ -325,14 +325,16 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
       }
 
       // Consulta: somente leitura; a resposta vai exclusivamente para o dono (cliente === dono).
-      const resumo = await montarResumoGerente(base44, connection.tenant_id, dono);
+      const resumo = await montarResumoGerente(base44, connection.tenant_id, dono, statusRascunho(conversa));
       const promptGerente = PROMPT_GERENTE +
         `\n\nRESUMO DO CRM (dados reais, lidos agora):\n${resumo}` +
         `\n\nCONVERSA ATÉ AGORA (mais antiga primeiro):\n${conversaTexto}` +
         linhaAndamento +
         `\n\nResponda à última mensagem do dono.`;
       const ai = await base44.asServiceRole.integrations.Core.InvokeLLM({ prompt: promptGerente });
-      const respostaGerente = String(ai || '').trim().replace(/^["“]|["”]$/g, '').slice(0, 3000);
+      let respostaGerente = String(ai || '').trim().replace(/^["“]|["”]$/g, '').slice(0, 3000);
+      // Trava: a consulta nunca grava, então nunca pode dizer que gravou
+      if (AFIRMA_GRAVACAO.test(respostaGerente)) respostaGerente = NADA_GRAVADO;
       if (!respostaGerente) {
         await marcar(base44, eventId, { reply_status: 'erro', reply_reason: 'modo_gerente', reply_error: 'IA devolveu vazio' });
         return;
@@ -355,15 +357,20 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
       console.error('[RESPONDEDOR] catálogo falhou', e);
     }
 
+    // Nome: só vale o que a pessoa disse (nome_confirmado); o do perfil do WhatsApp não conta
+    const linhaNome = conversa.nome_confirmado && conversa.nome_contato
+      ? `\n\nNOME DO CONTATO: ${conversa.nome_contato} (confirmado pela pessoa)`
+      : '\n\nNOME DO CONTATO: ainda não informado pela pessoa (o nome do perfil do WhatsApp não conta; pergunte)';
+
     const prompt = PROMPT_LEO +
-      `\n\nNome do cliente no WhatsApp: ${conversa.nome_contato || 'não informado'}` +
+      linhaNome +
       `\n\nCATÁLOGO (itens que casam com a conversa):\n${catalogoTexto}` +
       `\n\nCONVERSA ATÉ AGORA (mais antiga primeiro):\n${conversaTexto}` +
       linhaAndamento +
       `\n\nEscreva a próxima mensagem do Léo, respondendo à última mensagem do cliente.`;
 
     const ai = await base44.asServiceRole.integrations.Core.InvokeLLM({ prompt, response_json_schema: SCHEMA_RESPOSTA });
-    const { resposta, pendencia } = lerSaidaIA(ai);
+    const { resposta, pendencia, nome } = lerSaidaIA(ai);
     if (!resposta) {
       await marcar(base44, eventId, { reply_status: 'erro', reply_error: 'IA devolveu vazio' });
       return;
@@ -379,6 +386,12 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
     if (pendencia) {
       try { await registrarPendencia(base44, conversa, pendencia); }
       catch (e) { console.error('[RESPONDEDOR] falha ao registrar pendência', e); }
+    }
+    // Nome informado pela própria pessoa vira a chave do cadastro do contato
+    if (nome && !conversa.nome_confirmado && nomeValido(nome)) {
+      try {
+        await base44.asServiceRole.entities.CRMConversa.update(conversa.id, { nome_contato: nome, nome_confirmado: true });
+      } catch (e) { console.error('[RESPONDEDOR] falha ao gravar nome', e); }
     }
     await marcar(base44, eventId, { reply_status: 'respondido', reply_wamid: envio.id, replied_at: quando, reply_error: '' });
     console.log('[RESPONDEDOR] respondido', envio.id);
