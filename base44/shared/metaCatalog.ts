@@ -8,7 +8,7 @@
 // A Meta rejeita item sem image_link, entao publicar sem foto sujaria o catalogo inteiro.
 // Os que ficam de fora sao contados em stats.sem_foto e aparecem no painel do revendedor.
 
-import { computeStorePrice } from "./loja.ts";
+import { computeStorePrice, fotosPorGrupo, comFotoDoGrupo } from "./loja.ts";
 import { FRETE_TABELA } from "./freteLoja.ts";
 
 // Colunas do feed da Meta (catalogo do WhatsApp / Commerce Manager).
@@ -232,6 +232,7 @@ export async function buildCatalogoMeta(base44, config, baseUrl) {
     sem_preco: 0,
     sem_foto: 0,
     publicados: 0,
+    foto_do_grupo: 0, // variacoes sem foto propria publicadas com a foto do grupo
   };
 
   const sps = await fetchAllPaged((sort, limit, skip) =>
@@ -266,13 +267,16 @@ export async function buildCatalogoMeta(base44, config, baseUrl) {
     : [];
   const tplById = {};
   for (const t of templates) tplById[t.id] = t;
+  const fotosGrupo = fotosPorGrupo(templates);
 
   const items = [];
   const semFoto = [];
 
   for (const sp of available) {
     const t = tplById[sp.product_id];
-    const { item, motivo } = buildItemMeta(sp, t, config, baseUrl);
+    const tFoto = comFotoDoGrupo(t, fotosGrupo);
+    const { item, motivo } = buildItemMeta(sp, tFoto, config, baseUrl);
+    if (item && tFoto !== t) stats.foto_do_grupo++;
     if (item) {
       items.push(item);
       continue;
