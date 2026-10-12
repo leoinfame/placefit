@@ -15,6 +15,7 @@ import { onlyDigits } from './whatsappCoexistence.ts';
 import { carregarCatalogo, buscarNoCatalogo, catalogoParaPrompt } from './catalogoRespondedor.ts';
 import { transcreverAudio } from './audioRespondedor.ts';
 import { montarResumoGerente, PROMPT_GERENTE } from './gerenteRespondedor.ts';
+import { tratarOrcamentoGerente } from './orcamentoGerente.ts';
 
 export const PEDIR_TEXTO = 'Não consegui ouvir teu áudio aqui. Manda por texto pra mim?';
 
@@ -279,7 +280,24 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
       .join('\n');
 
     if (modoGerente) {
-      // Somente leitura: só consultas; a resposta vai exclusivamente para o dono (cliente === dono).
+      // Orçamento assistido: único caminho de escrita do gerente, e só com "grava" explícito do dono.
+      let orc: { tratou: boolean; resposta: string; gravou?: string } = { tratou: false, resposta: '' };
+      try {
+        orc = await tratarOrcamentoGerente(base44, connection.tenant_id, conversa, textoCliente, conversaTexto);
+      } catch (e) {
+        console.error('[RESPONDEDOR] orçamento gerente falhou', e);
+        orc = { tratou: true, resposta: 'Deu erro montando o orçamento, nada foi gravado. Tenta de novo ou faz pelo painel.' };
+        await marcar(base44, eventId, { reply_error: String((e as any)?.message || e).slice(0, 300) });
+      }
+      if (orc.tratou) {
+        const envioO = await enviarERegistrar(base44, connection, conversa, dono, orc.resposta.slice(0, 3900));
+        await marcar(base44, eventId, envioO.ok
+          ? { reply_status: 'respondido', reply_reason: orc.gravou ? `orcamento_gravado:${orc.gravou}` : 'orcamento_gerente', reply_wamid: envioO.id, replied_at: envioO.quando }
+          : { reply_status: 'erro', reply_reason: 'orcamento_gerente', reply_error: envioO.error });
+        return;
+      }
+
+      // Consulta: somente leitura; a resposta vai exclusivamente para o dono (cliente === dono).
       const resumo = await montarResumoGerente(base44, connection.tenant_id, dono);
       const promptGerente = PROMPT_GERENTE +
         `\n\nRESUMO DO CRM (dados reais, lidos agora):\n${resumo}` +
