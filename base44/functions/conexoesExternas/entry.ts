@@ -13,7 +13,7 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.41";
 import { buildCatalogoMeta } from "../../shared/metaCatalog.ts";
 
-const BUILD = "2026-10-12-conexoes-v1";
+const BUILD = "2026-10-12-conexoes-v2-loja";
 const LOJA_URL_PADRAO = (Deno.env.get("APP_PUBLIC_URL") || "https://placefit.base44.app").replace(/\/+$/, "") + "/loja";
 
 // Limites combinados com o Leandro (12/10/2026)
@@ -27,7 +27,7 @@ type Alerta = { nivel: "erro" | "aviso"; msg: string; em?: string | null };
 type Canal = {
   id: string;
   nome: string;
-  status: "desconectado" | "conectado" | "ativo" | "pausado" | "erro" | "em_breve";
+  status: "desconectado" | "conectado" | "ativo" | "pausado" | "erro" | "em_breve" | "desativada" | "sem_endereco";
   ultima_sync: string | null;
   ultima_sync_label: string;
   contagem: number | null;
@@ -131,9 +131,10 @@ export default async function (req: Request) {
     const config = configs?.[0];
     if (!config) return Response.json({ build: BUILD, loja: null, canais: [] });
 
-    const alertasGerais: Alerta[] = [];
+    // Aviso de domínio: mora só no card da Loja online (vale pra todos os canais)
+    const alertasLoja: Alerta[] = [];
     if (!config.dominio_loja) {
-      alertasGerais.push({ nivel: "aviso", msg: "Sem domínio próprio: o Google e a Meta reprovam links em placefit.base44.app. Configure em Minha Loja." });
+      alertasLoja.push({ nivel: "aviso", msg: "Sem domínio próprio: o Google e a Meta reprovam links em placefit.base44.app. Configure em Minha Loja." });
     }
 
     // Mesma regra do feed: o que está indo e o que fica de fora (e por quê)
@@ -164,7 +165,7 @@ export default async function (req: Request) {
       ultima_sync_label: "Última busca da Meta",
       contagem: config.wa_feed_token ? (config.wa_itens_publicados ?? null) : null,
       contagem_label: "produtos no catálogo",
-      alertas: [...alWa, ...(config.wa_feed_token ? alertasGerais : [])],
+      alertas: alWa,
       detalhes: {
         indo_agora: stats.publicados,
         sem_foto: stats.sem_foto,
@@ -204,7 +205,7 @@ export default async function (req: Request) {
       ultima_sync_label: "Última busca do Google",
       contagem: config.google_itens_publicados ?? null,
       contagem_label: "produtos no feed",
-      alertas: [...alG, ...(stG !== "desconectado" ? alertasGerais : [])],
+      alertas: alG,
       detalhes: { merchant },
     };
 
@@ -227,11 +228,26 @@ export default async function (req: Request) {
       detalhes: { conectado: conectadoMl, apelido: config.ml_nickname || null },
     };
 
+    // ── Loja online (vitrine pública): primeiro card ──
+    // Vitrine = mesma regra da getStoreData (disponível, template ativo, preço > 0), sem exigir foto
+    const enderecoLoja = config.slug ? (config.dominio_loja || `${LOJA_URL_PADRAO}/${config.slug}`).replace(/\/+$/, "") : null;
+    const canalLoja: Canal = {
+      id: "loja",
+      nome: "Loja online",
+      status: !config.slug ? "sem_endereco" : (config.ativo ? "ativo" : "desativada"),
+      ultima_sync: null,
+      ultima_sync_label: "",
+      contagem: config.slug ? stats.publicados + stats.sem_foto : null,
+      contagem_label: "produtos na vitrine",
+      alertas: config.slug ? alertasLoja : [],
+      detalhes: { endereco: enderecoLoja, dominio_proprio: Boolean(config.dominio_loja) },
+    };
+
     return Response.json({
       build: BUILD,
       gerado_em: new Date().toISOString(),
       loja: { slug: config.slug, nome: config.nome_loja || config.slug, dominio_proprio: Boolean(config.dominio_loja) },
-      canais: [canalWa, canalGoogle, canalMl],
+      canais: [canalLoja, canalWa, canalGoogle, canalMl],
     });
   } catch (error) {
     console.error("conexoesExternas:", error);
