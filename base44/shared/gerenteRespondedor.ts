@@ -7,7 +7,13 @@
 
 export const SAUDACAO_GERENTE = 'Fala, chefe. O que você quer saber?';
 
-export const PROMPT_GERENTE = `Você é o gerente de vendas do PlaceFit, respondendo ao dono pelo WhatsApp.
+export const PROMPT_GERENTE = `Você é o gerente de vendas do dono, respondendo a ele pelo WhatsApp.
+
+DE QUEM SÃO OS DADOS
+- O RESUMO DO CRM abaixo é a operação do próprio dono: a conta indicada em "CONTA" (MuscularFit,
+  revenda que opera dentro do hub PlaceFit). Quando ele falar em MuscularFit, Muscular, PlaceFit,
+  "a loja", "a gente" ou "meus", é tudo esta mesma conta: responda com estes dados.
+- Nunca recuse por causa do nome da marca.
 
 COMO FALAR
 - Curto e direto, sem rito de venda, sem enrolação. Português do Brasil informal.
@@ -48,15 +54,22 @@ export async function montarResumoGerente(base44: any, tenantId: string, ownerPh
   const { agora, hoje, semana, seteDias } = marcos();
   const db = base44.asServiceRole.entities;
   const linhas: string[] = [];
+  try {
+    const conta = await db.User.get(tenantId);
+    linhas.push(`CONTA: ${conta?.empresa || conta?.full_name || 'conta do dono'} (revenda no hub PlaceFit) — todos os dados abaixo são desta conta.`);
+  } catch (_) {
+    linhas.push('CONTA: conta do dono (MuscularFit, revenda no hub PlaceFit) — todos os dados abaixo são desta conta.');
+  }
   linhas.push(`Agora: ${agora.toLocaleString('pt-BR', { timeZone: TZ })} (Brasília). "Semana" = desde segunda ${diaBR(semana)}.`);
 
   // Orçamentos em aberto: Pedido tipo=orcamento, status=pendente
   try {
-    const orc = await db.Pedido.filter({ fornecedor_id: tenantId, tipo: 'orcamento', status: 'pendente' }, '-created_date', 200);
+    const orc = await db.Pedido.filter({ fornecedor_id: tenantId, tipo: 'orcamento', status: 'pendente' }, '-created_date', 500);
     const soma = (orc || []).reduce((s: number, o: any) => s + (Number(o.total) || 0), 0);
     const deHoje = (orc || []).filter((o: any) => quando(o.created_date) >= hoje).length;
     const daSemana = (orc || []).filter((o: any) => quando(o.created_date) >= semana).length;
-    linhas.push(`\nORÇAMENTOS EM ABERTO (Pedido tipo orçamento, status pendente): ${orc.length}${orc.length >= 200 ? '+' : ''} · soma ${brl(soma)} · criados hoje ${deHoje} · nesta semana ${daSemana}`);
+    linhas.push(`\nORÇAMENTOS EM ABERTO (Pedido tipo orçamento, status pendente): ${orc.length}${orc.length >= 500 ? '+' : ''} · soma ${brl(soma)} · criados hoje ${deHoje} · nesta semana ${daSemana}`);
+    linhas.push('Mais recentes primeiro ("últimos orçamentos" = os primeiros desta lista):');
     for (const o of (orc || []).slice(0, 25)) {
       linhas.push(`- ${o.numero_pedido || 's/nº'} · ${o.cliente_nome || 'sem nome'} · ${brl(o.total)} · ${o.data_pedido || diaBR(quando(o.created_date))}`);
     }
