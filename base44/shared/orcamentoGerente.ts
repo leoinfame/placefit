@@ -159,7 +159,7 @@ async function montarRascunho(base44: any, tenantId: string, pedido: any) {
       itens.push({ product_id: it.product_id, cod: it.cod, nome: it.nome, quantidade: qtd, preco_unitario: it.preco, subtotal: Math.round(it.preco * qtd * 100) / 100, und: it.und, peso_kg: it.peso_kg });
       const up = normalizar(pi.unidade_pedida || '');
       if (up && /^(m|m2|metro|metros|kg|quilo|quilos)$/.test(up) && !normalizar(it.und).startsWith(up[0])) {
-        avisos.push(`"${pi.descricao}": você pediu ${num(qtd)} ${pi.unidade_pedida}, mas o produto é vendido por ${it.und}. Considerei ${num(qtd)} ${it.und}.`);
+        avisos.push(`"${pi.descricao}": você pediu ${num(qtd)} ${pi.unidade_pedida}, mas o produto é vendido por ${it.und}. Considerei ${num(qtd)} × ${it.und}.`);
       }
     } else if (r.status === 'ambiguo') {
       pend.push(`"${pi.descricao}" tem mais de uma opção: ` + r.opcoes.map((o, i) => `${i + 1}) ${o.nome} (${brl(o.preco)}/${o.und})`).join('; ') + '. Qual?');
@@ -271,8 +271,15 @@ export async function tratarOrcamentoGerente(base44: any, tenantId: string, conv
       return { tratou: true, resposta: textoResumo(novo, `*O rascunho venceu (${VALIDADE_MIN} min) e NÃO foi gravado.* Refiz com os preços de agora:`) };
     }
     if (!atual.r.pronto) return { tratou: true, resposta: textoResumo(atual.r, '*Ainda não dá pra gravar.*') };
-    const p = await gravar(base44, tenantId, atual.r);
+    // Apaga o rascunho ANTES de gravar: um segundo "grava" simultâneo não duplica
     await salvarRascunho(base44, conversa, null);
+    let p: any;
+    try {
+      p = await gravar(base44, tenantId, atual.r);
+    } catch (e) {
+      await salvarRascunho(base44, conversa, atual.r);
+      throw e;
+    }
     return {
       tratou: true,
       gravou: p.id,
