@@ -29,7 +29,7 @@ const STOP = new Set([
   'tem', 'vcs', 'voce', 'voces', 'para', 'pra', 'com', 'sem', 'uma', 'umas', 'uns', 'dos', 'das',
   'por', 'favor', 'mais', 'menos', 'esse', 'essa', 'este', 'esta', 'isso', 'aqui', 'ola', 'bom',
   'dia', 'tarde', 'noite', 'queria', 'quero', 'gostaria', 'saber', 'sobre', 'tambem', 'ainda',
-  'vende', 'vendem', 'venda', 'comprar', 'compra', 'kit', 'kits', 'peca', 'pecas', 'unidade', 'und'
+  'vende', 'vendem', 'venda', 'comprar', 'compra', 'peca', 'pecas', 'unidade', 'und', 'kg', 'quilo', 'quilos'
 ]);
 
 export function normalizar(t: string) {
