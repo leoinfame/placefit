@@ -39,6 +39,7 @@ export function normalizar(t: string) {
     .toLowerCase()
     .replace(/(\d),(\d)/g, '$1.$2')
     .replace(/(\d)([a-z])/g, '$1 $2')
+    .replace(/([a-z])(\d)/g, '$1 $2') // "1x1" → "1 x 1", "avp10" → "avp 10"
     .replace(/[^a-z0-9.]+/g, ' ')
     .trim();
 }
