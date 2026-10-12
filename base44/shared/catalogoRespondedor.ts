@@ -13,6 +13,7 @@ const MAX_ITENS = 12;
 const cache: Record<string, { em: number; itens: ItemCatalogo[] }> = {};
 
 export type ItemCatalogo = {
+  product_id: string; // id do ProductTemplate (o mesmo que o painel grava em Pedido.itens)
   nome: string;
   cod: string;
   categoria: string;
@@ -42,7 +43,12 @@ export function normalizar(t: string) {
     .trim();
 }
 
-const raiz = (p: string) => (p.length > 4 ? p.replace(/(es|s)$/, '') : p);
+// Plural e gênero: "injetadas" e "injetado" viram "injetad"
+const raiz = (p: string) => {
+  let r = p.length > 4 ? p.replace(/(es|s)$/, '') : p;
+  if (r.length > 5) r = r.replace(/[ao]$/, '');
+  return r;
+};
 
 async function buscarTodos(fn: (skip: number) => Promise<any[]>) {
   let todos: any[] = [];
@@ -85,6 +91,7 @@ export async function carregarCatalogo(base44: any, tenantId: string): Promise<I
       .filter(Boolean).join(' · ');
     const peso = Number(t.peso_kg) > 0 ? Number(t.peso_kg) : null;
     itens.push({
+      product_id: String(t.id),
       nome: String(t.nome || ''),
       cod: String(t.cod || ''),
       categoria: String(t.categoria || ''),
@@ -123,6 +130,48 @@ export function buscarNoCatalogo(itens: ItemCatalogo[], texto: string): ItemCata
 
   pontuados.sort((a, b) => b.pontos - a.pontos || a.item.preco - b.item.preco);
   return pontuados.slice(0, MAX_ITENS).map((x) => x.item);
+}
+
+export type ResolucaoItem =
+  | { status: 'ok'; item: ItemCatalogo }
+  | { status: 'ambiguo'; opcoes: ItemCatalogo[] }
+  | { status: 'nao_encontrado'; sugestoes: ItemCatalogo[] };
+
+/**
+ * Resolve UMA descrição de item para UM produto do catálogo, sem chute:
+ * - todas as palavras da descrição precisam aparecer no produto;
+ * - todos os números (peso, medida) precisam bater;
+ * - um único candidato → ok; vários → ambíguo; nenhum → não encontrado (com sugestões).
+ */
+export function resolverItem(itens: ItemCatalogo[], descricao: string): ResolucaoItem {
+  const termos = [...new Set(normalizar(descricao).split(' ').filter(Boolean))];
+  const palavras = termos.filter((t) => !/^\d/.test(t) && t.length >= 3 && !STOP.has(t)).map(raiz);
+  const numeros = termos.filter((t) => /^\d+(\.\d+)?$/.test(t)).map(Number);
+  if (!palavras.length) return { status: 'nao_encontrado', sugestoes: [] };
+
+  const avaliados = itens.map((item) => {
+    const doItem = item.busca.split(' ');
+    const numsItem = new Set(doItem.filter((w) => /^\d+(\.\d+)?$/.test(w)).map(Number));
+    if (item.peso_kg) numsItem.add(item.peso_kg);
+    const casadas = palavras.filter((p) => doItem.some((w) => w.startsWith(p) || (w.length >= 4 && p.startsWith(w)))).length;
+    const numerosOk = numeros.every((n) => numsItem.has(n));
+    return { item, cobertura: casadas / palavras.length, numerosOk };
+  });
+
+  const exatos = avaliados.filter((a) => a.cobertura === 1 && a.numerosOk).map((a) => a.item);
+  if (exatos.length === 1) return { status: 'ok', item: exatos[0] };
+  if (exatos.length > 1) {
+    // Nome idêntico ao pedido desempata (ex.: dono escolheu uma opção da lista)
+    const alvo = normalizar(descricao);
+    const identico = exatos.filter((i) => normalizar(i.nome) === alvo);
+    if (identico.length === 1) return { status: 'ok', item: identico[0] };
+    return { status: 'ambiguo', opcoes: exatos.slice(0, 5) };
+  }
+  const sugestoes = avaliados
+    .filter((a) => a.cobertura >= 0.5)
+    .sort((a, b) => (Number(b.numerosOk) - Number(a.numerosOk)) || (b.cobertura - a.cobertura))
+    .slice(0, 4).map((a) => a.item);
+  return { status: 'nao_encontrado', sugestoes };
 }
 
 const brl = (v: number) => 'R$ ' + v.toFixed(2).replace('.', ',');
