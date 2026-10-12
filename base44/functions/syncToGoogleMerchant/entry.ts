@@ -1,3 +1,16 @@
+// ─── DESATIVADA em 2026-10-12 (autorizado pelo Leandro) ────────────────────────────────
+// Esta função era chamada por DOIS workflows idênticos, ambos em update de
+// SupplierProduct:
+//   - "Sincronizar SupplierProduct com Google Merchant" (id 6a9d27bd27a31b1a14a434ce)
+//   - "Sincronizar SupplierProduct com Google UCP"      (id 6a9d27bd27a31b1a14a434cc)
+// Os dois foram PAUSADOS (status inactive, não arquivados — dá pra religar em
+// Workflows) porque a função estava quebrada: faz Product.get(data.product_id), mas
+// SupplierProduct.product_id aponta para ProductTemplate, então toda execução falhava
+// com "Entity Product with ID ... not found" (25 falhas seguidas cada, ~2.840 execuções
+// cada, 0,1 crédito por execução). Usa ainda a Content API v2.1 e uma conta global.
+// O Google Produtos segue funcionando pelo FEED (catalogoFeedGoogle), que não depende
+// deste código. O código abaixo ficou intocado, só para referência.
+
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
