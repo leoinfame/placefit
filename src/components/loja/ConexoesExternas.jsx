@@ -115,6 +115,12 @@ export default function ConexoesExternas({ config, onSaved }) {
 
   useEffect(() => { carregar(); }, [carregar]);
 
+  // Volta do login do Mercado Livre: abre a configuração dele para mostrar o resultado
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    if (p.get("ml_connected") || p.get("ml_error")) setConfigurando({ id: "mercadolivre", nome: "Mercado Livre" });
+  }, []);
+
   if (!config?.slug) return <p className="text-gray-500 text-sm">Salve sua loja (defina o slug) antes de conectar canais.</p>;
 
   const abrirLista = (titulo, itens) => setLista({ titulo, itens });

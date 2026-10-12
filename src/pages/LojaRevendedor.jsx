@@ -10,7 +10,11 @@ export default function LojaRevendedor() {
   const [user, setUser] = useState(null);
   const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState("loja");
+  // Volta do login do Mercado Livre (?ml_connected / ?ml_error) cai direto em Conexões externas
+  const [tab, setTab] = useState(() => {
+    const p = new URLSearchParams(window.location.search);
+    return p.get("ml_connected") || p.get("ml_error") ? "conexoes" : "loja";
+  });
 
   const load = async () => {
     setLoading(true);
