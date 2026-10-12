@@ -119,6 +119,26 @@ async function statusMerchant(offerIds: Set<string>) {
 export default async function (req: Request) {
   try {
     const base44 = createClientFromRequest(req);
+
+    // TEMPORÁRIO (12/10/2026): teste de acesso à Merchant API sem login, protegido por
+    // chave aleatória. Só devolve resultado do acesso e contagens. REMOVER após o teste.
+    const chaveDiag = String(Deno.env.get("CONEXOES_DIAG_KEY") || "");
+    if (chaveDiag && req.headers.get("x-diag-key") === chaveDiag) {
+      const corpo = await req.json().catch(() => ({}));
+      const cfg = (await base44.asServiceRole.entities.LojaConfig.filter({ revendedor_id: String(corpo?.revendedor_id || "") }))?.[0];
+      if (!cfg) return Response.json({ diagnostico: true, erro: "loja não encontrada" });
+      const base = (cfg.dominio_loja || `${LOJA_URL_PADRAO}/${cfg.slug}`).replace(/\/+$/, "");
+      const { items } = await buildCatalogoMeta(base44, cfg, base);
+      let m: any;
+      try { m = await statusMerchant(new Set(items.map((i: any) => String(i.id)))); }
+      catch (e) { m = { ok: false, erro: String((e as any)?.message || e).slice(0, 300) }; }
+      return Response.json({
+        diagnostico: true, itens_no_feed: items.length, merchant_ok: m.ok, erro: m.erro || null,
+        encontrados: m.encontrados ?? null, aprovados: m.aprovados ?? null, reprovados: m.reprovados ?? null,
+        pendentes: m.pendentes ?? null, motivos: m.motivos || [],
+      });
+    }
+
     const me = await base44.auth.me().catch(() => null);
     if (!me) return Response.json({ error: "Não autorizado" }, { status: 401 });
     const body = await req.json().catch(() => ({}));
