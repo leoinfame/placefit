@@ -5,13 +5,14 @@
 
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.41";
 
-const PERMITIDOS = new Set<string>(JSON.parse(Deno.env.get("TMP_APLICAR_IDS") || "[]"));
 
 export default async function (req: Request) {
   const chave = String(Deno.env.get("TMP_APLICAR_KEY") || "");
   if (!chave || req.headers.get("x-tmp-key") !== chave) return Response.json({ error: "Não autorizado" }, { status: 401 });
   try {
     const base44 = createClientFromRequest(req);
+    const PERMITIDOS = new Set<string>(JSON.parse(Deno.env.get("TMP_APLICAR_IDS") || "[]"));
+    if (PERMITIDOS.size !== 186) return Response.json({ error: `lista de ids aprovados com ${PERMITIDOS.size} itens` }, { status: 500 });
     const lista = await req.json();
     if (!Array.isArray(lista) || lista.length !== 186) return Response.json({ error: "esperava 186 itens" }, { status: 400 });
     for (const x of lista) {
