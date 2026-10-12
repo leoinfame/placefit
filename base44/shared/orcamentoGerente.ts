@@ -13,7 +13,7 @@
 // Escritas possíveis (só no "grava"): Cliente.create (se novo) + Pedido.create.
 
 import { carregarCatalogo, resolverItem, normalizar } from './catalogoRespondedor.ts';
-import { sugerirFrete } from '../../src/utils/frete.js';
+import { sugerirFrete } from './freteCrm.js';
 
 const VALIDADE_MIN = 30;
 const TZ = 'America/Sao_Paulo';
