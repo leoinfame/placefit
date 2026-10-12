@@ -117,6 +117,19 @@ export default function Orcamentos() {
     loadData();
   }, []);
 
+  // Link do WhatsApp do gerente (?abrir=<id>): abre o orçamento direto na visualização, onde fica o PDF
+  useEffect(() => {
+    const abrir = new URLSearchParams(window.location.search).get('abrir');
+    if (!abrir || !orcamentos.length) return;
+    const alvo = orcamentos.find(o => o.id === abrir);
+    if (!alvo) return;
+    setSelectedOrcamento(alvo);
+    setShowViewDialog(true);
+    const url = new URL(window.location.href);
+    url.searchParams.delete('abrir');
+    window.history.replaceState({}, '', url.toString());
+  }, [orcamentos]);
+
   const loadData = async () => {
     try {
       const currentUser = await base44.auth.me();
