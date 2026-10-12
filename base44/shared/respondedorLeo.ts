@@ -209,7 +209,7 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
 
     // 4 e 5. humano assumiu / teto por hora
     const enviadas = await base44.asServiceRole.entities.CRMMensagem.filter(
-      { conversa_id: conversa.id, direcao: 'enviada' }, '-created_date', 30
+      { conversa_id: conversa.id, direcao: 'enviada' }, '-created_date', 80
     );
     const agora = Date.now();
     const minutosDesde = (m: any) => (agora - new Date(m.created_date).getTime()) / 60000;
