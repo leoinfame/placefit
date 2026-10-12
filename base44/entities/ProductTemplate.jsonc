@@ -1,7 +1,7 @@
 {
   "name": "ProductTemplate",
   "type": "object",
-  "description": "Catálogo padronizado de tipos de produtos. Cada registro representa uma variação única de produto. Os fabricantes apenas vinculam seu preço a este template via SupplierProduct.",
+  "description": "Cat\u00e1logo padronizado de tipos de produtos. Cada registro representa uma varia\u00e7\u00e3o \u00fanica de produto. Os fabricantes apenas vinculam seu pre\u00e7o a este template via SupplierProduct.",
   "properties": {
     "nome": {
       "type": "string",
@@ -9,7 +9,7 @@
     },
     "cod": {
       "type": "string",
-      "description": "Código SKU único do template (ex: ANI-OLI-EMB-010)"
+      "description": "C\u00f3digo SKU \u00fanico do template (ex: ANI-OLI-EMB-010)"
     },
     "categoria": {
       "type": "string",
@@ -25,7 +25,7 @@
         "Barras",
         "Puxadores",
         "Suportes",
-        "Acessórios",
+        "Acess\u00f3rios",
         "Estruturas",
         "Outros"
       ],
@@ -33,15 +33,15 @@
     },
     "subcategoria": {
       "type": "string",
-      "description": "Subcategoria específica (ex: Halter Sextavado, Dumbbell Sextavado)"
+      "description": "Subcategoria espec\u00edfica (ex: Halter Sextavado, Dumbbell Sextavado)"
     },
     "tipo_anilha": {
       "type": "string",
-      "description": "Tipo construtivo da anilha (ex: Vazada, Injetada, Sólida, Bumper) - aplicável apenas para Anilhas"
+      "description": "Tipo construtivo da anilha (ex: Vazada, Injetada, S\u00f3lida, Bumper) - aplic\u00e1vel apenas para Anilhas"
     },
     "tipo_furo": {
       "type": "string",
-      "description": "Tipo de furo - aplicável apenas para Anilhas"
+      "description": "Tipo de furo - aplic\u00e1vel apenas para Anilhas"
     },
     "acabamento": {
       "type": "string",
@@ -49,7 +49,7 @@
     },
     "pegada": {
       "type": "string",
-      "description": "Tipo de pegada - aplicável para Kits (ex: Cromada, Injetada, W Cromada)"
+      "description": "Tipo de pegada - aplic\u00e1vel para Kits (ex: Cromada, Injetada, W Cromada)"
     },
     "peso_faixa": {
       "type": "string",
@@ -62,23 +62,23 @@
     "peso_fracionado": {
       "type": "boolean",
       "default": false,
-      "description": "Se é peso fracionado (ex: 1.5kg, 2.5kg) - usado em anilhas bumper"
+      "description": "Se \u00e9 peso fracionado (ex: 1.5kg, 2.5kg) - usado em anilhas bumper"
     },
     "barra_acabamento": {
       "type": "string",
-      "description": "Acabamento da barra central - aplicável para Halteres"
+      "description": "Acabamento da barra central - aplic\u00e1vel para Halteres"
     },
     "bojo_formato": {
       "type": "string",
-      "description": "Formato das extremidades (bojos) - aplicável para Halteres e Dumbbells"
+      "description": "Formato das extremidades (bojos) - aplic\u00e1vel para Halteres e Dumbbells"
     },
     "dumbell_tipo": {
       "type": "string",
-      "description": "Tipo construtivo do Dumbbell. OBS: o nome do campo mantem a grafia antiga porque o front-end referencia dumbell_tipo; só o texto exibido foi normalizado."
+      "description": "Tipo construtivo do Dumbbell. OBS: o nome do campo mantem a grafia antiga porque o front-end referencia dumbell_tipo; s\u00f3 o texto exibido foi normalizado."
     },
     "piso_espessura_mm": {
       "type": "number",
-      "description": "Espessura do piso em mm (10 ou 15) - aplicável para Pisos"
+      "description": "Espessura do piso em mm (10 ou 15) - aplic\u00e1vel para Pisos"
     },
     "piso_formato": {
       "type": "string",
@@ -86,30 +86,30 @@
     },
     "peso_peca": {
       "type": "number",
-      "description": "Peso por peça em kg (usado para cálculo de frete em produtos vendidos por peça/m², ex: Pisos)"
+      "description": "Peso por pe\u00e7a em kg (usado para c\u00e1lculo de frete em produtos vendidos por pe\u00e7a/m\u00b2, ex: Pisos)"
     },
     "tijolinho_tipo": {
       "type": "string",
-      "description": "Tipo de tijolinho - padrão ou guia"
+      "description": "Tipo de tijolinho - padr\u00e3o ou guia"
     },
     "tijolinho_torre": {
       "type": "string",
-      "description": "Torre para a qual o tijolinho é compatível"
+      "description": "Torre para a qual o tijolinho \u00e9 compat\u00edvel"
     },
     "und": {
       "type": "string",
       "enum": [
-        "peça",
+        "pe\u00e7a",
         "par",
         "kg",
-        "m²",
+        "m\u00b2",
         "kit"
       ],
       "description": "Unidade de venda"
     },
     "foto": {
       "type": "string",
-      "description": "URL da foto representativa do tipo de produto (única para todos os fabricantes)"
+      "description": "URL da foto representativa do tipo de produto (\u00fanica para todos os fabricantes)"
     },
     "google_category": {
       "type": "string",
@@ -118,21 +118,29 @@
     },
     "ncm": {
       "type": "string",
-      "description": "Código NCM para fins fiscais",
+      "description": "C\u00f3digo NCM para fins fiscais",
       "default": "9506.91.00"
     },
     "gtin": {
       "type": "string",
-      "description": "Código de barras EAN/GTIN (opcional)"
+      "description": "C\u00f3digo de barras EAN/GTIN (opcional)"
     },
     "descricao_padrao": {
       "type": "string",
-      "description": "Descrição padronizada do produto para uso no Google Shopping e orçamentos"
+      "description": "Descri\u00e7\u00e3o padronizada do produto para uso no Google Shopping e or\u00e7amentos"
     },
     "ativo": {
       "type": "boolean",
       "default": true,
-      "description": "Se este template está ativo no catálogo"
+      "description": "Se este template est\u00e1 ativo no cat\u00e1logo"
+    },
+    "grupo_variacao": {
+      "type": "string",
+      "description": "Nome do produto-pai. Templates com o mesmo valor s\u00e3o varia\u00e7\u00f5es do mesmo item (peso, pe\u00e7as, medida, cor) e aparecem juntos na vitrine e nos feeds (item_group_id). Vazio = regra antiga (peso no fim do nome). Criado em 12/10/2026."
+    },
+    "variacao_rotulo": {
+      "type": "string",
+      "description": "R\u00f3tulo da varia\u00e7\u00e3o dentro do grupo, mostrado no seletor (ex: 10 kg, 1,2 m, 8 pares, Preto). S\u00f3 usado junto com grupo_variacao."
     }
   },
   "required": [
