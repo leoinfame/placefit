@@ -22,7 +22,8 @@ export type ItemCatalogo = {
   peso_kg: number | null;
   detalhes: string;
   preco: number;
-  busca: string; // texto normalizado para a busca
+  busca: string; // texto normalizado para a busca (inclui detalhes)
+  chave: string; // só nome, código, categoria e subcategoria: base da resolução de item do orçamento
 };
 
 const STOP = new Set([
@@ -101,7 +102,8 @@ export async function carregarCatalogo(base44: any, tenantId: string): Promise<I
       peso_kg: peso,
       detalhes,
       preco,
-      busca: normalizar([t.nome, t.cod, t.categoria, t.subcategoria, detalhes, sp.cod_origem].join(' '))
+      busca: normalizar([t.nome, t.cod, t.categoria, t.subcategoria, detalhes, sp.cod_origem].join(' ')),
+      chave: normalizar([t.nome, t.cod, t.categoria, t.subcategoria].join(' '))
     });
   }
   cache[tenantId] = { em: Date.now(), itens };
@@ -134,15 +136,31 @@ export function buscarNoCatalogo(itens: ItemCatalogo[], texto: string): ItemCata
 }
 
 export type ResolucaoItem =
-  | { status: 'ok'; item: ItemCatalogo }
+  | { status: 'ok'; item: ItemCatalogo; suposicao?: string }
   | { status: 'ambiguo'; opcoes: ItemCatalogo[] }
   | { status: 'nao_encontrado'; sugestoes: ItemCatalogo[] };
 
+// Qualificadores de VARIAÇÃO com padrão óbvio: sem dizer, vale a versão sem eles
+const QUALIFICADORES = new Set(['olimpic']);
+
+const casa = (p: string, palavrasItem: string[]) =>
+  palavrasItem.some((w) => w.startsWith(p) || (w.length >= 4 && p.startsWith(w)));
+
+/** Palavras do NOME do item que o pedido não citou (o que diferencia uma variação). */
+function extras(item: ItemCatalogo, palavrasPedido: string[]) {
+  return [...new Set(normalizar(item.nome).split(' ')
+    .filter((w) => !/^\d/.test(w) && w.length >= 3 && !STOP.has(w)).map(raiz))]
+    .filter((w) => !palavrasPedido.some((p) => w.startsWith(p) || (p.length >= 4 && w.length >= 4 && p.startsWith(w))));
+}
+
 /**
  * Resolve UMA descrição de item para UM produto do catálogo, sem chute:
- * - todas as palavras da descrição precisam aparecer no produto;
- * - todos os números (peso, medida) precisam bater;
- * - um único candidato → ok; vários → ambíguo; nenhum → não encontrado (com sugestões).
+ * - todas as palavras e todos os números (peso, medida) precisam aparecer no nome/código/categoria;
+ * - um candidato → ok;
+ * - vários, mas UM deles é a versão padrão (o pedido cobre o nome inteiro dele e os outros só
+ *   acrescentam qualificador de variação, ex. "olímpica") ou é o ÚNICO sem nada a mais no nome
+ *   → ok com SUPOSIÇÃO visível;
+ * - vários de natureza diferente → ambíguo (pergunta); nenhum → não encontrado (com sugestões).
  */
 export function resolverItem(itens: ItemCatalogo[], descricao: string): ResolucaoItem {
   const termos = [...new Set(normalizar(descricao).split(' ').filter(Boolean))];
@@ -151,10 +169,10 @@ export function resolverItem(itens: ItemCatalogo[], descricao: string): Resoluca
   if (!palavras.length) return { status: 'nao_encontrado', sugestoes: [] };
 
   const avaliados = itens.map((item) => {
-    const doItem = item.busca.split(' ');
+    const doItem = item.chave.split(' ');
     const numsItem = new Set(doItem.filter((w) => /^\d+(\.\d+)?$/.test(w)).map(Number));
     if (item.peso_kg) numsItem.add(item.peso_kg);
-    const casadas = palavras.filter((p) => doItem.some((w) => w.startsWith(p) || (w.length >= 4 && p.startsWith(w)))).length;
+    const casadas = palavras.filter((p) => casa(p, doItem)).length;
     const numerosOk = numeros.every((n) => numsItem.has(n));
     return { item, cobertura: casadas / palavras.length, numerosOk };
   });
@@ -162,10 +180,28 @@ export function resolverItem(itens: ItemCatalogo[], descricao: string): Resoluca
   const exatos = avaliados.filter((a) => a.cobertura === 1 && a.numerosOk).map((a) => a.item);
   if (exatos.length === 1) return { status: 'ok', item: exatos[0] };
   if (exatos.length > 1) {
-    // Nome idêntico ao pedido desempata (ex.: dono escolheu uma opção da lista)
+    // Nome ou código idêntico ao pedido decide (ex.: dono escolheu uma opção da lista)
     const alvo = normalizar(descricao);
     const identico = exatos.filter((i) => normalizar(i.nome) === alvo || (i.cod && normalizar(i.cod) === alvo));
     if (identico.length === 1) return { status: 'ok', item: identico[0] };
+
+    // Regra do óbvio: versão padrão quando a diferença é só variação
+    const comExtras = exatos.map((item) => ({ item, ex: extras(item, palavras) }));
+    const minimo = Math.min(...comExtras.map((c) => c.ex.length));
+    const base = comExtras.filter((c) => c.ex.length === minimo);
+    if (base.length === 1) {
+      const padrao = base[0];
+      const outros = comExtras.filter((c) => c !== padrao);
+      const soVariacao = outros.every((c) => c.ex.filter((w) => !padrao.ex.includes(w)).every((w) => QUALIFICADORES.has(w)));
+      if (minimo === 0 || soVariacao) {
+        const alternativas = outros.slice(0, 2).map((c) => c.item.nome).join(' / ');
+        return {
+          status: 'ok',
+          item: padrao.item,
+          suposicao: `considerei a versão padrão "${padrao.item.nome}"` + (alternativas ? ` — se for ${alternativas}, me avisa.` : '.')
+        };
+      }
+    }
     return { status: 'ambiguo', opcoes: exatos.slice(0, 5) };
   }
   const sugestoes = avaliados
