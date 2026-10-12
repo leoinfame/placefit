@@ -13,6 +13,9 @@
 
 import { onlyDigits } from './whatsappCoexistence.ts';
 import { carregarCatalogo, buscarNoCatalogo, catalogoParaPrompt } from './catalogoRespondedor.ts';
+import { transcreverAudio } from './audioRespondedor.ts';
+
+export const PEDIR_TEXTO = 'Não consegui ouvir teu áudio aqui. Manda por texto pra mim?';
 
 const GRAPH_VERSION = 'v21.0';
 const IDADE_MAXIMA_MIN = 5;
@@ -139,6 +142,32 @@ async function enviarTexto(phoneNumberId: string, para: string, texto: string) {
   return { ok: true, id: String(data?.messages?.[0]?.id || ''), error: '' };
 }
 
+/** Envia pela Cloud API e registra no CRM (mensagem + conversa). */
+async function enviarERegistrar(base44: any, connection: any, conversa: any, cliente: string, texto: string) {
+  const envio = await enviarTexto(connection.phone_number_id, cliente, texto);
+  const quando = new Date().toISOString();
+  await base44.asServiceRole.entities.CRMMensagem.create({
+    owner_id: connection.tenant_id,
+    conversa_id: conversa.id,
+    telefone: cliente,
+    direcao: 'enviada',
+    tipo: 'texto',
+    conteudo: texto,
+    status: envio.ok ? 'enviada' : 'erro',
+    meta_message_id: envio.id,
+    erro: envio.error,
+    origem: 'respondedor_ia',
+    enviada_em: quando
+  });
+  if (envio.ok) {
+    await base44.asServiceRole.entities.CRMConversa.update(conversa.id, {
+      ultima_mensagem: texto.slice(0, 200),
+      ultima_interacao: quando
+    });
+  }
+  return { ...envio, quando };
+}
+
 /**
  * Avalia e, se todas as travas passarem, responde a mensagem `msg` do evento `ev`.
  * Nunca lança: qualquer falha vira reply_status "erro" no evento.
@@ -157,8 +186,9 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
     const allow = env('RESPONDEDOR_ALLOWLIST').split(',').map(onlyDigits).filter(Boolean);
     if (allow.length && !allow.includes(cliente)) return await ignorar(base44, eventId, 'fora_allowlist');
 
-    // 3. só texto, e nada de fila antiga
-    if (msg?.type !== 'text' || !String(msg?.text?.body || '').trim()) {
+    // 3. só texto ou áudio, e nada de fila antiga
+    const ehAudio = msg?.type === 'audio';
+    if (!ehAudio && (msg?.type !== 'text' || !String(msg?.text?.body || '').trim())) {
       return await ignorar(base44, eventId, 'nao_texto');
     }
     const idadeMin = (Date.now() - Number(msg.timestamp || 0) * 1000) / 60000;
@@ -190,6 +220,28 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
     // 6. trava o evento antes de gastar IA
     await marcar(base44, eventId, { reply_status: 'respondendo' });
 
+    // Áudio: transcreve e grava a transcrição na mensagem recebida.
+    // Falhou ou veio vazio → pede texto, sem travar o fluxo.
+    let textoCliente = String(msg?.text?.body || '');
+    if (ehAudio) {
+      const t = await transcreverAudio(base44, msg);
+      if (!t.ok) {
+        const envio = await enviarERegistrar(base44, connection, conversa, cliente, PEDIR_TEXTO);
+        await marcar(base44, eventId, envio.ok
+          ? { reply_status: 'respondido', reply_reason: 'audio_nao_transcrito', reply_error: t.erro, reply_wamid: envio.id, replied_at: envio.quando }
+          : { reply_status: 'erro', reply_reason: 'audio_nao_transcrito', reply_error: `${t.erro} | envio: ${envio.error}` });
+        return;
+      }
+      textoCliente = t.texto;
+      const recebidas = await base44.asServiceRole.entities.CRMMensagem.filter(
+        { owner_id: connection.tenant_id, meta_message_id: String(msg.id) }, '-created_date', 1
+      );
+      if (recebidas?.[0]) {
+        await base44.asServiceRole.entities.CRMMensagem.update(recebidas[0].id, { conteudo: '[áudio] ' + t.texto });
+      }
+      await base44.asServiceRole.entities.CRMConversa.update(conversa.id, { ultima_mensagem: ('[áudio] ' + t.texto).slice(0, 200) });
+    }
+
     const historico = await base44.asServiceRole.entities.CRMMensagem.filter(
       { conversa_id: conversa.id }, '-created_date', HISTORICO
     );
@@ -203,7 +255,7 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
       const falasCliente = (historico || []).filter((m: any) => m.direcao === 'recebida')
         .slice(-3).map((m: any) => String(m.conteudo || '')).join(' ');
       const itens = await carregarCatalogo(base44, connection.tenant_id);
-      catalogoTexto = catalogoParaPrompt(buscarNoCatalogo(itens, falasCliente + ' ' + String(msg.text?.body || '')));
+      catalogoTexto = catalogoParaPrompt(buscarNoCatalogo(itens, falasCliente + ' ' + textoCliente));
     } catch (e) {
       console.error('[RESPONDEDOR] catálogo falhou', e);
     }
@@ -221,31 +273,13 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
       return;
     }
 
-    const envio = await enviarTexto(connection.phone_number_id, cliente, resposta);
-    const quando = new Date().toISOString();
-    await base44.asServiceRole.entities.CRMMensagem.create({
-      owner_id: connection.tenant_id,
-      conversa_id: conversa.id,
-      telefone: cliente,
-      direcao: 'enviada',
-      tipo: 'texto',
-      conteudo: resposta,
-      status: envio.ok ? 'enviada' : 'erro',
-      meta_message_id: envio.id,
-      erro: envio.error,
-      origem: 'respondedor_ia',
-      enviada_em: quando
-    });
-
+    const envio = await enviarERegistrar(base44, connection, conversa, cliente, resposta);
+    const quando = envio.quando;
     if (!envio.ok) {
       await marcar(base44, eventId, { reply_status: 'erro', reply_error: envio.error });
       console.error('[RESPONDEDOR] falha no envio', envio.error);
       return;
     }
-    await base44.asServiceRole.entities.CRMConversa.update(conversa.id, {
-      ultima_mensagem: resposta.slice(0, 200),
-      ultima_interacao: quando
-    });
     if (pendencia) {
       try { await registrarPendencia(base44, conversa, pendencia); }
       catch (e) { console.error('[RESPONDEDOR] falha ao registrar pendência', e); }
