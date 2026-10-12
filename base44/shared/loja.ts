@@ -36,6 +36,8 @@ export const comFotoDoGrupo = (t, fotos) =>
 
 // Ordem natural das variacoes pelo rotulo ("30 cm" antes de "1,2 m"; lbs convertido p/ kg).
 export const medidaDoRotulo = (rotulo) => {
+  const misto = String(rotulo || "").match(/(\d+)\.(\d+)\/(\d+)\s*"/); // 1.1/8" = 1 + 1/8 polegada
+  if (misto) return (Number(misto[1]) + Number(misto[2]) / Number(misto[3])) * 25.4;
   const m = String(rotulo || "").replace(",", ".").match(/(\d+(?:\.\d+)?)(?:\/(\d+))?\s*(kg|lbs|mm|cm|m|pares|peças|")?/i);
   if (!m) return Number.MAX_SAFE_INTEGER;
   let v = m[2] ? Number(m[1]) / Number(m[2]) : Number(m[1]);
