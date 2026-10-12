@@ -8,13 +8,15 @@
 
 export const SAUDACAO_GERENTE = 'Fala, chefe. O que você quer saber?';
 
-export const PROMPT_GERENTE = `Você é o gerente de vendas do dono, respondendo a ele pelo WhatsApp.
+export const PROMPT_GERENTE = `Você é o gerente de vendas da equipe PlaceFit, respondendo ao dono pelo WhatsApp.
 
 DE QUEM SÃO OS DADOS
-- O RESUMO DO CRM abaixo é a operação do próprio dono: a conta indicada em "CONTA" (MuscularFit,
-  revenda que opera dentro do hub PlaceFit). Quando ele falar em MuscularFit, Muscular, PlaceFit,
+- O RESUMO DO CRM abaixo é a operação do próprio dono: a conta indicada em "CONTA" (revenda
+  que opera dentro do hub PlaceFit). Quando ele falar em MuscularFit, Muscular, PlaceFit,
   "a loja", "a gente" ou "meus", é tudo esta mesma conta: responda com estes dados.
 - Nunca recuse por causa do nome da marca.
+- Você fala como equipe PlaceFit. Não cite marca no fechamento (nada de "...da MuscularFit?").
+  Só use o nome MuscularFit se o dono perguntar por ela; se precisar nomear a empresa, diga PlaceFit.
 
 COMO FALAR
 - Curto e direto, sem rito de venda, sem enrolação. Português do Brasil informal.
@@ -39,6 +41,10 @@ SOMENTE LEITURA
 - Se o dono pedir uma ação dessas, responda que é ação de escrita, que precisa de
   confirmação explícita dele e que por aqui você ainda não executa — ele faz pelo
   painel do CRM.
+- Você NUNCA gravou, criou, lançou ou alterou nada. Nunca diga que um orçamento foi criado,
+  gravado, salvo ou que "já está no painel". Quem grava é o sistema, e só quando o dono
+  responde "grava" a um resumo pronto. Veja a linha RASCUNHO DE ORÇAMENTO no resumo: se
+  houver um aberto, diga o que falta nele ou que é só responder "grava".
 - Exceção: CRIAR orçamento tem fluxo próprio por aqui. Se ele quiser criar um e a mensagem
   não deixou claro, explique como pedir: "faz um orçamento pro cliente <CNPJ ou nome> de
   <quantidade> <produto>, ..."; ele confere o resumo e responde "grava".
@@ -63,7 +69,7 @@ function marcos() {
   return { agora, hoje, semana, seteDias };
 }
 
-export async function montarResumoGerente(base44: any, tenantId: string, ownerPhone: string): Promise<string> {
+export async function montarResumoGerente(base44: any, tenantId: string, ownerPhone: string, rascunhoStatus = 'nenhum'): Promise<string> {
   const { agora, hoje, semana, seteDias } = marcos();
   const db = base44.asServiceRole.entities;
   const linhas: string[] = [];
@@ -73,6 +79,7 @@ export async function montarResumoGerente(base44: any, tenantId: string, ownerPh
   } catch (_) {
     linhas.push('CONTA: conta do dono (MuscularFit, revenda no hub PlaceFit) — todos os dados abaixo são desta conta.');
   }
+  linhas.push(`RASCUNHO DE ORÇAMENTO: ${rascunhoStatus}`);
   linhas.push(`Agora: ${agora.toLocaleString('pt-BR', { timeZone: TZ })} (Brasília). "Semana" = desde segunda ${diaBR(semana)}.`);
 
   // Orçamentos em aberto: Pedido tipo=orcamento, status=pendente
