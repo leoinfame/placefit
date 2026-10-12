@@ -16,6 +16,7 @@ import { carregarCatalogo, buscarNoCatalogo, catalogoParaPrompt } from './catalo
 import { transcreverAudio } from './audioRespondedor.ts';
 import { montarResumoGerente, PROMPT_GERENTE } from './gerenteRespondedor.ts';
 import { tratarOrcamentoGerente, statusRascunho } from './orcamentoGerente.ts';
+import { clienteDaConversa, atualizarCadastro } from './cadastroCliente.ts';
 
 // A consulta do gerente não grava nada; se a IA afirmar que gravou/criou, a frase é trocada.
 const AFIRMA_GRAVACAO = /(j[aá] (est[aá]|foi|ficou|t[aá]) (no painel|gravad|criad|salv|lan[cç]ad|registrad))|(or[cç]amento (j[aá] |foi |est[aá] |j[aá] foi |j[aá] est[aá] )(gravado|criado|salvo|lan[cç]ado|registrado))|(gravei|criei|lancei|salvei)/i;
@@ -57,7 +58,13 @@ NOME DO CONTATO
     ("E já te cadastro aqui: qual teu nome?").
 - Pergunte o nome no máximo duas vezes na conversa; se ela não disser, siga sem.
 - Quando a pessoa disser o próprio nome, preencha "nome_cliente" com ele (só o nome, como ela
-  escreveu) e passe a usar. Com o nome já confirmado, não pergunte de novo.
+  escreveu) e passe a usar. Com o nome já cadastrado, não pergunte de novo.
+
+CADASTRO DO CLIENTE
+- Veja a linha CADASTRO no fim. O cadastro se completa aos poucos: não peça todos os dados de
+  uma vez. Só peça CPF/CNPJ, cidade/UF ou endereço quando fizer falta pro atendimento (ex.:
+  orçamento ou frete), um dado por vez, e nunca peça o que já está preenchido.
+- Tudo que a pessoa informar sobre ela nesta conversa vai em "dados_cliente".
 
 ÁUDIO TRANSCRITO
 - Veja a linha ORIGEM DA ÚLTIMA MENSAGEM no fim. Se for "áudio transcrito", o texto veio de
@@ -109,8 +116,11 @@ REGRAS DURAS
 
 FORMATO DA RESPOSTA (JSON)
 - "resposta": o texto da mensagem para o cliente, sem aspas nem explicações.
-- "nome_cliente": o nome que a pessoa disse ser o dela, nesta mensagem ou numa anterior ainda
-  não confirmada; "" se ela não disse. Nunca o nome do perfil do WhatsApp.
+- "nome_cliente": o nome que a pessoa disse ser o dela, nesta mensagem ou numa anterior;
+  "" se ela não disse. Nunca o nome do perfil do WhatsApp.
+- "dados_cliente": o que a PRÓPRIA pessoa informou na conversa sobre ela/empresa dela
+  (cpf_cnpj, email, endereco, cidade, estado em sigla UF, cep); "" no que não foi dito.
+  Nunca invente nem deduza.
 - "pendencia": vazio ("") se você respondeu tudo. Se prometeu confirmar algo com o time,
   uma linha curta dizendo o que o cliente quer saber (ex.: "preço anilha olímpica 25 kg, 4 un,
   frete pra Divinópolis").`;
@@ -120,12 +130,20 @@ const SCHEMA_RESPOSTA = {
   properties: {
     resposta: { type: 'string' },
     pendencia: { type: 'string' },
-    nome_cliente: { type: 'string' }
+    nome_cliente: { type: 'string' },
+    dados_cliente: {
+      type: 'object',
+      properties: {
+        cpf_cnpj: { type: 'string' }, email: { type: 'string' }, endereco: { type: 'string' },
+        cidade: { type: 'string' }, estado: { type: 'string' }, cep: { type: 'string' }
+      },
+      required: ['cpf_cnpj', 'email', 'endereco', 'cidade', 'estado', 'cep']
+    }
   },
-  required: ['resposta', 'pendencia', 'nome_cliente']
+  required: ['resposta', 'pendencia', 'nome_cliente', 'dados_cliente']
 };
 
-function lerSaidaIA(ai: any): { resposta: string; pendencia: string; nome: string } {
+function lerSaidaIA(ai: any): { resposta: string; pendencia: string; nome: string; dados: any } {
   let obj: any = ai;
   if (typeof ai === 'string') {
     try { obj = JSON.parse(ai); } catch { obj = { resposta: ai, pendencia: '' }; }
@@ -133,13 +151,9 @@ function lerSaidaIA(ai: any): { resposta: string; pendencia: string; nome: strin
   return {
     resposta: String(obj?.resposta || '').trim().replace(/^["“]|["”]$/g, '').slice(0, 1500),
     pendencia: String(obj?.pendencia || '').trim().slice(0, 300),
-    nome: String(obj?.nome_cliente || '').trim().slice(0, 80)
+    nome: String(obj?.nome_cliente || '').trim().slice(0, 80),
+    dados: obj?.dados_cliente || {}
   };
-}
-
-/** Nome plausível: letras, espaços, apóstrofo e hífen; 2 a 60 caracteres. */
-function nomeValido(n: string) {
-  return /^[\p{L}][\p{L}' .-]{1,59}$/u.test(n) && !/\d/.test(n);
 }
 
 async function registrarPendencia(base44: any, conversa: any, pendencia: string) {
@@ -357,20 +371,27 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
       console.error('[RESPONDEDOR] catálogo falhou', e);
     }
 
-    // Nome: só vale o que a pessoa disse (nome_confirmado); o do perfil do WhatsApp não conta
-    const linhaNome = conversa.nome_confirmado && conversa.nome_contato
-      ? `\n\nNOME DO CONTATO: ${conversa.nome_contato} (confirmado pela pessoa)`
+    // Cadastro: cliente vinculado à conversa (ou achado pelo telefone). O nome do perfil do WhatsApp não conta.
+    let clienteVinc: any = null;
+    try { clienteVinc = await clienteDaConversa(base44, connection.tenant_id, conversa, cliente); }
+    catch (e) { console.error('[RESPONDEDOR] leitura do cadastro falhou', e); }
+    const linhaNome = clienteVinc?.nome
+      ? `\n\nNOME DO CONTATO: ${clienteVinc.nome} (cadastrado)`
       : '\n\nNOME DO CONTATO: ainda não informado pela pessoa (o nome do perfil do WhatsApp não conta; pergunte)';
+    const camposCadastro: Array<[string, string]> = [['cpf_cnpj', 'CPF/CNPJ'], ['cidade', 'cidade'], ['estado', 'UF'], ['endereco', 'endereço'], ['cep', 'CEP'], ['email', 'e-mail']];
+    const linhaCadastro = clienteVinc
+      ? `\nCADASTRO: preenchido = ${camposCadastro.filter(([k]) => clienteVinc[k]).map(([, r]) => r).join(', ') || 'nada além do nome'}; vazio = ${camposCadastro.filter(([k]) => !clienteVinc[k]).map(([, r]) => r).join(', ') || 'nada'}`
+      : '\nCADASTRO: ainda não existe (é criado quando a pessoa disser o nome)';
 
     const prompt = PROMPT_LEO +
-      linhaNome +
+      linhaNome + linhaCadastro +
       `\n\nCATÁLOGO (itens que casam com a conversa):\n${catalogoTexto}` +
       `\n\nCONVERSA ATÉ AGORA (mais antiga primeiro):\n${conversaTexto}` +
       linhaAndamento +
       `\n\nEscreva a próxima mensagem do Léo, respondendo à última mensagem do cliente.`;
 
     const ai = await base44.asServiceRole.integrations.Core.InvokeLLM({ prompt, response_json_schema: SCHEMA_RESPOSTA });
-    const { resposta, pendencia, nome } = lerSaidaIA(ai);
+    const { resposta, pendencia, nome, dados } = lerSaidaIA(ai);
     if (!resposta) {
       await marcar(base44, eventId, { reply_status: 'erro', reply_error: 'IA devolveu vazio' });
       return;
@@ -387,13 +408,12 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
       try { await registrarPendencia(base44, conversa, pendencia); }
       catch (e) { console.error('[RESPONDEDOR] falha ao registrar pendência', e); }
     }
-    // Nome informado pela própria pessoa vira a chave do cadastro do contato
-    if (nome && !conversa.nome_confirmado && nomeValido(nome)) {
-      try {
-        await base44.asServiceRole.entities.CRMConversa.update(conversa.id, { nome_contato: nome, nome_confirmado: true });
-      } catch (e) { console.error('[RESPONDEDOR] falha ao gravar nome', e); }
-    }
-    await marcar(base44, eventId, { reply_status: 'respondido', reply_wamid: envio.id, replied_at: quando, reply_error: '' });
+    // Cadastro: cria o Cliente quando a pessoa diz o nome; completa só campos vazios
+    let mudancaCadastro = '';
+    try {
+      mudancaCadastro = await atualizarCadastro(base44, connection.tenant_id, conversa, cliente, clienteVinc, nome, dados);
+    } catch (e) { console.error('[RESPONDEDOR] falha no cadastro do cliente', e); }
+    await marcar(base44, eventId, { reply_status: 'respondido', reply_wamid: envio.id, replied_at: quando, reply_error: '', ...(mudancaCadastro ? { reply_reason: mudancaCadastro } : {}) });
     console.log('[RESPONDEDOR] respondido', envio.id);
   } catch (error) {
     console.error('[RESPONDEDOR] erro', error);
