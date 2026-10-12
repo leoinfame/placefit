@@ -1,6 +1,7 @@
 // ─── Modo gerente do respondedor (número do dono) ───────────────────────────
 // Quando a mensagem vem do OWNER_PHONE, o respondedor vira gerente de vendas.
-// SOMENTE LEITURA por construção: este módulo só faz consultas (.filter) e monta
+// A CONSULTA é somente leitura por construção (o único caminho de escrita do
+// gerente é o orçamento assistido, em orcamentoGerente.ts, com "grava" do dono): este módulo só faz consultas (.filter) e monta
 // um resumo em texto. A IA recebe o resumo e não tem ferramenta nenhuma; a
 // resposta só pode ir para o próprio dono (quem chama garante). Nada aqui envia
 // mensagem a terceiros, altera dados ou converte orçamento em pedido.
@@ -38,6 +39,9 @@ SOMENTE LEITURA
 - Se o dono pedir uma ação dessas, responda que é ação de escrita, que precisa de
   confirmação explícita dele e que por aqui você ainda não executa — ele faz pelo
   painel do CRM.
+- Exceção: CRIAR orçamento tem fluxo próprio por aqui. Se ele quiser criar um e a mensagem
+  não deixou claro, explique como pedir: "faz um orçamento pro cliente <CNPJ ou nome> de
+  <quantidade> <produto>, ..."; ele confere o resumo e responde "grava".
 
 Responda só com o texto da mensagem, sem aspas nem explicações.`;
 
