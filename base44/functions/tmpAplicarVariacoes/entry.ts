@@ -21,16 +21,24 @@ export default async function (req: Request) {
     }
     const ok: string[] = [];
     const falhas: Array<{ id: string; erro: string }> = [];
+    const espera = (ms: number) => new Promise((r) => setTimeout(r, ms));
     for (const x of lista) {
-      try {
-        await base44.asServiceRole.entities.ProductTemplate.update(x.id, {
-          grupo_variacao: String(x.grupo_variacao),
-          variacao_rotulo: String(x.variacao_rotulo),
-        });
-        ok.push(x.id);
-      } catch (e) {
-        falhas.push({ id: x.id, erro: String((e as any)?.message || e).slice(0, 200) });
+      let erro = "";
+      for (let tentativa = 0; tentativa < 4; tentativa++) {
+        try {
+          await base44.asServiceRole.entities.ProductTemplate.update(x.id, {
+            grupo_variacao: String(x.grupo_variacao),
+            variacao_rotulo: String(x.variacao_rotulo),
+          });
+          erro = "";
+          break;
+        } catch (e) {
+          erro = String((e as any)?.message || e).slice(0, 200);
+          await espera(2000 * (tentativa + 1));
+        }
       }
+      if (erro) falhas.push({ id: x.id, erro }); else ok.push(x.id);
+      await espera(350);
     }
     return Response.json({ gravados: ok.length, falhas });
   } catch (e) {
