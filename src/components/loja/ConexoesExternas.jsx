@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Loader2, RefreshCw, AlertTriangle, AlertCircle, ExternalLink, Settings, MessageCircle, ShoppingBag, Store } from "lucide-react";
+import { Loader2, RefreshCw, AlertTriangle, AlertCircle, ExternalLink, Settings, MessageCircle, ShoppingBag, Store, Globe } from "lucide-react";
 import WhatsappCatalogo from "@/components/loja/WhatsappCatalogo";
 import MercadoLivreExport from "@/components/loja/MercadoLivreExport";
 
 // Canais da área. Pra plugar um canal novo: um item aqui + o bloco dele na função conexoesExternas.
 const CANAIS_UI = {
+  loja: { icone: Globe, abreMinhaLoja: true }, // "Configurar" leva à aba Minha Loja (formulário existente)
   whatsapp: { icone: MessageCircle, Configurar: WhatsappCatalogo },
   google: { icone: ShoppingBag, Configurar: WhatsappCatalogo }, // o feed do Google usa a mesma configuração (token + domínio)
   mercadolivre: { icone: Store, Configurar: MercadoLivreExport },
@@ -22,6 +23,8 @@ const STATUS = {
   erro: { label: "Erro", cls: "bg-red-100 text-red-800" },
   desconectado: { label: "Desconectado", cls: "bg-gray-100 text-gray-600" },
   em_breve: { label: "Em breve", cls: "bg-amber-100 text-amber-800" },
+  desativada: { label: "Desativada", cls: "bg-gray-200 text-gray-700" },
+  sem_endereco: { label: "Sem endereço", cls: "bg-amber-100 text-amber-800" },
 };
 
 const fmtBR = (iso) => {
@@ -87,12 +90,25 @@ function DetalheGoogle({ d, abrirLista }) {
   );
 }
 
+function DetalheLoja({ d, status }) {
+  if (status === "sem_endereco") return <p className="text-sm text-gray-500">Defina o endereço (slug) da loja em Minha Loja para publicá-la.</p>;
+  if (!d?.endereco) return null;
+  return (
+    <div className="space-y-2">
+      <p className="text-sm text-gray-600 break-all">{d.endereco}</p>
+      <Button variant="outline" size="sm" asChild>
+        <a href={d.endereco} target="_blank" rel="noreferrer"><ExternalLink className="w-4 h-4 mr-1" /> Abrir loja</a>
+      </Button>
+    </div>
+  );
+}
+
 function DetalheMl({ d }) {
   if (!d?.conectado) return <p className="text-sm text-gray-500">Integração na próxima etapa.</p>;
   return <p className="text-sm text-gray-600">Conta conectada: <strong>@{d.apelido}</strong></p>;
 }
 
-export default function ConexoesExternas({ config, onSaved }) {
+export default function ConexoesExternas({ config, onSaved, onAbrirLoja }) {
   const [dados, setDados] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
@@ -121,7 +137,7 @@ export default function ConexoesExternas({ config, onSaved }) {
     if (p.get("ml_connected") || p.get("ml_error")) setConfigurando({ id: "mercadolivre", nome: "Mercado Livre" });
   }, []);
 
-  if (!config?.slug) return <p className="text-gray-500 text-sm">Salve sua loja (defina o slug) antes de conectar canais.</p>;
+  if (!config) return <p className="text-gray-500 text-sm">Salve sua loja em Minha Loja antes de conectar canais.</p>;
 
   const abrirLista = (titulo, itens) => setLista({ titulo, itens });
 
@@ -155,15 +171,16 @@ export default function ConexoesExternas({ config, onSaved }) {
                 {c.contagem !== null && c.contagem !== undefined && (
                   <p className="text-2xl font-bold">{c.contagem} <span className="text-sm font-normal text-gray-500">{c.contagem_label}</span></p>
                 )}
-                {!c.em_breve || c.ultima_sync ? (
+                {c.ultima_sync_label && (!c.em_breve || c.ultima_sync) ? (
                   <p className="text-sm text-gray-600">{c.ultima_sync_label}: <strong>{fmtBR(c.ultima_sync)}</strong></p>
                 ) : null}
                 <Alertas alertas={c.alertas} />
+                {c.id === "loja" && <DetalheLoja d={c.detalhes} status={c.status} />}
                 {c.id === "whatsapp" && <DetalheWhatsapp d={c.detalhes} abrirLista={abrirLista} />}
                 {c.id === "google" && <DetalheGoogle d={c.detalhes} abrirLista={abrirLista} />}
                 {c.id === "mercadolivre" && <DetalheMl d={c.detalhes} />}
-                {ui.Configurar && (
-                  <Button size="sm" variant={c.em_breve ? "outline" : "default"} onClick={() => setConfigurando(c)}>
+                {(ui.Configurar || (ui.abreMinhaLoja && onAbrirLoja)) && (
+                  <Button size="sm" variant={c.em_breve ? "outline" : "default"} onClick={() => (ui.abreMinhaLoja ? onAbrirLoja() : setConfigurando(c))}>
                     <Settings className="w-4 h-4 mr-1" /> Configurar
                   </Button>
                 )}

@@ -74,7 +74,7 @@ export default function LojaRevendedor() {
 
         {/* WhatsApp, Google e Mercado Livre: as telas de configuração antigas abrem pelo "Configurar" de cada card */}
         <TabsContent value="conexoes">
-          <ConexoesExternas config={config} onSaved={load} />
+          <ConexoesExternas config={config} onSaved={load} onAbrirLoja={() => setTab("loja")} />
         </TabsContent>
 
         <TabsContent value="pedidos">
