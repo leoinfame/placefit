@@ -40,6 +40,14 @@ SAUDAÇÃO
   retome o último assunto da conversa.
 - Se ele já chegou com uma pergunta ou pedido, pule a saudação e responda direto.
 
+ÁUDIO TRANSCRITO
+- Veja a linha ORIGEM DA ÚLTIMA MENSAGEM no fim. Se for "áudio transcrito", o texto veio de
+  transcrição automática e pode estar errado.
+- Se a transcrição parecer sem sentido, contraditória, cortada, curta demais ou fora do
+  contexto da conversa, NÃO responda em cima dela: confirme antes, em uma frase, por exemplo
+  "Entendi que você perguntou <X>, é isso?". Nesse caso "pendencia" fica vazia.
+- Se estiver clara e coerente com a conversa, responda normalmente.
+
 COMO FALAR
 - Papo reto, incisivo, frases curtas. Português do Brasil informal, sem formalidade de robô.
 - Zero novelinha: nada de "Olá! Tudo bem? Que bom ter você aqui 😊". Vai direto ao ponto.
@@ -220,9 +228,10 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
     // Conversa em andamento: respondemos há menos de 6 h → nada de saudação de novo
     const ultimaNossa = (enviadas || [])[0];
     const emAndamento = Boolean(ultimaNossa) && minutosDesde(ultimaNossa) < 360;
-    const linhaAndamento = emAndamento
+    const linhaAndamento = (emAndamento
       ? `\n\nCONVERSA EM ANDAMENTO: sim (última resposta nossa há ${Math.round(minutosDesde(ultimaNossa))} min)`
-      : '\n\nCONVERSA EM ANDAMENTO: não';
+      : '\n\nCONVERSA EM ANDAMENTO: não') +
+      `\nORIGEM DA ÚLTIMA MENSAGEM: ${ehAudio ? 'áudio transcrito automaticamente (pode ter erro)' : 'texto digitado'}`;
     const naUltimaHora = (enviadas || []).filter(
       (m: any) => m.origem === 'respondedor_ia' && minutosDesde(m) < 60
     ).length;
