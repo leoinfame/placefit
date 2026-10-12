@@ -18,7 +18,7 @@ import { sugerirFrete } from './freteCrm.js';
 
 const VALIDADE_MIN = 30;
 // Link do painel: abre o orçamento já na visualização (mesmo botão de PDF do painel)
-const PAINEL_URL = String(Deno.env.get('PAINEL_URL') || 'https://placefit.base44.app').replace(/\/$/, '');
+const painelUrl = () => String((globalThis as any).Deno?.env.get('PAINEL_URL') || 'https://placefit.base44.app').replace(/\/$/, '');
 const TZ = 'America/Sao_Paulo';
 
 const CONFIRMA = /^(grava|gravar|grave|confirma|confirmo|confirmado|confirmar|pode gravar|pode confirmar|pode salvar|salva|ok,? grava|sim,? grava|sim,? pode gravar)\b/;
@@ -301,7 +301,7 @@ export async function tratarOrcamentoGerente(base44: any, tenantId: string, conv
       tratou: true,
       gravou: p.id,
       resposta: `Gravado ✅ ${p.numero_pedido} — ${atual.r.cliente.nome} — ${brl(atual.r.total)}.\n` +
-        `Abrir no painel (o PDF fica no botão de lá): ${PAINEL_URL}/Orcamentos?abrir=${p.id}\n` +
+        `Abrir no painel (o PDF fica no botão de lá): ${painelUrl()}/Orcamentos?abrir=${p.id}\n` +
         `Status pendente. Não enviei nada ao cliente.`
     };
   }
