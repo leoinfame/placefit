@@ -164,7 +164,7 @@ export function resolverItem(itens: ItemCatalogo[], descricao: string): Resoluca
   if (exatos.length > 1) {
     // Nome idêntico ao pedido desempata (ex.: dono escolheu uma opção da lista)
     const alvo = normalizar(descricao);
-    const identico = exatos.filter((i) => normalizar(i.nome) === alvo);
+    const identico = exatos.filter((i) => normalizar(i.nome) === alvo || (i.cod && normalizar(i.cod) === alvo));
     if (identico.length === 1) return { status: 'ok', item: identico[0] };
     return { status: 'ambiguo', opcoes: exatos.slice(0, 5) };
   }
