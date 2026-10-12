@@ -18,7 +18,7 @@ import { montarResumoGerente, PROMPT_GERENTE } from './gerenteRespondedor.ts';
 import { tratarOrcamentoGerente, statusRascunho } from './orcamentoGerente.ts';
 
 // A consulta do gerente não grava nada; se a IA afirmar que gravou/criou, a frase é trocada.
-const AFIRMA_GRAVACAO = /(j[aá] (est[aá]|foi|ficou|t[aá]) (no painel|gravad|criad|salv|lan[cç]ad|registrad))|(or[cç]amento (j[aá] )?(foi |est[aá] )?(gravado|criado|salvo|lan[cç]ado|registrado))|(gravei|criei|lancei|salvei)/i;
+const AFIRMA_GRAVACAO = /(j[aá] (est[aá]|foi|ficou|t[aá]) (no painel|gravad|criad|salv|lan[cç]ad|registrad))|(or[cç]amento (j[aá] |foi |est[aá] |j[aá] foi |j[aá] est[aá] )(gravado|criado|salvo|lan[cç]ado|registrado))|(gravei|criei|lancei|salvei)/i;
 const NADA_GRAVADO = 'Nada foi gravado. Pra criar um orçamento: "faz um orçamento pro cliente <CNPJ ou nome> de <quantidade> <produto>"; eu mostro o resumo e só gravo quando você responder "grava".';
 
 export const PEDIR_TEXTO = 'Não consegui ouvir teu áudio aqui. Manda por texto pra mim?';
