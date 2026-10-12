@@ -84,8 +84,9 @@ export const fetchAllPaged = async (fn, sort = "-created_date", pageSize = 500) 
 // caia sob o mesmo item_group_id no catalogo da Meta.
 const baseName = (nome) => (nome || "").replace(/\s+\d+([.,]\d+)?\s*kg$/i, "").trim();
 
+// Grupo de variacao explicito (ProductTemplate.grupo_variacao) manda; sem ele, regra antiga.
 const groupKey = (t) =>
-  [
+  t.grupo_variacao ? `gv|${t.grupo_variacao}` : [
     baseName(t.nome),
     t.categoria,
     t.subcategoria,
