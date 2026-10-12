@@ -22,6 +22,7 @@ const GRAPH_VERSION = 'v21.0';
 const IDADE_MAXIMA_MIN = 5;
 const HUMAN_TAKEOVER_MINUTES = 60;
 const TETO_POR_HORA = 15;
+const TETO_DONO_POR_HORA = 60;
 const HISTORICO = 10;
 
 const env = (nome: string) => String(Deno.env.get(nome) || '').trim();
@@ -225,7 +226,9 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
     const naUltimaHora = (enviadas || []).filter(
       (m: any) => m.origem === 'respondedor_ia' && minutosDesde(m) < 60
     ).length;
-    if (naUltimaHora >= TETO_POR_HORA) return await ignorar(base44, eventId, 'teto_hora');
+    // O teto protege contra loop com outro robô/cliente; o dono (OWNER_PHONE) tem teto maior
+    const ehDono = Boolean(onlyDigits(env('OWNER_PHONE'))) && cliente === onlyDigits(env('OWNER_PHONE'));
+    if (naUltimaHora >= (ehDono ? TETO_DONO_POR_HORA : TETO_POR_HORA)) return await ignorar(base44, eventId, 'teto_hora');
 
     // 6. trava o evento antes de gastar IA
     await marcar(base44, eventId, { reply_status: 'respondendo' });
