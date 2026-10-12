@@ -1,25 +1,24 @@
 // ─── Áudio → texto para o respondedor automático ────────────────────────────
 // 1. GET /{media-id} na Graph API (META_ACCESS_TOKEN) → URL temporária da mídia
 // 2. GET na URL com o mesmo token → bytes do áudio
-// 3. UploadPrivateFile + CreateFileSignedUrl (URL assinada de 5 min; o áudio do
-//    cliente nunca fica público)
-// 4. InvokeLLM com o modelo Gemini (entende áudio) → transcrição
+// 3. OpenAI /v1/audio/transcriptions (OPENAI_API_KEY), language=pt + prompt de
+//    vocabulário do negócio. O áudio vai direto pra OpenAI, sem passar por storage.
+// Sem OPENAI_API_KEY, não transcreve (nunca cai num motor que alucina): o fluxo
+// pede pro cliente mandar por texto.
 // Nunca lança: devolve { ok, texto, erro } para o fluxo seguir.
 
 const GRAPH_VERSION = 'v21.0';
 const TAMANHO_MAXIMO = 10 * 1024 * 1024;
-const MODELO_TRANSCRICAO = 'gemini_3_flash';
+const MODELO_PADRAO = 'gpt-4o-transcribe';
+
+const CONTEXTO_TRANSCRICAO =
+  'Conversa de vendas de equipamentos de academia, português do Brasil, sotaque mineiro. ' +
+  'Vocabulário: anilhas, halteres, kettlebell, piso emborrachado, orçamento, PlaceFit, MuscularFit, revenda.';
+
+// Frases que o Whisper costuma "inventar" em áudio mudo ou com ruído
+const ALUCINACOES_CONHECIDAS = /amara\.org|legendas? (pela|por|da)|obrigad[oa] por assistir|inscreva-se no canal|♪/i;
 
 const env = (nome: string) => String(Deno.env.get(nome) || '').trim();
-
-const SCHEMA = {
-  type: 'object',
-  properties: {
-    ouviu_fala: { type: 'boolean', description: 'true só se havia fala humana compreensível no áudio anexado' },
-    transcricao: { type: 'string', description: 'transcrição literal da fala, ou vazio' }
-  },
-  required: ['ouviu_fala', 'transcricao']
-};
 
 async function baixarMidia(mediaId: string) {
   const token = env('META_ACCESS_TOKEN');
@@ -40,33 +39,38 @@ async function baixarMidia(mediaId: string) {
   return { bytes, mime };
 }
 
-export async function transcreverAudio(base44: any, msg: any): Promise<{ ok: boolean; texto: string; erro: string }> {
+async function transcreverOpenAI(bytes: Uint8Array, mime: string, nome: string) {
+  const chave = env('OPENAI_API_KEY');
+  if (!chave) throw new Error('OPENAI_API_KEY ausente');
+  const form = new FormData();
+  form.append('file', new File([bytes], nome, { type: mime }));
+  form.append('model', env('OPENAI_TRANSCRIBE_MODEL') || MODELO_PADRAO);
+  form.append('language', 'pt');
+  form.append('prompt', CONTEXTO_TRANSCRICAO);
+  form.append('response_format', 'json');
+  form.append('temperature', '0');
+
+  const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${chave}` },
+    body: form
+  });
+  const data: any = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`openai ${res.status}: ${data?.error?.message || 'falha na transcrição'}`);
+  return String(data?.text || '').trim();
+}
+
+export async function transcreverAudio(_base44: any, msg: any): Promise<{ ok: boolean; texto: string; erro: string }> {
   try {
     const mediaId = String(msg?.audio?.id || '');
     if (!mediaId) return { ok: false, texto: '', erro: 'áudio sem media id' };
 
     const { bytes, mime } = await baixarMidia(mediaId);
     const ext = mime.includes('mpeg') ? 'mp3' : mime.includes('mp4') ? 'm4a' : mime.includes('amr') ? 'amr' : 'ogg';
-    const file = new File([bytes], `whatsapp-${mediaId}.${ext}`, { type: mime });
+    const texto = (await transcreverOpenAI(bytes, mime, `whatsapp-${mediaId}.${ext}`)).slice(0, 2000);
 
-    const up = await base44.asServiceRole.integrations.Core.UploadPrivateFile({ file });
-    const assinado = await base44.asServiceRole.integrations.Core.CreateFileSignedUrl({ file_uri: up?.file_uri, expires_in: 300 });
-    const url = assinado?.signed_url || assinado?.url;
-    if (!url) throw new Error('sem URL assinada do upload');
-
-    const r: any = await base44.asServiceRole.integrations.Core.InvokeLLM({
-      model: MODELO_TRANSCRICAO,
-      prompt:
-        'O arquivo anexado é uma mensagem de voz de WhatsApp, em português do Brasil. ' +
-        'Transcreva literalmente o que a pessoa fala, sem resumir, sem comentar e sem completar nada. ' +
-        'Se você não conseguir ouvir o áudio, ou não houver fala compreensível, responda ouviu_fala=false e transcricao vazia. ' +
-        'Nunca invente conteúdo.',
-      file_urls: [url],
-      response_json_schema: SCHEMA
-    });
-    const obj = typeof r === 'string' ? JSON.parse(r) : r;
-    const texto = String(obj?.transcricao || '').trim().slice(0, 2000);
-    if (!obj?.ouviu_fala || !texto) return { ok: false, texto: '', erro: 'transcrição vazia' };
+    if (!texto) return { ok: false, texto: '', erro: 'transcrição vazia' };
+    if (ALUCINACOES_CONHECIDAS.test(texto)) return { ok: false, texto: '', erro: 'transcrição descartada (padrão de alucinação): ' + texto.slice(0, 80) };
     return { ok: true, texto, erro: '' };
   } catch (e) {
     return { ok: false, texto: '', erro: String((e as any)?.message || e).slice(0, 300) };
