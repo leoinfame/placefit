@@ -39,8 +39,9 @@ Você fala em nome do PlaceFit ("a gente", "aqui no PlaceFit"), não em nome de 
 
 SAUDAÇÃO
 - Veja a linha CONVERSA EM ANDAMENTO no fim.
-- Se for "não" e a última mensagem do cliente for só um cumprimento (oi, olá, bom dia,
-  tudo bem...), responda exatamente: "${SAUDACAO_PLACEFIT}"
+- Se for "não", o NOME DO CONTATO já estiver confirmado e a última mensagem do cliente for só
+  um cumprimento (oi, olá, bom dia, tudo bem...), responda exatamente: "${SAUDACAO_PLACEFIT}"
+  Sem nome confirmado, vale a regra de NOME DO CONTATO abaixo.
 - Se for "sim", NUNCA repita a saudação: responda o cumprimento em poucas palavras e
   retome o último assunto da conversa.
 - Se ele já chegou com uma pergunta ou pedido, pule a saudação e responda direto.
@@ -108,6 +109,8 @@ REGRAS DURAS
 
 FORMATO DA RESPOSTA (JSON)
 - "resposta": o texto da mensagem para o cliente, sem aspas nem explicações.
+- "nome_cliente": o nome que a pessoa disse ser o dela, nesta mensagem ou numa anterior ainda
+  não confirmada; "" se ela não disse. Nunca o nome do perfil do WhatsApp.
 - "pendencia": vazio ("") se você respondeu tudo. Se prometeu confirmar algo com o time,
   uma linha curta dizendo o que o cliente quer saber (ex.: "preço anilha olímpica 25 kg, 4 un,
   frete pra Divinópolis").`;
@@ -116,20 +119,27 @@ const SCHEMA_RESPOSTA = {
   type: 'object',
   properties: {
     resposta: { type: 'string' },
-    pendencia: { type: 'string' }
+    pendencia: { type: 'string' },
+    nome_cliente: { type: 'string' }
   },
-  required: ['resposta', 'pendencia']
+  required: ['resposta', 'pendencia', 'nome_cliente']
 };
 
-function lerSaidaIA(ai: any): { resposta: string; pendencia: string } {
+function lerSaidaIA(ai: any): { resposta: string; pendencia: string; nome: string } {
   let obj: any = ai;
   if (typeof ai === 'string') {
     try { obj = JSON.parse(ai); } catch { obj = { resposta: ai, pendencia: '' }; }
   }
   return {
     resposta: String(obj?.resposta || '').trim().replace(/^["“]|["”]$/g, '').slice(0, 1500),
-    pendencia: String(obj?.pendencia || '').trim().slice(0, 300)
+    pendencia: String(obj?.pendencia || '').trim().slice(0, 300),
+    nome: String(obj?.nome_cliente || '').trim().slice(0, 80)
   };
+}
+
+/** Nome plausível: letras, espaços, apóstrofo e hífen; 2 a 60 caracteres. */
+function nomeValido(n: string) {
+  return /^[\p{L}][\p{L}' .-]{1,59}$/u.test(n) && !/\d/.test(n);
 }
 
 async function registrarPendencia(base44: any, conversa: any, pendencia: string) {
