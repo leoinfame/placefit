@@ -120,38 +120,6 @@ export default async function (req: Request) {
   try {
     const base44 = createClientFromRequest(req);
 
-    // TEMPORÁRIO (12/10/2026): teste de acesso à Merchant API sem login, protegido por
-    // chave aleatória. Só devolve resultado do acesso e contagens. REMOVER após o teste.
-    const chaveDiag = String(Deno.env.get("CONEXOES_DIAG_KEY") || "");
-    if (chaveDiag && req.headers.get("x-diag-key") === chaveDiag) {
-      const corpo = await req.json().catch(() => ({}));
-      if (corpo?.credencial) {
-        // Só identificadores NÃO secretos da conta de serviço (nunca a chave privada)
-        let c: any = {};
-        try { c = JSON.parse(String(Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON") || "{}")); } catch (e) { return Response.json({ erro_json: String(e) }); }
-        const pk = String(c.private_key || "");
-        return Response.json({
-          client_email: c.client_email || null, project_id: c.project_id || null,
-          private_key_id_inicio: String(c.private_key_id || "").slice(0, 10) || null,
-          private_key_formato: pk.includes("BEGIN PRIVATE KEY") ? "PEM ok" : (pk ? "sem cabeçalho PEM" : "vazia"),
-          private_key_tem_barra_n_literal: pk.includes("\\n"),
-          merchant_id: Deno.env.get("GOOGLE_MERCHANT_ID") || null,
-        });
-      }
-      const cfg = (await base44.asServiceRole.entities.LojaConfig.filter({ revendedor_id: String(corpo?.revendedor_id || "") }))?.[0];
-      if (!cfg) return Response.json({ diagnostico: true, erro: "loja não encontrada" });
-      const base = (cfg.dominio_loja || `${LOJA_URL_PADRAO}/${cfg.slug}`).replace(/\/+$/, "");
-      const { items } = await buildCatalogoMeta(base44, cfg, base);
-      let m: any;
-      try { m = await statusMerchant(new Set(items.map((i: any) => String(i.id)))); }
-      catch (e) { m = { ok: false, erro: String((e as any)?.message || e).slice(0, 300) }; }
-      return Response.json({
-        diagnostico: true, itens_no_feed: items.length, merchant_ok: m.ok, erro: m.erro || null,
-        encontrados: m.encontrados ?? null, aprovados: m.aprovados ?? null, reprovados: m.reprovados ?? null,
-        pendentes: m.pendentes ?? null, motivos: m.motivos || [],
-      });
-    }
-
     const me = await base44.auth.me().catch(() => null);
     if (!me) return Response.json({ error: "Não autorizado" }, { status: 401 });
     const body = await req.json().catch(() => ({}));
