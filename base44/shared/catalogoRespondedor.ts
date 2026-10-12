@@ -146,11 +146,15 @@ const QUALIFICADORES = new Set(['olimpic']);
 const casa = (p: string, palavrasItem: string[]) =>
   palavrasItem.some((w) => w.startsWith(p) || (w.length >= 4 && p.startsWith(w)));
 
-/** Palavras do NOME do item que o pedido não citou (o que diferencia uma variação). */
-function extras(item: ItemCatalogo, palavrasPedido: string[]) {
-  return [...new Set(normalizar(item.nome).split(' ')
-    .filter((w) => !/^\d/.test(w) && w.length >= 3 && !STOP.has(w)).map(raiz))]
+/** Palavras e medidas do NOME do item que o pedido não citou (o que diferencia uma variação). */
+function extras(item: ItemCatalogo, palavrasPedido: string[], numerosPedido: number[]) {
+  const tokens = normalizar(item.nome).split(' ');
+  const palavras = [...new Set(tokens.filter((w) => !/^\d/.test(w) && w.length >= 3 && !STOP.has(w)).map(raiz))]
     .filter((w) => !palavrasPedido.some((p) => w.startsWith(p) || (p.length >= 4 && w.length >= 4 && p.startsWith(w))));
+  // Medidas do nome fora do pedido (ex.: "1x1" vs "50x50") também diferenciam o produto
+  const medidas = [...new Set(tokens.filter((w) => /^\d+(\.\d+)?$/.test(w)).map(Number))]
+    .filter((n) => !numerosPedido.includes(n) && n !== item.peso_kg).map((n) => '#' + n);
+  return [...palavras, ...medidas];
 }
 
 /**
@@ -186,7 +190,7 @@ export function resolverItem(itens: ItemCatalogo[], descricao: string): Resoluca
     if (identico.length === 1) return { status: 'ok', item: identico[0] };
 
     // Regra do óbvio: versão padrão quando a diferença é só variação
-    const comExtras = exatos.map((item) => ({ item, ex: extras(item, palavras) }));
+    const comExtras = exatos.map((item) => ({ item, ex: extras(item, palavras, numeros) }));
     const minimo = Math.min(...comExtras.map((c) => c.ex.length));
     const base = comExtras.filter((c) => c.ex.length === minimo);
     if (base.length === 1) {
