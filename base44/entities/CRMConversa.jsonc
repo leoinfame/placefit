@@ -48,6 +48,15 @@
     "ativo": {
       "type": "boolean",
       "default": true
+    },
+    "pendencia": {
+      "type": "string",
+      "description": "O que o respondedor autom\u00e1tico prometeu confirmar com o time (dado fora do cat\u00e1logo: pre\u00e7o, frete, prazo, estoque...). Uma linha por pend\u00eancia, com data. Limpar quando o time resolver."
+    },
+    "pendencia_em": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Quando a \u00faltima pend\u00eancia foi registrada"
     }
   },
   "required": [
