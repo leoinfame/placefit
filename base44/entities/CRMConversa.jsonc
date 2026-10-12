@@ -57,6 +57,15 @@
       "type": "string",
       "format": "date-time",
       "description": "Quando a \u00faltima pend\u00eancia foi registrada"
+    },
+    "rascunho_orcamento": {
+      "type": "string",
+      "description": "JSON do rascunho de or\u00e7amento montado pelo modo gerente (s\u00f3 na conversa do dono). Nada \u00e9 gravado em Pedido sem o 'grava' expl\u00edcito do dono."
+    },
+    "rascunho_orcamento_em": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Quando o resumo do rascunho foi mostrado ao dono. Vale 30 minutos; vencido, o resumo \u00e9 refeito e n\u00e3o grava."
     }
   },
   "required": [
