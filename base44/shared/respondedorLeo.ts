@@ -15,7 +15,11 @@ import { onlyDigits } from './whatsappCoexistence.ts';
 import { carregarCatalogo, buscarNoCatalogo, catalogoParaPrompt } from './catalogoRespondedor.ts';
 import { transcreverAudio } from './audioRespondedor.ts';
 import { montarResumoGerente, PROMPT_GERENTE } from './gerenteRespondedor.ts';
-import { tratarOrcamentoGerente } from './orcamentoGerente.ts';
+import { tratarOrcamentoGerente, statusRascunho } from './orcamentoGerente.ts';
+
+// A consulta do gerente não grava nada; se a IA afirmar que gravou/criou, a frase é trocada.
+const AFIRMA_GRAVACAO = /(j[aá] (est[aá]|foi|ficou|t[aá]) (no painel|gravad|criad|salv|lan[cç]ad|registrad))|(or[cç]amento (j[aá] )?(foi |est[aá] )?(gravado|criado|salvo|lan[cç]ado|registrado))|(gravei|criei|lancei|salvei)/i;
+const NADA_GRAVADO = 'Nada foi gravado. Pra criar um orçamento: "faz um orçamento pro cliente <CNPJ ou nome> de <quantidade> <produto>"; eu mostro o resumo e só gravo quando você responder "grava".';
 
 export const PEDIR_TEXTO = 'Não consegui ouvir teu áudio aqui. Manda por texto pra mim?';
 
@@ -40,6 +44,19 @@ SAUDAÇÃO
 - Se for "sim", NUNCA repita a saudação: responda o cumprimento em poucas palavras e
   retome o último assunto da conversa.
 - Se ele já chegou com uma pergunta ou pedido, pule a saudação e responda direto.
+- Nunca chame ninguém de "chefe" (nem patrão, mestre, querido...). Sem vocativo de tratamento.
+
+NOME DO CONTATO
+- Veja a linha NOME DO CONTATO no fim. O nome do perfil do WhatsApp NÃO conta como nome:
+  nunca chame a pessoa por ele e nunca deduza nome pelo número.
+- Se o nome ainda não foi informado, a primeira pergunta da conversa é o nome:
+  - só cumprimento + conversa nova: responda exatamente "Fala aí! Aqui é o Léo, do PlaceFit. Qual teu nome?"
+    (a pergunta "empreender ou equipamento" vem logo depois que ela disser o nome);
+  - se já chegou com pedido: responda o pedido e pergunte o nome junto, no fim
+    ("E já te cadastro aqui: qual teu nome?").
+- Pergunte o nome no máximo duas vezes na conversa; se ela não disser, siga sem.
+- Quando a pessoa disser o próprio nome, preencha "nome_cliente" com ele (só o nome, como ela
+  escreveu) e passe a usar. Com o nome já confirmado, não pergunte de novo.
 
 ÁUDIO TRANSCRITO
 - Veja a linha ORIGEM DA ÚLTIMA MENSAGEM no fim. Se for "áudio transcrito", o texto veio de
