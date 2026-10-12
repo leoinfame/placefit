@@ -61,10 +61,11 @@
         "cloud_api",
         "business_app",
         "history",
-        "sistema"
+        "sistema",
+        "respondedor_ia"
       ],
       "default": "waha",
-      "description": "Canal de origem da mensagem: WAHA (atual), Cloud API, Business App (eco), historico sincronizado ou sistema"
+      "description": "Canal de origem da mensagem: WAHA (atual), Cloud API, Business App (eco), historico sincronizado, sistema ou respondedor autom\u00e1tico (L\u00e9o da Muscular)"
     },
     "enviada_em": {
       "type": "string",
