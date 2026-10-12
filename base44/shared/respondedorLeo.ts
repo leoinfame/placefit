@@ -12,6 +12,7 @@
 //  6. reply_status = "respondendo" é gravado ANTES da IA: reentrega nunca duplica.
 
 import { onlyDigits } from './whatsappCoexistence.ts';
+import { carregarCatalogo, buscarNoCatalogo, catalogoParaPrompt } from './catalogoRespondedor.ts';
 
 const GRAPH_VERSION = 'v21.0';
 const IDADE_MAXIMA_MIN = 5;
@@ -50,9 +51,19 @@ SOBRE O QUE VOCÊ FALA
   equipamento.
 - Assunto fora disso: responde em uma linha que aqui é sobre o PlaceFit e puxa de volta.
 
+CATÁLOGO
+- Preço, disponibilidade e especificação de produto: só o que estiver na lista CATÁLOGO
+  que vem junto com a conversa. Ela é a única fonte. Preço é por unidade indicada (peça, par, kg...).
+- Pode citar preço e especificação exatamente como estão na lista. Se o cliente não disse
+  qual variação (peso, modelo), mostre no máximo 3 opções e pergunte qual.
+- Se o que ele pediu NÃO está na lista (produto, variação, preço, ou qualquer dado de
+  frete, prazo, estoque em quantidade, desconto ou forma de pagamento), responda com
+  "deixa eu confirmar com o time e já te retorno" e preencha "pendencia".
+- Nunca calcule desconto nem total com frete. Multiplicar preço × quantidade pode.
+
 REGRAS DURAS
-- Nunca invente preço, prazo, frete, estoque ou condição de pagamento. Se perguntarem,
-  pegue o que precisa (produto, quantidade, CEP/cidade) e diga que o time confirma.
+- Nunca invente preço, prazo, frete, estoque ou condição de pagamento. O que não está
+  no CATÁLOGO vira pendência para o time.
 - Nunca prometa nada em nome da empresa.
 - Se o cliente pedir humano, reclamar ou o assunto for pedido/entrega já feita:
   diga que vai passar pro time agora e pare de vender.
@@ -61,7 +72,42 @@ REGRAS DURAS
 - Objetivo de toda conversa: entender o que a pessoa quer e deixar o próximo passo
   claro (dados para orçamento, interesse no curso, ou passar pro time).
 
-Responda só com o texto da mensagem, sem aspas nem explicações.`;
+FORMATO DA RESPOSTA (JSON)
+- "resposta": o texto da mensagem para o cliente, sem aspas nem explicações.
+- "pendencia": vazio ("") se você respondeu tudo. Se prometeu confirmar algo com o time,
+  uma linha curta dizendo o que o cliente quer saber (ex.: "preço anilha olímpica 25 kg, 4 un,
+  frete pra Divinópolis").`;
+
+const SCHEMA_RESPOSTA = {
+  type: 'object',
+  properties: {
+    resposta: { type: 'string' },
+    pendencia: { type: 'string' }
+  },
+  required: ['resposta', 'pendencia']
+};
+
+function lerSaidaIA(ai: any): { resposta: string; pendencia: string } {
+  let obj: any = ai;
+  if (typeof ai === 'string') {
+    try { obj = JSON.parse(ai); } catch { obj = { resposta: ai, pendencia: '' }; }
+  }
+  return {
+    resposta: String(obj?.resposta || '').trim().replace(/^["“]|["”]$/g, '').slice(0, 1500),
+    pendencia: String(obj?.pendencia || '').trim().slice(0, 300)
+  };
+}
+
+async function registrarPendencia(base44: any, conversa: any, pendencia: string) {
+  const agora = new Date();
+  const carimbo = agora.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  const anterior = String(conversa.pendencia || '').trim();
+  const texto = ((anterior ? anterior + '\n' : '') + `[${carimbo}] ${pendencia}`).slice(-1500);
+  await base44.asServiceRole.entities.CRMConversa.update(conversa.id, {
+    pendencia: texto,
+    pendencia_em: agora.toISOString()
+  });
+}
 
 async function marcar(base44: any, eventId: string, patch: any) {
   await base44.asServiceRole.entities.whatsapp_webhook_events.update(eventId, patch);
@@ -151,13 +197,25 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
       .map((m: any) => (m.direcao === 'recebida' ? 'Cliente: ' : 'Léo: ') + String(m.conteudo || ''))
       .join('\n');
 
+    // Catálogo: busca pelas últimas falas do cliente (a atual pesa junto com o contexto)
+    let catalogoTexto = 'Catálogo indisponível agora: trate qualquer pergunta de produto como pendência.';
+    try {
+      const falasCliente = (historico || []).filter((m: any) => m.direcao === 'recebida')
+        .slice(-3).map((m: any) => String(m.conteudo || '')).join(' ');
+      const itens = await carregarCatalogo(base44, connection.tenant_id);
+      catalogoTexto = catalogoParaPrompt(buscarNoCatalogo(itens, falasCliente + ' ' + String(msg.text?.body || '')));
+    } catch (e) {
+      console.error('[RESPONDEDOR] catálogo falhou', e);
+    }
+
     const prompt = PROMPT_LEO +
       `\n\nNome do cliente no WhatsApp: ${conversa.nome_contato || 'não informado'}` +
+      `\n\nCATÁLOGO (itens que casam com a conversa):\n${catalogoTexto}` +
       `\n\nCONVERSA ATÉ AGORA (mais antiga primeiro):\n${conversaTexto}` +
       `\n\nEscreva a próxima mensagem do Léo, respondendo à última mensagem do cliente.`;
 
-    const ai = await base44.asServiceRole.integrations.Core.InvokeLLM({ prompt });
-    const resposta = String(ai || '').trim().replace(/^["“]|["”]$/g, '').slice(0, 1500);
+    const ai = await base44.asServiceRole.integrations.Core.InvokeLLM({ prompt, response_json_schema: SCHEMA_RESPOSTA });
+    const { resposta, pendencia } = lerSaidaIA(ai);
     if (!resposta) {
       await marcar(base44, eventId, { reply_status: 'erro', reply_error: 'IA devolveu vazio' });
       return;
@@ -188,6 +246,10 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
       ultima_mensagem: resposta.slice(0, 200),
       ultima_interacao: quando
     });
+    if (pendencia) {
+      try { await registrarPendencia(base44, conversa, pendencia); }
+      catch (e) { console.error('[RESPONDEDOR] falha ao registrar pendência', e); }
+    }
     await marcar(base44, eventId, { reply_status: 'respondido', reply_wamid: envio.id, replied_at: quando, reply_error: '' });
     console.log('[RESPONDEDOR] respondido', envio.id);
   } catch (error) {
