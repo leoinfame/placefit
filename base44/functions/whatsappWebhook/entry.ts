@@ -21,7 +21,7 @@ import { responderSeCabivel } from '../../shared/respondedorLeo.ts';
 // Respondedor automático ("Léo da Muscular", shared/respondedorLeo.ts):
 // responde texto recebido pela Cloud API SOMENTE com o segredo
 // RESPONDEDOR_ATIVO=true, respeitando RESPONDEDOR_ALLOWLIST e as travas de lá.
-// O resultado fica em whatsapp_webhook_events.reply_status.
+// O resultado de cada avaliação fica em whatsapp_webhook_events.reply_status.
 //
 // Segurança:
 // - GET: desafio hub.verify_token (env WPP_VERIFY_TOKEN ou token por usuário).
