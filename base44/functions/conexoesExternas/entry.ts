@@ -119,7 +119,6 @@ async function statusMerchant(offerIds: Set<string>) {
 export default async function (req: Request) {
   try {
     const base44 = createClientFromRequest(req);
-
     const me = await base44.auth.me().catch(() => null);
     if (!me) return Response.json({ error: "Não autorizado" }, { status: 401 });
     const body = await req.json().catch(() => ({}));
