@@ -104,8 +104,21 @@ function DetalheLoja({ d, status }) {
 }
 
 function DetalheMl({ d }) {
-  if (!d?.conectado) return <p className="text-sm text-gray-500">Integração na próxima etapa.</p>;
-  return <p className="text-sm text-gray-600">Conta conectada: <strong>@{d.apelido}</strong></p>;
+  if (!d?.conectado) return <p className="text-sm text-gray-500">Nenhuma conta conectada. Clique em Configurar para conectar.</p>;
+  const a = d.anuncios || {};
+  return (
+    <div className="text-sm text-gray-600 space-y-1">
+      <p>Conta: <strong>@{d.apelido || "?"}</strong></p>
+      {a.total > 0 && (
+        <p>{a.ativos || 0} ativo(s){a.pausados ? ` • ${a.pausados} pausado(s)` : ""}{a.outros ? ` • ${a.outros} outro(s)` : ""}</p>
+      )}
+      {d.modelo && (
+        <p className="text-xs text-gray-500">
+          {d.modelo === "legado" ? "Modelo do ML: um anúncio por variação" : "Modelo do ML: User Products (famílias)"}
+        </p>
+      )}
+    </div>
+  );
 }
 
 export default function ConexoesExternas({ config, onSaved, onAbrirLoja }) {
