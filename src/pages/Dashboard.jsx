@@ -4,6 +4,7 @@ import { aplicarPreCadastro } from "@/functions/aplicarPreCadastro";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import OnboardingTour from "@/components/OnboardingTour";
+import AlertaCustos from "@/components/admin/AlertaCustos";
 import { 
   Package, 
   Users, 
@@ -410,6 +411,9 @@ export default function Dashboard() {
             </Link>
           ))}
         </div>
+
+        {/* Custos do sistema: vencidos / próximos 7 dias (só admin) */}
+        <AlertaCustos user={user} />
 
         {/* Estatísticas Rápidas */}
         {user?.role === 'admin' && (

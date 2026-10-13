@@ -22,6 +22,7 @@ import LojaRevendedor from './pages/LojaRevendedor';
 import AdminTools from './pages/AdminTools';
 import CatalogoWhatsApp from './pages/CatalogoWhatsApp';
 import AdminServicos from './pages/AdminServicos';
+import CustosSistema from './pages/CustosSistema';
 import Servicos from './pages/Servicos';
 import ConfigurarIA from './pages/ConfigurarIA';
 import FinanceiroFiscal from './pages/FinanceiroFiscal';
@@ -131,6 +132,7 @@ const AuthenticatedApp = () => {
       <Route path="/CatalogoWhatsApp" element={<LayoutWrapper currentPageName="CatalogoWhatsApp"><CatalogoWhatsApp /></LayoutWrapper>} />
       <Route path="/CRMWhatsApp" element={<LayoutWrapper currentPageName="CRMWhatsApp"><CRMWhatsApp /></LayoutWrapper>} />
       <Route path="/AdminServicos" element={<LayoutWrapper currentPageName="AdminServicos"><AdminServicos /></LayoutWrapper>} />
+      <Route path="/CustosSistema" element={<LayoutWrapper currentPageName="CustosSistema"><CustosSistema /></LayoutWrapper>} />
       <Route path="/Servicos" element={<LayoutWrapper currentPageName="Servicos"><Servicos /></LayoutWrapper>} />
       <Route path="/ConfigurarIA" element={<LayoutWrapper currentPageName="ConfigurarIA"><ConfigurarIA /></LayoutWrapper>} />
       <Route path="/FinanceiroFiscal" element={<LayoutWrapper currentPageName="FinanceiroFiscal"><FinanceiroFiscal /></LayoutWrapper>} />

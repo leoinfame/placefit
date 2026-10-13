@@ -26,7 +26,8 @@ import {
   ShieldCheck,
   Truck,
   CreditCard,
-  Warehouse
+  Warehouse,
+  Wallet
 } from "lucide-react";
 import {
   Sidebar,
@@ -302,6 +303,11 @@ export default function Layout({ children, currentPageName }) {
           title: "Gestão de Serviços",
           url: createPageUrl("AdminServicos"),
           icon: Crown,
+        },
+        {
+          title: "Custos do sistema",
+          url: createPageUrl("CustosSistema"),
+          icon: Wallet,
         },
         {
           title: "Produtos",
