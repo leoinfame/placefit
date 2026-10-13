@@ -171,8 +171,10 @@ export function tituloML(t: any): string {
   if (!pai || !rot) return clean(t?.nome, 60);
   const espaco = 60 - rot.length - 1;
   let paiCurto = pai;
-  if (pai.length > espaco) {
-    const corte = pai.slice(0, Math.max(espaco, 10) + 1);
+  // Longo demais: primeiro tira o trecho entre parênteses, depois corta na última palavra inteira.
+  if (paiCurto.length > espaco) paiCurto = clean(paiCurto.replace(/\s*\([^)]*\)/g, " "));
+  if (paiCurto.length > espaco) {
+    const corte = paiCurto.slice(0, Math.max(espaco, 10) + 1);
     const ult = corte.lastIndexOf(" ");
     paiCurto = (ult > 10 ? corte.slice(0, ult) : corte.slice(0, -1)).replace(/[\s,.;:–-]+$/, "").trim();
   }
