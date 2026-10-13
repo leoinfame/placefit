@@ -8,17 +8,20 @@
 //    A funcao troca o code por tokens, grava na LojaConfig do revendedor e redireciona
 //    o browser de volta para o painel /LojaRevendedor?ml_connected=1.
 //
-// O state carrega revendedor_id|slug para sabermos qual LojaConfig atualizar.
+// O state carrega revendedor_id.emitido_em.assinatura (HMAC, vale 30 min) para sabermos
+// qual LojaConfig atualizar SEM confiar em texto que veio do navegador.
+// O modo info exige login: a revenda só gera link para a própria loja (admin pode outra).
 
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.41";
 import {
   mlAuthUrl,
+  validarState,
   exchangeCodeForToken,
   getUserInfo,
   APP_URL,
 } from "../../shared/mercadoLivre.ts";
 
-const BUILD = "2026-08-21-ml-auth";
+const BUILD = "2026-10-13-ml-auth-state-assinado";
 
 export default async function (req) {
   try {
@@ -29,12 +32,14 @@ export default async function (req) {
 
     // Modo info: devolve a URL de autorizacao
     if (param("info")) {
-      const revendedorId = param("revendedor_id");
-      const slug = param("slug");
-      if (!revendedorId) {
-        return Response.json({ error: "revendedor_id obrigatorio" }, { status: 400 });
+      const me = await createClientFromRequest(req).auth.me().catch(() => null);
+      if (!me) return Response.json({ error: "Não autorizado" }, { status: 401 });
+      const pedido = param("revendedor_id");
+      if (pedido && pedido !== me.id && me.role !== "admin") {
+        return Response.json({ error: "Loja de outra revenda" }, { status: 403 });
       }
-      return Response.json({ auth_url: mlAuthUrl(revendedorId, slug), build: BUILD });
+      const revendedorId = pedido || me.id;
+      return Response.json({ auth_url: await mlAuthUrl(revendedorId), build: BUILD });
     }
 
     // Callback do OAuth: ML redireciona com code e state
@@ -45,14 +50,15 @@ export default async function (req) {
       return Response.json({ error: "code ou info obrigatorio" }, { status: 400 });
     }
 
+    // Valida o state ANTES de trocar o code: sem assinatura válida, nada é gravado.
+    const revendedorId = await validarState(state);
+    if (!revendedorId) {
+      console.error("mlAuth: state inválido ou vencido");
+      return new Response(null, { status: 302, headers: { Location: `${APP_URL()}/LojaRevendedor?ml_error=state` } });
+    }
+
     // Trocar code por tokens
     const tokens = await exchangeCodeForToken(code);
-
-    // Parse do state: revendedor_id|slug
-    const [revendedorId] = state.split("|");
-    if (!revendedorId) {
-      return Response.json({ error: "state invalido" }, { status: 400 });
-    }
 
     const base44 = createClientFromRequest(req);
     const configs = await base44.asServiceRole.entities.LojaConfig.filter({
