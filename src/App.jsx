@@ -2,48 +2,56 @@ import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import NavigationTracker from '@/lib/NavigationTracker'
-import { pagesConfig } from './pages.config'
+import { Suspense, lazy } from 'react';
+import Layout from './Layout.jsx';
+import { LAZY_PAGES, MAIN_PAGE, lazyPage } from '@/lib/pageRegistry';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
-import PublicTableFabricante from './pages/PublicTableFabricante';
-import Marketplace from './pages/Marketplace';
-import HomeApp from './pages/HomeApp';
-import DocumentoInvestidor from './pages/DocumentoInvestidor';
-import MinhaConta from './pages/MinhaConta';
-import FabricanteCatalogoPublic from './pages/FabricanteCatalogoPublic';
-import LojaPublica from './pages/LojaPublica';
-import LojaPoliticaDevolucao from './pages/LojaPoliticaDevolucao';
-import LojaProduto from './pages/LojaProduto';
-import LojaClienteArea from './pages/LojaClienteArea';
-import LojaEcommerce from './pages/LojaEcommerce';
-import LojaRevendedor from './pages/LojaRevendedor';
-import AdminTools from './pages/AdminTools';
-import CatalogoWhatsApp from './pages/CatalogoWhatsApp';
-import AdminServicos from './pages/AdminServicos';
-import CustosSistema from './pages/CustosSistema';
-import Servicos from './pages/Servicos';
-import ConfigurarIA from './pages/ConfigurarIA';
-import FinanceiroFiscal from './pages/FinanceiroFiscal';
-import PedidosVenda from './pages/PedidosVenda';
-import ClientesFiscais from './pages/ClientesFiscais';
-import ConfiguracaoFiscal from './pages/ConfiguracaoFiscal';
-import NotasFiscais from './pages/NotasFiscais';
-import CatalogoFabricante from './pages/CatalogoFabricante';
-import Atributos from './pages/Atributos';
-import Produtos from './pages/Produtos';
-import FabricantePublico from './pages/FabricantePublico';
-import CRMWhatsApp from './components/crm/CRMWhatsApp';
+const PublicTableFabricante = lazyPage('PublicTableFabricante');
+const Marketplace = lazyPage('Marketplace');
+const HomeApp = lazyPage('HomeApp');
+const DocumentoInvestidor = lazyPage('DocumentoInvestidor');
+const MinhaConta = lazyPage('MinhaConta');
+const FabricanteCatalogoPublic = lazyPage('FabricanteCatalogoPublic');
+const LojaPublica = lazyPage('LojaPublica');
+const LojaPoliticaDevolucao = lazyPage('LojaPoliticaDevolucao');
+const LojaProduto = lazyPage('LojaProduto');
+const LojaClienteArea = lazyPage('LojaClienteArea');
+const LojaEcommerce = lazyPage('LojaEcommerce');
+const LojaRevendedor = lazyPage('LojaRevendedor');
+const AdminTools = lazyPage('AdminTools');
+const CatalogoWhatsApp = lazyPage('CatalogoWhatsApp');
+const AdminServicos = lazyPage('AdminServicos');
+const CustosSistema = lazyPage('CustosSistema');
+const Servicos = lazyPage('Servicos');
+const ConfigurarIA = lazyPage('ConfigurarIA');
+const FinanceiroFiscal = lazyPage('FinanceiroFiscal');
+const PedidosVenda = lazyPage('PedidosVenda');
+const ClientesFiscais = lazyPage('ClientesFiscais');
+const ConfiguracaoFiscal = lazyPage('ConfiguracaoFiscal');
+const NotasFiscais = lazyPage('NotasFiscais');
+const CatalogoFabricante = lazyPage('CatalogoFabricante');
+const Atributos = lazyPage('Atributos');
+const Produtos = lazyPage('Produtos');
+const FabricantePublico = lazyPage('FabricantePublico');
+const CRMWhatsApp = lazy(() => import('./components/crm/CRMWhatsApp'));
 import ErrorBoundary from './components/ErrorBoundary';
-import CrmPrivacidade from './components/crm-legal/CrmPrivacidade';
-import CrmTermos from './components/crm-legal/CrmTermos';
-import CrmExclusaoDados from './components/crm-legal/CrmExclusaoDados';
-import HubApp from './hub/HubApp';
+const CrmPrivacidade = lazy(() => import('./components/crm-legal/CrmPrivacidade'));
+const CrmTermos = lazy(() => import('./components/crm-legal/CrmTermos'));
+const CrmExclusaoDados = lazy(() => import('./components/crm-legal/CrmExclusaoDados'));
+const HubApp = lazy(() => import('./hub/HubApp'));
 
-const { Pages, Layout, mainPage } = pagesConfig;
-const mainPageKey = mainPage ?? Object.keys(Pages)[0];
-const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
+const Pages = LAZY_PAGES;
+const mainPageKey = MAIN_PAGE;
+const MainPage = (mainPageKey && Pages[mainPageKey]) || (() => null);
+
+const PageLoading = () => (
+  <div className="fixed inset-0 flex items-center justify-center">
+    <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+  </div>
+);
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   <Layout currentPageName={currentPageName}><ErrorBoundary>{children}</ErrorBoundary></Layout>
@@ -68,6 +76,7 @@ const AuthenticatedApp = () => {
   // Always render public paths without auth check
   if (isPublicPath()) {
     return (
+      <Suspense fallback={<PageLoading />}>
       <Routes>
         <Route path="/" element={<ErrorBoundary><HomeApp /></ErrorBoundary>} />
         <Route path="/documento" element={<ErrorBoundary><DocumentoInvestidor /></ErrorBoundary>} />
@@ -84,6 +93,7 @@ const AuthenticatedApp = () => {
         <Route path="/crm/exclusao-de-dados" element={<ErrorBoundary><CrmExclusaoDados /></ErrorBoundary>} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
+      </Suspense>
     );
   }
 
@@ -109,6 +119,7 @@ const AuthenticatedApp = () => {
 
   // Render the main app
   return (
+    <Suspense fallback={<PageLoading />}>
     <Routes>
       <Route path="/" element={<HomeApp />} />
       <Route path="/app" element={
@@ -149,6 +160,7 @@ const AuthenticatedApp = () => {
       <Route path="/hub/*" element={<ErrorBoundary><HubApp /></ErrorBoundary>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
+    </Suspense>
   );
 };
 
