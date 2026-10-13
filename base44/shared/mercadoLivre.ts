@@ -23,8 +23,40 @@ const REDIRECT_URI =
 const APP_URL = () =>
   (Deno.env.get("APP_PUBLIC_URL") || "https://placefit.base44.app").replace(/\/+$/, "");
 
-export function mlAuthUrl(revendedorId: string, slug: string): string {
-  const state = `${revendedorId}|${slug}`;
+// ── state do OAuth ASSINADO (HMAC-SHA256 com o client secret do app) ──
+// Formato: <revendedor_id>.<emitido_em_ms>.<assinatura_hex>. Vale 30 min.
+// Sem a assinatura, qualquer um poderia montar um state com o id de outra revenda
+// e ligar a própria conta do ML na loja dela.
+const STATE_VALIDADE_MS = 30 * 60 * 1000;
+
+async function hmacHex(msg: string): Promise<string> {
+  const segredo = Deno.env.get("ML_CLIENT_SECRET") || "";
+  if (!segredo) throw new Error("ML_CLIENT_SECRET ausente");
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode("mlstate:" + segredo), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(msg));
+  return [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+export async function assinarState(revendedorId: string): Promise<string> {
+  const base = `${revendedorId}.${Date.now()}`;
+  return `${base}.${await hmacHex(base)}`;
+}
+
+// Devolve o revendedor_id se o state for autêntico e recente; senão null.
+export async function validarState(state: string): Promise<string | null> {
+  const partes = String(state || "").split(".");
+  if (partes.length !== 3) return null;
+  const [rev, ts, sig] = partes;
+  if (!rev || !/^\d+$/.test(ts) || !/^[0-9a-f]{64}$/.test(sig)) return null;
+  if (Math.abs(Date.now() - Number(ts)) > STATE_VALIDADE_MS) return null;
+  const esperado = await hmacHex(`${rev}.${ts}`);
+  let dif = 0; // comparação em tempo constante
+  for (let i = 0; i < 64; i++) dif |= esperado.charCodeAt(i) ^ sig.charCodeAt(i);
+  return dif === 0 ? rev : null;
+}
+
+export async function mlAuthUrl(revendedorId: string): Promise<string> {
+  const state = await assinarState(revendedorId);
   const params = new URLSearchParams({
     response_type: "code",
     client_id: Deno.env.get("ML_APP_ID") || "",
@@ -130,10 +162,80 @@ const clean = (s: any, max?: number) => {
 
 const isHttps = (u: string) => typeof u === "string" && /^https:\/\/\S+$/i.test((u || "").trim());
 
+// Título do anúncio: 1 anúncio por variação (a conta está no modelo antigo do ML,
+// que não aceita variação de peso/medida com preço próprio). Pai + rótulo, até 60
+// caracteres, cortando o nome do pai e nunca o rótulo.
+export function tituloML(t: any): string {
+  const rot = clean(t?.variacao_rotulo);
+  const pai = clean(t?.grupo_variacao);
+  if (!pai || !rot) return clean(t?.nome, 60);
+  const espaco = 60 - rot.length - 1;
+  const paiCurto = pai.length > espaco ? pai.slice(0, Math.max(espaco, 10)).trim() : pai;
+  return clean(`${paiCurto} ${rot}`, 60);
+}
+
+// ── Comissão do ML (tarifa de venda) ──
+// GET /sites/MLB/listing_prices?price=&listing_type_id=gold_special&category_id=
+// (exige token). Clássico, sem frete grátis: o vendedor paga só a tarifa de venda
+// (percentual da categoria + tarifa fixa por unidade em itens baratos).
+const tarifaCache: Record<string, any> = {};
+
+export async function consultarTarifa(accessToken: string, categoryId: string, preco: number) {
+  const p = Number(preco.toFixed(2));
+  const chave = `${categoryId}|${p}`;
+  if (tarifaCache[chave]) return tarifaCache[chave];
+  const url = `${ML_API}/sites/MLB/listing_prices?price=${p}&listing_type_id=gold_special&category_id=${encodeURIComponent(categoryId)}&currency_id=BRL`;
+  try {
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data) return { ok: false, erro: data?.message || `HTTP ${res.status}` };
+    const lp = Array.isArray(data) ? data.find((x) => x?.listing_type_id === "gold_special") || data[0] : data;
+    const det = lp?.sale_fee_details || {};
+    const total = Number(lp?.sale_fee_amount);
+    let pct = Number(det.percentage_fee ?? det.meli_percentage_fee);
+    let fixa = Number(det.fixed_fee) || 0;
+    if (!Number.isFinite(pct) && Number.isFinite(total)) pct = ((total - fixa) / p) * 100;
+    if (!Number.isFinite(pct) || pct < 0 || pct >= 60) return { ok: false, erro: "Resposta de tarifa sem percentual" };
+    const out = { ok: true, pct, fixa, total: Number.isFinite(total) ? total : p * pct / 100 + fixa };
+    tarifaCache[chave] = out;
+    return out;
+  } catch (e) {
+    return { ok: false, erro: String((e as any)?.message || e) };
+  }
+}
+
+// Preço final para o revendedor receber o preço PlaceFit depois da comissão:
+// final - (final*pct + fixa) = base  →  final = (base + fixa) / (1 - pct).
+// A tarifa fixa depende da faixa de preço do PRÓPRIO preço final, então reconsulta
+// no preço calculado até estabilizar (no máx. 3 voltas).
+export async function precoComComissao(accessToken: string | null, categoryId: string | null, base: number, pctManual: number | null) {
+  const calc = (pct: number, fixa: number) => Math.ceil(((base + fixa) / (1 - pct / 100)) * 100) / 100;
+  if (accessToken && categoryId) {
+    let t = await consultarTarifa(accessToken, categoryId, base);
+    if (t.ok) {
+      let final = calc(t.pct, t.fixa);
+      for (let i = 0; i < 3; i++) {
+        const t2 = await consultarTarifa(accessToken, categoryId, final);
+        if (!t2.ok) break;
+        const novo = calc(t2.pct, t2.fixa);
+        t = t2;
+        if (Math.abs(novo - final) < 0.01) { final = novo; break; }
+        final = novo;
+      }
+      return { ok: true, fonte: "api", pct: t.pct, fixa: t.fixa, comissao: Number((final - base).toFixed(2)), preco_final: final };
+    }
+    if (pctManual == null) return { ok: false, erro: `Comissão não consultada: ${t.erro}` };
+  }
+  if (pctManual == null || !(pctManual >= 0 && pctManual < 60)) return { ok: false, erro: "Sem comissão da API e sem percentual manual" };
+  const final = calc(pctManual, 0);
+  return { ok: true, fonte: "manual", pct: pctManual, fixa: 0, comissao: Number((final - base).toFixed(2)), preco_final: final };
+}
+
 // Monta o payload do anuncio no ML a partir de um SupplierProduct + ProductTemplate.
 // Retorna null quando o produto nao pode ser exportado (sem foto ou sem preco).
-export function buildItemML(sp: any, t: any, config: any, categoryId: string) {
-  const preco = computeStorePrice(sp);
+// precoFinal: preço já com a comissão (da prévia); sem ele usa o preço da loja.
+export function buildItemML(sp: any, t: any, config: any, categoryId: string, precoFinal?: number) {
+  const preco = precoFinal || computeStorePrice(sp);
   if (!preco || preco <= 0) return null;
   if (!isHttps(t.foto)) return null;
 
@@ -154,7 +256,7 @@ export function buildItemML(sp: any, t: any, config: any, categoryId: string) {
   );
 
   return {
-    title: clean(t.nome, 60),
+    title: tituloML(t),
     category_id: categoryId,
     price: Number(preco.toFixed(2)),
     currency_id: "BRL",
@@ -190,6 +292,30 @@ export async function createListing(accessToken: string, item: any) {
     return { success: false, error: msg };
   }
   return { success: true, item_id: data.id, permalink: data.permalink };
+}
+
+// Atualiza preço de um anúncio que já existe (não mexe em título, foto nem status:
+// título não pode mudar depois de ter venda, e pausa feita no ML é respeitada).
+export async function updateListingPrice(accessToken: string, itemId: string, price: number) {
+  const res = await fetch(`${ML_API}/items/${encodeURIComponent(itemId)}`, {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ price: Number(price.toFixed(2)) }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const msg = data.message || (Array.isArray(data.cause) && data.cause[0]?.message) || `HTTP ${res.status}`;
+    return { success: false, error: msg };
+  }
+  return { success: true, item_id: data.id, permalink: data.permalink, status: data.status };
+}
+
+export async function getItem(accessToken: string, itemId: string) {
+  const res = await fetch(`${ML_API}/items/${encodeURIComponent(itemId)}?attributes=id,status,permalink,price,title`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!res.ok) return null;
+  return await res.json();
 }
 
 export async function getUserInfo(accessToken: string) {
