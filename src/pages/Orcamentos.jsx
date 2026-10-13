@@ -58,7 +58,6 @@ import { useToast } from "@/components/ui/use-toast";
 import ConfirmDialog from "@/components/ui/confirm-dialog";
 import ProductAutoComplete from "@/components/ProductAutoComplete";
 import ClienteAutoComplete from "@/components/ClienteAutoComplete";
-import { generateProfessionalPDF } from "@/components/ProfessionalPDF";
 import { expandTemplates } from "@/utils/expandTemplates";
 import { sugerirFrete } from "@/utils/frete";
 
@@ -105,10 +104,10 @@ export default function Orcamentos() {
   const { data: orcamentos = [] } = useQuery({
     queryKey: ['orcamentos'],
     queryFn: async () => {
-      const all = await base44.entities.Pedido.list('-created_date');
+      // Performance (13/10): filtra no servidor só os orçamentos, em vez de baixar todos os Pedidos (vendas incluídas)
       return user?.role === 'admin'
-        ? all.filter(p => p.tipo === 'orcamento')
-        : all.filter(p => p.tipo === 'orcamento' && p.fornecedor_id === user?.id);
+        ? base44.entities.Pedido.filter({ tipo: 'orcamento' }, '-created_date', 1000)
+        : base44.entities.Pedido.filter({ tipo: 'orcamento', fornecedor_id: user?.id }, '-created_date', 1000);
     },
     enabled: !!user,
   });
@@ -138,7 +137,21 @@ export default function Orcamentos() {
       const viewMode = localStorage.getItem('admin_view_mode') || 'admin';
       const isFabricante = currentUser.tipo_usuario === 'fabricante' || viewMode === 'fabricante';
 
-      const res = await getProdutosData({ mode: isFabricante ? "meus" : "catalogo", isFabricante });
+      // Performance (13/10): o orçamento só usa os produtos do próprio usuário (Meus Produtos).
+      // O modo "catalogo" baixava o catálogo inteiro (~2.500 templates) + todos os SupplierProducts
+      // do sistema (~4.000+) para montar pricesByProduct, que esta tela não usa. "meus" traz só o necessário.
+      // Clientes, tabela de frete e usuários passam a carregar em paralelo, não em fila.
+      const [res, clientesData, tabela, allUsers] = await Promise.all([
+        getProdutosData({ mode: "meus", isFabricante }),
+        currentUser.role === 'admin'
+          ? base44.entities.Cliente.filter({ ativo: true })
+          : base44.entities.Cliente.filter({ fornecedor_id: currentUser.id, ativo: true }),
+        base44.entities.TabelaFrete.filter({ ativo: true }).catch(error => {
+          console.error("Erro ao carregar tabela de frete:", error);
+          return null;
+        }),
+        currentUser.role === 'admin' ? base44.entities.User.list() : Promise.resolve(null),
+      ]);
       const data = res.data || res;
       const supplierProducts = data.mySupplierProducts || [];
       const allTemplates = expandTemplates(data.templates || [], data.fieldMap);
@@ -166,6 +179,7 @@ export default function Orcamentos() {
       } else {
         // Revendedor: SOMENTE produtos marcados como "Meus Produtos"
         productsData = allTemplates
+          .filter(template => template.ativo !== false) // o modo "catalogo" já filtrava ativo:true no servidor
           .map(template => {
             const mySp = spByProductId.get(template.id);
             if (!mySp) return null; // não está nos Meus Produtos: não aparece no orçamento
@@ -182,22 +196,11 @@ export default function Orcamentos() {
       }
 
       setProducts(productsData);
-
-      const clientesData = currentUser.role === 'admin'
-        ? await base44.entities.Cliente.filter({ ativo: true })
-        : await base44.entities.Cliente.filter({ fornecedor_id: currentUser.id, ativo: true });
       setClientes(clientesData);
-
-      try {
-        const tabela = await base44.entities.TabelaFrete.filter({ ativo: true });
-        setTabelaFrete(tabela);
-      } catch (error) {
-        console.error("Erro ao carregar tabela de frete:", error);
-      }
+      if (tabela) setTabelaFrete(tabela);
 
       // Buscar fornecedores para exibir nome
-      if (currentUser.role === 'admin') {
-        const allUsers = await base44.entities.User.list();
+      if (allUsers) {
         const fornecedoresData = allUsers
           .filter(u => u.role === 'user' || u.tipo_usuario === 'fabricante')
           .map(u => ({ id: u.id, nome: u.empresa || u.full_name }));
@@ -465,6 +468,8 @@ export default function Orcamentos() {
   };
 
   const generatePDF = async (orcamento) => {
+    // Performance (13/10): o gerador de PDF (~390 KB) só é baixado quando o PDF é pedido
+    const { generateProfessionalPDF } = await import("@/components/ProfessionalPDF");
     await generateProfessionalPDF(orcamento, user, clientes, 'orcamento', products);
   };
 

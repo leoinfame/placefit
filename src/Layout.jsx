@@ -169,33 +169,31 @@ export default function Layout({ children, currentPageName }) {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
+      // Performance (13/10): notificações e planos carregam em paralelo e em segundo plano.
+      // Antes a página inteira ficava no spinner esperando essas duas consultas, uma após a outra.
       // Carregar notificações não lidas para fornecedores e fabricantes
       if (currentUser.role === 'user' && (!currentUser.tipo_usuario || currentUser.tipo_usuario === 'fabricante')) {
-        try {
-          const notifs = await base44.entities.Notification.filter(
-            { supplier_id: currentUser.id, lida: false }
-          );
-          setUnreadNotifications(notifs.length);
-        } catch (error) {
-          console.error("Erro ao carregar notificações:", error);
-        }
+        base44.entities.Notification.filter(
+          { supplier_id: currentUser.id, lida: false }, '-created_date', 100, 0, ['id']
+        )
+          .then(notifs => setUnreadNotifications(notifs.length))
+          .catch(error => console.error("Erro ao carregar notificações:", error));
       }
 
       // Carregar planos contratados pelo usuário (para exibir menu condicional)
       if (currentUser.role === 'user' && !currentUser.tipo_usuario) {
-        try {
-          const assinaturas = await base44.entities.AssinaturaUsuario.filter({
-            usuario_id: currentUser.id,
-          });
-          const slugsAtivos = new Set(
-            assinaturas
-              .filter(a => a.status === 'ativo' || a.status === 'trial')
-              .map(a => a.plano_slug)
-          );
-          setUserPlanos(slugsAtivos);
-        } catch (error) {
-          console.error("Erro ao carregar assinaturas:", error);
-        }
+        base44.entities.AssinaturaUsuario.filter({
+          usuario_id: currentUser.id,
+        })
+          .then(assinaturas => {
+            const slugsAtivos = new Set(
+              assinaturas
+                .filter(a => a.status === 'ativo' || a.status === 'trial')
+                .map(a => a.plano_slug)
+            );
+            setUserPlanos(slugsAtivos);
+          })
+          .catch(error => console.error("Erro ao carregar assinaturas:", error));
       }
     } catch (error) {
       console.error("Erro ao carregar usuário:", error);
@@ -641,25 +639,24 @@ function LayoutContent({
   children 
 }) {
   const location = useLocation();
-  const { setOpen, open } = useSidebar();
+  // No celular o menu é uma gaveta controlada por openMobile/setOpenMobile; setOpen só vale para o
+  // menu fixo do computador. Por isso a gaveta não fechava ao tocar num item (corrigido em 13/10).
+  const { setOpenMobile, isMobile } = useSidebar();
 
-  // Fechar sidebar ao mudar de rota apenas em mobile
+  // Fechar a gaveta ao mudar de rota (celular)
   const previousPathRef = React.useRef(location.pathname);
   
   React.useEffect(() => {
-    if (previousPathRef.current !== location.pathname) {
-      // Só fecha em telas pequenas (modo drawer/mobile)
-      if (window.innerWidth < 768) {
-        setOpen(false);
-      }
+    if (previousPathRef.current !== location.pathname && isMobile) {
+      setOpenMobile(false);
     }
     previousPathRef.current = location.pathname;
-  }, [location.pathname, setOpen]);
+  }, [location.pathname, isMobile, setOpenMobile]);
 
-  // Handler para fechar menu ao clicar em item apenas em mobile
+  // Fechar a gaveta ao tocar num item do menu (celular), inclusive no item da página atual
   const handleMenuClick = () => {
-    if (window.innerWidth < 768) {
-      setOpen(false);
+    if (isMobile) {
+      setOpenMobile(false);
     }
   };
 
@@ -770,7 +767,7 @@ function LayoutContent({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem asChild>
-                  <Link to={createPageUrl("Profile")} className="flex items-center gap-2">
+                  <Link to={createPageUrl("Profile")} onClick={handleMenuClick} className="flex items-center gap-2">
                     <Settings className="w-4 h-4" />
                     Configurações
                   </Link>

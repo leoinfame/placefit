@@ -27,14 +27,22 @@ const projectEntityShort = (entity, fields) => {
   return out;
 };
 
+// Performance (13/10): busca as páginas em ondas paralelas (4 por vez) em vez de uma após a outra.
+// Com ~2.500 templates e ~4.000+ SupplierProducts eram ~15 idas e voltas em sequência.
+const PARALLEL_PAGES = 4;
 const fetchAll = async (fn, sort = '-created_date', pageSize = 500) => {
   let all = [];
   let skip = 0;
   while (true) {
-    const batch = await fn(sort, pageSize, skip);
-    all = all.concat(batch);
-    if (batch.length < pageSize) break;
-    skip += pageSize;
+    const skips = Array.from({ length: PARALLEL_PAGES }, (_, i) => skip + i * pageSize);
+    const batches = await Promise.all(skips.map(s => fn(sort, pageSize, s)));
+    let done = false;
+    for (const batch of batches) {
+      all = all.concat(batch);
+      if (batch.length < pageSize) { done = true; break; }
+    }
+    if (done) break;
+    skip += PARALLEL_PAGES * pageSize;
   }
   return all;
 };
@@ -49,45 +57,52 @@ Deno.serve(async (req) => {
     const isFabricante = user.tipo_usuario === 'fabricante' || body.isFabricante === true;
     const mode = body.mode || 'catalogo';
 
+    // Performance (13/10): os três blocos abaixo são independentes e agora rodam em paralelo.
     // 1. Buscar SupplierProducts do usuário atual
-    const mySpsRaw = await fetchAll((sort, limit, skip) =>
-      base44.asServiceRole.entities.SupplierProduct.filter({ supplier_id: user.id }, sort, limit, skip)
-    );
-    const mySps = mySpsRaw.map(sp => {
-      const out = {};
-      for (const f of SP_FIELDS) {
-        const v = sp[f];
-        if (v !== null && v !== undefined) out[f] = v;
-      }
-      return out;
-    });
+    const loadMySps = async () => {
+      const mySpsRaw = await fetchAll((sort, limit, skip) =>
+        base44.asServiceRole.entities.SupplierProduct.filter({ supplier_id: user.id }, sort, limit, skip)
+      );
+      return mySpsRaw.map(sp => {
+        const out = {};
+        for (const f of SP_FIELDS) {
+          const v = sp[f];
+          if (v !== null && v !== undefined) out[f] = v;
+        }
+        return out;
+      });
+    };
 
-    // 2. Buscar templates
-    let templates = [];
-    if (mode === 'meus') {
-      const productIds = [...new Set(mySps.map(sp => sp.product_id))];
-      if (productIds.length > 0) {
+    // 2. Buscar templates (no modo "meus" depende dos SupplierProducts do usuário)
+    const loadTemplates = async (mySpsPromise) => {
+      if (mode === 'meus') {
+        const mySps = await mySpsPromise;
+        const productIds = [...new Set(mySps.map(sp => sp.product_id))];
+        if (productIds.length === 0) return [];
         const matchingTemplates = await fetchAll((sort, limit, skip) =>
           base44.asServiceRole.entities.ProductTemplate.filter({ id: { $in: productIds } }, sort, limit, skip)
         );
-        templates = matchingTemplates.map(t => projectEntityShort(t, TEMPLATE_FIELDS));
+        return matchingTemplates.map(t => projectEntityShort(t, TEMPLATE_FIELDS));
       }
-    } else {
       const tplFields = isFabricante ? TEMPLATE_FIELDS_FABRICANTE : TEMPLATE_FIELDS;
       const allTemplatesRaw = await fetchAll((sort, limit, skip) =>
         base44.asServiceRole.entities.ProductTemplate.filter({ ativo: true }, 'cod', limit, skip)
       );
-      templates = allTemplatesRaw.map(t => projectEntityShort(t, tplFields));
-    }
+      return allTemplatesRaw.map(t => projectEntityShort(t, tplFields));
+    };
 
     // 3. pricesByProduct — apenas para revendedores
-    let pricesByProduct = {};
-    if (mode === 'catalogo' && !isFabricante) {
+    const loadPrices = async () => {
+      const pricesByProduct = {};
+      if (!(mode === 'catalogo' && !isFabricante)) return pricesByProduct;
       // Carrega fabricantes-usuário (subiram preço com login próprio via supplier_id)
-      const [fabricanteUsers, fabricanteEntities, margemMaps] = await Promise.all([
+      const [fabricanteUsers, fabricanteEntities, margemMaps, allSpsRaw] = await Promise.all([
         base44.asServiceRole.entities.User.filter({ tipo_usuario: 'fabricante' }),
         base44.asServiceRole.entities.Fabricante.list(),
         loadMargemMap(base44),
+        fetchAll((sort, limit, skip) =>
+          base44.asServiceRole.entities.SupplierProduct.list(sort, limit, skip)
+        ),
       ]);
       const fabNameByUserId = {};
       const fabIds = new Set();
@@ -100,10 +115,6 @@ Deno.serve(async (req) => {
       for (const f of fabricanteEntities) {
         fabNameByEntityId[f.id] = f.nome_fantasia || f.razao_social || 'Fabricante';
       }
-
-      const allSpsRaw = await fetchAll((sort, limit, skip) =>
-        base44.asServiceRole.entities.SupplierProduct.list(sort, limit, skip)
-      );
 
       for (const sp of allSpsRaw) {
         // Resolve o nome do fabricante: supplier_id (user) ou fabricante_id (entidade)
@@ -122,7 +133,15 @@ Deno.serve(async (req) => {
           preco_origem: sp.preco,
         });
       }
-    }
+      return pricesByProduct;
+    };
+
+    const mySpsPromise = loadMySps();
+    const [mySps, templates, pricesByProduct] = await Promise.all([
+      mySpsPromise,
+      loadTemplates(mySpsPromise),
+      loadPrices(),
+    ]);
 
     return Response.json({
       templates,
