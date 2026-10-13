@@ -8,12 +8,15 @@
 // PlaceFit (GOOGLE_MERCHANT_ID), filtrado pelos itens da revenda (offerId = SupplierProduct.id).
 //
 // Não grava nada, não chama os feeds, não altera sincronização e NUNCA devolve tokens.
+// Única exceção: no Mercado Livre, se o access_token venceu, renova com o refresh_token
+// (mesmo getValidToken da exportação) para testar a conexão de verdade.
 // Alertas são calculados (sem log de erro gravado — isso é a fase (b), com schema).
 
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.41";
-import { buildCatalogoMeta } from "../../shared/metaCatalog.ts";
+import { buildCatalogoMeta, fetchAllPaged } from "../../shared/metaCatalog.ts";
+import { getValidToken, getUserInfo } from "../../shared/mercadoLivre.ts";
 
-const BUILD = "2026-10-12-conexoes-v2-loja";
+const BUILD = "2026-10-13-conexoes-v3-ml";
 const LOJA_URL_PADRAO = (Deno.env.get("APP_PUBLIC_URL") || "https://placefit.base44.app").replace(/\/+$/, "") + "/loja";
 
 // Limites combinados com o Leandro (12/10/2026)
@@ -209,23 +212,52 @@ export default async function (req: Request) {
       detalhes: { merchant },
     };
 
-    // ── Mercado Livre (card presente, integração na próxima etapa) ──
-    const conectadoMl = Boolean(config.ml_user_id);
+    // ── Mercado Livre: status REAL (testa o token no /users/me) ──
+    const conectadoMl = Boolean(config.ml_user_id && config.ml_access_token);
     const alMl: Alerta[] = [];
-    if (conectadoMl && config.ml_expires_at && new Date(config.ml_expires_at).getTime() < Date.now() && !config.ml_refresh_token) {
-      alMl.push({ nivel: "erro", msg: "Token do Mercado Livre vencido. Reconecte a conta.", em: config.ml_expires_at });
+    let stMl: Canal["status"] = "desconectado";
+    let apelidoMl = config.ml_nickname || null;
+    let modeloMl: string | null = null;
+    const anunciosMl = { ativos: 0, pausados: 0, outros: 0, com_erro: 0, total: 0 };
+    if (conectadoMl) {
+      try {
+        const token = await getValidToken(base44, config);
+        const info = await getUserInfo(token);
+        if (!info?.id) throw new Error("o Mercado Livre recusou o token");
+        if (String(info.id) !== String(config.ml_user_id)) throw new Error("o token é de outra conta do Mercado Livre");
+        stMl = "conectado";
+        apelidoMl = info.nickname || apelidoMl;
+        modeloMl = (info.tags || []).includes("user_product_seller") ? "user_products" : "legado";
+      } catch (e) {
+        stMl = "erro";
+        alMl.push({ nivel: "erro", msg: `Conexão com o Mercado Livre falhou (${String((e as any)?.message || e).slice(0, 160)}). Reconecte a conta.`, em: new Date().toISOString() });
+      }
+      try {
+        const lista = await fetchAllPaged((sort, limit, skip) =>
+          base44.asServiceRole.entities.MLAnuncio.filter({ revendedor_id: config.revendedor_id, ml_user_id: String(config.ml_user_id) }, sort, limit, skip));
+        for (const a of lista) {
+          if (!a.ml_item_id) continue;
+          anunciosMl.total++;
+          if (a.status === "active") anunciosMl.ativos++;
+          else if (a.status === "paused") anunciosMl.pausados++;
+          else anunciosMl.outros++;
+          if (a.erro) anunciosMl.com_erro++;
+        }
+        if (anunciosMl.com_erro) alMl.push({ nivel: "aviso", msg: `${anunciosMl.com_erro} anúncio(s) com erro na última atualização. Abra Configurar para ver.` });
+      } catch (e) {
+        console.error("conexoesExternas: MLAnuncio", e);
+      }
     }
     const canalMl: Canal = {
       id: "mercadolivre",
       nome: "Mercado Livre",
-      status: "em_breve",
-      em_breve: true,
+      status: stMl,
       ultima_sync: config.ml_ultima_exportacao || null,
       ultima_sync_label: "Última exportação",
-      contagem: conectadoMl ? (config.ml_itens_exportados ?? null) : null,
-      contagem_label: "itens exportados",
+      contagem: conectadoMl ? anunciosMl.total : null,
+      contagem_label: "anúncios no mapa",
       alertas: alMl,
-      detalhes: { conectado: conectadoMl, apelido: config.ml_nickname || null },
+      detalhes: { conectado: conectadoMl, apelido: apelidoMl, modelo: modeloMl, anuncios: anunciosMl },
     };
 
     // ── Loja online (vitrine pública): primeiro card ──
