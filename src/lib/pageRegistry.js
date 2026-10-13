@@ -10,12 +10,15 @@ import pagesConfigSource from '@/pages.config.js?raw';
 
 const pageLoaders = import.meta.glob('../pages/*.jsx');
 
-const pagesBlock = pagesConfigSource.match(/export const PAGES\s*=\s*\{([\s\S]*?)\}/);
+// O arquivo traz um exemplo de PAGES dentro do comentário do topo: remove os comentários antes de ler
+const configCode = pagesConfigSource.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+
+const pagesBlock = configCode.match(/export const PAGES\s*=\s*\{([\s\S]*?)\}/);
 export const PAGE_KEYS = pagesBlock
   ? [...pagesBlock[1].matchAll(/"([^"]+)"\s*:/g)].map(m => m[1])
   : [];
 
-const mainPageMatch = pagesConfigSource.match(/mainPage\s*:\s*"([^"]+)"/);
+const mainPageMatch = configCode.match(/mainPage\s*:\s*"([^"]+)"/);
 export const MAIN_PAGE = mainPageMatch ? mainPageMatch[1] : PAGE_KEYS[0];
 
 const cache = {};
