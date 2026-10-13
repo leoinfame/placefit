@@ -53,9 +53,16 @@ const PageLoading = () => (
   </div>
 );
 
+// O menu (Layout) fica na tela enquanto só o conteúdo da página carrega
+const ContentLoading = () => (
+  <div className="flex items-center justify-center py-24">
+    <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+  </div>
+);
+
 const LayoutWrapper = ({ children, currentPageName }) => Layout ?
-  <Layout currentPageName={currentPageName}><ErrorBoundary>{children}</ErrorBoundary></Layout>
-  : <ErrorBoundary>{children}</ErrorBoundary>;
+  <Layout currentPageName={currentPageName}><ErrorBoundary><Suspense fallback={<ContentLoading />}>{children}</Suspense></ErrorBoundary></Layout>
+  : <ErrorBoundary><Suspense fallback={<ContentLoading />}>{children}</Suspense></ErrorBoundary>;
 
 const PUBLIC_PATHS = ['/', '/Marketplace', '/PublicTableFabricante', '/PublicRegister', '/PublicRegisterFabricante', '/PublicRegisterTransportador', '/FabricanteCatalogoPublic', '/fabricantes', '/loja', '/documento', '/crm/privacidade', '/crm/termos', '/crm/exclusao-de-dados'];
 
