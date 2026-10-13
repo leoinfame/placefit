@@ -639,25 +639,24 @@ function LayoutContent({
   children 
 }) {
   const location = useLocation();
-  const { setOpen, open } = useSidebar();
+  // No celular o menu é uma gaveta controlada por openMobile/setOpenMobile; setOpen só vale para o
+  // menu fixo do computador. Por isso a gaveta não fechava ao tocar num item (corrigido em 13/10).
+  const { setOpenMobile, isMobile } = useSidebar();
 
-  // Fechar sidebar ao mudar de rota apenas em mobile
+  // Fechar a gaveta ao mudar de rota (celular)
   const previousPathRef = React.useRef(location.pathname);
   
   React.useEffect(() => {
-    if (previousPathRef.current !== location.pathname) {
-      // Só fecha em telas pequenas (modo drawer/mobile)
-      if (window.innerWidth < 768) {
-        setOpen(false);
-      }
+    if (previousPathRef.current !== location.pathname && isMobile) {
+      setOpenMobile(false);
     }
     previousPathRef.current = location.pathname;
-  }, [location.pathname, setOpen]);
+  }, [location.pathname, isMobile, setOpenMobile]);
 
-  // Handler para fechar menu ao clicar em item apenas em mobile
+  // Fechar a gaveta ao tocar num item do menu (celular), inclusive no item da página atual
   const handleMenuClick = () => {
-    if (window.innerWidth < 768) {
-      setOpen(false);
+    if (isMobile) {
+      setOpenMobile(false);
     }
   };
 
