@@ -45,7 +45,7 @@ export default async function (req) {
     if (revendedorId !== me.id && me.role !== "admin") {
       return Response.json({ error: "Loja de outra revenda" }, { status: 403 });
     }
-    const spIds = Array.isArray(body.sp_ids) ? [...new Set(body.sp_ids.map(String))] : [];
+    const spIds: string[] = Array.isArray(body.sp_ids) ? [...new Set<string>(body.sp_ids.map(String))] : [];
     if (!spIds.length) return Response.json({ error: "Selecione ao menos um produto" }, { status: 400 });
     if (spIds.length > MAX_ITENS) return Response.json({ error: `Máximo de ${MAX_ITENS} variações por vez` }, { status: 400 });
     const pctManual = body.pct_manual === "" || body.pct_manual == null ? null : Number(body.pct_manual);
