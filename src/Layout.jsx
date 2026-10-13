@@ -169,33 +169,31 @@ export default function Layout({ children, currentPageName }) {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
+      // Performance (13/10): notificações e planos carregam em paralelo e em segundo plano.
+      // Antes a página inteira ficava no spinner esperando essas duas consultas, uma após a outra.
       // Carregar notificações não lidas para fornecedores e fabricantes
       if (currentUser.role === 'user' && (!currentUser.tipo_usuario || currentUser.tipo_usuario === 'fabricante')) {
-        try {
-          const notifs = await base44.entities.Notification.filter(
-            { supplier_id: currentUser.id, lida: false }
-          );
-          setUnreadNotifications(notifs.length);
-        } catch (error) {
-          console.error("Erro ao carregar notificações:", error);
-        }
+        base44.entities.Notification.filter(
+          { supplier_id: currentUser.id, lida: false }, '-created_date', 100, 0, ['id']
+        )
+          .then(notifs => setUnreadNotifications(notifs.length))
+          .catch(error => console.error("Erro ao carregar notificações:", error));
       }
 
       // Carregar planos contratados pelo usuário (para exibir menu condicional)
       if (currentUser.role === 'user' && !currentUser.tipo_usuario) {
-        try {
-          const assinaturas = await base44.entities.AssinaturaUsuario.filter({
-            usuario_id: currentUser.id,
-          });
-          const slugsAtivos = new Set(
-            assinaturas
-              .filter(a => a.status === 'ativo' || a.status === 'trial')
-              .map(a => a.plano_slug)
-          );
-          setUserPlanos(slugsAtivos);
-        } catch (error) {
-          console.error("Erro ao carregar assinaturas:", error);
-        }
+        base44.entities.AssinaturaUsuario.filter({
+          usuario_id: currentUser.id,
+        })
+          .then(assinaturas => {
+            const slugsAtivos = new Set(
+              assinaturas
+                .filter(a => a.status === 'ativo' || a.status === 'trial')
+                .map(a => a.plano_slug)
+            );
+            setUserPlanos(slugsAtivos);
+          })
+          .catch(error => console.error("Erro ao carregar assinaturas:", error));
       }
     } catch (error) {
       console.error("Erro ao carregar usuário:", error);
