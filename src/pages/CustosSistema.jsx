@@ -22,6 +22,7 @@ const SITUACAO = {
   vencido: { label: "Vencido", cls: "bg-red-100 text-red-800" },
   proximo: { label: "Vence em breve", cls: "bg-amber-100 text-amber-800" },
   a_vencer: { label: "A vencer", cls: "bg-gray-100 text-gray-700" },
+  antes_cadastro: { label: "Antes do cadastro", cls: "bg-gray-100 text-gray-500" },
 };
 const CUSTO_VAZIO = { nome: "", categoria: "", valor_mensal: "", moeda: "BRL", valor_variavel: false, dia_vencimento: "", forma_pagamento: "", status: "ativo", link_painel: "", observacoes: "" };
 const linkSeguro = (u) => (/^https?:\/\//i.test(String(u || "").trim()) ? String(u).trim() : null);
@@ -274,7 +275,7 @@ export default function CustosSistema() {
                         {fmtValor(l.custo.valor_mensal, l.custo.moeda)}
                         {l.custo.valor_variavel && <div className="text-xs text-gray-500">por uso (estimado)</div>}
                       </td>
-                      <td className="p-3"><Badge className={st.cls}>{st.label}</Badge>{l.situacao !== "pago" && l.situacao !== "a_vencer" && <div className="text-xs text-gray-500 mt-0.5">{quando(l.dias)}</div>}</td>
+                      <td className="p-3"><Badge className={st.cls}>{st.label}</Badge>{(l.situacao === "vencido" || l.situacao === "proximo") && <div className="text-xs text-gray-500 mt-0.5">{quando(l.dias)}</div>}</td>
                       <td className="p-3 text-right whitespace-nowrap">
                         {l.pagamentos.map((p) => (
                           <div key={p.id} className="flex items-center justify-end gap-1">

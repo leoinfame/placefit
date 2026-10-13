@@ -40,8 +40,10 @@ export function situacaoDoMes(custos, pagamentos, competencia, hoje = new Date()
     const venc = vencimentoEm(c, competencia);
     const pags = pagosPor[`${c.id}|${competencia}`] || [];
     const dias = diasAte(venc, hoje);
+    const criado = c.created_date ? inicioDoDia(new Date(c.created_date)) : null;
     let situacao = "a_vencer";
     if (pags.length) situacao = "pago";
+    else if (dias < 0 && criado && venc < criado) situacao = "antes_cadastro";
     else if (dias < 0) situacao = "vencido";
     else if (dias <= DIAS_ALERTA) situacao = "proximo";
     return { custo: c, vencimento: venc, dias, pagamentos: pags, pago: pags.reduce((s, p) => s + (Number(p.valor_pago) || 0), 0), situacao };
