@@ -20,9 +20,16 @@ import {
   createListing,
 } from "../../shared/mercadoLivre.ts";
 
-const BUILD = "2026-08-21-ml-export";
+const BUILD = "2026-10-13-ml-export-desativada";
+
+// DESATIVADA em 13/10/2026: criava anúncio sem guardar o id (reexportar duplicava).
+// Substituída por mlAnuncios (prévia com comissão + mapa MLAnuncio, nunca duplica).
+const DESATIVADA = true;
 
 export default async function (req) {
+  if (DESATIVADA) {
+    return Response.json({ error: "Exportação antiga desativada. Use Conexões externas → Mercado Livre → Configurar (prévia com comissão).", build: BUILD }, { status: 410 });
+  }
   try {
     const base44 = createClientFromRequest(req);
     // Seguranca: so a propria revenda (ou admin) publica no Mercado Livre dela.
