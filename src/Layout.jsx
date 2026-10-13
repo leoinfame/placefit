@@ -767,7 +767,7 @@ function LayoutContent({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem asChild>
-                  <Link to={createPageUrl("Profile")} className="flex items-center gap-2">
+                  <Link to={createPageUrl("Profile")} onClick={handleMenuClick} className="flex items-center gap-2">
                     <Settings className="w-4 h-4" />
                     Configurações
                   </Link>
