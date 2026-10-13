@@ -170,7 +170,12 @@ export function tituloML(t: any): string {
   const pai = clean(t?.grupo_variacao);
   if (!pai || !rot) return clean(t?.nome, 60);
   const espaco = 60 - rot.length - 1;
-  const paiCurto = pai.length > espaco ? pai.slice(0, Math.max(espaco, 10)).trim() : pai;
+  let paiCurto = pai;
+  if (pai.length > espaco) {
+    const corte = pai.slice(0, Math.max(espaco, 10) + 1);
+    const ult = corte.lastIndexOf(" ");
+    paiCurto = (ult > 10 ? corte.slice(0, ult) : corte.slice(0, -1)).replace(/[\s,.;:–-]+$/, "").trim();
+  }
   return clean(`${paiCurto} ${rot}`, 60);
 }
 
