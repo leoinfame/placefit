@@ -58,7 +58,6 @@ import { useToast } from "@/components/ui/use-toast";
 import ConfirmDialog from "@/components/ui/confirm-dialog";
 import ProductAutoComplete from "@/components/ProductAutoComplete";
 import ClienteAutoComplete from "@/components/ClienteAutoComplete";
-import { generateProfessionalPDF } from "@/components/ProfessionalPDF";
 import { expandTemplates } from "@/utils/expandTemplates";
 import { sugerirFrete } from "@/utils/frete";
 
@@ -469,6 +468,8 @@ export default function Orcamentos() {
   };
 
   const generatePDF = async (orcamento) => {
+    // Performance (13/10): o gerador de PDF (~390 KB) só é baixado quando o PDF é pedido
+    const { generateProfessionalPDF } = await import("@/components/ProfessionalPDF");
     await generateProfessionalPDF(orcamento, user, clientes, 'orcamento', products);
   };
 

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Plus, Search, Eye, Trash2, ShoppingCart, Package, FileText, Printer, User, Edit3, Save, Loader2, Zap, Truck, Share2, Receipt } from "lucide-react";
-import { generateProfessionalPDF } from "@/components/ProfessionalPDF";
 import ClienteAutoComplete from "@/components/ClienteAutoComplete";
 import ProductCombobox from "@/components/ProductCombobox";
 import { Button } from "@/components/ui/button";
@@ -895,6 +894,8 @@ export default function Vendas() {
   const generatePDF = async (pedido) => {
     setGeneratingPDF(true);
     try {
+      // Performance (13/10): o gerador de PDF (~390 KB) só é baixado quando o PDF é pedido
+      const { generateProfessionalPDF } = await import("@/components/ProfessionalPDF");
       await generateProfessionalPDF(pedido, user, clientes, 'venda', myProducts);
       toast({ title: "PDF gerado!", description: "Abrindo janela de impressão/PDF." });
     } catch (error) {
