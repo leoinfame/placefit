@@ -1,0 +1,83 @@
+{
+  "name": "CustoSistema",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Servi\u00e7o (ex.: Railway, OpenAI API, Base44, dom\u00ednio)"
+    },
+    "categoria": {
+      "type": "string",
+      "description": "Agrupador livre (infra, IA, dom\u00ednio, software...)"
+    },
+    "valor_mensal": {
+      "type": "number",
+      "description": "Valor previsto por m\u00eas"
+    },
+    "moeda": {
+      "type": "string",
+      "enum": [
+        "BRL",
+        "USD",
+        "EUR"
+      ],
+      "default": "BRL"
+    },
+    "valor_variavel": {
+      "type": "boolean",
+      "default": false,
+      "description": "Cobran\u00e7a por uso: o valor mensal \u00e9 estimativa"
+    },
+    "dia_vencimento": {
+      "type": "number",
+      "description": "Dia do m\u00eas (1 a 31); em meses mais curtos vale o \u00faltimo dia"
+    },
+    "forma_pagamento": {
+      "type": "string",
+      "description": "Ex.: cart\u00e3o final 1234, boleto, Pix"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ativo",
+        "pausado"
+      ],
+      "default": "ativo"
+    },
+    "link_painel": {
+      "type": "string",
+      "description": "URL do painel/cobran\u00e7a do servi\u00e7o"
+    },
+    "observacoes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "nome",
+    "valor_mensal",
+    "moeda",
+    "dia_vencimento"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

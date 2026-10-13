@@ -1,0 +1,60 @@
+{
+  "name": "CustoPagamento",
+  "type": "object",
+  "properties": {
+    "custo_id": {
+      "type": "string",
+      "description": "CustoSistema pago"
+    },
+    "competencia": {
+      "type": "string",
+      "description": "M\u00eas de refer\u00eancia AAAA-MM"
+    },
+    "valor_pago": {
+      "type": "number"
+    },
+    "moeda": {
+      "type": "string",
+      "enum": [
+        "BRL",
+        "USD",
+        "EUR"
+      ]
+    },
+    "data_pagamento": {
+      "type": "string",
+      "format": "date"
+    },
+    "observacoes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "custo_id",
+    "competencia",
+    "valor_pago",
+    "data_pagamento"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
