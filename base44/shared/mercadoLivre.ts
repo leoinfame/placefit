@@ -320,8 +320,9 @@ export function montarAtributos(t: any, config: any, attrs: any[]): { atributos:
   if (tem("MODEL")) atributos.push({ id: "MODEL", value_name: clean(t?.grupo_variacao || t?.nome, 255) });
 
   const peso = pesoKg(t);
-  for (const a of attrs.filter((x) => /WEIGHT/.test(x.id) && x.value_type === "number_unit")) {
-    if (peso) atributos.push({ id: a.id, value_name: `${peso} kg` });
+  // Só o peso do produto (não embalagem, não espessura)
+  for (const id of ["TOTAL_WEIGHT", "WEIGHT"]) {
+    if (peso && tem(id)) atributos.push({ id, value_name: `${peso} kg` });
   }
 
   if (tem("UNITS_PER_PACK")) atributos.push({ id: "UNITS_PER_PACK", value_name: /\(par\)|\bpar\b/i.test(nomeTxt) ? "2" : "1" });
