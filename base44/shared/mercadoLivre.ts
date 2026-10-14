@@ -243,7 +243,7 @@ export async function precoComComissao(accessToken: string | null, categoryId: s
 // Monta o payload do anuncio no ML a partir de um SupplierProduct + ProductTemplate.
 // Retorna null quando o produto nao pode ser exportado (sem foto ou sem preco).
 // precoFinal: preço já com a comissão (da prévia); sem ele usa o preço da loja.
-export function buildItemML(sp: any, t: any, config: any, categoryId: string, precoFinal?: number) {
+export function buildItemML(sp: any, t: any, config: any, categoryId: string, precoFinal?: number, atributos?: any[]) {
   const preco = precoFinal || computeStorePrice(sp);
   if (!preco || preco <= 0) return null;
   if (!isHttps(t.foto)) return null;
@@ -275,6 +275,7 @@ export function buildItemML(sp: any, t: any, config: any, categoryId: string, pr
     listing_type_id: "gold_special", // Clássico
     description: { plain_text: descricao },
     pictures: [{ source: t.foto.trim() }],
+    ...(atributos && atributos.length ? { attributes: atributos } : {}),
     shipping: {
       mode: "custom",
       local_pick_up: true, // Sem frete gratis - combinado com o vendedor
