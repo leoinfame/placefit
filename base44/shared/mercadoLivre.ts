@@ -113,7 +113,9 @@ export async function getValidToken(base44, config: any): Promise<string> {
 
   // Renovar
   if (!config.ml_refresh_token) {
-    throw new Error("Refresh token ausente - reconecte o Mercado Livre");
+    // 13/10: o ML só devolve refresh_token quando o app PlaceFit no ML Developers tem a permissão
+    // "offline_access". Sem ela a conexão vale só 6 h e cai sozinha, por isso o token "sumia".
+    throw new Error("Refresh token ausente - o Mercado Livre não devolveu o token de renovação. Ative a permissão offline_access no app do ML Developers e reconecte o Mercado Livre");
   }
 
   const tokens = await refreshToken(config.ml_refresh_token);
@@ -280,6 +282,76 @@ export function buildItemML(sp: any, t: any, config: any, categoryId: string, pr
   };
 }
 
+// ── Atributos obrigatórios da categoria (13/10) ──
+// O ML recusa o anúncio quando falta atributo obrigatório (na categoria Anilhas MLB67502: Marca e
+// Peso total; GTIN/motivo e quantidade por embalagem são condicionais). Busca a lista da categoria
+// e preenche o que dá a partir do cadastro; o que não dá volta como motivo claro de falha.
+const attrCache: Record<string, any[]> = {};
+export async function atributosDaCategoria(categoryId: string): Promise<any[]> {
+  if (attrCache[categoryId]) return attrCache[categoryId];
+  try {
+    const res = await fetch(`${ML_API}/categories/${encodeURIComponent(categoryId)}/attributes`);
+    const data = res.ok ? await res.json() : [];
+    attrCache[categoryId] = Array.isArray(data) ? data : [];
+  } catch (e) {
+    console.error("atributosDaCategoria:", e);
+    attrCache[categoryId] = [];
+  }
+  return attrCache[categoryId];
+}
+
+const pesoKg = (t: any): number | null => {
+  const n = Number(t?.peso_kg);
+  if (Number.isFinite(n) && n > 0) return n;
+  const m = String(t?.variacao_rotulo || t?.nome || "").replace(",", ".").match(/(\d+(?:\.\d+)?)\s*kg\b/i);
+  return m ? Number(m[1]) : null;
+};
+
+export function montarAtributos(t: any, config: any, attrs: any[]): { atributos: any[]; faltando: string[] } {
+  const atributos: any[] = [];
+  const faltando: string[] = [];
+  const tem = (id: string) => attrs.some((a) => a.id === id);
+  const obrig = (a: any) => a?.tags?.required || a?.tags?.catalog_required;
+  const nomeTxt = `${t?.nome || ""} ${t?.variacao_rotulo || ""}`;
+
+  const marca = clean(t?.marca) || clean(config?.nome_loja) || "Genérica";
+  if (tem("BRAND")) atributos.push({ id: "BRAND", value_name: marca });
+  if (tem("MODEL")) atributos.push({ id: "MODEL", value_name: clean(t?.grupo_variacao || t?.nome, 255) });
+
+  const peso = pesoKg(t);
+  for (const a of attrs.filter((x) => /WEIGHT/.test(x.id) && x.value_type === "number_unit")) {
+    if (peso) atributos.push({ id: a.id, value_name: `${peso} kg` });
+  }
+
+  if (tem("UNITS_PER_PACK")) atributos.push({ id: "UNITS_PER_PACK", value_name: /\(par\)|\bpar\b/i.test(nomeTxt) ? "2" : "1" });
+
+  const gtin = clean(t?.gtin);
+  if (gtin && tem("GTIN")) atributos.push({ id: "GTIN", value_name: gtin });
+  else if (tem("EMPTY_GTIN_REASON")) {
+    const motivo = attrs.find((a) => a.id === "EMPTY_GTIN_REASON")?.values?.find((v: any) => /não tem código|no tiene código/i.test(v.name));
+    if (motivo) atributos.push({ id: "EMPTY_GTIN_REASON", value_id: String(motivo.id) });
+  }
+
+  const preenchidos = new Set(atributos.map((a) => a.id));
+  for (const a of attrs) {
+    if (obrig(a) && !preenchidos.has(a.id)) faltando.push(a.name || a.id);
+  }
+  return { atributos, faltando };
+}
+
+// Mensagem legível a partir do erro da API do ML (todas as causas, não só a primeira).
+const CAUSAS_CONHECIDAS: Record<string, string> = {
+  address_pending: "a conta do Mercado Livre está sem endereço cadastrado (cadastre em Minha conta > Meus dados > Endereços no ML)",
+};
+export function mensagemErroML(data: any, status: number): string {
+  const causas = Array.isArray(data?.cause) ? data.cause : [];
+  const partes = causas
+    .map((c: any) => (typeof c === "string" ? CAUSAS_CONHECIDAS[c] || c : c?.message || c?.code))
+    .filter(Boolean);
+  const base = data?.message === "seller.unable_to_list" ? "Conta do ML impedida de anunciar" : data?.message || `HTTP ${status}`;
+  return partes.length ? `${base}: ${partes.join("; ")}` : base;
+}
+
 export async function createListing(accessToken: string, item: any) {
   const res = await fetch(`${ML_API}/items`, {
     method: "POST",
@@ -292,13 +364,20 @@ export async function createListing(accessToken: string, item: any) {
 
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const msg =
-      data.message ||
-      (Array.isArray(data.cause) && data.cause[0]?.message) ||
-      `HTTP ${res.status}`;
+    const msg = mensagemErroML(data, res.status);
+    // 13/10: grava o erro completo no log (antes nada ficava registrado e não dava para saber o motivo)
+    console.error("ML createListing falhou:", res.status, item?.title, JSON.stringify(data).slice(0, 2000));
     return { success: false, error: msg };
   }
   return { success: true, item_id: data.id, permalink: data.permalink };
+}
+
+// Situação da conta: se o ML permite anunciar e, se não, por quê.
+export function contaPodeAnunciar(userInfo: any): { ok: boolean; motivo?: string } {
+  const list = userInfo?.status?.list;
+  if (!list || list.allow !== false) return { ok: true };
+  const codigos: string[] = Array.isArray(list.codes) ? list.codes : [];
+  return { ok: false, motivo: mensagemErroML({ message: "seller.unable_to_list", cause: codigos }, 403) };
 }
 
 // Atualiza preço de um anúncio que já existe (não mexe em título, foto nem status:
@@ -311,7 +390,8 @@ export async function updateListingPrice(accessToken: string, itemId: string, pr
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const msg = data.message || (Array.isArray(data.cause) && data.cause[0]?.message) || `HTTP ${res.status}`;
+    const msg = mensagemErroML(data, res.status);
+    console.error("ML updateListingPrice falhou:", res.status, itemId, JSON.stringify(data).slice(0, 2000));
     return { success: false, error: msg };
   }
   return { success: true, item_id: data.id, permalink: data.permalink, status: data.status };
