@@ -116,6 +116,22 @@ DB.User = Object.values(USERS);
   r = await chamar(adm, 'admin', { userId: 'outro', data: { aprovado: false } });
   r = await chamar(lista, 'dono', {});
   passo('getFabricantes: desaprovado pelo admin sai', !(r.corpo.fabricantes || []).some((f: any) => f.id === 'outro'));
+
+  // Origem 'entidade' (menu Fabricantes do revendedor, item 005 de 14/10)
+  DB.Fabricante = [
+    { id: 'FSEM', nome_fantasia: 'Sem Conta', aprovado: true, ativo: true, user_id: null },
+    { id: 'FPEND', nome_fantasia: 'Conta Pendente', aprovado: true, ativo: true, user_id: 'outro' },
+    { id: 'FTESTE', nome_fantasia: 'Teste', aprovado: false, ativo: true, user_id: 'dono' },
+    { id: 'FINAT', nome_fantasia: 'Inativo', aprovado: true, ativo: false, user_id: null },
+  ];
+  r = await chamar(lista, null, { origem: 'entidade' });
+  passo('getFabricantes entidade: sem login 401', r.status === 401, r);
+  r = await chamar(lista, 'dono', { origem: 'entidade' });
+  const idsEnt = (r.corpo.fabricantes || []).map((f: any) => f.id).sort();
+  passo('getFabricantes entidade: so aprovado e ativo, com ou sem conta', JSON.stringify(idsEnt) === JSON.stringify(['FPEND', 'FSEM']), idsEnt);
+  passo('getFabricantes entidade: leva user_id da conta', (r.corpo.fabricantes || []).find((f: any) => f.id === 'FPEND')?.user_id === 'outro', r.corpo);
+  r = await chamar(lista, 'dono', {});
+  passo('getFabricantes padrao: continua por conta de usuario', !(r.corpo.fabricantes || []).some((f: any) => String(f.id).startsWith('F')), r.corpo);
 }
 
 // ---- 6. contratarRecurso
