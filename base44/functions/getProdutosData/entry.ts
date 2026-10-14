@@ -112,8 +112,12 @@ Deno.serve(async (req) => {
       }
       // Fabricante entity (importadas pelo admin via fabricante_id, sem user_id)
       const fabNameByEntityId = {};
+      // 14/10 (item 005): id da entidade Fabricante a partir da conta, para o menu Fabricantes
+      // do revendedor casar preços por id (antes era só por nome)
+      const entityIdByUserId = {};
       for (const f of fabricanteEntities) {
         fabNameByEntityId[f.id] = f.nome_fantasia || f.razao_social || 'Fabricante';
+        if (f.user_id && !entityIdByUserId[f.user_id]) entityIdByUserId[f.user_id] = f.id;
       }
 
       for (const sp of allSpsRaw) {
@@ -130,6 +134,7 @@ Deno.serve(async (req) => {
         pricesByProduct[sp.product_id].push({
           preco: applyMargem(sp.preco, margemMaps, sp.fabricante_id, sp.supplier_id),
           fabricante_nome: fabNome,
+          fab_id: (sp.fabricante_id && fabNameByEntityId[sp.fabricante_id]) ? sp.fabricante_id : (entityIdByUserId[sp.supplier_id] || null),
           preco_origem: sp.preco,
         });
       }
