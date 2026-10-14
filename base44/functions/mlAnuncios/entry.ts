@@ -26,9 +26,13 @@ import {
   getItem,
   precoComComissao,
   tituloML,
+  atributosDaCategoria,
+  montarAtributos,
+  getUserInfo,
+  contaPodeAnunciar,
 } from "../../shared/mercadoLivre.ts";
 
-const BUILD = "2026-10-13-ml-anuncios-v1";
+const BUILD = "2026-10-13-ml-anuncios-v2-atributos";
 const MAX_ITENS = 200;
 const isHttps = (u: any) => typeof u === "string" && /^https:\/\/\S+$/i.test(u.trim());
 const pausa = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -58,6 +62,10 @@ export default async function (req) {
     if (!config) return Response.json({ error: "Loja não encontrada" }, { status: 404 });
     if (!config.ml_user_id) return Response.json({ error: "Mercado Livre não conectado" }, { status: 400 });
     const accessToken = await getValidToken(base44, config);
+
+    // 13/10: verifica se a conta do ML pode anunciar (ex.: sem endereço o ML bloqueia tudo com
+    // seller.unable_to_list / address_pending). Mostra o aviso na prévia e não tenta enviar.
+    const situacaoConta = contaPodeAnunciar(await getUserInfo(accessToken).catch(() => null));
 
     const sps = await fetchAllPaged((sort, limit, skip) =>
       db.SupplierProduct.filter({ supplier_id: revendedorId, id: { $in: spIds } }, sort, limit, skip));
@@ -110,6 +118,10 @@ export default async function (req) {
       if (!cat) { itens.push({ ...linha, ok: false, erro: "Categoria do ML não encontrada" }); continue; }
       const p = await precoComComissao(accessToken, cat, base, pctManual);
       if (!p.ok) { itens.push({ ...linha, ok: false, erro: p.erro }); continue; }
+      // Atributos obrigatórios da categoria (Marca, Peso total etc.)
+      const { atributos, faltando } = montarAtributos(t, config, await atributosDaCategoria(cat));
+      if (faltando.length) { itens.push({ ...linha, ok: false, erro: `Falta no cadastro, exigido pelo ML nesta categoria: ${faltando.join(", ")}` }); continue; }
+      linha.atributos = atributos;
       const existente = anuncioPorSp[id];
       itens.push({
         ...linha,
@@ -135,6 +147,8 @@ export default async function (req) {
         build: BUILD,
         acao,
         conta: config.ml_nickname || null,
+        conta_pode_anunciar: situacaoConta.ok,
+        aviso_conta: situacaoConta.ok ? null : situacaoConta.motivo,
         total: itens.length,
         prontos: itens.filter((i) => i.ok).length,
         itens: itens.map(publico),
@@ -142,6 +156,13 @@ export default async function (req) {
     }
 
     // ── Exportar ──
+    if (!situacaoConta.ok) {
+      const motivo = situacaoConta.motivo || "Conta do ML impedida de anunciar";
+      return Response.json({
+        build: BUILD, acao, total: itens.length, criados: 0, atualizados: 0, falhas: itens.length, aviso_conta: motivo,
+        results: itens.map((i) => ({ ...publico(i), success: false, error: i.ok ? motivo : i.erro })),
+      });
+    }
     const precosPrevia = body.precos && typeof body.precos === "object" ? body.precos : {};
     const agora = () => new Date().toISOString();
     const results: any[] = [];
@@ -192,7 +213,7 @@ export default async function (req) {
         }
       }
 
-      const item = buildItemML(i._sp, i._t, config, i.categoria_ml, i.preco_final);
+      const item = buildItemML(i._sp, i._t, config, i.categoria_ml, i.preco_final, i.atributos);
       r = item ? await createListing(accessToken, item) : { success: false, error: "Produto sem foto HTTPS ou preço inválido" };
       if (r.success) {
         const dados = { ...registro, ml_item_id: r.item_id, permalink: r.permalink || "", preco_enviado: i.preco_final, status: "active", erro: "" };
