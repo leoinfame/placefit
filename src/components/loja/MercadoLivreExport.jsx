@@ -379,6 +379,11 @@ export default function MercadoLivreExport({ config, onSaved }) {
 
             {previa && (
               <div className="space-y-3">
+                {previa?.aviso_conta && (
+                  <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800">
+                    <strong>O Mercado Livre não está deixando esta conta anunciar.</strong> {previa.aviso_conta}. Resolva isso na conta do Mercado Livre e gere a prévia de novo.
+                  </div>
+                )}
                 <div className="overflow-x-auto border rounded-lg">
                   <table className="w-full text-sm">
                     <thead className="bg-gray-50 text-xs text-gray-600">
@@ -425,7 +430,7 @@ export default function MercadoLivreExport({ config, onSaved }) {
                     ))}
                   </div>
                 )}
-                <Button onClick={exportar} disabled={exporting || !prontos.length} className="bg-yellow-500 hover:bg-yellow-600 text-white">
+                <Button onClick={exportar} disabled={exporting || !prontos.length || previa?.conta_pode_anunciar === false} className="bg-yellow-500 hover:bg-yellow-600 text-white">
                   {exporting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <ShoppingBag className="w-4 h-4 mr-2" />}
                   {exporting ? "Enviando..." : `Confirmar e enviar ${prontos.length} ao Mercado Livre`}
                 </Button>
@@ -436,6 +441,9 @@ export default function MercadoLivreExport({ config, onSaved }) {
           {/* Resultado */}
           {results && (
             <div className="border rounded-xl p-4 space-y-3">
+              {results.aviso_conta && (
+                <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800">{results.aviso_conta}</div>
+              )}
               <div className="flex items-center gap-4 flex-wrap">
                 <span className="flex items-center gap-2 text-green-600 font-medium"><Check className="w-4 h-4" />{results.criados || 0} criados</span>
                 <span className="flex items-center gap-2 text-blue-600 font-medium"><Check className="w-4 h-4" />{results.atualizados || 0} atualizados</span>

@@ -16,8 +16,10 @@ export default function LojaRevendedor() {
     return p.get("ml_connected") || p.get("ml_error") ? "conexoes" : "loja";
   });
 
-  const load = async () => {
-    setLoading(true);
+  const load = async (silencioso = false) => {
+    // 13/10: recarga silenciosa (sem spinner) quando a tela já está aberta. O spinner desmontava a
+    // janela de Conexões externas e a lista de resultados do Mercado Livre sumia logo após o envio.
+    if (!silencioso) setLoading(true);
     try {
       const u = await base44.auth.me();
       setUser(u);
@@ -74,7 +76,7 @@ export default function LojaRevendedor() {
 
         {/* WhatsApp, Google e Mercado Livre: as telas de configuração antigas abrem pelo "Configurar" de cada card */}
         <TabsContent value="conexoes">
-          <ConexoesExternas config={config} onSaved={load} onAbrirLoja={() => setTab("loja")} />
+          <ConexoesExternas config={config} onSaved={() => load(true)} onAbrirLoja={() => setTab("loja")} />
         </TabsContent>
 
         <TabsContent value="pedidos">
