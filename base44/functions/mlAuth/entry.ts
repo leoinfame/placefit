@@ -79,10 +79,16 @@ export default async function (req) {
       console.error("getUserInfo:", e);
     }
 
+    // 13/10: o ML só devolve refresh_token quando o app tem a permissão "offline_access" no
+    // ML Developers. Sem ela a conexão expira em 6 h. Fica registrado no log para diagnóstico.
+    if (!tokens.refresh_token) {
+      console.error("mlAuth: o Mercado Livre não devolveu refresh_token (app sem offline_access?). scope:", tokens.scope || "(vazio)");
+    }
+
     // Salvar tokens na LojaConfig
     await base44.asServiceRole.entities.LojaConfig.update(config.id, {
       ml_access_token: tokens.access_token,
-      ml_refresh_token: tokens.refresh_token,
+      ml_refresh_token: tokens.refresh_token || "",
       ml_expires_at: new Date(
         Date.now() + (tokens.expires_in || 21600) * 1000,
       ).toISOString(),
