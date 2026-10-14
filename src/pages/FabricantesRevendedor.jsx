@@ -25,6 +25,21 @@ const normalizeName = (s) => (s || "")
   .replace(/\s+/g, " ")
   .trim();
 
+// 14/10 (item 005): o menu lista a entidade Fabricante. O preço pertence ao fabricante quando o
+// id da entidade bate (fab_id, vindo do getProdutosData); só cai na comparação por nome quando o
+// preço não tem fab_id.
+const precoDoFabricante = (p, fabricante) => {
+  if (!p || !fabricante) return false;
+  if (p.fab_id) return p.fab_id === fabricante.id;
+  const fabNorm = normalizeName(fabricante.nome_fantasia || fabricante.razao_social || fabricante.empresa || fabricante.full_name);
+  const pNorm = normalizeName(p.fabricante_nome);
+  if (!fabNorm || !pNorm) return false;
+  return fabNorm.includes(pNorm) || pNorm.includes(fabNorm);
+};
+
+// Chat, base de conhecimento e histórico foram gravados com o id da CONTA do fabricante.
+const idDaConta = (fabricante) => fabricante?.user_id || fabricante?.id;
+
 const GROUP_FIELDS = [
   "categoria", "subcategoria", "tipo_anilha", "tipo_furo", "acabamento",
   "barra_formato", "barra_acabamento", "presilha_tipo", "comprimento_m",
@@ -136,6 +151,7 @@ export default function FabricantesRevendedor() {
       setFilteredFabricantes(
         fabricantes.filter(f =>
           f.empresa?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          f.razao_social?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           f.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
         )
       );
@@ -155,7 +171,7 @@ export default function FabricantesRevendedor() {
 
       // Usar função backend com service role
       console.log("🔍 Buscando fabricantes via backend...");
-      const response = await base44.functions.invoke('getFabricantes', {});
+      const response = await base44.functions.invoke('getFabricantes', { origem: 'entidade' });
       
       console.log("📦 Resposta recebida:", response);
       
@@ -260,15 +276,11 @@ export default function FabricantesRevendedor() {
       const data = res.data || res;
       const templatesAll = expandTemplates(data.templates || [], data.fieldMap);
       const pricesByProduct = data.pricesByProduct || {};
-      const fabNomeBusca = fabricante.nome_fantasia || fabricante.razao_social || fabricante.empresa || fabricante.full_name;
-      const fabNormBusca = normalizeName(fabNomeBusca);
       const fabricanteProducts = [];
       for (const tmpl of templatesAll) {
-        const precos = (pricesByProduct[tmpl.id] || []).filter(p => {
-          const pNorm = normalizeName(p && p.fabricante_nome);
-          if (!fabNormBusca || !pNorm) return false;
-          return fabNormBusca.includes(pNorm) || pNorm.includes(fabNormBusca);
-        }).map(p => Number(p.preco_origem)).filter(n => n > 0);
+        const precos = (pricesByProduct[tmpl.id] || [])
+          .filter(p => precoDoFabricante(p, fabricante))
+          .map(p => Number(p.preco_origem)).filter(n => n > 0);
         if (precos.length === 0) continue;
         fabricanteProducts.push({
           _key: tblKey(tmpl),
@@ -556,12 +568,12 @@ export default function FabricantesRevendedor() {
       // Buscar produtos do fabricante
       const allProducts = await base44.entities.Product.list();
       const products = allProducts.filter(
-        p => p.fabricante_id === selectedFabricante.id && p.aprovado_produto === true && p.ativo !== false
+        p => p.fabricante_id === idDaConta(selectedFabricante) && p.aprovado_produto === true && p.ativo !== false
       );
 
       // Buscar base de conhecimento
       const allKnowledge = await base44.entities.AIKnowledge.filter({ 
-        fabricante_id: selectedFabricante.id,
+        fabricante_id: idDaConta(selectedFabricante),
         ativo: true
       });
       
@@ -578,7 +590,7 @@ ${k.conteudo}
 
       // Buscar histórico de conversas aprovadas
       const allHistory = await base44.entities.ChatHistory.filter({
-        fabricante_id: selectedFabricante.id
+        fabricante_id: idDaConta(selectedFabricante)
       });
       
       const approvedHistory = allHistory.filter(h => 
@@ -701,7 +713,7 @@ RESPONDA EM PORTUGUÊS BRASILEIRO DE FORMA PROFISSIONAL E COMERCIAL.
 
       // Salvar histórico
       await base44.entities.ChatHistory.create({
-        fabricante_id: selectedFabricante.id,
+        fabricante_id: idDaConta(selectedFabricante),
         fabricante_nome: selectedFabricante.empresa || selectedFabricante.full_name,
         user_message: userMessage,
         agent_response: assistantMessage,
@@ -730,17 +742,9 @@ RESPONDA EM PORTUGUÊS BRASILEIRO DE FORMA PROFISSIONAL E COMERCIAL.
       const templates = expandTemplates(data.templates || [], data.fieldMap);
       const pricesByProduct = data.pricesByProduct || {};
 
-      const fabNome = fabricante.nome_fantasia || fabricante.razao_social || fabricante.empresa || fabricante.full_name;
-      const fabNorm = normalizeName(fabNome);
-
-      const matchingTemplates = templates.filter(tmpl => {
-        const prices = pricesByProduct[tmpl.id] || [];
-        return prices.some(p => {
-          const pNorm = normalizeName(p && p.fabricante_nome);
-          if (!fabNorm || !pNorm) return false;
-          return fabNorm.includes(pNorm) || pNorm.includes(fabNorm);
-        });
-      });
+      const matchingTemplates = templates.filter(tmpl =>
+        (pricesByProduct[tmpl.id] || []).some(p => precoDoFabricante(p, fabricante))
+      );
 
       const groupsMap = new Map();
       for (const tmpl of matchingTemplates) {
@@ -968,8 +972,8 @@ RESPONDA EM PORTUGUÊS BRASILEIRO DE FORMA PROFISSIONAL E COMERCIAL.
                     </Button>
 
                     <ComissaoConfig
-                      fabricanteNome={fabricante.empresa || fabricante.full_name}
-                      fabricanteId={fabricante.id}
+                      fabricanteNome={fabricante.nome_conta || fabricante.empresa || fabricante.full_name}
+                      fabricanteId={idDaConta(fabricante)}
                       revendedorId={user?.id}
                     />
                   </div>
