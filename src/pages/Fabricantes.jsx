@@ -2337,6 +2337,7 @@ export default function Fabricantes() {
         {/* Dialog de Novo Produto (guiado por template) */}
         {showTemplateDialog && selectedFabricante && (
           <ProdutoTemplateDialog
+            open={showTemplateDialog}
             fabricante={selectedFabricante}
             onClose={() => setShowTemplateDialog(false)}
             onSaved={() => {
