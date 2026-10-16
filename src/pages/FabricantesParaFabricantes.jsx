@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
+import { gerarTabelaRevenda } from "@/components/fabricantes/tabelaRevenda";
 
 export default function FabricantesParaFabricantes() {
   const [user, setUser] = useState(null);
@@ -55,8 +56,8 @@ export default function FabricantesParaFabricantes() {
       setUser(currentUser);
 
       // Usar função backend com service role - excluir o próprio fabricante
-      const { getFabricantes } = await import('@/functions/getFabricantes');
-      const response = await getFabricantes();
+      // Item 008: o import antigo de '@/functions/...' gerava "x is not a function"; usa a chamada atual do SDK
+      const response = await base44.functions.invoke('getFabricantes', {});
       
       // A resposta vem como axios response: response.data.fabricantes
       const fabricantesList = (response?.data?.fabricantes || [])
@@ -84,172 +85,8 @@ export default function FabricantesParaFabricantes() {
     setLoading(false);
   };
 
-  const downloadFabricanteTable = async (fabricante) => {
-    setDownloadingTable(fabricante.id);
-    try {
-      // Usar função backend com service role
-      const { getFabricanteProducts } = await import('@/functions/getFabricanteProducts');
-      const response = await getFabricanteProducts({ fabricante_id: fabricante.id });
-      const fabricanteProducts = response?.data?.products || [];
-
-      if (fabricanteProducts.length === 0) {
-        toast({
-          title: "Sem produtos",
-          description: "Este fabricante não possui produtos aprovados.",
-        });
-        setDownloadingTable(null);
-        return;
-      }
-
-      const { jsPDF } = await import('jspdf');
-      const doc = new jsPDF('p', 'mm', 'a4');
-      
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const pageHeight = doc.internal.pageSize.getHeight();
-      const margin = 15;
-      let yPosition = margin;
-
-      // Logo e cabeçalho
-      if (fabricante.logomarca) {
-        try {
-          doc.addImage(fabricante.logomarca, 'PNG', margin, yPosition, 30, 30);
-          yPosition += 35;
-        } catch (e) {
-          console.log("Erro ao adicionar logo, continuando sem logo");
-        }
-      }
-
-      doc.setFontSize(18);
-      doc.setFont(undefined, 'bold');
-      doc.text(fabricante.empresa || fabricante.full_name, margin, yPosition);
-      yPosition += 8;
-
-      doc.setFontSize(9);
-      doc.setFont(undefined, 'normal');
-      if (fabricante.endereco) {
-        doc.text(fabricante.endereco, margin, yPosition);
-        yPosition += 5;
-      }
-      if (fabricante.whatsapp) {
-        doc.text(`WhatsApp: ${fabricante.whatsapp}`, margin, yPosition);
-        yPosition += 5;
-      }
-      if (fabricante.site) {
-        doc.text(`Site: ${fabricante.site}`, margin, yPosition);
-        yPosition += 5;
-      }
-
-      yPosition += 5;
-      doc.setLineWidth(0.5);
-      doc.line(margin, yPosition, pageWidth - margin, yPosition);
-      yPosition += 8;
-
-      doc.setFontSize(14);
-      doc.setFont(undefined, 'bold');
-      doc.text('Tabela de Produtos', margin, yPosition);
-      yPosition += 10;
-
-      // Cabeçalho da tabela
-      doc.setFontSize(8);
-      doc.setFont(undefined, 'bold');
-      doc.setFillColor(240, 240, 240);
-      doc.rect(margin, yPosition - 5, pageWidth - 2 * margin, 7, 'F');
-      
-      const colWidths = {
-        cod: 22,
-        nome: 60,
-        categoria: 25,
-        und: 15,
-        peso: 18,
-        dim: 25,
-        preco: 20
-      };
-
-      let xPos = margin + 2;
-      doc.text('Código', xPos, yPosition);
-      xPos += colWidths.cod;
-      doc.text('Nome do Produto', xPos, yPosition);
-      xPos += colWidths.nome;
-      doc.text('Categoria', xPos, yPosition);
-      xPos += colWidths.categoria;
-      doc.text('Und', xPos, yPosition);
-      xPos += colWidths.und;
-      doc.text('Peso (kg)', xPos, yPosition);
-      xPos += colWidths.peso;
-      doc.text('Dimensões', xPos, yPosition);
-      xPos += colWidths.dim;
-      doc.text('Preço (R$)', xPos, yPosition);
-      
-      yPosition += 8;
-
-      // Produtos
-      doc.setFont(undefined, 'normal');
-      doc.setFontSize(7);
-
-      fabricanteProducts.forEach((product, index) => {
-        if (yPosition > pageHeight - 20) {
-          doc.addPage();
-          yPosition = margin;
-        }
-
-        if (index % 2 === 0) {
-          doc.setFillColor(250, 250, 250);
-          doc.rect(margin, yPosition - 4, pageWidth - 2 * margin, 6, 'F');
-        }
-
-        xPos = margin + 2;
-        doc.text(product.cod || '', xPos, yPosition);
-        xPos += colWidths.cod;
-        
-        const nomeTruncado = (product.nome || '').length > 40 
-          ? product.nome.substring(0, 37) + '...' 
-          : product.nome || '';
-        doc.text(nomeTruncado, xPos, yPosition);
-        xPos += colWidths.nome;
-        
-        doc.text(product.categoria || '', xPos, yPosition);
-        xPos += colWidths.categoria;
-        doc.text(product.und || '', xPos, yPosition);
-        xPos += colWidths.und;
-        doc.text(product.peso ? product.peso.toString() : '', xPos, yPosition);
-        xPos += colWidths.peso;
-        doc.text(product.dimensoes || '', xPos, yPosition);
-        xPos += colWidths.dim;
-        doc.text(product.preco_fabricante ? `R$ ${product.preco_fabricante.toFixed(2)}` : '', xPos, yPosition);
-        
-        yPosition += 6;
-      });
-
-      // Rodapé
-      const totalPages = doc.internal.pages.length - 1;
-      for (let i = 1; i <= totalPages; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.setFont(undefined, 'normal');
-        doc.text(
-          `Página ${i} de ${totalPages} - Gerado em ${new Date().toLocaleDateString('pt-BR')}`,
-          pageWidth / 2,
-          pageHeight - 10,
-          { align: 'center' }
-        );
-      }
-
-      doc.save(`tabela_${fabricante.empresa || fabricante.full_name}_${new Date().toISOString().split('T')[0]}.pdf`);
-
-      toast({
-        title: "Download concluído!",
-        description: `Tabela de ${fabricante.empresa || fabricante.full_name} baixada com sucesso.`,
-      });
-    } catch (error) {
-      console.error("Erro ao baixar tabela:", error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível baixar a tabela.",
-        variant: "destructive",
-      });
-    }
-    setDownloadingTable(null);
-  };
+  // Item 008: mesma tabela no MODELO NOVO da revenda
+  const downloadFabricanteTable = (fabricante) => gerarTabelaRevenda(fabricante, { toast, setDownloadingTable });
 
   const openCatalogo = async (fabricante) => {
     setSelectedFabricante(fabricante);
@@ -258,8 +95,7 @@ export default function FabricantesParaFabricantes() {
 
     try {
       // Usar função backend com service role
-      const { getFabricanteProducts } = await import('@/functions/getFabricanteProducts');
-      const response = await getFabricanteProducts({ fabricante_id: fabricante.id });
+      const response = await base44.functions.invoke('getFabricanteProducts', { fabricante_id: fabricante.id });
       const fabricanteProducts = response?.data?.products || [];
       setCatalogoProducts(fabricanteProducts);
     } catch (error) {
