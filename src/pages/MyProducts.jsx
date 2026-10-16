@@ -238,7 +238,10 @@ export default function MyProducts() {
     }
     if (catalogFabricante !== "all") {
       if (catalogFabricante === "admin") filtered = filtered.filter(p => !p.fabricante_id);
-      else filtered = filtered.filter(p => p.fabricante_id === catalogFabricante);
+      else {
+        const fSel = fabricantes.find(f => f.id === catalogFabricante);
+        filtered = filtered.filter(p => p.fabricante_id === catalogFabricante || (fSel?.user_id && p.fabricante_id === fSel.user_id));
+      }
     }
     if (catalogOrigin !== "all") filtered = filtered.filter(p => (p.origem || "nacional") === catalogOrigin);
     if (catalogPriceMin !== "") filtered = filtered.filter(p => (p.preco_fabricante || 0) >= parseFloat(catalogPriceMin));
@@ -270,7 +273,10 @@ export default function MyProducts() {
     }
     if (myFabricante !== "all") {
       if (myFabricante === "admin") filtered = filtered.filter(p => !p.fabricante_id);
-      else filtered = filtered.filter(p => p.fabricante_id === myFabricante);
+      else {
+        const fSel = fabricantes.find(f => f.id === myFabricante);
+        filtered = filtered.filter(p => p.fabricante_id === myFabricante || (fSel?.user_id && p.fabricante_id === fSel.user_id));
+      }
     }
     if (myStatus !== "all") {
       filtered = filtered.filter(p => {
