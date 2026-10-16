@@ -4,6 +4,7 @@ import { Users, Search, Mail, Phone, Building, Eye, Package, CheckCircle, Copy, 
 import VincularUsuarioDialog from "@/components/fabricantes/VincularUsuarioDialog";
 import AcordoComercialCard from "@/components/fabricantes/AcordoComercialCard";
 import ProdutoTemplateDialog from "@/components/fabricantes/ProdutoTemplateDialog";
+import { gerarTabelaRevenda } from "@/components/fabricantes/tabelaRevenda";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -500,7 +501,10 @@ export default function Fabricantes() {
     window.print();
   };
 
-  const handleExportPDF = () => {
+  // Item 008: "Baixar tabela" usa o MODELO NOVO da revenda (mesmo gerador do menu Fabricantes do revendedor)
+  const handleExportPDF = () => gerarTabelaRevenda(selectedFabricante, { toast });
+
+  const handleExportPDFLegado = () => {
     const printWindow = window.open('', '_blank');
     const logoHtml = selectedFabricante.logomarca 
       ? `<img src="${selectedFabricante.logomarca}" alt="Logo" style="width: 80px; height: 80px; object-fit: contain; margin-right: 20px;" />`
@@ -1231,7 +1235,7 @@ export default function Fabricantes() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => viewFabricanteTable(fabricante)}
+                            onClick={() => gerarTabelaRevenda(fabricante, { toast })}
                             className="hover:bg-indigo-50 hover:text-indigo-700"
                             title="Ver tabela"
                           >
