@@ -178,6 +178,17 @@ export default function AdminProdutos() {
     });
   }, [allSps, templateMap, supplierMap, spCatFilter, spSearch]);
 
+  // Item 008: paginacao — renderizar as 4.500+ linhas de uma vez derrubava o app
+  const SP_PAGE_SIZE = 100;
+  const [spPage, setSpPage] = useState(0);
+  useEffect(() => { setSpPage(0); }, [spSearch, spCatFilter]);
+  const spTotalPages = Math.max(1, Math.ceil(filteredSps.length / SP_PAGE_SIZE));
+  const spPageSafe = Math.min(spPage, spTotalPages - 1);
+  const pagedSps = useMemo(
+    () => filteredSps.slice(spPageSafe * SP_PAGE_SIZE, (spPageSafe + 1) * SP_PAGE_SIZE),
+    [filteredSps, spPageSafe]
+  );
+
   const handleSaveSp = async () => {
     setSavingSp(true);
     try {
@@ -209,7 +220,7 @@ export default function AdminProdutos() {
   };
 
   // --- Bulk SupplierProduct Actions ---
-  const visibleSpIds = filteredSps.map(sp => sp.id);
+  const visibleSpIds = pagedSps.map(sp => sp.id);
   const allSpsSelected = visibleSpIds.length > 0 && visibleSpIds.every(id => selectedSps.has(id));
   const someSpsSelected = visibleSpIds.some(id => selectedSps.has(id));
 
@@ -390,7 +401,7 @@ export default function AdminProdutos() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredSps.map(sp => {
+                  {pagedSps.map(sp => {
                     const tmpl = templateMap[sp.product_id];
                     const supplier = supplierMap[sp.supplier_id];
                     const supplierName = supplier?.empresa || supplier?.full_name || sp.supplier_id;
@@ -437,6 +448,19 @@ export default function AdminProdutos() {
               </Table>
             </div>
           </div>
+
+          {filteredSps.length > SP_PAGE_SIZE && (
+            <div className="flex items-center justify-between gap-3 text-sm text-gray-600 flex-wrap">
+              <span>
+                {spPageSafe * SP_PAGE_SIZE + 1}–{Math.min((spPageSafe + 1) * SP_PAGE_SIZE, filteredSps.length)} de {filteredSps.length}
+              </span>
+              <div className="flex items-center gap-2">
+                <Button size="sm" variant="outline" disabled={spPageSafe === 0} onClick={() => setSpPage(p => Math.max(0, p - 1))}>Anterior</Button>
+                <span>Página {spPageSafe + 1} de {spTotalPages}</span>
+                <Button size="sm" variant="outline" disabled={spPageSafe >= spTotalPages - 1} onClick={() => setSpPage(p => Math.min(spTotalPages - 1, p + 1))}>Próxima</Button>
+              </div>
+            </div>
+          )}
 
           {filteredSps.length === 0 && (
             <div className="text-center py-16 text-gray-400">
