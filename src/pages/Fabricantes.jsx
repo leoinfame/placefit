@@ -5,6 +5,7 @@ import VincularUsuarioDialog from "@/components/fabricantes/VincularUsuarioDialo
 import AcordoComercialCard from "@/components/fabricantes/AcordoComercialCard";
 import ProdutoTemplateDialog from "@/components/fabricantes/ProdutoTemplateDialog";
 import { gerarTabelaRevenda } from "@/components/fabricantes/tabelaRevenda";
+import { importarItensNoCatalogo, mapearColunas, linhaParaItem } from "@/components/fabricantes/importarTabelaCatalogo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -238,67 +239,30 @@ export default function Fabricantes() {
         return values;
       };
 
+      // Item 008: le o cabecalho (com fallback posicional) e importa DIRETO no catalogo
+      // (ProductTemplate + SupplierProduct do fabricante). Nao grava mais na entidade antiga Product.
       const headers = parseCSVLine(lines[0]);
-      const dataLines = lines.slice(1);
-      
-      let created = 0;
-      let updated = 0;
-      let errors = 0;
+      const idx = mapearColunas(headers);
+      const dataLines = idx._posicional ? lines.slice(1) : lines.slice(1);
+      const itens = dataLines
+        .map(line => linhaParaItem(parseCSVLine(line), idx))
+        .filter(it => it.nome || it.cod);
 
-      for (const line of dataLines) {
-        const values = parseCSVLine(line);
-        
-        // Garantir que temos pelo menos 8 valores (preencher com vazios se necessário)
-        while (values.length < 8) {
-          values.push('');
-        }
-        
-        if (!values[0] || !values[1]) {
-          errors++;
-          continue;
-        }
-
-        try {
-          const productData = {
-            nome: values[0].trim(),
-            cod: values[1].trim(),
-            categoria: values[2]?.trim() || 'Acessorios',
-            und: values[3]?.trim() || 'peca',
-            peso: values[4] && values[4].trim() ? parseFloat(values[4].trim()) : null,
-            dimensoes: values[5]?.trim() || '',
-            preco_fabricante: values[6] && values[6].trim() ? parseFloat(values[6].trim()) : null,
-            foto: values[7]?.trim() || '',
-            fabricante_id: selectedFabricante.id,
-            aprovado_produto: true,
-            ativo: true
-          };
-
-          // Buscar produto existente pelo código SKU e fabricante
-          const allProducts = await base44.entities.Product.list();
-          const existingProduct = allProducts.find(p => 
-            p.cod === values[1] && p.fabricante_id === selectedFabricante.id
-          );
-
-          if (existingProduct) {
-            // Atualizar produto existente
-            await base44.entities.Product.update(existingProduct.id, productData);
-            updated++;
-          } else {
-            // Criar novo produto
-            await base44.entities.Product.create(productData);
-            created++;
-          }
-        } catch (err) {
-          console.error("Erro ao processar produto:", err);
-          errors++;
-        }
-      }
+      const r = await importarItensNoCatalogo({ fabricante: selectedFabricante, itens });
 
       toast({
-        title: "Importacao concluida!",
-        description: `${created} criado(s), ${updated} atualizado(s).${errors > 0 ? ` ${errors} erro(s).` : ''}`,
+        title: "Importação concluída!",
+        description: `${r.criados} novo(s) no catálogo, ${r.vinculados} vinculado(s) a produtos existentes, ${r.atualizados} atualizado(s).${r.erros.length ? ` ${r.erros.length} com erro.` : ""}`,
       });
-      
+      if (r.novosTemplates.length) {
+        toast({
+          title: `${r.novosTemplates.length} produto(s) novo(s) criados no catálogo`,
+          description: r.novosTemplates.slice(0, 6).map(t => `${t.cod} (${t.cod_origem})`).join(", ") + (r.novosTemplates.length > 6 ? "…" : ""),
+          duration: 8000,
+        });
+      }
+      r.erros.slice(0, 3).forEach(msg => toast({ title: "Linha não importada", description: msg, variant: "destructive", duration: 6000 }));
+
       viewFabricanteDetails(selectedFabricante);
     } catch (error) {
       console.error("Erro ao importar:", error);
