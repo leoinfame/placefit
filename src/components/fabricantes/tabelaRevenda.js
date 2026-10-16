@@ -138,6 +138,13 @@ const fetchImageAsDataURL = async (url) => {
 
 export async function gerarTabelaRevenda(fabricante, { toast = () => {}, setDownloadingTable = () => {} } = {}) {
   setDownloadingTable(fabricante.id);
+  // Abre a janela JA no clique (antes dos awaits) para o navegador nao bloquear o pop-up
+  // e nao deixar uma aba about:blank vazia.
+  const preWindow = (typeof window !== "undefined") ? window.open('', '_blank') : null;
+  if (preWindow) {
+    try { preWindow.document.write('<p style="font-family:Arial,sans-serif;padding:24px;color:#334155">Gerando tabela, aguarde…</p>'); } catch {}
+  }
+  const closePre = () => { try { if (preWindow && !preWindow.closed) preWindow.close(); } catch {} };
   try {
     // Mesma fonte do catálogo (getProdutosData): templates com preço deste fabricante
     const res = await getProdutosData({ mode: "catalogo" });
@@ -171,7 +178,8 @@ export async function gerarTabelaRevenda(fabricante, { toast = () => {}, setDown
     fabricanteProducts.sort((x, y) => (x.nome || '').localeCompare(y.nome || '', 'pt-BR', { numeric: true }));
 
     if (fabricanteProducts.length === 0) {
-      toast({ title: "Sem produtos", description: "Este fabricante não possui produtos com preço no catálogo." });
+      closePre();
+    toast({ title: "Sem produtos", description: "Este fabricante não possui produtos com preço no catálogo." });
       setDownloadingTable(null);
       return;
     }
@@ -388,7 +396,8 @@ export async function gerarTabelaRevenda(fabricante, { toast = () => {}, setDown
 </html>`;
 
     try {
-      const printWindow = window.open('', '_blank');
+      const printWindow = preWindow && !preWindow.closed ? preWindow : window.open('', '_blank');
+      if (printWindow) { try { printWindow.document.open(); } catch {} }
       if (printWindow) {
         printWindow.document.write(html);
         printWindow.document.close();
@@ -409,6 +418,7 @@ export async function gerarTabelaRevenda(fabricante, { toast = () => {}, setDown
       toast({ title: "Erro", description: "Erro ao gerar tabela para impressão.", variant: "destructive" });
     }
   } catch (error) {
+    closePre();
     console.error("Erro ao baixar tabela:", error);
     toast({ title: "Erro", description: "Não foi possível gerar a tabela.", variant: "destructive" });
   } finally {
