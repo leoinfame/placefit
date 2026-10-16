@@ -243,7 +243,7 @@ export default function Fabricantes() {
       // (ProductTemplate + SupplierProduct do fabricante). Nao grava mais na entidade antiga Product.
       const headers = parseCSVLine(lines[0]);
       const idx = mapearColunas(headers);
-      const dataLines = idx._posicional ? lines.slice(1) : lines.slice(1);
+      const dataLines = lines.slice(1);
       const itens = dataLines
         .map(line => linhaParaItem(parseCSVLine(line), idx))
         .filter(it => it.nome || it.cod);
