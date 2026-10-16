@@ -279,12 +279,12 @@ export default function FabricantesRevendedor() {
       // Buscar produtos do fabricante
       const allProducts = await base44.entities.Product.list();
       const products = allProducts.filter(
-        p => p.fabricante_id === selectedFabricante.id && p.aprovado_produto === true && p.ativo !== false
+        p => (p.fabricante_id === selectedFabricante.id || p.fabricante_id === selectedFabricante.legacy_id) && p.aprovado_produto === true && p.ativo !== false
       );
 
       // Buscar base de conhecimento
       const allKnowledge = await base44.entities.AIKnowledge.filter({ 
-        fabricante_id: selectedFabricante.id,
+        fabricante_id: selectedFabricante.legacy_id || selectedFabricante.id,
         ativo: true
       });
       
@@ -301,7 +301,7 @@ ${k.conteudo}
 
       // Buscar histórico de conversas aprovadas
       const allHistory = await base44.entities.ChatHistory.filter({
-        fabricante_id: selectedFabricante.id
+        fabricante_id: selectedFabricante.legacy_id || selectedFabricante.id
       });
       
       const approvedHistory = allHistory.filter(h => 
@@ -424,7 +424,7 @@ RESPONDA EM PORTUGUÊS BRASILEIRO DE FORMA PROFISSIONAL E COMERCIAL.
 
       // Salvar histórico
       await base44.entities.ChatHistory.create({
-        fabricante_id: selectedFabricante.id,
+        fabricante_id: selectedFabricante.legacy_id || selectedFabricante.id,
         fabricante_nome: selectedFabricante.empresa || selectedFabricante.full_name,
         user_message: userMessage,
         agent_response: assistantMessage,
@@ -692,7 +692,7 @@ RESPONDA EM PORTUGUÊS BRASILEIRO DE FORMA PROFISSIONAL E COMERCIAL.
 
                     <ComissaoConfig
                       fabricanteNome={fabricante.empresa || fabricante.full_name}
-                      fabricanteId={fabricante.id}
+                      fabricanteId={fabricante.legacy_id || fabricante.id}
                       revendedorId={user?.id}
                     />
                   </div>

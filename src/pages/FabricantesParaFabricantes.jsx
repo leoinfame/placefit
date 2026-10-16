@@ -61,7 +61,7 @@ export default function FabricantesParaFabricantes() {
       
       // A resposta vem como axios response: response.data.fabricantes
       const fabricantesList = (response?.data?.fabricantes || [])
-        .filter(f => f.id !== currentUser.id);
+        .filter(f => f.id !== currentUser.id && f.user_id !== currentUser.id);
       
       setFabricantes(fabricantesList);
       setFilteredFabricantes(fabricantesList);

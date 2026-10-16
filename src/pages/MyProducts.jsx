@@ -129,7 +129,7 @@ export default function MyProducts() {
         
         if (response.data && response.data.fabricantes) {
           const allFabricantes = response.data.fabricantes;
-          uniqueFabricantes = allFabricantes.filter(u => fabricanteIds.includes(u.id));
+          uniqueFabricantes = allFabricantes.filter(u => fabricanteIds.includes(u.id) || (u.user_id && fabricanteIds.includes(u.user_id)));
           console.log("Fabricantes carregados via backend:", uniqueFabricantes);
         } else {
           throw new Error("Resposta inválida do servidor");
@@ -154,7 +154,7 @@ export default function MyProducts() {
       
       // Filtrar apenas os fabricantes dos produtos selecionados
       const uniqueMyFabricantes = uniqueFabricantes.filter(u => 
-        myFabricanteIds.includes(u.id)
+        myFabricanteIds.includes(u.id) || (u.user_id && myFabricanteIds.includes(u.user_id))
       );
 
       setProducts(productsData);
