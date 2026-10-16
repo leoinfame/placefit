@@ -1069,7 +1069,7 @@ export default function MyProducts() {
                     <TableBody>
                       {filteredProducts.map((product, index) => {
                         const fabricanteNome = product.fabricante_id ? 
-                         (fabricantes.find(f => f.id === product.fabricante_id)?.empresa || 
+                         (fabricantes.find(f => f.id === product.fabricante_id || (f.user_id && f.user_id === product.fabricante_id))?.empresa || 
                           product.fabricante_nome || 
                           'Fabricante') : null;
                         const precoSugerido = product.preco_fabricante ? parseFloat(product.preco_fabricante) : null;
@@ -1173,7 +1173,7 @@ export default function MyProducts() {
             <div className="md:hidden space-y-3 w-full">
               {filteredProducts.map((product) => {
                 const fabricanteNome = product.fabricante_id ? 
-                  (fabricantes.find(f => f.id === product.fabricante_id)?.empresa || 
+                  (fabricantes.find(f => f.id === product.fabricante_id || (f.user_id && f.user_id === product.fabricante_id))?.empresa || 
                    product.fabricante_nome || 
                    'Fabricante') : null;
                 const precoSugerido = product.preco_fabricante ? parseFloat(product.preco_fabricante) : null;
@@ -1451,8 +1451,8 @@ export default function MyProducts() {
                              <TableCell>
                               {product.fabricante_id ? (
                                 <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs">
-                                  {fabricantes.find(f => f.id === product.fabricante_id)?.empresa || 
-                                   fabricantes.find(f => f.id === product.fabricante_id)?.full_name || 
+                                  {fabricantes.find(f => f.id === product.fabricante_id || (f.user_id && f.user_id === product.fabricante_id))?.empresa || 
+                                   fabricantes.find(f => f.id === product.fabricante_id || (f.user_id && f.user_id === product.fabricante_id))?.full_name || 
                                    product.fabricante_nome || 'Fabricante'}
                                 </Badge>
                               ) : (
@@ -1584,8 +1584,8 @@ export default function MyProducts() {
                             <h3 className="font-semibold text-sm text-gray-900 break-words">{product.nome}</h3>
                             <p className="text-xs text-gray-500 break-all">
                               {product.fabricante_id ? 
-                                (fabricantes.find(f => f.id === product.fabricante_id)?.empresa || 
-                                 fabricantes.find(f => f.id === product.fabricante_id)?.full_name || 
+                                (fabricantes.find(f => f.id === product.fabricante_id || (f.user_id && f.user_id === product.fabricante_id))?.empresa || 
+                                 fabricantes.find(f => f.id === product.fabricante_id || (f.user_id && f.user_id === product.fabricante_id))?.full_name || 
                                  product.fabricante_nome || 'Fabricante')
                                 : 'PlaceFit'
                               }
