@@ -17,6 +17,7 @@ import { transcreverAudio } from './audioRespondedor.ts';
 import { montarResumoGerente, PROMPT_GERENTE } from './gerenteRespondedor.ts';
 import { tratarOrcamentoGerente, statusRascunho } from './orcamentoGerente.ts';
 import { clienteDaConversa, atualizarCadastro } from './cadastroCliente.ts';
+import { revendedorDoTelefone, tentarAtivacao, ehMensagemDeAtivacao } from './vinculoRevendedor.ts';
 
 // A consulta do gerente não grava nada; se a IA afirmar que gravou/criou, a frase é trocada.
 const AFIRMA_GRAVACAO = /(j[aá] (est[aá]|foi|ficou|t[aá]) (no painel|gravad|criad|salv|lan[cç]ad|registrad))|(or[cç]amento (j[aá] |foi |est[aá] |j[aá] foi |j[aá] est[aá] )(gravado|criado|salvo|lan[cç]ado|registrado))|(gravei|criei|lancei|salvei)/i;
@@ -236,10 +237,29 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
     // 1. chave geral
     if (env('RESPONDEDOR_ATIVO') !== 'true') return await ignorar(base44, eventId, 'desligado');
 
-    // 2. allowlist
     const cliente = onlyDigits(msg?.from || '');
+
+    // Item 006: ativacao do gerente pelo revendedor ("ATIVAR 123456" do proprio celular).
+    // Vem antes da allowlist porque o numero ainda nao esta liberado; so texto recente.
+    const textoBruto = msg?.type === 'text' ? String(msg?.text?.body || '') : '';
+    const idadeAtiv = (Date.now() - Number(msg?.timestamp || 0) * 1000) / 60000;
+    if (textoBruto && ehMensagemDeAtivacao(textoBruto) && idadeAtiv <= IDADE_MAXIMA_MIN) {
+      await marcar(base44, eventId, { reply_status: 'respondendo' });
+      const at = await tentarAtivacao(base44, cliente, textoBruto);
+      const envioA = await enviarERegistrar(base44, connection, conversa, cliente, at.resposta);
+      await marcar(base44, eventId, envioA.ok
+        ? { reply_status: 'respondido', reply_reason: at.userId ? 'vinculo_ativado' : 'vinculo_falhou', reply_wamid: envioA.id, replied_at: envioA.quando }
+        : { reply_status: 'erro', reply_reason: 'vinculo', reply_error: envioA.error });
+      return;
+    }
+
+    // Item 006: revendedor com numero verificado -> gerente da PROPRIA revenda
+    let vinculo: any = null;
+    try { vinculo = await revendedorDoTelefone(base44, cliente); } catch (e) { console.error('[RESPONDEDOR] vinculo falhou', e); }
+
+    // 2. allowlist (numero de revendedor verificado tambem passa)
     const allow = env('RESPONDEDOR_ALLOWLIST').split(',').map(onlyDigits).filter(Boolean);
-    if (allow.length && !allow.includes(cliente)) return await ignorar(base44, eventId, 'fora_allowlist');
+    if (allow.length && !allow.includes(cliente) && !vinculo) return await ignorar(base44, eventId, 'fora_allowlist');
 
     // 3. só texto ou áudio, e nada de fila antiga
     const ehAudio = msg?.type === 'audio';
@@ -278,7 +298,7 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
       (m: any) => m.origem === 'respondedor_ia' && minutosDesde(m) < 60
     ).length;
     // O teto protege contra loop com outro robô/cliente; o dono (OWNER_PHONE) tem teto maior
-    const ehDono = Boolean(onlyDigits(env('OWNER_PHONE'))) && cliente === onlyDigits(env('OWNER_PHONE'));
+    const ehDono = (Boolean(onlyDigits(env('OWNER_PHONE'))) && cliente === onlyDigits(env('OWNER_PHONE'))) || Boolean(vinculo);
     if (naUltimaHora >= (ehDono ? TETO_DONO_POR_HORA : TETO_POR_HORA)) return await ignorar(base44, eventId, 'teto_hora');
 
     // 6. trava o evento antes de gastar IA
@@ -310,7 +330,11 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
     const dono = onlyDigits(env('OWNER_PHONE'));
     const forcaCliente = /^\s*#cliente\b/i.test(textoCliente);
     if (forcaCliente) textoCliente = textoCliente.replace(/^\s*#cliente\b\s*/i, '');
-    const modoGerente = Boolean(dono) && cliente === dono && !forcaCliente;
+    const ehDonoDoNumero = Boolean(dono) && cliente === dono;
+    const modoGerente = (ehDonoDoNumero || Boolean(vinculo)) && !forcaCliente;
+    // Isolamento: o dono do 8509 usa a conta do 8509; o revendedor verificado usa SO a conta dele.
+    const tenantGerente = ehDonoDoNumero ? connection.tenant_id : (vinculo?.user_id || connection.tenant_id);
+    const numeroGerente = cliente;
 
     const historico = await base44.asServiceRole.entities.CRMMensagem.filter(
       { conversa_id: conversa.id }, '-created_date', HISTORICO
@@ -324,14 +348,14 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
       // Orçamento assistido: único caminho de escrita do gerente, e só com "grava" explícito do dono.
       let orc: { tratou: boolean; resposta: string; gravou?: string } = { tratou: false, resposta: '' };
       try {
-        orc = await tratarOrcamentoGerente(base44, connection.tenant_id, conversa, textoCliente, conversaTexto);
+        orc = await tratarOrcamentoGerente(base44, tenantGerente, conversa, textoCliente, conversaTexto);
       } catch (e) {
         console.error('[RESPONDEDOR] orçamento gerente falhou', e);
         orc = { tratou: true, resposta: 'Deu erro montando o orçamento, nada foi gravado. Tenta de novo ou faz pelo painel.' };
         await marcar(base44, eventId, { reply_error: String((e as any)?.message || e).slice(0, 300) });
       }
       if (orc.tratou) {
-        const envioO = await enviarERegistrar(base44, connection, conversa, dono, orc.resposta.slice(0, 3900));
+        const envioO = await enviarERegistrar(base44, connection, conversa, numeroGerente, orc.resposta.slice(0, 3900));
         await marcar(base44, eventId, envioO.ok
           ? { reply_status: 'respondido', reply_reason: orc.gravou ? `orcamento_gravado:${orc.gravou}` : 'orcamento_gerente', reply_wamid: envioO.id, replied_at: envioO.quando }
           : { reply_status: 'erro', reply_reason: 'orcamento_gerente', reply_error: envioO.error });
@@ -339,7 +363,7 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
       }
 
       // Consulta: somente leitura; a resposta vai exclusivamente para o dono (cliente === dono).
-      const resumo = await montarResumoGerente(base44, connection.tenant_id, dono, statusRascunho(conversa));
+      const resumo = await montarResumoGerente(base44, tenantGerente, numeroGerente, statusRascunho(conversa));
       const promptGerente = PROMPT_GERENTE +
         `\n\nRESUMO DO CRM (dados reais, lidos agora):\n${resumo}` +
         `\n\nCONVERSA ATÉ AGORA (mais antiga primeiro):\n${conversaTexto}` +
@@ -353,7 +377,7 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
         await marcar(base44, eventId, { reply_status: 'erro', reply_reason: 'modo_gerente', reply_error: 'IA devolveu vazio' });
         return;
       }
-      const envioG = await enviarERegistrar(base44, connection, conversa, dono, respostaGerente);
+      const envioG = await enviarERegistrar(base44, connection, conversa, numeroGerente, respostaGerente);
       await marcar(base44, eventId, envioG.ok
         ? { reply_status: 'respondido', reply_reason: 'modo_gerente', reply_wamid: envioG.id, replied_at: envioG.quando, reply_error: '' }
         : { reply_status: 'erro', reply_reason: 'modo_gerente', reply_error: envioG.error });
