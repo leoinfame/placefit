@@ -1,0 +1,76 @@
+{
+  "description": "Item 006 (16/10/2026): vinculo telefone -> conta de revenda para o gerente CRM do WhatsApp oficial (8509). So o sistema grava (functions com service role). O numero so passa a valer depois que o revendedor manda ATIVAR + codigo do proprio celular, provando que o numero e dele. O gerente atende esse numero SOMENTE com os dados da conta user_id.",
+  "name": "VinculoGerenteWhatsApp",
+  "properties": {
+    "chave_telefone": {
+      "description": "DDD + ultimos 8 digitos, usada para casar com o numero que chega da Meta (com ou sem o nono digito)",
+      "type": "string"
+    },
+    "codigo_expira": {
+      "description": "Validade do codigo de ativacao (UTC)",
+      "format": "date-time",
+      "type": "string"
+    },
+    "codigo_hash": {
+      "description": "SHA-256 do codigo de ativacao de 6 digitos (o codigo em si nunca e gravado)",
+      "type": "string"
+    },
+    "nome_conta": {
+      "description": "Nome da revenda no momento do vinculo (so para leitura do admin)",
+      "type": "string"
+    },
+    "telefone": {
+      "description": "Celular normalizado so com digitos, com 55 (ex.: 5537999990000)",
+      "type": "string"
+    },
+    "user_id": {
+      "description": "ID do User (conta de revenda) dono deste numero",
+      "type": "string"
+    },
+    "verificado": {
+      "default": false,
+      "description": "True depois que o revendedor mandou ATIVAR + codigo do proprio numero",
+      "type": "boolean"
+    },
+    "verificado_em": {
+      "description": "Quando o numero foi verificado (UTC)",
+      "format": "date-time",
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "telefone",
+    "chave_telefone"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
+}
