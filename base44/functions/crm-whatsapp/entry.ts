@@ -113,6 +113,23 @@ async function resolveChatId(cfg: Waha, phone: string) {
 const messageIdOf = (data: any) =>
   String(data?.id?._serialized || data?.id || data?._data?.id?._serialized || "");
 
+/** QR da sessao como data URL (o navegador nunca fala direto com o WAHA). */
+async function qrDaSessao(cfg: Waha): Promise<string> {
+  try {
+    const headers: Record<string, string> = {};
+    if (cfg.apiKey) headers["X-Api-Key"] = cfg.apiKey;
+    const response = await fetch(cfg.baseUrl + "/api/" + encodeURIComponent(cfg.session) + "/auth/qr", { headers });
+    if (!response.ok) return "";
+    const contentType = response.headers.get("content-type") || "image/png";
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    let binary = "";
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    return "data:" + contentType + ";base64," + btoa(binary);
+  } catch {
+    return "";
+  }
+}
+
 /** Verifica se existe segredo cifrado para a conexão (sem devolver o token). */
 async function temSegredo(base44: any, connectionId: string): Promise<boolean> {
   const segredos = await base44.asServiceRole.entities.whatsapp_secrets.filter({ connection_id: connectionId });
@@ -155,6 +172,44 @@ Deno.serve(async (req) => {
     // pareado, uma IA respondendo sozinha é o maior risco do sistema — comercial
     // e de banimento. Ligar sem querer não pode ser possível.
     const atendenteAtivo = Boolean(owner.whatsapp_atendente_ativo) && Boolean(owner.whatsapp_atendente_confirmado);
+
+    // ── Item 006 etapa 2: assistente de conexao (linguagem simples, sem dados tecnicos) ──
+    // fase: nao_liberado | desconectado | iniciando | aguardando_qr | conectado | falhou | fora_do_ar
+    if (action === "assistente") {
+      if (!cfg.configured) return Response.json({ fase: "nao_liberado" });
+      const r = await waha(cfg, "/api/sessions/" + encodeURIComponent(cfg.session));
+      if (!r.ok) {
+        return Response.json({ fase: r.status === 404 ? "desconectado" : "fora_do_ar" });
+      }
+      const st = String(r.data?.status || "");
+      if (st === "WORKING") {
+        const id = String(r.data?.me?.id || "");
+        const num = onlyDigits(id.split("@")[0]);
+        return Response.json({
+          fase: "conectado",
+          nome: r.data?.me?.pushName || "",
+          numero_final: num ? num.slice(-4) : ""
+        });
+      }
+      if (st === "SCAN_QR_CODE") {
+        const qr = await qrDaSessao(cfg);
+        return Response.json({ fase: qr ? "aguardando_qr" : "iniciando", qr });
+      }
+      if (st === "FAILED") return Response.json({ fase: "falhou" });
+      if (st === "STOPPED") return Response.json({ fase: "desconectado" });
+      return Response.json({ fase: "iniciando" });
+    }
+
+    // Confirma a mensagem de teste: alguma mensagem RECEBIDA nesta conta depois de `desde`.
+    if (action === "teste_recebido") {
+      const desde = String(body.desde || "");
+      const quando = desde ? new Date(desde).getTime() : Date.now() - 10 * 60000;
+      const msgs = await base44.asServiceRole.entities.CRMMensagem.filter(
+        { owner_id: owner.id, direcao: "recebida" }, "-created_date", 5
+      );
+      const m = (msgs || []).find((x: any) => new Date(x.created_date).getTime() >= quando);
+      return Response.json({ recebida: Boolean(m), final: m ? String(m.telefone || "").slice(-4) : "" });
+    }
 
     if (action === "status") {
       let session: any = null;
@@ -522,7 +577,14 @@ Deno.serve(async (req) => {
     // Um botão só. Cria a sessão, liga o webhook, inicia e já devolve o QR
     // quando ele existe — o usuário não digita URL, chave nem nome de sessão.
     if (action === "connect" || action === "provision") {
-      const webhookUrl = String(body.webhook_url || "").trim() || webhookPadrao();
+      // Item 006: o endereco de recebimento e SEMPRE o do PlaceFit (nunca vem da tela),
+      // para ninguem conseguir desviar as mensagens de uma conta.
+      const webhookUrl = webhookPadrao();
+      // Sessao travada em falha: reinicia antes de reconfigurar ("tentar de novo")
+      const antes = await waha(cfg, "/api/sessions/" + encodeURIComponent(cfg.session));
+      if (antes.ok && String(antes.data?.status || "") === "FAILED") {
+        await waha(cfg, "/api/sessions/" + encodeURIComponent(cfg.session) + "/restart", { method: "POST" });
+      }
       const result = await garantirSessao(webhookUrl);
       if (!result.ok) return Response.json({ error: result.error }, { status: 400 });
 
@@ -540,7 +602,7 @@ Deno.serve(async (req) => {
         status = String(atual.data?.status || status);
       }
 
-      return Response.json({ ok: true, session_name: cfg.session, session_status: status, qr, webhook_url: webhookUrl });
+      return Response.json({ ok: true, session_status: status, qr });
     }
 
     if (action === "qr") {
