@@ -135,6 +135,21 @@ Deno.serve(async (req) => {
 
     const cfg = wahaConfig(owner);
 
+    // Item 006: limpeza dos campos antigos de servidor/chave/sessao gravados no cadastro.
+    // O servidor agora e so pelos secrets do app; nada disso pode ficar no User.
+    // Roda na conta da propria chamada e, quando quem chama e admin, em todas as contas.
+    try {
+      const sujo = (u: any) => Boolean(u?.whatsapp_waha_url || u?.whatsapp_waha_api_key || u?.whatsapp_waha_hmac ||
+        String(u?.whatsapp_waha_session || "").toLowerCase() === "default");
+      const limpar = { whatsapp_waha_url: "", whatsapp_waha_api_key: "", whatsapp_waha_hmac: "", whatsapp_waha_session: "" };
+      const alvos = me.role === "admin" ? (await base44.asServiceRole.entities.User.list("-created_date", 2000)) : [owner];
+      for (const u of alvos || []) {
+        if (sujo(u)) await base44.asServiceRole.entities.User.update(u.id, limpar);
+      }
+    } catch (e) {
+      console.error("[CRM_WAHA] limpeza de campos antigos falhou", e);
+    }
+
     // O atendente automático só responde com as DUAS chaves ligadas. A segunda é
     // uma confirmação explícita e deliberada: com o número comercial real
     // pareado, uma IA respondendo sozinha é o maior risco do sistema — comercial
