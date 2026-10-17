@@ -94,6 +94,7 @@ export default function ConectarWhatsAppAssistente({ userId, onMudou }) {
       const d = await chamar("connect");
       if (d.qr) { setQr(d.qr); ultimoQrEm.current = Date.now(); setRenovaEm(RENOVA_SEG); }
       if (d.session_status === "WORKING") { await consultar(); setPasso(5); setTesteDesde(new Date().toISOString()); }
+      else await consultar();
     } catch {
       setErro("Não conseguimos preparar a conexão agora. Espere um minutinho e toque em Tentar de novo.");
     }
@@ -139,6 +140,11 @@ export default function ConectarWhatsAppAssistente({ userId, onMudou }) {
     setPasso(1);
     onMudou?.();
   };
+
+  // Sem conexao e fora do assistente: volta para o passo 1
+  useEffect(() => {
+    if (!carregando && passo === 0 && fase && fase !== "conectado" && fase !== "nao_liberado") setPasso(1);
+  }, [carregando, passo, fase]);
 
   if (carregando) {
     return (
