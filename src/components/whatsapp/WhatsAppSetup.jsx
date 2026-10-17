@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
+import GerenteWhatsAppCard from "@/components/whatsapp/GerenteWhatsAppCard";
 import {
   MessageCircle, CheckCircle, AlertCircle, ExternalLink, Eye, EyeOff,
   Loader2, Wifi, WifiOff, ChevronRight, ChevronDown, Info, Save, RefreshCw,
@@ -87,8 +88,8 @@ const STATUS_LABEL = {
   STOPPED: { text: "Sessão parada", tone: "off" },
   NAO_CRIADA: { text: "Ainda não conectado — toque em Conectar meu WhatsApp", tone: "off" },
   FAILED: { text: "Falhou — reinicie a sessão", tone: "bad" },
-  NOT_CONFIGURED: { text: "Informe o servidor WAHA abaixo", tone: "off" },
-  UNKNOWN: { text: "Não foi possível falar com o servidor", tone: "bad" },
+  NOT_CONFIGURED: { text: "Conexão ainda não liberada pela equipe PlaceFit", tone: "off" },
+  UNKNOWN: { text: "Não conseguimos falar com o serviço do WhatsApp agora. Tente de novo em alguns minutos.", tone: "bad" },
 };
 
 function FieldInput({ field, value, onChange }) {
@@ -103,6 +104,15 @@ function FieldInput({ field, value, onChange }) {
           onChange={(e) => onChange(field.key, e.target.value)}
           placeholder={field.placeholder}
           className="pr-10 font-mono text-sm"
+          // Item 006: o navegador nao pode preencher e-mail/senha da conta aqui
+          name={`pf-${field.key}-${Math.random().toString(36).slice(2, 8)}`}
+          autoComplete={field.type === "password" ? "new-password" : "off"}
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
+          data-lpignore="true"
+          data-1p-ignore="true"
+          data-form-type="other"
         />
         {field.type === "password" && (
           <button
@@ -360,18 +370,16 @@ export default function WhatsAppSetup({ userId, userType = "revendedor" }) {
   // com o QR Code quando ele existe.
   const handleConnect = async () => {
     const servidorDoApp = Boolean(status?.compartilhado);
-    if (!servidorDoApp && !config.waha_url) {
+    if (!servidorDoApp) {
       toast({
-        title: "Servidor de WhatsApp não configurado",
-        description: "Peça ao administrador para definir a variável WAHA_URL do app.",
+        title: "A conexão ainda não está liberada",
+        description: "A equipe PlaceFit está preparando o serviço. Tente de novo mais tarde ou fale com o suporte.",
         variant: "destructive",
       });
       return;
     }
     setBusy("connect");
     try {
-      // Com servidor próprio, grava os campos antes de usar.
-      if (!servidorDoApp) await handleSave();
       const response = await base44.functions.invoke("crm-whatsapp", {
         action: "connect",
         owner_id: userId,
@@ -449,6 +457,7 @@ export default function WhatsAppSetup({ userId, userType = "revendedor" }) {
 
   return (
     <div className="space-y-6">
+      <GerenteWhatsAppCard />
       <MetaConnectCard userId={userId} />
       {/* Estado da conexão */}
       <Card className={`border-2 ${connected ? "border-green-400 bg-green-50" : "border-gray-200 bg-gray-50"}`}>
@@ -461,7 +470,7 @@ export default function WhatsAppSetup({ userId, userType = "revendedor" }) {
               <div>
                 <p className="font-bold text-gray-900 text-lg">Conexão do WhatsApp</p>
                 <p className="text-sm text-gray-500">
-                  {isConfigured ? statusInfo.text : "Configure o servidor WAHA abaixo"}
+                  {isConfigured ? statusInfo.text : "Conexão ainda não liberada pela equipe PlaceFit"}
                 </p>
                 {status?.me?.pushName && (
                   <p className="text-xs text-gray-400 mt-0.5">
@@ -493,20 +502,6 @@ export default function WhatsAppSetup({ userId, userType = "revendedor" }) {
             </div>
           </div>
 
-          {!compartilhado && (
-            <div className="mt-3">
-              <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-                <span>Configuração completa</span>
-                <span>{completedFields}/4 campos</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-500"
-                  style={{ width: `${(completedFields / 4) * 100}%` }}
-                />
-              </div>
-            </div>
-          )}
         </CardContent>
       </Card>
 
@@ -616,120 +611,18 @@ export default function WhatsAppSetup({ userId, userType = "revendedor" }) {
         </CardContent>
       </Card>
 
-      {/* Configuração técnica — só aparece para quem usa servidor próprio.
-          Com o servidor do app, o usuário não precisa ver nada disso. */}
+      {/* Item 006: nao existe mais servidor proprio. O PlaceFit cuida do servidor (secrets do app);
+          o revendedor nunca ve endereco, chave nem nome de sessao. */}
       {!compartilhado && (
-      <>
-      <div className="space-y-3">
-        <h3 className="font-bold text-gray-900 text-lg">📋 Passo a Passo de Configuração</h3>
-        {STEPS.map((step) => {
-          const isExpanded = expandedStep === step.id;
-          const hasFields = step.fields.length > 0;
-          const stepDone = step.fields.length === 0 ? false : step.fields.every((f) => !!config[f.key]);
-
-          return (
-            <Card
-              key={step.id}
-              className={`border transition-all ${stepDone ? "border-green-300 bg-green-50" : isExpanded ? "border-blue-300 bg-blue-50" : "border-gray-200"}`}
-            >
-              <button className="w-full text-left" onClick={() => setExpandedStep(isExpanded ? null : step.id)}>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${stepDone ? "bg-green-100 text-green-700" : isExpanded ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-500"}`}>
-                        {stepDone ? <CheckCircle className="w-5 h-5 text-green-600" /> : step.icon}
-                      </div>
-                      <div>
-                        <p className={`font-semibold text-sm ${stepDone ? "text-green-800" : "text-gray-900"}`}>
-                          Passo {step.id}: {step.title}
-                        </p>
-                        {!isExpanded && <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{step.description}</p>}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      {stepDone && <Badge className="bg-green-100 text-green-700 text-[10px]">✓ Pronto</Badge>}
-                      {isExpanded ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronRight className="w-4 h-4 text-gray-400" />}
-                    </div>
-                  </div>
-                </CardContent>
-              </button>
-
-              {isExpanded && (
-                <div className="px-4 pb-4 space-y-4">
-                  <p className="text-sm text-gray-700">{step.description}</p>
-
-                  <div className="bg-white rounded-lg border border-blue-100 p-3 text-sm text-blue-800 flex gap-2">
-                    <Info className="w-4 h-4 shrink-0 mt-0.5 text-blue-500" />
-                    <span>{step.help}</span>
-                  </div>
-
-                  {step.link && (
-                    <a
-                      href={step.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:underline"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                      {step.linkLabel}
-                    </a>
-                  )}
-
-                  {hasFields && (
-                    <div className="space-y-4 pt-2">
-                      {step.fields.map((field) => (
-                        <FieldInput
-                          key={field.key}
-                          field={field}
-                          value={config[field.key]}
-                          onChange={(key, val) => setConfig({ ...config, [key]: val })}
-                        />
-                      ))}
-                    </div>
-                  )}
-
-                  {step.id < STEPS.length && (
-                    <Button size="sm" variant="outline" onClick={() => setExpandedStep(step.id + 1)} className="mt-2">
-                      Próximo passo <ChevronRight className="w-3.5 h-3.5 ml-1" />
-                    </Button>
-                  )}
-                </div>
-              )}
-            </Card>
-          );
-        })}
-      </div>
-
-      {/* Webhook */}
-      <Card className="bg-amber-50 border-amber-200">
-        <CardContent className="p-4 flex gap-3">
-          <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-          <div className="text-sm text-amber-800 space-y-1">
-            <p className="font-semibold">Webhook</p>
-            <p>
-              O botão <strong>Conectar sessão</strong> cadastra este endereço no WAHA automaticamente, com os eventos{" "}
-              <code className="bg-amber-100 px-1 rounded">message.any</code>,{" "}
-              <code className="bg-amber-100 px-1 rounded">message.ack</code> e{" "}
-              <code className="bg-amber-100 px-1 rounded">session.status</code>.
-            </p>
-            <p className="break-all">
-              <strong>URL:</strong> <code className="bg-amber-100 px-1 rounded">{webhookUrl}</code>
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="flex justify-end">
-        <Button
-          onClick={handleSave}
-          disabled={saving}
-          className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-8"
-        >
-          {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-          Salvar Configurações
-        </Button>
-      </div>
-      </>
+        <Card className="bg-gray-50 border-gray-200">
+          <CardContent className="p-4 flex gap-3">
+            <Info className="w-5 h-5 text-gray-500 shrink-0 mt-0.5" />
+            <div className="text-sm text-gray-700">
+              <p className="font-semibold mb-1">A conexão do WhatsApp está sendo preparada pela equipe PlaceFit</p>
+              <p>Você não precisa contratar nem configurar nada. Assim que estiver liberada, o botão "Conectar meu WhatsApp" funciona aqui mesmo.</p>
+            </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
