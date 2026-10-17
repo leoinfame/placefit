@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
 import GerenteWhatsAppCard from "@/components/whatsapp/GerenteWhatsAppCard";
+import ConectarWhatsAppAssistente from "@/components/whatsapp/ConectarWhatsAppAssistente";
 import {
   MessageCircle, CheckCircle, AlertCircle, ExternalLink, Eye, EyeOff,
   Loader2, Wifi, WifiOff, ChevronRight, ChevronDown, Info, Save, RefreshCw,
@@ -444,67 +445,8 @@ export default function WhatsAppSetup({ userId, userType = "revendedor" }) {
     <div className="space-y-6">
       <GerenteWhatsAppCard />
       <MetaConnectCard userId={userId} />
-      {/* Estado da conexão */}
-      <Card className={`border-2 ${connected ? "border-green-400 bg-green-50" : "border-gray-200 bg-gray-50"}`}>
-        <CardContent className="p-5">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${connected ? "bg-green-100" : "bg-gray-100"}`}>
-                {connected ? <Wifi className="w-6 h-6 text-green-600" /> : <WifiOff className="w-6 h-6 text-gray-400" />}
-              </div>
-              <div>
-                <p className="font-bold text-gray-900 text-lg">Conexão do WhatsApp</p>
-                <p className="text-sm text-gray-500">
-                  {isConfigured ? statusInfo.text : "Conexão ainda não liberada pela equipe PlaceFit"}
-                </p>
-                {status?.me?.pushName && (
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    Número pareado: {status.me.pushName}
-                  </p>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <Button variant="outline" size="sm" onClick={() => refreshStatus(false)} disabled={!isConfigured || busy === "status"}>
-                {busy === "status" ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
-                Atualizar
-              </Button>
-              <Button
-                size="sm"
-                onClick={handleConnect}
-                disabled={!isConfigured || busy === "connect"}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white"
-              >
-                {busy === "connect" ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <QrCode className="w-4 h-4 mr-2" />}
-                {connected ? "Reconectar" : "Conectar meu WhatsApp"}
-              </Button>
-              {connected && (
-                <Button variant="outline" size="sm" onClick={() => handleSessionAction("logout")} disabled={busy === "logout"}>
-                  <Power className="w-4 h-4 mr-2" />
-                  Desconectar
-                </Button>
-              )}
-            </div>
-          </div>
-
-        </CardContent>
-      </Card>
-
-      {/* QR Code */}
-      {qr && !connected && (
-        <Card className="border-emerald-200 bg-white">
-          <CardContent className="p-5 flex flex-col items-center gap-3">
-            <div className="flex items-center gap-2 text-emerald-800 font-semibold">
-              <Smartphone className="w-5 h-5" /> Leia com o celular do número
-            </div>
-            <img src={qr} alt="QR Code para parear o WhatsApp" className="w-64 h-64 rounded-lg border border-gray-200" />
-            <p className="text-sm text-gray-600 text-center max-w-md">
-              No celular: <strong>WhatsApp → Configurações → Dispositivos conectados → Conectar dispositivo</strong>.
-              Seu WhatsApp continua funcionando normalmente no aparelho — o CRM entra como mais um dispositivo vinculado.
-            </p>
-          </CardContent>
-        </Card>
-      )}
+      {/* Item 006 etapa 2: assistente de conexao em passos, para leigo (sem dados tecnicos) */}
+      <ConectarWhatsAppAssistente userId={userId} onMudou={() => refreshStatus(true)} />
 
       {/* Atendente automático */}
       <Card className={`border-2 ${atendenteOn ? "border-amber-400 bg-amber-50" : "border-gray-200 bg-white"}`}>
