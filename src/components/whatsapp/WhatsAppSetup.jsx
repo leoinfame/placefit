@@ -10,9 +10,8 @@ import { useToast } from "@/components/ui/use-toast";
 import GerenteWhatsAppCard from "@/components/whatsapp/GerenteWhatsAppCard";
 import ConectarWhatsAppAssistente from "@/components/whatsapp/ConectarWhatsAppAssistente";
 import {
-  MessageCircle, CheckCircle, AlertCircle, ExternalLink, Eye, EyeOff,
-  Loader2, Wifi, WifiOff, ChevronRight, ChevronDown, Info, Save, RefreshCw,
-  QrCode, ShieldAlert, Smartphone, Power
+  MessageCircle, AlertCircle, Eye, EyeOff,
+  Loader2, Info, ShieldAlert, Smartphone
 } from "lucide-react";
 
 const STEPS = [
