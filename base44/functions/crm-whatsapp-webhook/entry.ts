@@ -15,12 +15,15 @@ const env = (nome: string) => String(Deno.env.get(nome) || "").trim();
 const sessionDoUsuario = (id: string) =>
   "u" + String(id || "").replace(/[^A-Za-z0-9]/g, "").slice(-24);
 
-const sessionDe = (owner: any) =>
-  String(owner.whatsapp_waha_session || "").trim() || sessionDoUsuario(owner.id);
+// Item 006: sessao propria por conta; "default" nunca identifica revendedor.
+const sessionDe = (owner: any) => {
+  const custom = String(owner.whatsapp_waha_session || "").trim();
+  return custom && custom.toLowerCase() !== "default" ? custom : sessionDoUsuario(owner.id);
+};
 
 /** Servidor do app (variável de ambiente) com o campo do usuário como escape. */
-const baseUrlDe = (owner: any) =>
-  (env("WAHA_URL") || String(owner.whatsapp_waha_url || "")).trim().replace(/\/+$/, "");
+// Item 006: servidor so pelo secret do app (nada do cadastro do usuario).
+const baseUrlDe = (_owner: any) => env("WAHA_URL").replace(/\/+$/, "");
 const isGroup = (chatId: string) => String(chatId || "").endsWith("@g.us");
 const isBroadcast = (chatId: string) => String(chatId || "").includes("broadcast");
 
@@ -60,7 +63,7 @@ async function hmacValid(rawBody: string, key: string, provided: string) {
 
 async function sendText(owner: any, chatId: string, text: string) {
   const baseUrl = baseUrlDe(owner);
-  const apiKey = env("WAHA_API_KEY") || String(owner.whatsapp_waha_api_key || "");
+  const apiKey = env("WAHA_API_KEY");
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (apiKey) headers["X-Api-Key"] = apiKey;
   const response = await fetch(baseUrl + "/api/sendText", {
@@ -123,7 +126,7 @@ Deno.serve(async (req) => {
       return new Response("ok");
     }
 
-    const hmacKey = env("WAHA_HMAC_KEY") || String(owner.whatsapp_waha_hmac || "");
+    const hmacKey = env("WAHA_HMAC_KEY");
     if (hmacKey) {
       const provided = req.headers.get("x-webhook-hmac") || "";
       if (!(await hmacValid(rawBody, hmacKey, provided))) {

@@ -51,17 +51,23 @@ const sessionDoUsuario = (id: string) =>
  * Os campos por usuário continuam valendo como escape, para quem quiser
  * apontar para um servidor próprio.
  */
+// Item 006 (16/10/2026): URL, chave e HMAC do WAHA vem SO dos secrets do app
+// (WAHA_URL / WAHA_API_KEY / WAHA_HMAC_KEY). Nada e lido do cadastro do usuario.
+// A sessao e sempre propria por conta; "default" nunca e usada para revendedor.
+const sessaoDe = (owner: any) => {
+  const custom = String(owner.whatsapp_waha_session || "").trim();
+  return custom && custom.toLowerCase() !== "default" ? custom : sessionDoUsuario(owner.id);
+};
+
 const wahaConfig = (owner: any): Waha => {
-  const envUrl = env("WAHA_URL");
-  const compartilhado = Boolean(envUrl);
-  const baseUrl = (envUrl || String(owner.whatsapp_waha_url || "")).trim().replace(/\/+$/, "");
+  const baseUrl = env("WAHA_URL").replace(/\/+$/, "");
   return {
     baseUrl,
-    apiKey: env("WAHA_API_KEY") || String(owner.whatsapp_waha_api_key || ""),
-    hmac: env("WAHA_HMAC_KEY") || String(owner.whatsapp_waha_hmac || ""),
-    session: String(owner.whatsapp_waha_session || "").trim() || sessionDoUsuario(owner.id),
+    apiKey: env("WAHA_API_KEY"),
+    hmac: env("WAHA_HMAC_KEY"),
+    session: sessaoDe(owner),
     configured: Boolean(baseUrl),
-    compartilhado
+    compartilhado: Boolean(baseUrl)
   };
 };
 
@@ -151,7 +157,6 @@ Deno.serve(async (req) => {
         // true = servidor do app, vindo das variáveis de ambiente. A tela esconde
         // os campos técnicos e mostra só o botão de conectar.
         compartilhado: cfg.compartilhado,
-        session_name: cfg.session,
         session_status: session?.status || "NOT_CONFIGURED",
         connected: session?.status === "WORKING",
         me: session?.me || null,
