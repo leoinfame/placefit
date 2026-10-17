@@ -272,7 +272,7 @@ export default function WhatsAppSetup({ userId, userType = "revendedor" }) {
   const [config, setConfig] = useState({
     waha_url: "",
     waha_api_key: "",
-    waha_session: "default",
+    waha_session: "",
     waha_hmac: "",
     ativo: false,
     confirmado: false,
@@ -312,10 +312,11 @@ export default function WhatsAppSetup({ userId, userType = "revendedor" }) {
     try {
       const user = await base44.auth.me();
       setConfig({
-        waha_url: user.whatsapp_waha_url || "",
-        waha_api_key: user.whatsapp_waha_api_key || "",
-        waha_session: user.whatsapp_waha_session || "default",
-        waha_hmac: user.whatsapp_waha_hmac || "",
+        // Item 006: endereco, chave e sessao nao sao mais lidos do cadastro (servidor do PlaceFit)
+        waha_url: "",
+        waha_api_key: "",
+        waha_session: "",
+        waha_hmac: "",
         ativo: user.whatsapp_atendente_ativo || false,
         confirmado: user.whatsapp_atendente_confirmado || false,
       });
@@ -348,22 +349,6 @@ export default function WhatsAppSetup({ userId, userType = "revendedor" }) {
     } catch {
       /* a sessão pode ainda não ter gerado o código */
     }
-  };
-
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      await base44.auth.updateMe({
-        whatsapp_waha_url: config.waha_url.trim().replace(/\/+$/, ""),
-        whatsapp_waha_api_key: config.waha_api_key,
-        whatsapp_waha_session: config.waha_session.trim() || "default",
-        whatsapp_waha_hmac: config.waha_hmac,
-      });
-      toast({ title: "Configurações salvas!", description: "Dados do servidor WAHA atualizados." });
-    } catch (e) {
-      toast({ title: "Erro ao salvar", description: e.message, variant: "destructive" });
-    }
-    setSaving(false);
   };
 
   // Um clique só: a function cria a sessão, liga o webhook, inicia e já volta
