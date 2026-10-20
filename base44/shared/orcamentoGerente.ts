@@ -11,7 +11,7 @@
 //
 // Travas que continuam:
 //  - a IA só interpreta o pedido (texto → JSON). Produto, preço, frete e total são do código;
-//  - NUNCA envia nada ao cliente e NUNCA converte em pedido (status fica \"pendente\");
+//  - NUNCA envia nada ao cliente e NUNCA converte em pedido (status fica "pendente");
 //  - preco_fabricante nunca é lido; links só em app.placefit.com.br.
 // Escritas possíveis: Cliente.create/update (cadastro pelo CNPJ) e Pedido.create/update
 // (tipo orçamento, status pendente).
@@ -285,6 +285,10 @@ async function montarRascunho(base44: any, tenantId: string, pedido: any, anteri
 
   // Destino do frete: CEP de entrega informado, senão o endereço do cliente (CNPJ)
   let destino: any = cliente ? { cidade: cliente.cidade, estado: cliente.estado } : null;
+  if (cliente && !destino.estado && digitos(pedido.cliente?.cep).length === 8) {
+    const cep = await consultarCep(pedido.cliente.cep);
+    if (cep) destino = { cidade: cep.cidade, estado: cep.estado, cep: cep.cep };
+  }
   if (digitos(pedido.cep_entrega).length === 8) {
     const cep = await consultarCep(pedido.cep_entrega);
     if (cep) destino = { cidade: cep.cidade, estado: cep.estado, cep: cep.cep };
