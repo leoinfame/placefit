@@ -217,6 +217,28 @@ export function resolverItem(itens: ItemCatalogo[], descricao: string): Resoluca
   return { status: 'nao_encontrado', sugestoes };
 }
 
+/** Palavras (sem números) que importam numa descrição: base da busca por família/composição. */
+export function palavrasDe(descricao: string): string[] {
+  const termos = [...new Set(normalizar(descricao).split(' ').filter(Boolean))];
+  return termos.filter((t) => !/^\d/.test(t) && t.length >= 3 && !STOP.has(t)).map(raiz);
+}
+
+/** Itens cujo nome/código/categoria contém TODAS as palavras (números ignorados). */
+export function itensComPalavras(itens: ItemCatalogo[], palavras: string[]): ItemCatalogo[] {
+  if (!palavras.length) return [];
+  return itens.filter((item) => {
+    const doItem = item.chave.split(' ');
+    return palavras.every((p) => casa(p, doItem));
+  });
+}
+
+/** Quantas palavras do NOME do item o pedido não citou (menos = mais próximo da versão padrão). */
+export function extrasDoItem(item: ItemCatalogo, descricao: string): number {
+  const termos = [...new Set(normalizar(descricao).split(' ').filter(Boolean))];
+  const numeros = termos.filter((t) => /^\d+(\.\d+)?$/.test(t)).map(Number);
+  return extras(item, palavrasDe(descricao), numeros).length;
+}
+
 const brl = (v: number) => 'R$ ' + v.toFixed(2).replace('.', ',');
 
 export function catalogoParaPrompt(itens: ItemCatalogo[]): string {
