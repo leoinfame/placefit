@@ -68,6 +68,7 @@ Deno.test('pedido de 15/10: cadastra pelo CNPJ, compõe, frete da tabela, grava 
   const conversa = tabelas.CRMConversa[0];
   const r = await tratarOrcamentoGerente(base44, TENANT, conversa, TEXTO, '');
   assert(r.tratou && r.gravou, r.resposta);
+  if (Deno.env.get('MOSTRAR')) console.log(r.resposta);
 
   // Cliente: criado com os dados públicos, sem pergunta
   assertEquals(tabelas.Cliente.length, 1);
