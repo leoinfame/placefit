@@ -233,7 +233,8 @@ function resolverLinha(catalogo: ItemCatalogo[], l: LinhaPedido, res: Composicao
     if (!sugestoes.length && tipo) {
       const pesos = [...new Set(doTipo(catalogo, tipo).map((i) => i.peso_kg).filter((p): p is number => Boolean(p)))].sort((a, b) => a - b);
       const nomeTipo = normalizar(l.descricao).split(' ').find((t) => mesmoTipo(palavrasDe(t)[0] || '', tipo)) || tipo;
-      res.perguntas.push(`Não tem "${l.descricao}" no catálogo: nenhuma ${nomeTipo} de ${pedidos.map(kg).join(' / ')}.` +
+      const unidade = /\bkg\b/.test(normalizar(l.descricao)) ? ' kg' : '';
+      res.perguntas.push(`Não tem "${l.descricao}" no catálogo: nenhuma ${nomeTipo} de ${pedidos.map(kg).join(' / ')}${unidade}.` +
         (pesos.length ? ` Pesos que existem: ${pesos.slice(0, 12).map(kg).join(', ')} kg.` : '') + ' Qual produto usar?');
       return;
     }
