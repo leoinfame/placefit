@@ -21,6 +21,7 @@ import { comporPedido } from './composicaoOrcamento.ts';
 import { consultarCnpj, consultarCep } from './cnpjPublico.ts';
 import { chaveTelefone } from './cadastroCliente.ts';
 import { sugerirFrete, resolverUF } from './freteCrm.js';
+import { invocarIA } from './iaComRetry.ts';
 
 const VALIDADE_MIN = 30;
 // Link do painel: abre o orçamento já na visualização (mesmo botão de PDF do painel)
@@ -80,6 +81,8 @@ de forma vaga — a acao é "orcamento". Frase vaga não escolhe opção.
 
 Quando for "orcamento", devolva o pedido COMPLETO já atualizado: o RASCUNHO ATUAL (se houver) com as mudanças da mensagem.
 - cliente: só o que foi dito (CNPJ/CPF, nome, cidade, estado em sigla UF, telefone, CEP). Não informado = "".
+  cpf_cnpj só recebe números de documento (11 ou 14 dígitos, com ou sem pontuação). Código de produto
+  (tem letras, ex.: "ANI-N062", "ASP20", "KHSI110S") NUNCA é CPF/CNPJ: ele vai na descricao do item a que se refere.
 - cep_entrega: só se ele disse que a entrega é em OUTRO lugar (CEP diferente do cliente); senão "".
 - itens: um por produto pedido. descricao = o produto como ele falou, SEM a quantidade (tipo, acabamento, peso, medida).
   - Faixa de pesos ("dumbbell montado de 12 a 20kg"): mantenha a faixa na descricao ("dumbbell montado 12 a 20 kg");
@@ -141,7 +144,10 @@ const vazio = (v: any) => !String(v || '').trim();
  */
 async function resolverCliente(base44: any, tenantId: string, pedido: any) {
   const db = base44.asServiceRole.entities;
-  const doc = digitos(pedido?.cpf_cnpj);
+  // B1: código de produto (tem letra, ex.: ANI-N062) nunca é tratado como CPF/CNPJ
+  const docBruto = /[a-z]/i.test(String(pedido?.cpf_cnpj || '')) ? '' : String(pedido?.cpf_cnpj || '').trim();
+  pedido = { ...pedido, cpf_cnpj: docBruto };
+  const doc = digitos(docBruto);
   const nome = String(pedido?.nome || '').trim();
   const tel = chaveTelefone(pedido?.telefone || '');
   const perguntas: string[] = [];
@@ -455,7 +461,7 @@ export async function tratarOrcamentoGerente(base44: any, tenantId: string, conv
 
   // O interpretador decide se é orçamento; não depende mais de a mensagem dizer "orçamento"
   const rascunhoTexto = atual ? JSON.stringify(atual.pedido) : 'nenhum';
-  const ai: any = await base44.asServiceRole.integrations.Core.InvokeLLM({
+  const ai: any = await invocarIA(base44, {
     prompt: PROMPT_PARSER +
       `\n\nRASCUNHO ATUAL (pedido): ${rascunhoTexto}` +
       (atual?.perguntas?.length ? `\nPERGUNTAS QUE FIZEMOS AO DONO: ${atual.perguntas.map((p: string, n: number) => `${n + 1}. ${p}`).join(' | ')}` : '') +
