@@ -11,6 +11,7 @@ function criarBase(respostasIA: Rec[]) {
     Cliente: [], ClienteFiscal: [], Pedido: [], CRMConversa: [{ id: 'conv1' }],
     TabelaFrete: [
       { id: 'f1', estado: 'MG', valor_minimo: 450, peso_limite: 500, preco_kg_capital: 1.2, preco_kg_interior: 1.3, ativo: true },
+      { id: 'f3', estado: 'RJ', valor_minimo: 550, peso_limite: 500, preco_kg_capital: 1.3, preco_kg_interior: 1.5, ativo: true },
       { id: 'f2', estado: 'AM', valor_minimo: 950, peso_limite: 500, preco_kg_capital: 3.4, preco_kg_interior: 3.8, ativo: true }
     ],
     ProductTemplate: [], SupplierProduct: []
@@ -129,4 +130,17 @@ Deno.test('consulta (não é orçamento) cai no fluxo normal sem gravar', async 
   const r = await tratarOrcamentoGerente(base44, TENANT, tabelas.CRMConversa[0], 'quantos leads chegaram hoje?', '');
   assertEquals(r.tratou, false);
   assertEquals(tabelas.Pedido.length, 0);
+});
+
+Deno.test('B1: código de produto no campo de documento nunca vira pergunta de CPF/CNPJ', async () => {
+  const pedido = {
+    acao: 'orcamento', cliente: { cpf_cnpj: 'ANI-N062', nome: 'Letelba Ferreira Neto', cidade: 'Rio de Janeiro', estado: 'RJ', telefone: '', cep: '22050002' }, cep_entrega: '',
+    itens: [{ descricao: 'suporte dumbbell sextavado para 10 pares', quantidade: 1, quantidade_informada: true, unidade_pedida: '' }], frete_informado: -1
+  };
+  const { base44, tabelas } = criarBase([pedido]);
+  const r = await tratarOrcamentoGerente(base44, TENANT, tabelas.CRMConversa[0], 'Letelba Ferreira Neto\n22050002\nANI-N062', '');
+  assert(!/CPF\/CNPJ/.test(r.resposta), r.resposta);
+  assert(r.gravou, r.resposta);
+  assertEquals(tabelas.Cliente[0].cpf_cnpj, '');
+  assertEquals(tabelas.Pedido[0].frete, 550);
 });
