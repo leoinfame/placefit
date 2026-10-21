@@ -76,6 +76,9 @@ Decida "acao":
   20 pro cliente Y com frete", "troca o de 2kg por 30", "a cidade é Vitória/ES", "o frete é 300", "1. Sim 2. Sim").
 - "consulta": qualquer outra coisa (perguntas sobre orçamentos já feitos, leads, números, conversa).
 
+A ÚLTIMA MENSAGEM pode juntar várias mensagens seguidas do dono (uma por linha, às vezes encaminhadas de um
+cliente): trate tudo como UM pedido só — nome, endereço, CEP, CNPJ e itens espalhados nas linhas se completam.
+
 Se existe RASCUNHO ATUAL e a mensagem fala do orçamento, dos itens, dos produtos, do cliente ou do frete — mesmo
 de forma vaga — a acao é "orcamento". Frase vaga não escolhe opção.
 
