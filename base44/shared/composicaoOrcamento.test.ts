@@ -80,3 +80,56 @@ Deno.test('CNPJ público: endereço sem número cadastra com ressalva', () => {
   assertEquals(d?.endereco, 'RUA A, S/N - CENTRO');
   assertEquals(dadosDoCnpj({}), null);
 });
+
+// ── Bugs de produção de 20/10 (item 009, B2 e B3) ──
+const catalogo2: ItemCatalogo[] = [
+  ...catalogo,
+  item('Anilha Sport Pintado 20kg', 'ASP20', 20, 'peça', 176.4),
+  item('Anilha Sport Pintado Olímpica 20kg', 'ASPO20', 20, 'peça', 190),
+  item('Anilha Injetada Pro Olímpica - Anel Inox 20 kg', 'ANI-N062-20KG', 20, 'peça', 473.76),
+  item('Anilha Evo Niquel - Cromada - Anel Inox 20kg', 'ANI-N070-20', 20, 'peça', 520),
+  item('Anilha Injetada Pro Olímpica - Anel Inox 1 kg', 'ANI-N062-01KG', 1, 'peça', 24),
+  item('Dumbbell Montado Anilha Sport Pintado Pegada Recartilhada 20kg', 'DMOASPR20', 20, 'par', 400),
+  item('Barra Olímpica 20kg 2.2m 4 Rolamentos Cromada', 'BAR-042', null, 'peça', 900),
+  item('Barra Olímpica 40lbs 2.2m 4 Rolamentos Cromada', 'BAR-062', null, 'peça', 850),
+  item('Barra Maciça Cromada Recartilhada Reta 2,2m c/ Presilha Espiral', 'BAR-008', null, 'peça', 320),
+  item('Barra Maciça Cromada Recartilhada Reta 2,2m c/ Lock Press Mini', 'BAR-018', null, 'peça', 350),
+  item('Barra Maciça Cromada Recartilhada Reta 1,2m c/ Rosca', 'BAR-023', null, 'peça', 150)
+];
+
+Deno.test('B2: Sport Pintada com inox não existe → explica e oferece a linha com inox, nunca dumbbell', () => {
+  const r = comporPedido(catalogo2, [{ descricao: 'anilhas Sport Pintadas com parte interna de inox 20 kg', quantidade: 6, quantidade_informada: true }]);
+  assertEquals(r.itens.length, 0);
+  assertEquals(r.perguntas.length, 1);
+  const p = r.perguntas[0];
+  assert(p.includes('Usar "Anilha Injetada Pro Olímpica - Anel Inox 20 kg" (ANI-N062-20KG)?'), p);
+  assert(p.includes('não vem com "inox"'), p);
+  assert(p.includes('Outra opção: "Anilha Sport Pintado 20kg"'), p);
+  assert(!/dumbbell/i.test(p), p);
+});
+
+Deno.test('B2: "anilha com a parte interna de inox" resolve para a linha Anel Inox', () => {
+  const r = comporPedido(catalogo2, [{ descricao: 'anilhas com a parte interna de inox 1kg', quantidade: 4, quantidade_informada: true }]);
+  assertEquals(r.perguntas, []);
+  assertEquals(r.itens.map((i) => i.item.cod), ['ANI-N062-01KG']);
+  assert(r.suposicoes.some((s) => s.includes('entendi como')));
+});
+
+Deno.test('B3: barra recartilhada 220cm pergunta olímpica (sugerida) x maciça 2,2 m', () => {
+  const r = comporPedido(catalogo2, [{ descricao: 'barra com recartilhado 220cm', quantidade: 1, quantidade_informada: true }]);
+  assertEquals(r.itens.length, 0);
+  const p = r.perguntas[0];
+  assert(p.includes('Usar "Barra Olímpica 20kg 2.2m 4 Rolamentos Cromada" (BAR-042)?'), p);
+  assert(p.includes('Outra opção: "Barra Maciça Cromada Recartilhada Reta 2,2m'), p);
+  assert(!p.includes('1,2m'), p);
+  // "1. Sim" copia o nome sugerido → resolve
+  const ok = comporPedido(catalogo2, [{ descricao: 'Barra Olímpica 20kg 2.2m 4 Rolamentos Cromada', quantidade: 1, quantidade_informada: true }]);
+  assertEquals(ok.itens.map((i) => i.item.cod), ['BAR-042']);
+  const mac = comporPedido(catalogo2, [{ descricao: 'Barra Maciça Cromada Recartilhada Reta 2,2m c/ Presilha Espiral', quantidade: 1, quantidade_informada: true }]);
+  assertEquals(mac.itens.map((i) => i.item.cod), ['BAR-008']);
+});
+
+Deno.test('normalizar: 220cm vira 2,2 m e 40cm continua cm', () => {
+  assertEquals(normalizar('barra 220cm'), 'barra 2.2 m');
+  assertEquals(normalizar('barra 40cm'), 'barra 40 cm');
+});
