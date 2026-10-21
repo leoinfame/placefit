@@ -39,6 +39,8 @@ export function normalizar(t: string) {
     .normalize('NFD').replace(/[̀-ͯ]/g, '')
     .toLowerCase()
     .replace(/(\d),(\d)/g, '$1.$2')
+    // Comprimento em cm a partir de 1 m vira metro: "220cm" casa com "2,2m" / "2.20 m" (item 009 / B3)
+    .replace(/(\d+(?:\.\d+)?)\s*cm\b/g, (m, v) => (Number(v) >= 100 ? `${Number(v) / 100} m` : m))
     .replace(/(\d)([a-z])/g, '$1 $2')
     .replace(/([a-z])(\d)/g, '$1 $2') // "1x1" → "1 x 1", "avp10" → "avp 10"
     .replace(/[^a-z0-9.]+/g, ' ')
