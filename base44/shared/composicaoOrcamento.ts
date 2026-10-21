@@ -217,7 +217,28 @@ function resolverLinha(catalogo: ItemCatalogo[], l: LinhaPedido, res: Composicao
 
   // Palavra-chave: a melhor alternativa DO MESMO TIPO vira sugestão; "não achei" só sem nenhuma
   const tipo = tipoDoPedido(catalogo, l.descricao);
-  const sugestoes = doTipo(r.sugestoes.length ? r.sugestoes : buscarNoCatalogo(catalogo, l.descricao), tipo).slice(0, 4);
+  let sugestoes = doTipo(r.sugestoes.length ? r.sugestoes : buscarNoCatalogo(catalogo, l.descricao), tipo);
+  // Peso/medida pedidos são obrigatórios na sugestão: "anilha de 10kg" nunca vira anilha de 1 kg
+  const pedidos = [...numerosDe(normalizar(l.descricao))];
+  if (pedidos.length) {
+    const temNumeros = (i: ItemCatalogo) => {
+      const ns = numerosDe(i.chave);
+      if (i.peso_kg) ns.add(i.peso_kg);
+      return pedidos.every((n) => ns.has(n));
+    };
+    sugestoes = sugestoes.filter(temNumeros);
+    if (!sugestoes.length && tipo) {
+      sugestoes = doTipo(catalogo, tipo).filter(temNumeros).sort((a, b) => extrasDoItem(a, l.descricao) - extrasDoItem(b, l.descricao));
+    }
+    if (!sugestoes.length && tipo) {
+      const pesos = [...new Set(doTipo(catalogo, tipo).map((i) => i.peso_kg).filter((p): p is number => Boolean(p)))].sort((a, b) => a - b);
+      const nomeTipo = normalizar(l.descricao).split(' ').find((t) => mesmoTipo(palavrasDe(t)[0] || '', tipo)) || tipo;
+      res.perguntas.push(`Não tem "${l.descricao}" no catálogo: nenhuma ${nomeTipo} de ${pedidos.map(kg).join(' / ')}.` +
+        (pesos.length ? ` Pesos que existem: ${pesos.slice(0, 12).map(kg).join(', ')} kg.` : '') + ' Qual produto usar?');
+      return;
+    }
+  }
+  sugestoes = sugestoes.slice(0, 4);
   if (sugestoes.length) {
     res.perguntas.push(`Não tem "${l.descricao}" no catálogo. Usar "${sugestoes[0].nome}"${sugestoes[0].cod ? ` (${sugestoes[0].cod})` : ''}?` +
       (sugestoes.length > 1 ? ` Outras: ${sugestoes.slice(1).map((o) => `"${o.nome}"`).join('; ')}.` : ''));
