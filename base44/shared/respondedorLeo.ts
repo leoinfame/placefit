@@ -9,7 +9,10 @@
 //  3. só texto, só evento novo e só mensagem com menos de 5 min;
 //  4. humano assumiu: silêncio por 60 min após envio não automático na conversa;
 //  5. teto de respostas automáticas por conversa por hora;
-//  6. reply_status = "respondendo" é gravado ANTES da IA: reentrega nunca duplica.
+//  6. reply_status = "respondendo" é gravado ANTES da IA: reentrega nunca duplica;
+//  7. modo vendedor (cliente) só com o botão "Atendente IA" do painel ligado na conta
+//     (whatsapp_atendente_ativo E whatsapp_atendente_confirmado, as mesmas chaves do 7206).
+//     O modo gerente (dono do número / revendedor verificado) não depende do botão.
 
 import { onlyDigits } from './whatsappCoexistence.ts';
 import { carregarCatalogo, buscarNoCatalogo, catalogoParaPrompt } from './catalogoRespondedor.ts';
@@ -197,6 +200,17 @@ export async function juntarRajada(base44: any, conversaId: string, msgId: strin
   return { ultima: true, texto };
 }
 
+/** Botão "Atendente IA" do painel ligado na conta? Falha na leitura = desligado (falha fechado). */
+export async function atendenteLigado(base44: any, tenantId: string): Promise<boolean> {
+  try {
+    const conta = await base44.asServiceRole.entities.User.get(tenantId);
+    return Boolean(conta?.whatsapp_atendente_ativo) && Boolean(conta?.whatsapp_atendente_confirmado);
+  } catch (e) {
+    console.error('[RESPONDEDOR] leitura do botão Atendente IA falhou', e);
+    return false;
+  }
+}
+
 async function marcar(base44: any, eventId: string, patch: any) {
   await base44.asServiceRole.entities.whatsapp_webhook_events.update(eventId, patch);
 }
@@ -289,6 +303,13 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
     // 2. allowlist (numero de revendedor verificado tambem passa)
     const allow = env('RESPONDEDOR_ALLOWLIST').split(',').map(onlyDigits).filter(Boolean);
     if (allow.length && !allow.includes(cliente) && !vinculo) return await ignorar(base44, eventId, 'fora_allowlist');
+
+    // 7. cliente só recebe resposta automática com o botão "Atendente IA" ligado (decisão do dono, 21/10)
+    const donoTel = onlyDigits(env('OWNER_PHONE'));
+    const podeSerGerente = (Boolean(donoTel) && cliente === donoTel) || Boolean(vinculo);
+    if (!podeSerGerente && !(await atendenteLigado(base44, connection.tenant_id))) {
+      return await ignorar(base44, eventId, 'atendente_desligado');
+    }
 
     // 3. só texto ou áudio, e nada de fila antiga
     const ehAudio = msg?.type === 'audio';
