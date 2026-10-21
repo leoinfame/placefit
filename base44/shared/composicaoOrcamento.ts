@@ -4,7 +4,10 @@
 //  - faixa de peso ("dumbbell montado 12 a 20 kg") → um item por peso da família, somados;
 //  - kit + suporte pedido junto → o kit "+ Suporte" do catálogo, sem somar o suporte de novo;
 //  - "não achei" só depois de buscar por composição e por palavra-chave; quando há
-//    alternativa próxima, vira pergunta numerada com a opção sugerida entre aspas.
+//    alternativa próxima, vira pergunta numerada com a opção sugerida entre aspas;
+//  - sugestão sempre do MESMO tipo de produto (anilha nunca vira dumbbell); combinação que não
+//    existe ("Sport Pintada com inox") é explicada e oferece a linha certa (B2);
+//  - barra de ~2,2 m sem tipo dito: pergunta olímpica (sugerida) x maciça (B3).
 // Puro (sem banco): o preço vem do ItemCatalogo (SupplierProduct.preco via vitrine).
 
 import {
@@ -56,11 +59,109 @@ function familiasNaFaixa(candidatos: ItemCatalogo[], de: number, ate: number, ba
 
 const mesmoNivel = (a?: Familia, b?: Familia) => Boolean(a && b && a.itens.length === b.itens.length && a.extras === b.extras);
 
+// ── Tipo do produto (anilha, barra, dumbbell, kit...) ──
+const primeiraPalavra = (nome: string) => palavrasDe(nome)[0] || '';
+const mesmoTipo = (a: string, b: string) => Boolean(a && b && (a.startsWith(b) || b.startsWith(a)));
+
+/** Tipo pedido = primeira palavra da descrição que é o início do nome de algum item do catálogo. */
+function tipoDoPedido(catalogo: ItemCatalogo[], descricao: string): string {
+  const tipos = [...new Set(catalogo.map((i) => primeiraPalavra(i.nome)).filter(Boolean))];
+  return palavrasDe(descricao).find((p) => tipos.some((t) => mesmoTipo(t, p))) || '';
+}
+const doTipo = (itens: ItemCatalogo[], tipo: string) => (tipo ? itens.filter((i) => mesmoTipo(primeiraPalavra(i.nome), tipo)) : itens);
+
+/** Entre opções empatadas: menos palavras a mais; depois a injetada (regra do óbvio); depois a mais barata. */
+function melhor(opcoes: ItemCatalogo[], descricao: string): ItemCatalogo {
+  return [...opcoes].sort((a, b) =>
+    extrasDoItem(a, descricao) - extrasDoItem(b, descricao) ||
+    Number(/\binjetad/.test(b.chave)) - Number(/\binjetad/.test(a.chave)) ||
+    a.preco - b.preco)[0];
+}
+
+const numerosDe = (chave: string) => new Set(chave.split(' ').filter((w) => /^\d+(\.\d+)?$/.test(w)).map(Number));
+
+/** B3: "barra (recartilhada) 2,2 m" sem dizer olímpica nem maciça → pergunta, com a olímpica cromada 4 rolamentos sugerida. */
+function barraComprida(catalogo: ItemCatalogo[], l: LinhaPedido, res: Composicao): boolean {
+  const n = normalizar(l.descricao);
+  if (!/^barr/.test(palavrasDe(l.descricao)[0] || '') || /\b(olimpic|macic)/.test(n)) return false;
+  const m = n.match(/(\d+(?:\.\d+)?) m\b/);
+  const compr = m ? Number(m[1]) : 0;
+  if (!(compr >= 1.8 && compr <= 2.4)) return false;
+  const barras = catalogo.filter((i) => /^barra\b/.test(i.chave) && numerosDe(i.chave).has(compr));
+  const olimpicas = barras.filter((i) => /\bolimpic/.test(i.chave) && /\bcromad/.test(i.chave) && /\b4 rolament/.test(i.chave))
+    .sort((a, b) => Number(/\b20 kg\b/.test(b.chave)) - Number(/\b20 kg\b/.test(a.chave)) || a.preco - b.preco);
+  const recartilhada = /\brecartilh/.test(n);
+  const macicas = barras.filter((i) => /\bmacic/.test(i.chave) && (!recartilhada || /\brecartilh/.test(i.chave)))
+    .sort((a, b) => a.preco - b.preco);
+  if (!olimpicas.length || !macicas.length) return false;
+  const o = olimpicas[0];
+  const mc = macicas[0];
+  res.perguntas.push(`"${l.descricao}": barra de ${String(compr).replace('.', ',')} m pode ser olímpica ou maciça. ` +
+    `Usar "${o.nome}"${o.cod ? ` (${o.cod})` : ''}? Outra opção: "${mc.nome}"${mc.cod ? ` (${mc.cod})` : ''}.`);
+  return true;
+}
+
+/**
+ * B2: combinação que não existe. Tira palavras que nenhum item do tipo tem ("parte", "interna");
+ * se ainda não existir, tira 1 ou 2 características e mostra o que existe, preferindo manter o
+ * que veio depois de "com" (o requisito do cliente). Nunca sai do tipo pedido.
+ */
+function explicarFalta(catalogo: ItemCatalogo[], l: LinhaPedido, qtd: number, res: Composicao): boolean {
+  const tipo = tipoDoPedido(catalogo, l.descricao);
+  if (!tipo) return false;
+  const base = doTipo(catalogo, tipo);
+  const toks = normalizar(l.descricao).split(' ').filter(Boolean);
+  const sig = [...new Set(toks.filter((t) => !/^\d/.test(t) && palavrasDe(t).length))];
+  const ruido = sig.filter((t) => !itensComPalavras(base, palavrasDe(t)).length);
+  const uteis = sig.filter((t) => !ruido.includes(t) && !mesmoTipo(palavrasDe(t)[0], tipo));
+  const sem = (fora: string[]) => toks.filter((t) => !ruido.includes(t) && !fora.includes(t)).join(' ');
+
+  if (ruido.length) {
+    const r = resolverItem(base, sem([]));
+    if (r.status === 'ok') {
+      res.itens.push({ item: r.item, quantidade: qtd, origem: l.descricao });
+      res.suposicoes.push(`"${l.descricao}": entendi como "${r.item.nome}"${r.item.cod ? ` (${r.item.cod})` : ''}.` + (r.suposicao ? ` ${r.suposicao}` : ''));
+      return true;
+    }
+    if (r.status === 'ambiguo') {
+      const ops = [...r.opcoes].sort((a, b) => (melhor([a, b], sem([])) === a ? -1 : 1));
+      res.perguntas.push(`"${l.descricao}": usar "${ops[0].nome}"${ops[0].cod ? ` (${ops[0].cod})` : ''}?` +
+        (ops.length > 1 ? ` Outras: ${ops.slice(1, 4).map((o) => `"${o.nome}"`).join('; ')}.` : ''));
+      return true;
+    }
+  }
+
+  const iCom = toks.indexOf('com');
+  const requisitos = iCom >= 0 ? toks.slice(iCom + 1) : [];
+  const combos: string[][] = uteis.map((t) => [t]);
+  for (let i = 0; i < uteis.length; i++) for (let j = i + 1; j < uteis.length; j++) combos.push([uteis[i], uteis[j]]);
+  const opcoes: { fora: string[]; item: ItemCatalogo; mantem: boolean }[] = [];
+  for (const fora of combos) {
+    const desc = sem(fora);
+    const r = resolverItem(base, desc);
+    const item = r.status === 'ok' ? r.item : r.status === 'ambiguo' ? melhor(r.opcoes, desc) : null;
+    if (item && !opcoes.some((o) => o.item.product_id === item.product_id)) {
+      opcoes.push({ fora, item, mantem: !fora.some((f) => requisitos.includes(f)) });
+    }
+  }
+  if (!opcoes.length) return false;
+  opcoes.sort((a, b) => Number(b.mantem) - Number(a.mantem) || a.fora.length - b.fora.length);
+  const o1 = opcoes[0];
+  const o2 = opcoes.find((o) => o.fora.join(' ') !== o1.fora.join(' '));
+  const motivo = o2 && o2.fora.every((f) => !o1.fora.includes(f))
+    ? `"${o1.fora.join(' ')}" não vem com "${o2.fora.join(' ')}"`
+    : `não existe com "${o1.fora.join(' ')}"`;
+  res.perguntas.push(`Não tem "${l.descricao}": ${motivo}. Usar "${o1.item.nome}"${o1.item.cod ? ` (${o1.item.cod})` : ''}?` +
+    (o2 ? ` Outra opção: "${o2.item.nome}"${o2.item.cod ? ` (${o2.item.cod})` : ''}.` : ''));
+  return true;
+}
+
 function resolverLinha(catalogo: ItemCatalogo[], l: LinhaPedido, res: Composicao) {
   const informada = l.quantidade_informada !== false && Number(l.quantidade) > 0;
   const qtd = informada ? Number(l.quantidade) : 1;
   if (!informada) res.suposicoes.push(`"${l.descricao}": quantidade não informada, considerei 1${lerFaixa(l.descricao) ? ' de cada peso' : ''}.`);
 
+  if (barraComprida(catalogo, l, res)) return;
   const r = resolverItem(catalogo, l.descricao);
   if (r.status === 'ok') {
     res.itens.push({ item: r.item, quantidade: qtd, origem: l.descricao });
@@ -93,7 +194,9 @@ function resolverLinha(catalogo: ItemCatalogo[], l: LinhaPedido, res: Composicao
     // Família exata não existe: tira uma palavra por vez e sugere a mais próxima
     const vistas = new Set<string>();
     const alternativas: Familia[] = [];
+    const tipo = tipoDoPedido(catalogo, faixa.base);
     for (const fora of palavras) {
+      if (mesmoTipo(fora, tipo)) continue; // nunca troca o tipo do produto (anilha não vira dumbbell)
       const pal = palavras.filter((p) => p !== fora);
       if (!pal.length) continue;
       for (const f of familiasNaFaixa(itensComPalavras(catalogo, pal), faixa.de, faixa.ate, faixa.base)) {
@@ -109,8 +212,12 @@ function resolverLinha(catalogo: ItemCatalogo[], l: LinhaPedido, res: Composicao
     }
   }
 
-  // Palavra-chave: a melhor alternativa vira sugestão; "não achei" só sem nenhuma
-  const sugestoes = r.sugestoes.length ? r.sugestoes : buscarNoCatalogo(catalogo, l.descricao).slice(0, 4);
+  // Combinação inexistente: explica e oferece a linha certa do mesmo tipo
+  if (explicarFalta(catalogo, l, qtd, res)) return;
+
+  // Palavra-chave: a melhor alternativa DO MESMO TIPO vira sugestão; "não achei" só sem nenhuma
+  const tipo = tipoDoPedido(catalogo, l.descricao);
+  const sugestoes = doTipo(r.sugestoes.length ? r.sugestoes : buscarNoCatalogo(catalogo, l.descricao), tipo).slice(0, 4);
   if (sugestoes.length) {
     res.perguntas.push(`Não tem "${l.descricao}" no catálogo. Usar "${sugestoes[0].nome}"${sugestoes[0].cod ? ` (${sugestoes[0].cod})` : ''}?` +
       (sugestoes.length > 1 ? ` Outras: ${sugestoes.slice(1).map((o) => `"${o.nome}"`).join('; ')}.` : ''));
