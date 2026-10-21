@@ -18,10 +18,15 @@ import { montarResumoGerente, PROMPT_GERENTE } from './gerenteRespondedor.ts';
 import { tratarOrcamentoGerente, statusRascunho } from './orcamentoGerente.ts';
 import { clienteDaConversa, atualizarCadastro } from './cadastroCliente.ts';
 import { revendedorDoTelefone, tentarAtivacao, ehMensagemDeAtivacao } from './vinculoRevendedor.ts';
+import { invocarIA } from './iaComRetry.ts';
 
 // A consulta do gerente não grava nada; se a IA afirmar que gravou/criou, a frase é trocada.
 const AFIRMA_GRAVACAO = /(j[aá] (est[aá]|foi|ficou|t[aá]) (no painel|gravad|criad|salv|lan[cç]ad|registrad))|(or[cç]amento (j[aá] |foi |est[aá] |j[aá] foi |j[aá] est[aá] )(gravado|criado|salvo|lan[cç]ado|registrado))|(gravei|criei|lancei|salvei)/i;
 const NADA_GRAVADO = 'Nada foi gravado agora. Pra criar um orçamento: "orçamento pro CNPJ <CNPJ> de <quantidade> <produto>"; eu puxo o cadastro, monto itens e frete e gravo como pendente, sem enviar ao cliente.';
+
+// B4: a consulta não pode voltar ao padrão antigo de mandar o dono pro painel por preço/frete.
+const MANDA_PRO_PAINEL = /(consult\w*[^.\n]{0,60}painel|n[aã]o aparece\w* no (meu )?resumo|n[aã]o consigo puxar|s[oó] pelo painel)/i;
+export const PEDIR_PEDIDO = 'Preço e frete eu monto aqui: me manda o cliente (CNPJ) e os itens que eu faço o orçamento.';
 
 export const PEDIR_TEXTO = 'Não consegui ouvir teu áudio aqui. Manda por texto pra mim?';
 
@@ -31,6 +36,8 @@ const HUMAN_TAKEOVER_MINUTES = 60;
 const TETO_POR_HORA = 15;
 const TETO_DONO_POR_HORA = 60;
 const HISTORICO = 10;
+// B4: mensagens do dono que chegam em sequência (encaminhadas, picadas) viram UM pedido
+const JANELA_RAJADA_MS = 6000;
 
 const env = (nome: string) => String(Deno.env.get(nome) || '').trim();
 
@@ -166,6 +173,28 @@ async function registrarPendencia(base44: any, conversa: any, pendencia: string)
     pendencia: texto,
     pendencia_em: agora.toISOString()
   });
+}
+
+/**
+ * Rajada do modo gerente (B4): espera a janela e só a ÚLTIMA mensagem recebida segue,
+ * levando o texto de todas as recebidas desde a última resposta nossa. As outras saem
+ * sem responder (uma resposta por pedido, sem rascunhos concorrentes).
+ */
+export async function juntarRajada(base44: any, conversaId: string, msgId: string, esperar = (ms: number) => new Promise((r) => setTimeout(r, ms))) {
+  await esperar(JANELA_RAJADA_MS);
+  const recentes = await base44.asServiceRole.entities.CRMMensagem.filter({ conversa_id: conversaId }, '-created_date', 30);
+  const ultimaRecebida = (recentes || []).find((m: any) => m.direcao === 'recebida');
+  if (ultimaRecebida && msgId && String(ultimaRecebida.meta_message_id || '') !== msgId) return { ultima: false, texto: '' };
+  const lote: any[] = [];
+  for (const m of recentes || []) {
+    if (m.direcao !== 'recebida') break;
+    lote.push(m);
+  }
+  const texto = lote.reverse()
+    .map((m) => String(m.conteudo || '').replace(/^\[áudio\]\s*/, '').replace(/^\s*#cliente\b\s*/i, '').trim())
+    .filter((t) => t && t !== '[audio]')
+    .join('\n');
+  return { ultima: true, texto };
 }
 
 async function marcar(base44: any, eventId: string, patch: any) {
@@ -336,6 +365,12 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
     const tenantGerente = ehDonoDoNumero ? connection.tenant_id : (vinculo?.user_id || connection.tenant_id);
     const numeroGerente = cliente;
 
+    if (modoGerente) {
+      const rajada = await juntarRajada(base44, conversa.id, String(msg?.id || ''));
+      if (!rajada.ultima) return await ignorar(base44, eventId, 'agrupado_na_rajada');
+      if (rajada.texto) textoCliente = rajada.texto;
+    }
+
     const historico = await base44.asServiceRole.entities.CRMMensagem.filter(
       { conversa_id: conversa.id }, '-created_date', HISTORICO
     );
@@ -370,10 +405,12 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
         `\n\nCONVERSA ATÉ AGORA (mais antiga primeiro):\n${conversaTexto}` +
         linhaAndamento +
         `\n\nResponda à última mensagem do dono.`;
-      const ai = await base44.asServiceRole.integrations.Core.InvokeLLM({ prompt: promptGerente });
+      const ai = await invocarIA(base44, { prompt: promptGerente });
       let respostaGerente = String(ai || '').trim().replace(/^["“]|["”]$/g, '').slice(0, 3000);
       // Trava: a consulta nunca grava, então nunca pode dizer que gravou
       if (AFIRMA_GRAVACAO.test(respostaGerente)) respostaGerente = NADA_GRAVADO;
+      // Trava (B4): preço/frete são do fluxo de orçamento, nunca "consulte no painel"
+      if (MANDA_PRO_PAINEL.test(respostaGerente)) respostaGerente = PEDIR_PEDIDO;
       if (!respostaGerente) {
         await marcar(base44, eventId, { reply_status: 'erro', reply_reason: 'modo_gerente', reply_error: 'IA devolveu vazio' });
         return;
@@ -415,7 +452,7 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
       linhaAndamento +
       `\n\nEscreva a próxima mensagem do Léo, respondendo à última mensagem do cliente.`;
 
-    const ai = await base44.asServiceRole.integrations.Core.InvokeLLM({ prompt, response_json_schema: SCHEMA_RESPOSTA });
+    const ai = await invocarIA(base44, { prompt, response_json_schema: SCHEMA_RESPOSTA });
     const { resposta, pendencia, nome, dados } = lerSaidaIA(ai);
     if (!resposta) {
       await marcar(base44, eventId, { reply_status: 'erro', reply_error: 'IA devolveu vazio' });
