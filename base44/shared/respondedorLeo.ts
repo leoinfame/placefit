@@ -20,7 +20,10 @@ import { transcreverAudio } from './audioRespondedor.ts';
 import { montarResumoGerente, PROMPT_GERENTE } from './gerenteRespondedor.ts';
 import { tratarOrcamentoGerente, statusRascunho } from './orcamentoGerente.ts';
 import { clienteDaConversa, atualizarCadastro } from './cadastroCliente.ts';
-import { revendedorDoTelefone, tentarAtivacao, ehMensagemDeAtivacao } from './vinculoRevendedor.ts';
+import {
+  revendedorDoTelefone, tentarAtivacao, ehMensagemDeAtivacao, ehTentativaDeAtivacao, FORMATO_ATIVAR,
+  contaCadastradaDoTelefone, orientacaoAtivacao, PREFIXO_ORIENTACAO
+} from './vinculoRevendedor.ts';
 import { invocarIA } from './iaComRetry.ts';
 
 // A consulta do gerente não grava nada; se a IA afirmar que gravou/criou, a frase é trocada.
@@ -41,6 +44,8 @@ const TETO_DONO_POR_HORA = 60;
 const HISTORICO = 10;
 // B4: mensagens do dono que chegam em sequência (encaminhadas, picadas) viram UM pedido
 const JANELA_RAJADA_MS = 6000;
+// Item 016: a orientação de ativação não se repete na mesma conversa antes disso
+const ORIENTACAO_A_CADA_MIN = 360;
 
 const env = (nome: string) => String(Deno.env.get(nome) || '').trim();
 
@@ -200,6 +205,14 @@ export async function juntarRajada(base44: any, conversaId: string, msgId: strin
   return { ultima: true, texto };
 }
 
+/** Já mandamos a orientação de ativação nesta conversa nas últimas 6 h? */
+async function orientouRecentemente(base44: any, conversaId: string) {
+  const enviadas = await base44.asServiceRole.entities.CRMMensagem.filter({ conversa_id: conversaId, direcao: 'enviada' }, '-created_date', 20);
+  return (enviadas || []).some((m: any) =>
+    String(m.conteudo || '').includes(PREFIXO_ORIENTACAO) &&
+    (Date.now() - new Date(m.created_date).getTime()) / 60000 < ORIENTACAO_A_CADA_MIN);
+}
+
 /** Botão "Atendente IA" do painel ligado na conta? Falha na leitura = desligado (falha fechado). */
 export async function atendenteLigado(base44: any, tenantId: string): Promise<boolean> {
   try {
@@ -296,16 +309,41 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
       return;
     }
 
+    // Item 016: "ATIVAR" sem o código de 6 números nunca fica em silêncio: responde o formato certo
+    if (textoBruto && ehTentativaDeAtivacao(textoBruto) && idadeAtiv <= IDADE_MAXIMA_MIN) {
+      await marcar(base44, eventId, { reply_status: 'respondendo' });
+      const envioF = await enviarERegistrar(base44, connection, conversa, cliente, FORMATO_ATIVAR);
+      await marcar(base44, eventId, envioF.ok
+        ? { reply_status: 'respondido', reply_reason: 'ativar_formato', reply_wamid: envioF.id, replied_at: envioF.quando }
+        : { reply_status: 'erro', reply_reason: 'ativar_formato', reply_error: envioF.error });
+      return;
+    }
+
     // Item 006: revendedor com numero verificado -> gerente da PROPRIA revenda
     let vinculo: any = null;
     try { vinculo = await revendedorDoTelefone(base44, cliente); } catch (e) { console.error('[RESPONDEDOR] vinculo falhou', e); }
+    const donoTel = onlyDigits(env('OWNER_PHONE'));
+
+    // Item 016: conta do app (revendedor/fornecedor) com este celular, ainda sem vínculo verificado,
+    // recebe o caminho de ativação (mensagem fixa, sem IA) em vez de silêncio; no máximo 1x a cada 6 h
+    if (!vinculo && !(donoTel && cliente === donoTel) && idadeAtiv <= IDADE_MAXIMA_MIN) {
+      let conta: any = null;
+      try { conta = await contaCadastradaDoTelefone(base44, cliente); } catch (e) { console.error('[RESPONDEDOR] leitura do cadastro de contas falhou', e); }
+      if (conta && !(await orientouRecentemente(base44, conversa.id))) {
+        await marcar(base44, eventId, { reply_status: 'respondendo' });
+        const envioO = await enviarERegistrar(base44, connection, conversa, cliente, orientacaoAtivacao(conta));
+        await marcar(base44, eventId, envioO.ok
+          ? { reply_status: 'respondido', reply_reason: `orientacao_ativacao:${conta.id}`, reply_wamid: envioO.id, replied_at: envioO.quando }
+          : { reply_status: 'erro', reply_reason: 'orientacao_ativacao', reply_error: envioO.error });
+        return;
+      }
+    }
 
     // 2. allowlist (numero de revendedor verificado tambem passa)
     const allow = env('RESPONDEDOR_ALLOWLIST').split(',').map(onlyDigits).filter(Boolean);
     if (allow.length && !allow.includes(cliente) && !vinculo) return await ignorar(base44, eventId, 'fora_allowlist');
 
     // 7. cliente só recebe resposta automática com o botão "Atendente IA" ligado (decisão do dono, 21/10)
-    const donoTel = onlyDigits(env('OWNER_PHONE'));
     const podeSerGerente = (Boolean(donoTel) && cliente === donoTel) || Boolean(vinculo);
     if (!podeSerGerente && !(await atendenteLigado(base44, connection.tenant_id))) {
       return await ignorar(base44, eventId, 'atendente_desligado');
