@@ -120,7 +120,8 @@ function explicarFalta(catalogo: ItemCatalogo[], l: LinhaPedido, qtd: number, re
     const r = resolverItem(base, sem([]));
     // Palavra descartada pode ser característica de verdade ("emborrachada"): sempre pergunta, nunca entra sozinho
     if (r.status === 'ok') {
-      res.perguntas.push(`Não tem "${l.descricao}" do jeito que foi escrito (nenhuma ${tipo} com "${ruido.join(' ')}"). ` +
+      const nomeTipo = toks.find((t) => mesmoTipo(palavrasDe(t)[0] || '', tipo)) || tipo;
+      res.perguntas.push(`Não tem "${l.descricao}" do jeito que foi escrito (nenhuma ${nomeTipo} com "${ruido.join(' ')}"). ` +
         `Usar "${r.item.nome}"${r.item.cod ? ` (${r.item.cod})` : ''}?`);
       return true;
     }
