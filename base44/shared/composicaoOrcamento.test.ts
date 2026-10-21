@@ -133,3 +133,28 @@ Deno.test('normalizar: 220cm vira 2,2 m e 40cm continua cm', () => {
   assertEquals(normalizar('barra 220cm'), 'barra 2.2 m');
   assertEquals(normalizar('barra 40cm'), 'barra 40 cm');
 });
+
+// ── Teste real da leonfit (21/10 23:54): sugestão tem que bater o peso ──
+const catalogoLeonfit: ItemCatalogo[] = [
+  item('Anilha Bumper Olímpica 1kg', 'ABO1', 1, 'peça', 7.03),
+  item('Anilha Bumper Olímpica 1,5kg', 'ABO15', 1.5, 'peça', 9),
+  item('Anilha Bumper Olímpica 2kg', 'ABO2', 2, 'peça', 11),
+  item('Anilha Bumper Olímpica 2,5kg', 'ABO25', 2.5, 'peça', 13),
+  item('Anilha Bumper Olímpica 20kg', 'ABO20', 20, 'peça', 95),
+  item('Anilha Raios Niquel - Cromada -Anel Inox 5 A 25 kg', 'ANI-N065', null, 'peça', 44.82)
+];
+
+Deno.test('peso pedido sem produto: diz que não existe e lista os pesos, nunca sugere 1 kg no lugar de 10 kg', () => {
+  const r = comporPedido(catalogoLeonfit, [{ descricao: 'anilha de 10kg', quantidade: 10, quantidade_informada: true }]);
+  assertEquals(r.itens.length, 0);
+  const p = r.perguntas[0];
+  assert(p.includes('nenhuma anilha de 10 kg'), p);
+  assert(p.includes('Pesos que existem: 1, 1,5, 2, 2,5, 20 kg'), p);
+  assert(!p.includes('Usar "Anilha Bumper Olímpica 1kg"'), p);
+});
+
+Deno.test('peso pedido com produto de mesmo peso: sugere o de mesmo peso', () => {
+  const r = comporPedido(catalogoLeonfit, [{ descricao: 'anilha emborrachada de 20kg', quantidade: 15, quantidade_informada: true }]);
+  assertEquals(r.itens.length, 0);
+  assert(r.perguntas[0].includes('Usar "Anilha Bumper Olímpica 20kg" (ABO20)?'), r.perguntas[0]);
+});

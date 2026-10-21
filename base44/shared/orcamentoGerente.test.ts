@@ -144,3 +144,18 @@ Deno.test('B1: código de produto no campo de documento nunca vira pergunta de C
   assertEquals(tabelas.Cliente[0].cpf_cnpj, '');
   assertEquals(tabelas.Pedido[0].frete, 550);
 });
+
+Deno.test('frete copiado do resumo pela IA não vira "informado por você": volta para a tabela', async () => {
+  const pedido = {
+    acao: 'orcamento', cliente: { cpf_cnpj: '', nome: 'Academia Manaus', cidade: 'Manaus', estado: 'AM', telefone: '', cep: '' }, cep_entrega: '',
+    itens: [{ descricao: 'suporte dumbbell sextavado para 10 pares', quantidade: 1, quantidade_informada: true, unidade_pedida: '' }], frete_informado: 450
+  };
+  const { base44, tabelas } = criarBase([pedido, { ...pedido, frete_informado: 300 }]);
+  const r = await tratarOrcamentoGerente(base44, TENANT, tabelas.CRMConversa[0], 'Anilha Bumper Olímpica 1kg" (ABO1)', '');
+  assert(r.gravou, r.resposta);
+  assertEquals(tabelas.Pedido[0].frete, 950);
+  assert(!r.resposta.includes('informado por você'), r.resposta);
+  // Quando o dono fala do frete, o valor dele vale
+  const r2 = await tratarOrcamentoGerente(base44, TENANT, tabelas.CRMConversa[0], 'o frete é 300', '');
+  assert(r2.resposta.includes('Frete (informado por você): R$ 300,00'), r2.resposta);
+});
