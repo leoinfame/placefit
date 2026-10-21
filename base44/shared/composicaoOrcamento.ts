@@ -118,9 +118,10 @@ function explicarFalta(catalogo: ItemCatalogo[], l: LinhaPedido, qtd: number, re
 
   if (ruido.length) {
     const r = resolverItem(base, sem([]));
+    // Palavra descartada pode ser característica de verdade ("emborrachada"): sempre pergunta, nunca entra sozinho
     if (r.status === 'ok') {
-      res.itens.push({ item: r.item, quantidade: qtd, origem: l.descricao });
-      res.suposicoes.push(`"${l.descricao}": entendi como "${r.item.nome}"${r.item.cod ? ` (${r.item.cod})` : ''}.` + (r.suposicao ? ` ${r.suposicao}` : ''));
+      res.perguntas.push(`Não tem "${l.descricao}" do jeito que foi escrito (nenhuma ${tipo} com "${ruido.join(' ')}"). ` +
+        `Usar "${r.item.nome}"${r.item.cod ? ` (${r.item.cod})` : ''}?`);
       return true;
     }
     if (r.status === 'ambiguo') {
