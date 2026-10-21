@@ -108,11 +108,10 @@ Deno.test('B2: Sport Pintada com inox não existe → explica e oferece a linha 
   assert(!/dumbbell/i.test(p), p);
 });
 
-Deno.test('B2: "anilha com a parte interna de inox" resolve para a linha Anel Inox', () => {
+Deno.test('B2: "anilha com a parte interna de inox" sugere a linha Anel Inox', () => {
   const r = comporPedido(catalogo2, [{ descricao: 'anilhas com a parte interna de inox 1kg', quantidade: 4, quantidade_informada: true }]);
-  assertEquals(r.perguntas, []);
-  assertEquals(r.itens.map((i) => i.item.cod), ['ANI-N062-01KG']);
-  assert(r.suposicoes.some((s) => s.includes('entendi como')));
+  assertEquals(r.itens.length, 0);
+  assert(r.perguntas[0].includes('Usar "Anilha Injetada Pro Olímpica - Anel Inox 1 kg" (ANI-N062-01KG)?'), r.perguntas[0]);
 });
 
 Deno.test('B3: barra recartilhada 220cm pergunta olímpica (sugerida) x maciça 2,2 m', () => {
