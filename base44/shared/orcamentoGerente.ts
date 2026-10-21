@@ -474,6 +474,12 @@ export async function tratarOrcamentoGerente(base44: any, tenantId: string, conv
   });
   const pedido = typeof ai === 'string' ? JSON.parse(ai) : ai;
   if (pedido?.acao !== 'orcamento') return { tratou: false, resposta: '' };
+  // Frete só vale como "informado por você" se o dono falou de frete nesta mensagem (ou antes, já
+  // aceito no rascunho). Valor que a IA copiou do resumo anterior volta a ser calculado pela tabela.
+  if (!/\bfretes?\b/i.test(texto)) {
+    const anterior = Number(atual?.pedido?.frete_informado);
+    pedido.frete_informado = anterior >= 0 ? anterior : -1;
+  }
 
   const r = await montarRascunho(base44, tenantId, pedido, atual);
   if (!r.pronto) {
