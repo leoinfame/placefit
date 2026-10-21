@@ -55,6 +55,57 @@ export function ehMensagemDeAtivacao(texto: string): boolean {
   return RE_ATIVAR.test(String(texto || ''));
 }
 
+// ── Item 016: ninguém que tenta ativar ou tem cadastro fica em silêncio ──────────────
+
+/** "ATIVAR" sem os 6 números ou com formato errado ("ATIVAR 8509", "ativar"). */
+export function ehTentativaDeAtivacao(texto: string): boolean {
+  const t = String(texto || '');
+  return /^\s*ativar\b/i.test(t) && !RE_ATIVAR.test(t);
+}
+
+export const FORMATO_ATIVAR = 'Pra ativar o gerente, manda aqui: ATIVAR + o código de 6 números que aparece no app PlaceFit (ex.: ATIVAR 123456). ' +
+  'O código sai no card "Gerente PlaceFit no seu WhatsApp" e vale 15 minutos.';
+
+/** Marca no começo da orientação: o respondedor usa para não repetir em menos de 6 h. */
+export const PREFIXO_ORIENTACAO = 'Seu número está no cadastro do PlaceFit';
+
+export function orientacaoAtivacao(conta: { nome: string; empresa: string }) {
+  const quem = conta.nome ? `Oi, ${conta.nome.split(' ')[0]}! ` : 'Oi! ';
+  return quem + `${PREFIXO_ORIENTACAO}${conta.empresa ? ` (${conta.empresa})` : ''}, mas ainda não está ativado aqui no gerente.\n` +
+    '1. Abre o app PlaceFit e vai no card "Gerente PlaceFit no seu WhatsApp".\n' +
+    '2. Cadastra este celular e toca em ATIVAR.\n' +
+    '3. Manda aqui: ATIVAR + o código de 6 números (vale 15 minutos).';
+}
+
+const CACHE_CONTAS_MS = 10 * 60 * 1000;
+let cacheContas: { em: number; porChave: Map<string, any> } | null = null;
+
+/** Conta do app com este celular no cadastro (User.whatsapp ou telefone), aprovada; senão null. */
+export async function contaCadastradaDoTelefone(base44: any, telefone: string) {
+  const chave = chaveTelefone(telefone);
+  if (!chave) return null;
+  if (!cacheContas || Date.now() - cacheContas.em > CACHE_CONTAS_MS) {
+    const porChave = new Map<string, any>();
+    for (let skip = 0; skip < 10000; skip += 500) {
+      const lote = await base44.asServiceRole.entities.User.filter({}, '-created_date', 500, skip);
+      for (const u of lote || []) {
+        if (u.aprovado === false || u.disabled) continue;
+        for (const tel of [u.whatsapp, u.telefone, u.phone]) {
+          const k = chaveTelefone(String(tel || ''));
+          if (k && !porChave.has(k)) porChave.set(k, u);
+        }
+      }
+      if (!lote || lote.length < 500) break;
+    }
+    cacheContas = { em: Date.now(), porChave };
+  }
+  const u = cacheContas.porChave.get(chave);
+  return u ? { id: String(u.id), nome: String(u.full_name || '').trim(), empresa: String(u.empresa || '').trim() } : null;
+}
+
+/** Só para testes: zera o cache de contas. */
+export function _limparCacheContas() { cacheContas = null; }
+
 /**
  * Trata "ATIVAR 123456" vindo do numero `telefone`.
  * Retorna { tratou:false } se a mensagem nao e de ativacao.
