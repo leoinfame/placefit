@@ -16,7 +16,7 @@
 // Escritas possíveis: Cliente.create/update (cadastro pelo CNPJ) e Pedido.create/update
 // (tipo orçamento, status pendente).
 
-import { carregarCatalogo, normalizar } from './catalogoRespondedor.ts';
+import { carregarCatalogo, normalizar, palavrasDe, pesoPeloNome } from './catalogoRespondedor.ts';
 import { comporPedido } from './composicaoOrcamento.ts';
 import { consultarCnpj, consultarCep } from './cnpjPublico.ts';
 import { chaveTelefone } from './cadastroCliente.ts';
@@ -59,9 +59,23 @@ const SCHEMA_PEDIDO = {
         type: 'object',
         properties: {
           descricao: { type: 'string' }, quantidade: { type: 'number' },
-          quantidade_informada: { type: 'boolean' }, unidade_pedida: { type: 'string' }
+          quantidade_informada: { type: 'boolean' }, unidade_pedida: { type: 'string' },
+          // Ficha do item (item 020): o código casa por tipo + peso + variação com ela
+          tipo: { type: 'string' },
+          pesos_kg: { type: 'array', items: { type: 'number' } },
+          por_par: { type: 'boolean' },
+          composicao: {
+            type: 'array',
+            items: { type: 'object', properties: { quantidade: { type: 'number' }, peso_kg: { type: 'number' } }, required: ['quantidade', 'peso_kg'] }
+          },
+          comprimento_m: { type: 'number' },
+          capacidade_kg: { type: 'number' }, capacidade_pares: { type: 'number' }, capacidade_barras: { type: 'number' },
+          armazena: { type: 'array', items: { type: 'string' } },
+          requisitos: { type: 'array', items: { type: 'string' } },
+          preferencias: { type: 'array', items: { type: 'string' } }
         },
-        required: ['descricao', 'quantidade', 'quantidade_informada', 'unidade_pedida']
+        required: ['descricao', 'quantidade', 'quantidade_informada', 'unidade_pedida', 'tipo', 'pesos_kg', 'por_par', 'composicao',
+          'comprimento_m', 'capacidade_kg', 'capacidade_pares', 'capacidade_barras', 'armazena', 'requisitos', 'preferencias']
       }
     },
     frete_informado: { type: 'number' }
@@ -87,6 +101,13 @@ Quando for "orcamento", devolva o pedido COMPLETO já atualizado: o RASCUNHO ATU
   cpf_cnpj só recebe números de documento (11 ou 14 dígitos, com ou sem pontuação). Código de produto
   (tem letras, ex.: "ANI-N062", "ASP20", "KHSI110S") NUNCA é CPF/CNPJ: ele vai na descricao do item a que se refere.
 - cep_entrega: só se ele disse que a entrega é em OUTRO lugar (CEP diferente do cliente); senão "".
+- itens: SOMENTE os da ÚLTIMA MENSAGEM e do RASCUNHO ATUAL. A CONVERSA RECENTE é só contexto: nunca copie
+  itens dela. Se a última mensagem traz uma lista de itens própria (pedido novo, licitação), ela SUBSTITUI os
+  itens do rascunho.
+- Liste TODOS os itens pedidos, inclusive máquinas, cardio e aparelhos que você acha que não existem no catálogo:
+  o sistema decide o que cotar e lista o resto como "não cotado". Nunca omita item.
+- Acessório citado DENTRO da descrição de outro item ("presilhas incluídas", "conjunto básico de puxadores",
+  "barra e puxador incluídos") NÃO vira item próprio.
 - itens: um por produto pedido. descricao = o produto como ele falou, SEM a quantidade (tipo, acabamento, peso, medida).
   - Faixa de pesos ("dumbbell montado de 12 a 20kg"): mantenha a faixa na descricao ("dumbbell montado 12 a 20 kg");
     o sistema monta a composição peso a peso. Não expanda você mesmo.
@@ -94,12 +115,44 @@ Quando for "orcamento", devolva o pedido COMPLETO já atualizado: o RASCUNHO ATU
   - Suporte pedido junto ("mais suporte para 10 pares"): item separado, descricao "suporte para 10 pares".
   - Se ele diz "20 de 2kg" logo depois de "10 anilhas vazadas injetadas 10kg", a descricao é "anilha vazada injetada 2kg".
   - quantidade = número dito; se não disse, quantidade 1 e quantidade_informada false. "10 pares de cada" = 10.
+    Em lista de licitação, a quantidade vem no fim do item ("2 Unidade" = 2, "1 Kit" = 1): é informada.
   - unidade_pedida = a unidade que ele usou ("un", "m", "m2", "par", "kg"...), "" se não disse.
+- FICHA de cada item (vazio = [] , 0 ou "" quando não dito; nunca invente):
+  - tipo: o produto em uma palavra no singular ("halter", "anilha", "kettlebell", "barra", "suporte", "kit",
+    "banco", "esteira", "bicicleta", "leg press", "eletroestimulador"...). Kit vendido como kit = "kit".
+  - pesos_kg: SOMENTE quando os pesos são LISTADOS um a um ("2, 4, 6, 8 e 10 kg", "6, 8, 10, 12, 16 e 20 kg").
+    Faixa "de X a Y" fica só na descricao, com pesos_kg [].
+  - por_par: true quando a quantidade por peso é em PARES ("10 pares nos pesos de 2 a 20": um par de cada peso).
+  - composicao: quantidade por peso quando ele diz ("4 unidades de 5 kg, 6 de 10 kg" → [{4,5},{6,10}]).
+  - comprimento_m: comprimento em metros ("2,20 m" → 2.2).
+  - capacidade_kg / capacidade_pares / capacidade_barras: o mínimo exigido de um SUPORTE ("para os 20 halteres" →
+    capacidade_pares 10; "conjunto de 220 kg de anilhas" → capacidade_kg 220; "pelo menos quatro barras" → 4).
+    Para outros produtos, 0.
+  - armazena: o que um suporte guarda ("halter", "anilha", "barra", "kettlebell"); [] se não for suporte.
+  - requisitos: características OBRIGATÓRIAS que mudam o produto e aparecem em nome de produto: "olimpica" (barra
+    ou anilha olímpica / furo de 50 mm), "w|ez" (barra curva W ou EZ; use | para alternativas), "inox". Nunca
+    "reta", "simples", capacidade ou exigência que não é nome de produto.
+  - preferencias: materiais/acabamentos aceitos ("emborrachado", "pintado", "cromado"); o que vem com "ou
+    equivalente" é preferência, não requisito.
 - Respostas às PERGUNTAS QUE FIZEMOS (ex.: "1. Sim 2. Não"): "Sim" aceita a opção sugerida — copie o texto entre
   aspas depois de "Usar" naquela pergunta como a nova descricao do item (mantenha a quantidade). "Não" mantém o item
   como estava. Se ele escolheu outra opção listada, use o NOME EXATO dela.
 - frete_informado: valor em reais se ele disse o frete; -1 se não disse (mantenha o do rascunho, se houver).
 Nunca invente produto, cliente nem valor. Quando for "consulta", devolva cliente vazio, cep_entrega "", itens [] e frete_informado -1.`;
+
+/** Item cujas palavras (pelo menos metade) não aparecem na mensagem nem no rascunho veio de outro lugar. */
+export function itensComOrigem(itens: any[], fonte: string) {
+  const toks = normalizar(fonte).split(' ');
+  const ficam: any[] = [];
+  const fora: string[] = [];
+  for (const it of itens) {
+    const ps = palavrasDe(it?.descricao || '');
+    const achadas = ps.filter((p) => toks.some((w) => w.startsWith(p) || (w.length >= 4 && p.startsWith(w)))).length;
+    if (!ps.length || achadas * 2 >= ps.length) ficam.push(it);
+    else fora.push(String(it.descricao));
+  }
+  return { ficam, fora };
+}
 
 // ── Rascunho / último orçamento gravado, na conversa do dono ─────────────────
 /** Uma linha sobre o rascunho, para a consulta do gerente não inventar nada. */
@@ -288,9 +341,18 @@ async function montarRascunho(base44: any, tenantId: string, pedido: any, anteri
   const suposicoes = [...comp.suposicoes, ...avisosUnidade];
 
   const subtotal = r2(itens.reduce((s, i) => s + i.subtotal, 0));
-  const pesoTotal = itens.reduce((s, i) => s + (Number(i.peso_kg) || 0) * i.quantidade, 0);
-  const semPeso = itens.filter((i) => !i.peso_kg).map((i) => i.cod || i.nome);
-  if (semPeso.length) ressalvas.push(`Sem peso cadastrado (fora do peso do frete): ${semPeso.join(', ')}.`);
+  // Peso do frete: o cadastrado; sem ele, o que o nome do produto declara (decisão do dono, 28/10), sempre avisado
+  const pelоNome: string[] = [];
+  const pesoDe = (i: any) => {
+    if (Number(i.peso_kg) > 0) return Number(i.peso_kg);
+    const p = pesoPeloNome(i.nome);
+    if (p && !pelоNome.includes(`${i.cod || i.nome} ${num(p)} kg`)) pelоNome.push(`${i.cod || i.nome} ${num(p)} kg`);
+    return p || 0;
+  };
+  const pesoTotal = itens.reduce((s, i) => s + pesoDe(i) * i.quantidade, 0);
+  const semPeso = itens.filter((i) => !pesoDe(i)).map((i) => i.cod || i.nome);
+  if (pelоNome.length) ressalvas.push(`Peso pelo nome do produto (sem peso cadastrado): ${pelоNome.join(', ')}.`);
+  if (semPeso.length) ressalvas.push(`Sem peso cadastrado nem no nome (fora do peso do frete): ${semPeso.join(', ')}.`);
 
   // Destino do frete: CEP de entrega informado, senão o endereço do cliente (CNPJ)
   let destino: any = cliente ? { cidade: cliente.cidade, estado: cliente.estado } : null;
@@ -332,10 +394,13 @@ async function montarRascunho(base44: any, tenantId: string, pedido: any, anteri
   }
 
   const total = r2(subtotal + (frete || 0));
+  // Conferência antes de responder: refaz cada linha e o total a partir das linhas finais
+  const refeito = r2(itens.reduce((s, i) => s + r2(i.preco_unitario * i.quantidade), 0));
+  if (refeito !== subtotal || r2(refeito + (frete || 0)) !== total) ressalvas.push(`Conferência: subtotal refeito ${brl(refeito)} x ${brl(subtotal)}. Confere antes de usar.`);
   const pronto = perguntas.length === 0 && !!cliente && itens.length > 0 && frete !== null;
   return {
     pedido, cliente, itens, subtotal, peso_total: pesoTotal, frete, frete_origem: freteOrigem, frete_obs: freteObs, total,
-    composicoes: comp.composicoes, suposicoes, ressalvas, perguntas, pronto,
+    composicoes: comp.composicoes, suposicoes, ressalvas, perguntas, pronto, nao_cotados: comp.naoCotados,
     gravado_id: anterior?.gravado_id || '', gravado_numero: anterior?.gravado_numero || ''
   };
 }
@@ -346,6 +411,7 @@ function observacoesDoOrcamento(r: any) {
     r.composicoes.length ? 'Composição: ' + r.composicoes.join('; ') + '.' : '',
     r.suposicoes.length ? 'Suposições: ' + r.suposicoes.join(' ') : '',
     r.ressalvas.length ? 'Ressalvas: ' + r.ressalvas.join(' ') : '',
+    r.nao_cotados?.length ? 'Não cotados (sem correspondência no catálogo): ' + r.nao_cotados.join(' ') : '',
     r.frete !== null ? `Frete: ${brl(r.frete)} (${r.frete_origem}).` : '',
     r.frete_obs
   ].filter(Boolean).join('\n');
@@ -368,6 +434,7 @@ function textoResposta(r: any, cabecalho: string) {
     if (r.frete !== null) l.push(`Frete (${r.frete_origem}): ${brl(r.frete)}${r.frete_obs ? '  ⚠️ ' + r.frete_obs : ''}`);
     l.push(`*Total: ${brl(r.total)}*`);
   }
+  if (r.nao_cotados?.length) l.push('', 'Não cotados (sem correspondência no catálogo):', ...r.nao_cotados.map((x: string) => `- ${x}`));
   const obs = [...r.composicoes.map((c: string) => 'composição ' + c), ...r.suposicoes, ...r.ressalvas];
   if (obs.length) l.push('', (r.gravado_id ? 'Observações gravadas: ' : 'Observações: ') + obs.join(' | '));
   if (r.gravado_id) l.push('', `PDF: ${painelUrl()}/Orcamentos?abrir=${r.gravado_id} (abre o orçamento no painel, botão PDF)`);
@@ -463,11 +530,16 @@ export async function tratarOrcamentoGerente(base44: any, tenantId: string, conv
   if (!t || SO_CUMPRIMENTO.test(t)) return { tratou: false, resposta: '' };
 
   // O interpretador decide se é orçamento; não depende mais de a mensagem dizer "orçamento"
-  const rascunhoTexto = atual ? JSON.stringify(atual.pedido) : 'nenhum';
+  // CNPJ/CPF diferente do rascunho = pedido de outro cliente: o rascunho antigo não entra
+  const docMsg = (String(texto).match(/\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2}|\d{3}\.?\d{3}\.?\d{3}-?\d{2}/) || [''])[0];
+  const docRascunho = digitos(atual?.pedido?.cliente?.cpf_cnpj || atual?.cliente?.cpf_cnpj || '');
+  const outroCliente = Boolean(docMsg && docRascunho && digitos(docMsg) !== docRascunho);
+  const base = outroCliente ? null : atual;
+  const rascunhoTexto = base ? JSON.stringify(base.pedido) : 'nenhum';
   const ai: any = await invocarIA(base44, {
     prompt: PROMPT_PARSER +
       `\n\nRASCUNHO ATUAL (pedido): ${rascunhoTexto}` +
-      (atual?.perguntas?.length ? `\nPERGUNTAS QUE FIZEMOS AO DONO: ${atual.perguntas.map((p: string, n: number) => `${n + 1}. ${p}`).join(' | ')}` : '') +
+      (base?.perguntas?.length ? `\nPERGUNTAS QUE FIZEMOS AO DONO: ${base.perguntas.map((p: string, n: number) => `${n + 1}. ${p}`).join(' | ')}` : '') +
       `\n\nCONVERSA RECENTE:\n${conversaTexto}` +
       `\n\nÚLTIMA MENSAGEM DO DONO: ${texto}`,
     response_json_schema: SCHEMA_PEDIDO
@@ -477,11 +549,16 @@ export async function tratarOrcamentoGerente(base44: any, tenantId: string, conv
   // Frete só vale como "informado por você" se o dono falou de frete nesta mensagem (ou antes, já
   // aceito no rascunho). Valor que a IA copiou do resumo anterior volta a ser calculado pela tabela.
   if (!/\bfretes?\b/i.test(texto)) {
-    const anterior = Number(atual?.pedido?.frete_informado);
+    const anterior = Number(base?.pedido?.frete_informado);
     pedido.frete_informado = anterior >= 0 ? anterior : -1;
   }
+  // Trava contra item vazado do histórico (caso de 28/10): só fica item que está na mensagem ou no rascunho
+  const fonte = [texto, rascunhoTexto, ...(base?.itens || []).map((i: any) => i.nome), ...(base?.perguntas || [])].join(' ');
+  const { ficam, fora } = itensComOrigem(pedido.itens || [], fonte);
+  pedido.itens = ficam;
 
-  const r = await montarRascunho(base44, tenantId, pedido, atual);
+  const r = await montarRascunho(base44, tenantId, pedido, base);
+  if (fora.length) r.suposicoes.unshift(`Ignorei ${fora.map((d) => `"${d}"`).join(', ')}: não está na sua mensagem nem no rascunho.`);
   if (!r.pronto) {
     await salvarRascunho(base44, conversa, r);
     const cab = r.gravado_id ? `*${r.gravado_numero} continua como estava (ajuste incompleto).* Nada foi enviado ao cliente.` : '*Orçamento em montagem, nada gravado ainda.*';
