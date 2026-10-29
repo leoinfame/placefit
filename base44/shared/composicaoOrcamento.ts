@@ -177,9 +177,10 @@ const SINONIMOS: Record<string, string[]> = {
 const GENERICAS = new Set(['reta', 'reto', 'simples', 'comum', 'padrao', 'convencional', 'institucional', 'basico', 'basica', 'equivalente']);
 const raizTipo = (t: string) => palavrasDe(t)[0] || '';
 const tiposAceitos = (tipo: string) => { const r = raizTipo(tipo); return r ? (SINONIMOS[r] || [r]).map(raizTipo) : []; };
+// Tipo igual, não prefixo: "puxada" (máquina) não é "puxador"
 const doTipoFicha = (catalogo: ItemCatalogo[], tipo: string) => {
   const ts = tiposAceitos(tipo);
-  return catalogo.filter((i) => ts.some((t) => mesmoTipo(primeiraPalavra(i.nome), t)));
+  return catalogo.filter((i) => ts.includes(primeiraPalavra(i.nome)));
 };
 const pesoDoItem = (i: ItemCatalogo) => i.peso_kg || pesoPeloNome(i.nome);
 const nomeComCod = (i: ItemCatalogo) => `"${i.nome}"${i.cod ? ` (${i.cod})` : ''}`;
