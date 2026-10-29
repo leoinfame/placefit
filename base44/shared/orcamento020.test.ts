@@ -173,8 +173,10 @@ Deno.test('020 (a): licitação de Manaus no padrão do ORC-1793232459580', asyn
 Deno.test('020: item vazado do histórico (dumbbell 12 a 20 de 15/10) é ignorado e avisado', async () => {
   const comVazado = { ...LICITACAO, itens: [it('Dumbbell montado 12 a 20 kg', 'dumbbell', 1), ...LICITACAO.itens] };
   const { base44, tabelas } = criarBase([comVazado]);
-  const r = await tratarOrcamentoGerente(base44, TENANT, tabelas.CRMConversa[0], TEXTO,
-    'Dono: Criar orçamento para 51969252000164 com Dumbbell montado anilha injetada de 12 a 20kg');
+  const historico = ['Dono: Criar orçamento para 51969252000164 com Dumbbell montado anilha injetada de 12 a 20kg',
+    'Gerente: Orçamento ORC-1 gravado. Dumbbell Montado Anilha Vazada Emborrachado 12 a 20 kg',
+    'Dono: quantos leads hoje?', 'Dono: e o Rodson?', 'Dono: vou mandar uma licitação'].join('\n');
+  const r = await tratarOrcamentoGerente(base44, TENANT, tabelas.CRMConversa[0], TEXTO, historico);
   assert(r.resposta.includes('Ignorei "Dumbbell montado 12 a 20 kg"'), r.resposta);
   assertEquals(tabelas.Pedido[0].itens.filter((i: any) => i.cod === 'DMOASER12')[0].quantidade, 2);
 });
