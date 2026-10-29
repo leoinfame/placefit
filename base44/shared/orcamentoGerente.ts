@@ -552,8 +552,10 @@ export async function tratarOrcamentoGerente(base44: any, tenantId: string, conv
     const anterior = Number(base?.pedido?.frete_informado);
     pedido.frete_informado = anterior >= 0 ? anterior : -1;
   }
-  // Trava contra item vazado do histórico (caso de 28/10): só fica item que está na mensagem ou no rascunho
-  const fonte = [texto, rascunhoTexto, ...(base?.itens || []).map((i: any) => i.nome), ...(base?.perguntas || [])].join(' ');
+  // Trava contra item vazado do histórico (caso de 28/10): só fica item que está na mensagem, no rascunho
+  // ou nas 3 últimas mensagens do próprio dono (nunca nas respostas do gerente nem em pedido antigo)
+  const doDono = String(conversaTexto || '').split('\n').filter((x) => x.startsWith('Dono: ')).slice(-3);
+  const fonte = [texto, rascunhoTexto, ...doDono, ...(base?.itens || []).map((i: any) => i.nome), ...(base?.perguntas || [])].join(' ');
   const { ficam, fora } = itensComOrigem(pedido.itens || [], fonte);
   pedido.itens = ficam;
 
