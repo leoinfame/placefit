@@ -219,6 +219,23 @@ export function resolverItem(itens: ItemCatalogo[], descricao: string): Resoluca
   return { status: 'nao_encontrado', sugestoes };
 }
 
+/**
+ * Peso que o NOME do produto declara ("Barra Olímpica 20kg 2.2m" → 20), para o frete quando
+ * falta peso_kg (item 020, decisão do dono em 28/10). Não vale para suporte (o kg do nome é
+ * capacidade), faixa ("1 a 10 kg") nem capacidade ("p/ 200kg", "carga máx."); na dúvida, null.
+ */
+export function pesoPeloNome(nome: string): number | null {
+  const n = normalizar(nome);
+  if (/^(suporte|kit)\b/.test(n)) return null;
+  const achados: number[] = [];
+  for (const m of n.matchAll(/(?:^|\s)(\d+(?:\.\d+)?) kg\b/g)) {
+    const antes = n.slice(0, m.index).trim();
+    if (/\b(a|ate|p|para|max|maxima|capacidade|carga)\.?$/.test(antes)) continue;
+    achados.push(Number(m[1]));
+  }
+  return achados.length === 1 && achados[0] > 0 ? achados[0] : null;
+}
+
 /** Palavras (sem números) que importam numa descrição: base da busca por família/composição. */
 export function palavrasDe(descricao: string): string[] {
   const termos = [...new Set(normalizar(descricao).split(' ').filter(Boolean))];
