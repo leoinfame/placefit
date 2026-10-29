@@ -342,16 +342,16 @@ async function montarRascunho(base44: any, tenantId: string, pedido: any, anteri
 
   const subtotal = r2(itens.reduce((s, i) => s + i.subtotal, 0));
   // Peso do frete: o cadastrado; sem ele, o que o nome do produto declara (decisão do dono, 28/10), sempre avisado
-  const pelоNome: string[] = [];
+  const porNome: string[] = [];
   const pesoDe = (i: any) => {
     if (Number(i.peso_kg) > 0) return Number(i.peso_kg);
     const p = pesoPeloNome(i.nome);
-    if (p && !pelоNome.includes(`${i.cod || i.nome} ${num(p)} kg`)) pelоNome.push(`${i.cod || i.nome} ${num(p)} kg`);
+    if (p && !porNome.includes(`${i.cod || i.nome} ${num(p)} kg`)) porNome.push(`${i.cod || i.nome} ${num(p)} kg`);
     return p || 0;
   };
   const pesoTotal = itens.reduce((s, i) => s + pesoDe(i) * i.quantidade, 0);
   const semPeso = itens.filter((i) => !pesoDe(i)).map((i) => i.cod || i.nome);
-  if (pelоNome.length) ressalvas.push(`Peso pelo nome do produto (sem peso cadastrado): ${pelоNome.join(', ')}.`);
+  if (porNome.length) ressalvas.push(`Peso pelo nome do produto (sem peso cadastrado): ${porNome.join(', ')}.`);
   if (semPeso.length) ressalvas.push(`Sem peso cadastrado nem no nome (fora do peso do frete): ${semPeso.join(', ')}.`);
 
   // Destino do frete: CEP de entrega informado, senão o endereço do cliente (CNPJ)
