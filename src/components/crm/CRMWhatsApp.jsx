@@ -56,6 +56,25 @@ const contactName = (conversation) => {
   if (!nome || /^[\d\s+()-]+$/.test(nome)) return telefoneReal(conversation) ? formatPhone(telefoneReal(conversation)) : NAO_IDENTIFICADO;
   return nome;
 };
+// Item 022d: tempo desde o orçamento, para o follow-up do funil.
+const ETAPAS_COM_ORCAMENTO = ["orcamento", "negociacao"];
+const quandoUTC = (s) => new Date(/Z|[+-]\d\d:?\d\d$/.test(String(s)) ? s : String(s) + "Z");
+const tempoDesde = (iso, agora) => {
+  if (!iso) return "";
+  const min = Math.max(0, Math.floor((agora - quandoUTC(iso).getTime()) / 60000));
+  if (min < 60) return min + " min";
+  const h = Math.floor(min / 60);
+  if (h < 24) return h + "h";
+  const d = Math.floor(h / 24);
+  const resto = h % 24;
+  return d + "d" + (resto ? " " + resto + "h" : "");
+};
+const corDoTempo = (iso, agora) => {
+  const horas = (agora - quandoUTC(iso).getTime()) / 3600000;
+  if (horas >= 72) return "bg-red-100 text-red-700";
+  if (horas >= 24) return "bg-amber-100 text-amber-800";
+  return "bg-slate-100 text-slate-600";
+};
 const formatTime = (value) => {
   if (!value) return "";
   const date = new Date(value);
@@ -97,8 +116,18 @@ export default function CRMWhatsApp() {
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
   const [newContact, setNewContact] = useState({ cliente_id: "", nome: "", telefone: "" });
   const [newTemplate, setNewTemplate] = useState({ titulo: "", conteudo: "" });
+  // Item 022d: conversa -> { numero, criado, retorno } do orçamento mais recente do cliente
+  const [orcInfo, setOrcInfo] = useState({});
+  const [agora, setAgora] = useState(Date.now());
 
   useEffect(() => { initialize(); }, []);
+  useEffect(() => {
+    const timer = setInterval(() => setAgora(Date.now()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+  useEffect(() => {
+    if (ownerId) loadOrcamentoInfo(ownerId, conversations);
+  }, [ownerId, conversations]);
   useEffect(() => {
     if (ownerId) loadWorkspace(ownerId);
   }, [ownerId]);
@@ -154,6 +183,30 @@ export default function CRMWhatsApp() {
     } catch (error) {
       toast({ title: "Erro ao abrir o CRM", description: error?.message || "Não foi possível carregar a conta.", variant: "destructive" });
       setLoading(false);
+    }
+  }
+
+  // Item 022d: para os leads em Orçamento/Negociação, quando saiu o último orçamento do cliente
+  // e se o cliente mandou mensagem depois dele. Só leitura.
+  async function loadOrcamentoInfo(id, rows) {
+    try {
+      const alvo = (rows || []).filter((c) => ETAPAS_COM_ORCAMENTO.includes(c.etapa) && c.cliente_id);
+      if (!alvo.length) { setOrcInfo({}); return; }
+      const orcs = await base44.entities.Pedido.filter({ fornecedor_id: id, tipo: "orcamento" }, "-created_date", 500).catch(() => []);
+      const ultimoPorCliente = {};
+      for (const o of orcs || []) if (o.cliente_id && !ultimoPorCliente[o.cliente_id]) ultimoPorCliente[o.cliente_id] = o;
+      const info = {};
+      await Promise.all(alvo.map(async (c) => {
+        const orc = ultimoPorCliente[c.cliente_id];
+        if (!orc) return;
+        const recebidas = await base44.entities.CRMMensagem.filter({ conversa_id: c.id, direcao: "recebida" }, "-created_date", 1).catch(() => []);
+        const ultima = recebidas?.[0]?.created_date || "";
+        const respondeu = ultima && quandoUTC(ultima) > quandoUTC(orc.created_date);
+        info[c.id] = { numero: orc.numero_pedido, criado: orc.created_date, retorno: respondeu ? ultima : "" };
+      }));
+      setOrcInfo(info);
+    } catch {
+      /* o funil continua sem o tempo do orçamento */
     }
   }
 
@@ -485,7 +538,7 @@ export default function CRMWhatsApp() {
               const rows = conversations.filter((conversation) => (conversation.etapa || "novo") === stage.value);
               return <div key={stage.value} className="min-h-[220px] rounded-2xl border border-slate-200 bg-slate-50 p-3">
                 <div className="mb-3 flex items-center justify-between"><div className="flex items-center gap-2"><span className={"h-2.5 w-2.5 rounded-full " + stage.dot} /><span className="text-sm font-semibold text-slate-800">{stage.label}</span></div><Badge variant="secondary">{rows.length}</Badge></div>
-                <div className="space-y-2">{rows.map((conversation) => <button key={conversation.id} onClick={() => { setSelectedId(conversation.id); setTab("conversas"); }} className="w-full rounded-xl border border-slate-200 bg-white p-3 text-left hover:border-emerald-300"><p className="text-sm font-semibold text-slate-900">{contactName(conversation)}</p><p className="mt-1 text-xs text-slate-500">{contactPhone(conversation)}</p><p className="mt-2 truncate text-xs text-slate-400">{conversation.ultima_mensagem || "Sem mensagens"}</p></button>)}</div>
+                <div className="space-y-2">{rows.map((conversation) => <button key={conversation.id} onClick={() => { setSelectedId(conversation.id); setTab("conversas"); }} className="w-full rounded-xl border border-slate-200 bg-white p-3 text-left hover:border-emerald-300"><p className="text-sm font-semibold text-slate-900">{contactName(conversation)}</p><p className="mt-1 text-xs text-slate-500">{contactPhone(conversation)}</p><p className="mt-2 truncate text-xs text-slate-400">{conversation.ultima_mensagem || "Sem mensagens"}</p>{orcInfo[conversation.id] && <div className="mt-2 space-y-1"><div className={"inline-flex rounded-md px-2 py-0.5 text-[11px] font-medium " + corDoTempo(orcInfo[conversation.id].criado, agora)} title={"Orçamento " + orcInfo[conversation.id].numero}>Orçamento há {tempoDesde(orcInfo[conversation.id].criado, agora)}</div><p className={"text-[11px] " + (orcInfo[conversation.id].retorno ? "text-emerald-700" : "text-slate-500")}>{orcInfo[conversation.id].retorno ? "Cliente respondeu há " + tempoDesde(orcInfo[conversation.id].retorno, agora) : "Sem retorno do cliente desde o orçamento"}</p></div>}</button>)}</div>
               </div>;
             })}
           </div>
