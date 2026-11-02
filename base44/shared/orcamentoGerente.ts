@@ -22,6 +22,7 @@ import { consultarCnpj, consultarCep } from './cnpjPublico.ts';
 import { chaveTelefone } from './cadastroCliente.ts';
 import { sugerirFrete, resolverUF } from './freteCrm.js';
 import { invocarIA } from './iaComRetry.ts';
+import { moverLeadParaOrcamento } from './funilCrm.js';
 
 const VALIDADE_MIN = 30;
 // Link do painel: abre o orçamento já na visualização (mesmo botão de PDF do painel)
@@ -239,7 +240,7 @@ async function resolverCliente(base44: any, tenantId: string, pedido: any) {
   if (publico?.numero_ausente) ressalvas.push('Endereço do CNPJ sem número (número ausente).');
 
   const obsCnpj = publico
-    ? [publico.nome_fantasia && `Fantasia: ${publico.nome_fantasia}.`, publico.numero_ausente && 'Endereço: número ausente.'].filter(Boolean).join(' ')
+    ? [publico.nome_fantasia && `Fantasia: ${publico.nome_fantasia}.`, publico.numero_ausente && 'Endereço: número ausente.', publico.telefone && `Telefone da Receita: ${publico.telefone}.`].filter(Boolean).join(' ')
     : '';
 
   if (existente) {
@@ -251,7 +252,6 @@ async function resolverCliente(base44: any, tenantId: string, pedido: any) {
       if (vazio(existente.cidade) && publico.cidade) patch.cidade = publico.cidade;
       if (vazio(existente.estado) && publico.estado) patch.estado = publico.estado;
       if (vazio(existente.cep) && publico.cep) patch.cep = publico.cep;
-      if (vazio(existente.telefone) && publico.telefone) patch.telefone = publico.telefone;
       if (Object.keys(patch).length && obsCnpj && !String(existente.observacoes || '').includes(obsCnpj)) {
         patch.observacoes = [String(existente.observacoes || '').trim(), `Completado pela consulta pública do CNPJ: ${obsCnpj}`].filter(Boolean).join('\n');
       }
@@ -273,7 +273,8 @@ async function resolverCliente(base44: any, tenantId: string, pedido: any) {
       fornecedor_id: tenantId,
       nome: publico.razao_social,
       cpf_cnpj: pedido.cpf_cnpj,
-      telefone: digitos(pedido?.telefone) || publico.telefone || '',
+      // Item 022c: telefone do cliente é o do contato; o da Receita fica só nas observações
+      telefone: digitos(pedido?.telefone) || '',
       endereco: publico.endereco,
       cidade: publico.cidade,
       estado: publico.estado,
@@ -571,6 +572,11 @@ export async function tratarOrcamentoGerente(base44: any, tenantId: string, conv
   const { pedido: p, divergencias } = await gravar(base44, tenantId, r);
   r.gravado_id = p.id;
   r.gravado_numero = p.numero_pedido;
+  // Item 022c: o lead do cliente vai para "Orçamento" no funil do CRM (só avança, nunca volta)
+  if (!ajuste && p.cliente_id) {
+    const cli = (await base44.asServiceRole.entities.Cliente.filter({ id: p.cliente_id }, '-created_date', 1))?.[0];
+    if (cli) await moverLeadParaOrcamento(base44.asServiceRole.entities, tenantId, cli);
+  }
   await salvarRascunho(base44, conversa, r);
   let cab = `Orçamento ${p.numero_pedido} ${ajuste ? 'atualizado' : 'gravado'} (pendente). Nada enviado ao cliente.`;
   if (divergencias.length) cab += `\n⚠️ Conferência do salvo falhou (${divergencias.join('; ')}). Confere no painel antes de usar.`;
