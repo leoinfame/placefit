@@ -1,6 +1,7 @@
 import { createClientFromRequest } from "npm:@base44/sdk";
 import { identificar, meusIdsDoCorpo, resolverLidNoWaha, ignorado } from "../../shared/identidadeWaha.ts";
-import { conversaDoContato, garantirCliente } from "../../shared/conversaWaha.ts";
+import { conversaDoContato, garantirCliente, textoBoasVindas, deveMandarBoasVindas } from "../../shared/conversaWaha.ts";
+import { etapaDepoisDaResposta } from "../../shared/funilCrm.js";
 
 // ─── Webhook do CRM WhatsApp (WAHA) ───────────────────────────────────────────
 // Recebe os eventos do servidor WAHA. Assina apenas "message.any", que entrega
@@ -194,6 +195,21 @@ Deno.serve(async (req) => {
     const now = new Date().toISOString();
 
     const conversation = await conversaDoContato(db, owner.id, ident, fromMe, messageText, now);
+    // Item 022e: decide agora, antes do cadastro automático, se é um lead novo (conversa aberta neste evento, sem cliente)
+    const leadNovo = deveMandarBoasVindas(conversation, fromMe, env("CRM_BOAS_VINDAS"));
+    // Item 022e: cliente respondeu com o lead em "Orçamento" => "Negociação"
+    if (!fromMe) {
+      const proxima = etapaDepoisDaResposta(conversation.etapa);
+      if (proxima) {
+        try {
+          await db.CRMConversa.update(conversation.id, { etapa: proxima });
+          conversation.etapa = proxima;
+        } catch (e) {
+          console.error("[CRM_WEBHOOK] mudança de etapa falhou", e);
+        }
+      }
+    }
+
     // Item 022b: telefone real + nome do perfil => cliente em Meus Clientes (sem duplicar)
     try {
       const r = await garantirCliente(db, owner.id, conversation);
@@ -213,6 +229,42 @@ Deno.serve(async (req) => {
       meta_message_id: messageId,
       origem: "waha"
     });
+
+    // Item 022e: resposta automática ao lead NOVO com a tabela de atacado (uma vez por contato).
+    // Desliga com o segredo CRM_BOAS_VINDAS=off. Teto de 20 por hora por conta (proteção do número).
+    if (leadNovo && baseUrlDe(owner)) {
+      try {
+        const ultimas = await db.CRMMensagem.filter({ owner_id: owner.id, origem: "sistema", direcao: "enviada" }, "-created_date", 25);
+        const naUltimaHora = (ultimas || []).filter((m: any) => Date.now() - new Date(m.created_date).getTime() < 3600000).length;
+        if (naUltimaHora >= 20) {
+          console.warn("[CRM_WEBHOOK] boas-vindas: teto por hora atingido, não enviada", conversation.id);
+        } else {
+          const painel = (env("PAINEL_URL") && !/base44/i.test(env("PAINEL_URL")) ? env("PAINEL_URL") : "https://app.placefit.com.br").replace(/\/+$/, "");
+          const texto = textoBoasVindas(owner.empresa || "", ident.nome || "", `${painel}/PublicTable?supplier=${owner.id}`);
+          const destino = ident.telefone ? `${ident.telefone}@c.us` : counterpartChatId;
+          const sent = await sendText(owner, destino, texto);
+          await db.CRMMensagem.create({
+            owner_id: owner.id,
+            conversa_id: conversation.id,
+            telefone: phone,
+            direcao: "enviada",
+            tipo: "texto",
+            conteudo: texto,
+            status: sent.ok ? "enviada" : "erro",
+            meta_message_id: sent.id,
+            erro: sent.error,
+            origem: "sistema"
+          });
+          if (sent.ok) {
+            await db.CRMConversa.update(conversation.id, { ultima_mensagem: texto.slice(0, 200), ultima_interacao: new Date().toISOString() });
+          }
+          console.log("[CRM_WEBHOOK] boas-vindas", sent.ok ? "enviada" : "falhou", conversation.id);
+        }
+      } catch (e) {
+        console.error("[CRM_WEBHOOK] boas-vindas falhou", e);
+      }
+    }
+
 
     // ── Atendente automático ─────────────────────────────────────────────────
     // Três travas, todas obrigatórias:

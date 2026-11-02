@@ -10,6 +10,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 const PublicTableFabricante = lazyPage('PublicTableFabricante');
+const PublicTable = lazyPage('PublicTable');
 const Marketplace = lazyPage('Marketplace');
 const HomeApp = lazyPage('HomeApp');
 const DocumentoInvestidor = lazyPage('DocumentoInvestidor');
@@ -64,7 +65,7 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   <Layout currentPageName={currentPageName}><ErrorBoundary><Suspense fallback={<ContentLoading />}>{children}</Suspense></ErrorBoundary></Layout>
   : <ErrorBoundary><Suspense fallback={<ContentLoading />}>{children}</Suspense></ErrorBoundary>;
 
-const PUBLIC_PATHS = ['/', '/Marketplace', '/PublicTableFabricante', '/PublicRegister', '/PublicRegisterFabricante', '/PublicRegisterTransportador', '/FabricanteCatalogoPublic', '/fabricantes', '/loja', '/documento', '/crm/privacidade', '/crm/termos', '/crm/exclusao-de-dados'];
+const PUBLIC_PATHS = ['/', '/Marketplace', '/PublicTableFabricante', '/PublicTable', '/PublicRegister', '/PublicRegisterFabricante', '/PublicRegisterTransportador', '/FabricanteCatalogoPublic', '/fabricantes', '/loja', '/documento', '/crm/privacidade', '/crm/termos', '/crm/exclusao-de-dados'];
 
 const isPublicPath = () => {
   const path = window.location.pathname;
@@ -89,6 +90,7 @@ const AuthenticatedApp = () => {
         <Route path="/documento" element={<ErrorBoundary><DocumentoInvestidor /></ErrorBoundary>} />
         <Route path="/Marketplace" element={<ErrorBoundary><Marketplace /></ErrorBoundary>} />
         <Route path="/PublicTableFabricante" element={<ErrorBoundary><PublicTableFabricante /></ErrorBoundary>} />
+        <Route path="/PublicTable" element={<ErrorBoundary><PublicTable /></ErrorBoundary>} />
         <Route path="/FabricanteCatalogoPublic/:id" element={<ErrorBoundary><FabricanteCatalogoPublic /></ErrorBoundary>} />
         <Route path="/fabricantes/:slug" element={<ErrorBoundary><FabricantePublico /></ErrorBoundary>} />
         <Route path="/loja/:slug/produto/:cod" element={<ErrorBoundary><LojaProduto /></ErrorBoundary>} />
