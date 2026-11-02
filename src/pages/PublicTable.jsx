@@ -1,298 +1,135 @@
-import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
-import { useLogoColors } from "@/components/export/useLogoColors";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import React, { useEffect, useMemo, useState } from "react";
+import { getTabelaPublica } from "@/functions/getTabelaPublica";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { 
-  Dumbbell, 
-  Phone, 
-  Mail, 
-  Globe, 
-  MapPin,
-  Download,
-  AlertCircle
-} from "lucide-react";
+import { AlertCircle, Dumbbell, Printer, Search, MessageCircle, Globe } from "lucide-react";
+
+// Item 022e (02/11/2026): tabela de atacado PÚBLICA da revenda (abre sem login).
+// Os dados vêm da function getTabelaPublica, que só devolve o preço final de venda.
+const brl = (v) => Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const pesoTxt = (p) => (p ? `${String(p).replace(".", ",")} kg` : "");
+const soDigitos = (s) => String(s || "").replace(/\D/g, "");
 
 export default function PublicTable() {
-  const [supplier, setSupplier] = useState(null);
-  const [products, setProducts] = useState([]);
-  const [supplierProducts, setSupplierProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const colors = useLogoColors(supplier?.logomarca);
+  const [dados, setDados] = useState(null);
+  const [erro, setErro] = useState("");
+  const [busca, setBusca] = useState("");
 
   useEffect(() => {
-    loadTableData();
+    const supplier = new URLSearchParams(window.location.search).get("supplier");
+    if (!supplier) { setErro("Link inválido."); return; }
+    getTabelaPublica({ supplier })
+      .then((res) => {
+        const d = res?.data || res;
+        if (d?.error) setErro(d.error); else setDados(d);
+      })
+      .catch(() => setErro("Não foi possível carregar a tabela agora. Tente de novo em instantes."));
   }, []);
 
-  const loadTableData = async () => {
-    try {
-      // Pegar ID do fornecedor da URL
-      const urlParams = new URLSearchParams(window.location.search);
-      const supplierId = urlParams.get('supplier');
-
-      if (!supplierId) {
-        setError("Link inválido. Fornecedor não encontrado.");
-        setLoading(false);
-        return;
-      }
-
-      // Carregar dados do fornecedor
-      const users = await base44.entities.User.filter({ id: supplierId });
-      if (users.length === 0) {
-        setError("Fornecedor não encontrado.");
-        setLoading(false);
-        return;
-      }
-
-      const supplierData = users[0];
-      setSupplier(supplierData);
-
-      // Carregar produtos do fornecedor
-      const [allProducts, supplierProductsData] = await Promise.all([
-        base44.entities.Product.filter({ ativo: true }),
-        base44.entities.SupplierProduct.filter({ 
-          supplier_id: supplierId, 
-          disponivel: true 
-        })
-      ]);
-
-      setProducts(allProducts);
-      setSupplierProducts(supplierProductsData.filter(sp => sp.preco > 0));
-
-    } catch (error) {
-      console.error("Erro ao carregar dados:", error);
-      setError("Erro ao carregar tabela. Tente novamente.");
+  const grupos = useMemo(() => {
+    const termo = busca.trim().toLowerCase();
+    const itens = (dados?.itens || []).filter((i) =>
+      !termo || `${i.nome} ${i.cod} ${i.categoria}`.toLowerCase().includes(termo));
+    const mapa = new Map();
+    for (const i of itens) {
+      if (!mapa.has(i.categoria)) mapa.set(i.categoria, []);
+      mapa.get(i.categoria).push(i);
     }
-    setLoading(false);
-  };
+    return [...mapa.entries()];
+  }, [dados, busca]);
 
-  const getTableData = () => {
-    return supplierProducts.map(sp => {
-      const product = products.find(p => p.id === sp.product_id);
-      return product ? {
-        codigo: product.cod,
-        nome: product.nome,
-        categoria: product.categoria,
-        unidade: product.und,
-        peso: product.peso ? `${product.peso} kg` : '-',
-        dimensoes: product.dimensoes || '-',
-        preco: sp.preco,
-        observacoes: sp.observacoes || ''
-      } : null;
-    }).filter(Boolean);
-  };
-
-  const handlePrint = () => {
-    window.print();
-  };
-
-  if (loading) {
+  if (erro) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
-        <div className="text-center space-y-4">
-          <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mx-auto">
-            <Dumbbell className="w-6 h-6 text-white animate-pulse" />
-          </div>
-          <div className="animate-pulse text-gray-600">Carregando tabela...</div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="max-w-sm text-center bg-white rounded-2xl border p-8">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-3" />
+          <p className="text-slate-700">{erro}</p>
         </div>
       </div>
     );
   }
 
-  if (error) {
+  if (!dados) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
-          <CardContent className="p-8 text-center">
-            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Erro</h2>
-            <p className="text-gray-600">{error}</p>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center text-slate-500">
+          <Dumbbell className="w-8 h-8 mx-auto mb-2 animate-pulse" />
+          Carregando tabela...
+        </div>
       </div>
     );
   }
 
-  const tableData = getTableData();
+  const r = dados.revenda || {};
+  const wpp = soDigitos(r.whatsapp);
+  const linkWpp = wpp ? `https://wa.me/${wpp.startsWith("55") ? wpp : "55" + wpp}?text=${encodeURIComponent("Olá! Vi a tabela de atacado e quero um orçamento.")}` : "";
+  const total = (dados.itens || []).length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 md:p-8">
-      <style>{`
-        @media print {
-          body { background: white !important; }
-          .no-print { display: none !important; }
-          .print-full { page-break-inside: avoid; }
-        }
-      `}</style>
-
-      <div className="max-w-5xl mx-auto space-y-6">
-        {/* Header com Logo FitPlace */}
-        <div className="text-center mb-6 no-print">
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-green-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-            <Dumbbell className="w-6 h-6 text-white" />
+    <div className="min-h-screen bg-slate-50">
+      <style>{`@media print { .no-print { display: none !important; } body { background: white !important; } }`}</style>
+      <header className="bg-white border-b">
+        <div className="max-w-4xl mx-auto px-4 py-5 flex items-center gap-4">
+          {r.logomarca ? (
+            <img src={r.logomarca} alt={r.empresa} className="w-14 h-14 object-contain rounded-lg bg-white" />
+          ) : (
+            <div className="w-14 h-14 rounded-lg bg-slate-100 flex items-center justify-center"><Dumbbell className="w-7 h-7 text-slate-500" /></div>
+          )}
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl font-bold text-slate-900 truncate">{r.empresa}</h1>
+            <p className="text-sm text-slate-500">
+              Tabela de atacado · atualizada em {new Date(dados.atualizado_em).toLocaleDateString("pt-BR")} · {total} produtos
+            </p>
           </div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
-            FitPlace
-          </h1>
-          <p className="text-gray-600">Plataforma de Fornecedores</p>
+        </div>
+      </header>
+
+      <main className="max-w-4xl mx-auto px-4 py-5 space-y-5">
+        <div className="no-print flex flex-col sm:flex-row gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar produto ou código" className="pl-9 bg-white" />
+          </div>
+          {linkWpp && (
+            <Button asChild className="bg-emerald-600 hover:bg-emerald-700">
+              <a href={linkWpp} target="_blank" rel="noopener noreferrer"><MessageCircle className="w-4 h-4 mr-2" />Pedir orçamento</a>
+            </Button>
+          )}
+          <Button variant="outline" onClick={() => window.print()}><Printer className="w-4 h-4 mr-2" />Imprimir / PDF</Button>
         </div>
 
-        {/* Botão de Impressão */}
-        <div className="flex justify-end no-print">
-          <Button
-            onClick={handlePrint}
-            className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Imprimir / Salvar PDF
-          </Button>
+        <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-900">
+          Para o orçamento com frete, envie pelo WhatsApp a lista dos itens com quantidades e o seu CNPJ (ou CPF).
         </div>
 
-        {/* Tabela */}
-        <Card className="bg-white shadow-2xl border-0 print-full">
-          <CardContent className="p-8">
-            {/* Cabeçalho do Fornecedor */}
-            <div className="text-center mb-8">
-              {supplier.logomarca && (
-                <div className="w-24 h-24 mx-auto mb-4 rounded-lg overflow-hidden bg-gray-100 p-2">
-                  <img 
-                    src={supplier.logomarca} 
-                    alt="Logo"
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-              )}
-              
-              <h2 className="text-3xl font-bold text-gray-900 mb-3">
-                {supplier.empresa || supplier.full_name}
-              </h2>
-              
-              <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-600 mb-2">
-                {supplier.whatsapp && (
-                  <div className="flex items-center gap-1">
-                    <Phone className="w-4 h-4" />
-                    {supplier.whatsapp}
-                  </div>
-                )}
-                {supplier.email && (
-                  <div className="flex items-center gap-1">
-                    <Mail className="w-4 h-4" />
-                    {supplier.email}
-                  </div>
-                )}
-              </div>
-              
-              <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-600">
-                {supplier.endereco && (
-                  <div className="flex items-center gap-1">
-                    <MapPin className="w-4 h-4" />
-                    {supplier.endereco}
-                  </div>
-                )}
-                {supplier.site && (
-                  <div className="flex items-center gap-1">
-                    <Globe className="w-4 h-4" />
-                    <a href={supplier.site} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                      {supplier.site.replace(/https?:\/\//, '')}
-                    </a>
-                  </div>
-                )}
-              </div>
-              
-              <Separator className="my-6" />
-              
-              <h3 className="text-2xl font-bold text-gray-800 mb-1">TABELA DE PREÇOS</h3>
-              <p className="text-sm text-gray-500">
-                Atualizada em {new Date().toLocaleDateString('pt-BR', { 
-                  day: '2-digit', 
-                  month: 'long', 
-                  year: 'numeric' 
-                })}
-              </p>
-            </div>
+        {grupos.length === 0 && (
+          <p className="text-center text-slate-500 py-10">Nenhum produto encontrado.</p>
+        )}
 
-            {/* Tabela de Produtos */}
-            {tableData.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr style={{background: 'transparent', borderBottom: `2px solid ${colors ? colors.primary : '#1e3a5f'}`}}>
-                      <th className="border border-gray-200 px-4 py-3 text-left font-semibold text-gray-900 bg-white">Código</th>
-                      <th className="border border-gray-200 px-4 py-3 text-left font-semibold text-gray-900 bg-white">Produto</th>
-                      <th className="border border-gray-200 px-4 py-3 text-left font-semibold text-gray-900 bg-white">Categoria</th>
-                      <th className="border border-gray-200 px-4 py-3 text-center font-semibold text-gray-900 bg-white">Unidade</th>
-                      <th className="border border-gray-200 px-4 py-3 text-center font-semibold text-gray-900 bg-white">Peso</th>
-                      <th className="border border-gray-200 px-4 py-3 text-center font-semibold text-gray-900 bg-white">Dimensões</th>
-                      <th className="border border-gray-200 px-4 py-3 text-right font-semibold text-gray-900 bg-white">Preço</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {tableData.map((item, index) => (
-                      <tr key={index} className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}>
-                        <td className="border border-gray-300 px-4 py-3 font-mono text-sm">
-                          {item.codigo}
-                        </td>
-                        <td className="border border-gray-300 px-4 py-3">
-                          <div className="font-medium text-gray-900">{item.nome}</div>
-                          {item.observacoes && (
-                            <div className="text-xs text-gray-500 mt-1">{item.observacoes}</div>
-                          )}
-                        </td>
-                        <td className="border border-gray-300 px-4 py-3">
-                          <Badge variant="outline" className="text-xs whitespace-nowrap">
-                            {item.categoria}
-                          </Badge>
-                        </td>
-                        <td className="border border-gray-300 px-4 py-3 text-center">
-                          {item.unidade}
-                        </td>
-                        <td className="border border-gray-300 px-4 py-3 text-center text-sm">
-                          {item.peso}
-                        </td>
-                        <td className="border border-gray-300 px-4 py-3 text-center text-sm">
-                          {item.dimensoes}
-                        </td>
-                        <td className="border border-gray-300 px-4 py-3 text-right">
-                          <span className="font-bold text-lg text-green-700">
-                            R$ {item.preco.toFixed(2)}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                  <tfoot>
-                    <tr className="bg-gray-100">
-                      <td colSpan="6" className="border border-gray-300 px-4 py-3 text-right font-bold">
-                        TOTAL:
-                      </td>
-                      <td className="border border-gray-300 px-4 py-3 text-right">
-                        <span className="font-bold text-xl text-green-700">
-                          R$ {tableData.reduce((sum, item) => sum + item.preco, 0).toFixed(2)}
-                        </span>
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <AlertCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum produto disponível</h3>
-                <p className="text-gray-600">O fornecedor ainda não configurou produtos e preços.</p>
-              </div>
-            )}
+        {grupos.map(([categoria, itens]) => (
+          <section key={categoria} className="bg-white rounded-xl border overflow-hidden">
+            <h2 className="px-4 py-3 bg-slate-100 font-semibold text-slate-800">{categoria} <span className="text-slate-500 font-normal">({itens.length})</span></h2>
+            <ul className="divide-y">
+              {itens.map((i) => (
+                <li key={i.cod + i.nome} className="px-4 py-3 flex items-center gap-3">
+                  {i.foto ? <img src={i.foto} alt="" loading="lazy" className="w-12 h-12 object-contain rounded bg-white shrink-0 no-print" /> : null}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-slate-900">{i.nome}</p>
+                    <p className="text-xs text-slate-500">{[i.cod, i.und, pesoTxt(i.peso_kg)].filter(Boolean).join(" · ")}</p>
+                  </div>
+                  <p className="text-sm font-bold text-emerald-700 whitespace-nowrap">{brl(i.preco)}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
 
-            {/* Rodapé */}
-            <div className="mt-8 pt-6 border-t text-center text-sm text-gray-500">
-              <p>Tabela gerada pela plataforma FitPlace</p>
-              <p>Preços e disponibilidade sujeitos a alterações sem aviso prévio</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+        <footer className="text-center text-xs text-slate-500 py-6 space-y-1">
+          <p>Preços por unidade indicada. Frete calculado no orçamento. Valores sujeitos a alteração sem aviso.</p>
+          {r.site && <p><Globe className="inline w-3 h-3 mr-1" /><a className="underline" href={r.site} target="_blank" rel="noopener noreferrer">{r.site.replace(/https?:\/\//, "")}</a></p>}
+          <p>Tabela gerada pelo PlaceFit</p>
+        </footer>
+      </main>
     </div>
   );
 }
