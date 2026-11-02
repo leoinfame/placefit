@@ -72,7 +72,8 @@ export async function conversaDoContato(db: any, ownerId: string, ident: any, fr
     console.log("[CRM_WEBHOOK] conversa duplicada evitada", criada.id, "→", iguais[0].id);
     return iguais[0];
   }
-  return criada;
+  // Item 022e: marca que este evento abriu a conversa (primeiro contato do lead)
+  return { ...criada, _nova: true };
 }
 
 
@@ -120,4 +121,28 @@ export async function garantirCliente(db: any, ownerId: string, conversa: any): 
   await db.CRMConversa.update(conversa.id, { cliente_id: cliente.id, ...(cliente.nome ? { nome_contato: cliente.nome } : {}) });
   conversa.cliente_id = cliente.id;
   return criou ? 'cliente_criado' : 'cliente_vinculado';
+}
+
+// ─── Item 022e: resposta automática para lead novo (7206) ───────────────────
+// Pedido do Sr. Leo (02/11/2026 20:29). Texto fixo, sem IA: tabela de atacado atual + pedido
+// da lista de itens e do CNPJ. Uma vez só por contato novo (conversa aberta agora e sem cliente).
+export function textoBoasVindas(empresa: string, nome: string, linkTabela: string): string {
+  const primeiro = String(nome || '').trim().split(/\s+/)[0];
+  return [
+    `Olá${primeiro ? ', ' + primeiro : ''}! Aqui é da ${empresa || 'MuscularFit'}, obrigado pelo contato.`,
+    '',
+    `Esta é a nossa tabela de atacado, sempre atualizada: ${linkTabela}`,
+    '',
+    'Para eu montar seu orçamento já com o frete, me envie:',
+    '1. a lista dos itens com as quantidades',
+    '2. o CNPJ (ou CPF) para o cadastro',
+    '',
+    'Assim que chegar, já te respondo com o orçamento.'
+  ].join('\n');
+}
+
+/** Só para contato realmente novo: conversa criada neste evento, mensagem do cliente, sem cadastro. */
+export function deveMandarBoasVindas(conversa: any, fromMe: boolean, chave: string): boolean {
+  if (fromMe || !conversa?._nova || conversa?.cliente_id) return false;
+  return String(chave || '').trim().toLowerCase() !== 'off';
 }
