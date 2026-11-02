@@ -38,6 +38,24 @@ const formatPhone = (value) => {
   const local = digits.startsWith("55") ? digits.slice(2) : digits;
   return local.length >= 10 ? "+55 (" + local.slice(0, 2) + ") " + local.slice(2, -4) + "-" + local.slice(-4) : "+" + digits;
 };
+// Item 022: só exibe como telefone o que é telefone brasileiro real (55 + DDD + número).
+// Identificador opaco (LID) ou número que não fecha nunca aparece como "+55 (..)": vira "Não identificado".
+const NAO_IDENTIFICADO = "Não identificado";
+const telefoneReal = (conversation) => {
+  const digits = String(conversation?.telefone || "").replace(/\D/g, "");
+  if (!digits) return "";
+  if (conversation?.contato_lid && digits === String(conversation.contato_lid)) return "";
+  return digits.startsWith("55") && (digits.length === 12 || digits.length === 13) ? digits : "";
+};
+const contactPhone = (conversation) => {
+  const digits = telefoneReal(conversation);
+  return digits ? formatPhone(digits) : NAO_IDENTIFICADO;
+};
+const contactName = (conversation) => {
+  const nome = String(conversation?.nome_contato || "").trim();
+  if (!nome || /^[\d\s+()-]+$/.test(nome)) return telefoneReal(conversation) ? formatPhone(telefoneReal(conversation)) : NAO_IDENTIFICADO;
+  return nome;
+};
 const formatTime = (value) => {
   if (!value) return "";
   const date = new Date(value);
@@ -410,10 +428,10 @@ export default function CRMWhatsApp() {
                   <div className="px-6 py-16 text-center"><Users className="mx-auto h-9 w-9 text-slate-300" /><p className="mt-3 text-sm font-medium text-slate-600">Nenhuma conversa encontrada.</p><Button variant="link" onClick={() => setNewOpen(true)}>Criar primeiro contato</Button></div>
                 ) : filtered.map((conversation) => (
                   <button key={conversation.id} onClick={() => setSelectedId(conversation.id)} className={"flex w-full gap-3 border-b border-slate-100 p-4 text-left transition hover:bg-slate-50 " + (selectedId === conversation.id ? "bg-emerald-50" : "")}>
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-slate-700">{conversation.nome_contato?.slice(0, 2).toUpperCase()}</div>
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-slate-700">{contactName(conversation).replace(/[^\p{L}\d]/gu, "").slice(0, 2).toUpperCase()}</div>
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2"><p className="truncate text-sm font-semibold text-slate-900">{conversation.nome_contato}</p><span className="shrink-0 text-[11px] text-slate-400">{formatTime(conversation.ultima_interacao)}</span></div>
-                      <p className="mt-0.5 truncate text-xs text-slate-500">{conversation.ultima_mensagem || formatPhone(conversation.telefone)}</p>
+                      <div className="flex items-center justify-between gap-2"><p className="truncate text-sm font-semibold text-slate-900">{contactName(conversation)}</p><span className="shrink-0 text-[11px] text-slate-400">{formatTime(conversation.ultima_interacao)}</span></div>
+                      <p className="mt-0.5 truncate text-xs text-slate-500">{conversation.ultima_mensagem || contactPhone(conversation)}</p>
                       <div className="mt-2 flex items-center justify-between"><Badge className={"border-0 text-[10px] " + stageFor(conversation.etapa).color}>{stageFor(conversation.etapa).label}</Badge>{conversation.nao_lidas > 0 && <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-semibold text-white">{conversation.nao_lidas}</span>}</div>
                     </div>
                   </button>
@@ -426,7 +444,7 @@ export default function CRMWhatsApp() {
             ) : (
               <section className="flex min-h-[610px] flex-col">
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
-                  <div><p className="font-semibold text-slate-900">{selected.nome_contato}</p><p className="text-xs text-slate-500">{formatPhone(selected.telefone)}</p></div>
+                  <div><p className="font-semibold text-slate-900">{contactName(selected)}</p><p className="text-xs text-slate-500">{contactPhone(selected)}</p></div>
                   <div className="flex items-center gap-2">
                     <Select value={selected.etapa || "novo"} onValueChange={(value) => updateStage(selected, value)}><SelectTrigger className="h-9 w-[175px]"><SelectValue /></SelectTrigger><SelectContent>{STAGES.map((stage) => <SelectItem key={stage.value} value={stage.value}>{stage.label}</SelectItem>)}</SelectContent></Select>
                     <Button variant="outline" size="icon" onClick={() => window.open("https://wa.me/" + normalizePhone(selected.telefone), "_blank", "noopener,noreferrer")} title="Abrir no WhatsApp"><ArrowUpRight className="h-4 w-4" /></Button>
@@ -467,7 +485,7 @@ export default function CRMWhatsApp() {
               const rows = conversations.filter((conversation) => (conversation.etapa || "novo") === stage.value);
               return <div key={stage.value} className="min-h-[220px] rounded-2xl border border-slate-200 bg-slate-50 p-3">
                 <div className="mb-3 flex items-center justify-between"><div className="flex items-center gap-2"><span className={"h-2.5 w-2.5 rounded-full " + stage.dot} /><span className="text-sm font-semibold text-slate-800">{stage.label}</span></div><Badge variant="secondary">{rows.length}</Badge></div>
-                <div className="space-y-2">{rows.map((conversation) => <button key={conversation.id} onClick={() => { setSelectedId(conversation.id); setTab("conversas"); }} className="w-full rounded-xl border border-slate-200 bg-white p-3 text-left hover:border-emerald-300"><p className="text-sm font-semibold text-slate-900">{conversation.nome_contato}</p><p className="mt-1 text-xs text-slate-500">{formatPhone(conversation.telefone)}</p><p className="mt-2 truncate text-xs text-slate-400">{conversation.ultima_mensagem || "Sem mensagens"}</p></button>)}</div>
+                <div className="space-y-2">{rows.map((conversation) => <button key={conversation.id} onClick={() => { setSelectedId(conversation.id); setTab("conversas"); }} className="w-full rounded-xl border border-slate-200 bg-white p-3 text-left hover:border-emerald-300"><p className="text-sm font-semibold text-slate-900">{contactName(conversation)}</p><p className="mt-1 text-xs text-slate-500">{contactPhone(conversation)}</p><p className="mt-2 truncate text-xs text-slate-400">{conversation.ultima_mensagem || "Sem mensagens"}</p></button>)}</div>
               </div>;
             })}
           </div>
