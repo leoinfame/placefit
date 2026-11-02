@@ -28,9 +28,9 @@ Deno.test('recebida de LID com telefone no próprio evento: telefone real + nome
 });
 
 Deno.test('recebida de LID sem telefone: não identificado, sem número inventado', () => {
-  const r = identificar({ fromMe: false, from: '89005127405721@lid', _data: { key: { remoteJid: '89005127405721@lid' } } }, MEUS);
+  const r = identificar({ fromMe: false, from: '89005127405722@lid', _data: { key: { remoteJid: '89005127405722@lid' } } }, MEUS);
   eq(r.telefone, '', 'sem telefone');
-  eq(r.lid, '89005127405721', 'lid');
+  eq(r.lid, '89005127405722', 'lid');
   assert(!pareceTelefoneBR(r.lid), 'LID não passa como telefone');
 });
 
@@ -185,4 +185,9 @@ Deno.test('022b: rajada não duplica cliente', async () => {
 Deno.test('022b: nome do perfil limpo de emoji', () => {
   eq(nomeParaCadastro('Carlos 🔥'), 'Carlos', 'emoji fora');
   eq(nomeParaCadastro('🔥🔥'), '', 'só emoji não é nome');
+});
+
+Deno.test('022d: o número do gerente 8509 não vira lead no 7206', () => {
+  eq(identificar({ from: '553799458509@c.us' }, MEUS).ignorar, 'lista_ignorados', 'telefone');
+  eq(identificar({ from: '89005127405721@lid' }, MEUS).ignorar, 'lista_ignorados', 'LID');
 });

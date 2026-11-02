@@ -15,7 +15,9 @@ export type TipoJid = 'telefone' | 'lid' | 'grupo' | 'broadcast' | 'canal' | 'ou
 const digitos = (s: unknown) => String(s ?? '').replace(/\D/g, '');
 
 /** Números/LIDs que nunca viram conversa no CRM (doc da fila, B8: assistente do dono). */
-export const IGNORADOS_FIXOS = ['23949492670633'];
+// Assistente do dono (LID) e o próprio número do gerente PlaceFit 8509 (com e sem o nono dígito, e o LID
+// em que ele chega no 7206): conversas internas, não são lead.
+export const IGNORADOS_FIXOS = ['23949492670633', '553799458509', '5537999458509', '89005127405721'];
 
 export function tipoJid(jid: unknown): TipoJid {
   const s = String(jid ?? '').trim().toLowerCase();
