@@ -1,6 +1,6 @@
 // ─── Conversa do contato no CRM (entrada do 7206 via WAHA) ─────────────────
 // Item 022 (02/11/2026). Separado do webhook para poder ser testado.
-import { chaveTelefone } from './cadastroCliente.ts';
+import { chaveTelefone, nomeValido } from './cadastroCliente.ts';
 
 /** Nome que não é nome: vazio, só número (LID/telefone antigo) ou o marcador de não identificado. */
 export const NAO_IDENTIFICADO = "Não identificado";
