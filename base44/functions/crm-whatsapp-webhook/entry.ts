@@ -1,6 +1,6 @@
 import { createClientFromRequest } from "npm:@base44/sdk";
 import { identificar, meusIdsDoCorpo, resolverLidNoWaha, ignorado } from "../../shared/identidadeWaha.ts";
-import { conversaDoContato } from "../../shared/conversaWaha.ts";
+import { conversaDoContato, garantirCliente } from "../../shared/conversaWaha.ts";
 
 // ─── Webhook do CRM WhatsApp (WAHA) ───────────────────────────────────────────
 // Recebe os eventos do servidor WAHA. Assina apenas "message.any", que entrega
@@ -194,6 +194,13 @@ Deno.serve(async (req) => {
     const now = new Date().toISOString();
 
     const conversation = await conversaDoContato(db, owner.id, ident, fromMe, messageText, now);
+    // Item 022b: telefone real + nome do perfil => cliente em Meus Clientes (sem duplicar)
+    try {
+      const r = await garantirCliente(db, owner.id, conversation);
+      if (r) console.log("[CRM_WEBHOOK]", r, conversation.id);
+    } catch (e) {
+      console.error("[CRM_WEBHOOK] cadastro do cliente falhou", e);
+    }
 
     await db.CRMMensagem.create({
       owner_id: owner.id,
