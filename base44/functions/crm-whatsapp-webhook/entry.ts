@@ -1,4 +1,6 @@
 import { createClientFromRequest } from "npm:@base44/sdk";
+import { identificar, meusIdsDoCorpo, resolverLidNoWaha, ignorado } from "../../shared/identidadeWaha.ts";
+import { conversaDoContato } from "../../shared/conversaWaha.ts";
 
 // ─── Webhook do CRM WhatsApp (WAHA) ───────────────────────────────────────────
 // Recebe os eventos do servidor WAHA. Assina apenas "message.any", que entrega
@@ -7,7 +9,6 @@ import { createClientFromRequest } from "npm:@base44/sdk";
 // WhatsApp. Assinar "message" junto duplicaria as recebidas.
 
 const onlyDigits = (value: string) => String(value || "").replace(/\D/g, "");
-const chatIdToPhone = (chatId: string) => onlyDigits(String(chatId || "").split("@")[0]);
 
 const env = (nome: string) => String(Deno.env.get(nome) || "").trim();
 
@@ -157,61 +158,44 @@ Deno.serve(async (req) => {
 
     // ── Mensagem ─────────────────────────────────────────────────────────────
     const fromMe = Boolean(payload?.fromMe);
-    // Na recebida o cliente é o "from"; na enviada pelo celular, o "to".
-    const counterpartChatId = String((fromMe ? payload?.to : payload?.from) || "");
-    if (!counterpartChatId) return new Response("ok");
+    const db = base44.asServiceRole.entities;
 
-    // O CRM cuida de lead individual: grupo e status não entram.
-    if (isGroup(counterpartChatId) || isBroadcast(counterpartChatId)) return new Response("ok");
+    // Item 022: identidade do contato. Grupo, status, canal, self-chat e ignorados não entram;
+    // LID nunca vira telefone; nome só do perfil de quem mandou.
+    const meusIds = [...meusIdsDoCorpo(body), onlyDigits(owner.whatsapp || "")].filter((x) => x.length >= 10);
+    const extrasIgnorados = env("CRM_IGNORAR_NUMEROS").split(",").map(onlyDigits).filter(Boolean);
+    const ident: any = identificar(payload, meusIds, extrasIgnorados);
+    if (ident.ignorar) {
+      if (ident.ignorar === "sem_contato" || ident.ignorar === "jid_desconhecido") {
+        // Diagnóstico sem conteúdo: só os nomes dos campos, para entender o formato do evento
+        console.log("[CRM_WEBHOOK] evento sem contato reconhecível", ident.ignorar, "fromMe=" + fromMe,
+          "campos=" + Object.keys(payload || {}).join(","), "key=" + Object.keys(payload?._data?.key || {}).join(","));
+      }
+      return new Response("ok");
+    }
+    if (ident.lid && !ident.telefone) {
+      ident.telefone = await resolverLidNoWaha(baseUrlDe(owner), env("WAHA_API_KEY"), sessionName, ident.chatId);
+      if (ident.telefone && ignorado(ident.telefone, extrasIgnorados)) return new Response("ok");
+      if (ident.telefone && meusIds.includes(ident.telefone)) return new Response("ok");
+    }
+    const counterpartChatId = ident.chatId;
 
     const messageId = String(payload?.id?._serialized || payload?.id || "");
 
     // O WAHA reentrega em caso de falha; sem isso a conversa duplica.
     if (messageId) {
-      const existing = await base44.asServiceRole.entities.CRMMensagem.filter({ meta_message_id: messageId });
+      const existing = await db.CRMMensagem.filter({ meta_message_id: messageId });
       if (existing?.length) return new Response("ok");
     }
 
-    const phone = chatIdToPhone(counterpartChatId);
-    const contactName = String(payload?._data?.notifyName || payload?.notifyName || "") || phone;
+    // Chave gravada na mensagem: telefone real, ou o LID quando o contato não foi identificado
+    const phone = ident.telefone || ident.lid;
     const messageText = String(payload?.body || "") || (payload?.hasMedia ? "[Mídia]" : "[Mensagem não textual]");
     const now = new Date().toISOString();
 
-    let conversations = await base44.asServiceRole.entities.CRMConversa.filter({
-      owner_id: owner.id,
-      telefone: phone
-    });
-    let conversation = conversations?.[0];
+    const conversation = await conversaDoContato(db, owner.id, ident, fromMe, messageText, now);
 
-    if (!conversation) {
-      const customers = await base44.asServiceRole.entities.Cliente.filter({
-        fornecedor_id: owner.id,
-        telefone: { "$regex": phone.slice(-8) }
-      });
-      const customer = customers?.[0];
-      conversation = await base44.asServiceRole.entities.CRMConversa.create({
-        owner_id: owner.id,
-        cliente_id: customer?.id || "",
-        nome_contato: customer?.nome || contactName,
-        telefone: phone,
-        etapa: "novo",
-        ultima_mensagem: messageText,
-        ultima_interacao: now,
-        // O que o próprio dono enviou já foi lido por ele.
-        nao_lidas: fromMe ? 0 : 1,
-        origem: "whatsapp",
-        ativo: true
-      });
-    } else {
-      await base44.asServiceRole.entities.CRMConversa.update(conversation.id, {
-        nome_contato: conversation.nome_contato || contactName,
-        ultima_mensagem: messageText,
-        ultima_interacao: now,
-        nao_lidas: fromMe ? 0 : Number(conversation.nao_lidas || 0) + 1
-      });
-    }
-
-    await base44.asServiceRole.entities.CRMMensagem.create({
+    await db.CRMMensagem.create({
       owner_id: owner.id,
       conversa_id: conversation.id,
       telefone: phone,
@@ -219,7 +203,8 @@ Deno.serve(async (req) => {
       tipo: payload?.hasMedia ? "imagem" : "texto",
       conteudo: messageText,
       status: fromMe ? "enviada" : "recebida",
-      meta_message_id: messageId
+      meta_message_id: messageId,
+      origem: "waha"
     });
 
     // ── Atendente automático ─────────────────────────────────────────────────
