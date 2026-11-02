@@ -60,7 +60,7 @@ import ProductAutoComplete from "@/components/ProductAutoComplete";
 import ClienteAutoComplete from "@/components/ClienteAutoComplete";
 import { expandTemplates } from "@/utils/expandTemplates";
 import { sugerirFrete } from "@/utils/frete";
-import { moverLeadParaOrcamento } from "../../base44/shared/funilCrm.js";
+import { moverLeadParaOrcamento, moverLeadParaGanho } from "../../base44/shared/funilCrm.js";
 
 // Preco de venda do revendedor: promocional (sale_price) tem prioridade,
 // caso contrario aplica a margem (%) sobre o preco de fabrica.
@@ -379,6 +379,8 @@ export default function Orcamentos() {
 
       // Obter dados do cliente
       const cliente = clientes.find(c => c.id === orcamento.cliente_id);
+      // Item 022e: o lead do cliente vai para "Ganho" no funil do CRM
+      await moverLeadParaGanho(base44.entities, user.id, cliente);
 
       // Calcular peso total dos produtos
       let pesoTotal = 0;

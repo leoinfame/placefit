@@ -50,3 +50,29 @@ export async function moverLeadParaOrcamento(entities, ownerId, cliente) {
     return 0;
   }
 }
+
+/**
+ * Item 022e (pedido do Sr. Leo, 02/11 20:29): orçamento que vira venda leva o lead para "ganho".
+ * Vale de qualquer etapa (inclusive perdido: o cliente acabou comprando). Nunca lança.
+ */
+export async function moverLeadParaGanho(entities, ownerId, cliente) {
+  try {
+    if (!entities || !ownerId || !cliente?.id) return 0;
+    const ligadas = (await entities.CRMConversa.filter({ owner_id: ownerId, cliente_id: cliente.id }, "-ultima_interacao", 20)) || [];
+    let mudou = 0;
+    for (const c of ligadas) {
+      if (c.ativo === false || c.etapa === "ganho") continue;
+      await entities.CRMConversa.update(c.id, { etapa: "ganho" });
+      mudou++;
+    }
+    return mudou;
+  } catch (e) {
+    console.error("[FUNIL] não consegui mover o lead para ganho", e);
+    return 0;
+  }
+}
+
+/** Item 022e: cliente respondeu com o lead em "orcamento" → "negociacao". Só essa transição. */
+export function etapaDepoisDaResposta(etapaAtual) {
+  return etapaAtual === "orcamento" ? "negociacao" : "";
+}

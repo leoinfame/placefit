@@ -26,6 +26,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { computeLucroPedido } from "@/utils/lucro";
 import ConfirmDialog from "@/components/ui/confirm-dialog";
+import { moverLeadParaGanho } from "../../base44/shared/funilCrm.js";
 
 export default function Vendas() {
   const [user, setUser] = useState(null);
@@ -333,6 +334,8 @@ export default function Vendas() {
       });
 
       console.log(`✅ VENDA CRIADA: ${numeroPedido} (ID: ${pedidoCriado.id})`);
+      // Item 022e: o lead do cliente vai para "Ganho" no funil do CRM
+      await moverLeadParaGanho(base44.entities, user.id, cliente);
 
       // ===== PASSO 5: CRIAR PEDIDOS DE COMPRA EM LOTE COM DEBUG ROBUSTO =====
       const resultadosPC = [];
