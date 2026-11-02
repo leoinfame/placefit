@@ -10,7 +10,8 @@ const nomeVazio = (n: string) => !String(n || "").trim() || /^[\d\s+()-]+$/.test
 export async function clientePorTelefone(db: any, ownerId: string, telefone: string) {
   const chave = chaveTelefone(telefone);
   if (!chave) return null;
-  const candidatos = await db.Cliente.filter({ fornecedor_id: ownerId, telefone: { "$regex": chave.slice(-8) } }, "created_date", 50);
+  // Pré-filtro pelos 4 últimos dígitos (sobrevive a "(27) 3327-6576"); a conferência é pela chave inteira
+  const candidatos = await db.Cliente.filter({ fornecedor_id: ownerId, telefone: { "$regex": chave.slice(-4) + "\\D*$" } }, "created_date", 200);
   return (candidatos || []).find((c: any) => chaveTelefone(c.telefone) === chave) || null;
 }
 
