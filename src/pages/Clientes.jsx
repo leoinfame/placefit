@@ -490,7 +490,11 @@ export default function Clientes() {
         ...prev,
         nome: nome || prev.nome,
         email: data.email || prev.email,
-        telefone: telefone || prev.telefone,
+        // Item 022c: o telefone do contato (WhatsApp) é a chave do cliente e nunca é trocado pelo da Receita.
+        telefone: prev.telefone || telefone,
+        observacoes: (telefone && prev.telefone && String(prev.observacoes || '').indexOf(telefone) === -1)
+          ? [String(prev.observacoes || '').trim(), `Telefone da Receita (CNPJ): ${telefone}`].filter(Boolean).join('\n')
+          : prev.observacoes,
         endereco: endereco || prev.endereco,
         cidade: data.municipio || prev.cidade,
         estado: data.uf || prev.estado,

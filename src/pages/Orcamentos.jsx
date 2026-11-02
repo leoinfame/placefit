@@ -60,6 +60,7 @@ import ProductAutoComplete from "@/components/ProductAutoComplete";
 import ClienteAutoComplete from "@/components/ClienteAutoComplete";
 import { expandTemplates } from "@/utils/expandTemplates";
 import { sugerirFrete } from "@/utils/frete";
+import { moverLeadParaOrcamento } from "../../base44/shared/funilCrm.js";
 
 // Preco de venda do revendedor: promocional (sale_price) tem prioridade,
 // caso contrario aplica a margem (%) sobre o preco de fabrica.
@@ -278,7 +279,7 @@ export default function Orcamentos() {
       const { subtotal, total } = calculateTotals(data);
       const cliente = clientes.find(c => c.id === data.cliente_id);
       
-      return base44.entities.Pedido.create({
+      const criado = await base44.entities.Pedido.create({
         ...data,
         fornecedor_id: user.id,
         cliente_nome: cliente?.nome || "",
@@ -289,6 +290,9 @@ export default function Orcamentos() {
         total,
         status: 'pendente'
       });
+      // Item 022c: o lead do cliente vai para "Orçamento" no funil do CRM (só avança, nunca volta)
+      await moverLeadParaOrcamento(base44.entities, user.id, cliente);
+      return criado;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orcamentos'] });
