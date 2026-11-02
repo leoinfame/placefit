@@ -1,6 +1,6 @@
 // ─── Conversa do contato no CRM (entrada do 7206 via WAHA) ─────────────────
 // Item 022 (02/11/2026). Separado do webhook para poder ser testado.
-import { chaveTelefone } from './cadastroCliente.ts';
+import { chaveTelefone, nomeValido } from './cadastroCliente.ts';
 
 /** Nome que não é nome: vazio, só número (LID/telefone antigo) ou o marcador de não identificado. */
 export const NAO_IDENTIFICADO = "Não identificado";
@@ -75,3 +75,49 @@ export async function conversaDoContato(db: any, ownerId: string, ident: any, fr
   return criada;
 }
 
+
+/** Nome do perfil limpo para cadastro (sem emoji/símbolos); '' se não for um nome de pessoa/empresa. */
+export function nomeParaCadastro(nome: string): string {
+  const limpo = String(nome || '').replace(/[^\p{L}' .-]/gu, ' ').replace(/\s+/g, ' ').trim();
+  if (!limpo || limpo === NAO_IDENTIFICADO || !nomeValido(limpo)) return '';
+  return limpo.slice(0, 60);
+}
+
+/**
+ * Item 022b (pedido do Sr. Leo, 02/11 19:44): contato com TELEFONE REAL verificado e nome no perfil
+ * vira cliente em Meus Clientes (regra do nome de 12/10: nome + telefone criam o Cliente).
+ * Nunca com LID, nunca sem telefone real, nunca duplica: procura antes pelo telefone e, depois de
+ * criar, confere de novo (entregas simultâneas); a cópia mais nova fica ativo=false.
+ */
+export async function garantirCliente(db: any, ownerId: string, conversa: any): Promise<string> {
+  const tel = String(conversa?.telefone || '');
+  if (!tel || conversa?.cliente_id) return '';
+  if (conversa?.contato_lid && tel === String(conversa.contato_lid)) return '';
+  if (!/^55\d{10,11}$/.test(tel)) return '';
+  const nome = nomeParaCadastro(conversa?.nome_contato);
+  if (!nome) return '';
+
+  let cliente = await clientePorTelefone(db, ownerId, tel);
+  let criou = false;
+  if (!cliente) {
+    cliente = await db.Cliente.create({
+      fornecedor_id: ownerId,
+      nome,
+      telefone: tel,
+      ativo: true,
+      observacoes: 'Cadastrado automaticamente pelo CRM WhatsApp (7206): nome do perfil + telefone real.'
+    });
+    criou = true;
+    const chave = chaveTelefone(tel);
+    const iguais = ((await db.Cliente.filter({ fornecedor_id: ownerId, telefone: { "$regex": chave.slice(-4) + "\\D*$" } }, 'created_date', 200)) || [])
+      .filter((c: any) => chaveTelefone(c.telefone) === chave && c.ativo !== false);
+    if (iguais.length > 1 && iguais[0].id !== cliente.id) {
+      await db.Cliente.update(cliente.id, { ativo: false, observacoes: `Duplicado de ${iguais[0].id} (entrega simultânea; item 022b)` });
+      cliente = iguais[0];
+      criou = false;
+    }
+  }
+  await db.CRMConversa.update(conversa.id, { cliente_id: cliente.id, ...(cliente.nome ? { nome_contato: cliente.nome } : {}) });
+  conversa.cliente_id = cliente.id;
+  return criou ? 'cliente_criado' : 'cliente_vinculado';
+}

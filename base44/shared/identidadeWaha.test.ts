@@ -2,7 +2,7 @@
 // Item 022 (02/11/2026): identidade do contato na entrada do 7206 e conversa única por pessoa.
 // Banco em memória; nenhuma chamada real ao WAHA nem ao Base44; nada é enviado a ninguém.
 import { identificar, resolverLidNoWaha, meusIdsDoCorpo, pareceTelefoneBR } from './identidadeWaha.ts';
-import { conversaDoContato, NAO_IDENTIFICADO } from './conversaWaha.ts';
+import { conversaDoContato, garantirCliente, nomeParaCadastro, NAO_IDENTIFICADO } from './conversaWaha.ts';
 
 function assert(c: unknown, msg: string) { if (!c) throw new Error('falhou: ' + msg); }
 function eq(a: unknown, b: unknown, msg: string) {
@@ -142,4 +142,47 @@ Deno.test('mensagem enviada pelo celular cai na mesma conversa do contato, sem s
   eq(a.id, b.id, 'mesma conversa');
   eq(tabelas.CRMConversa[0].nao_lidas, 0, 'enviada zera não lidas');
   eq(tabelas.CRMConversa[0].nome_contato, 'Ana', 'nome preservado');
+});
+
+Deno.test('022b: telefone real + nome do perfil cria o cliente e liga a conversa', async () => {
+  const { tabelas, db } = bancoMemoria({ CRMConversa: [{ id: 'c1', owner_id: 'dono', telefone: '553172070371', contato_lid: '16222729036011', nome_contato: 'Carlos', cliente_id: '', ativo: true, _ordem: 0 }] });
+  const r = await garantirCliente(db, 'dono', { ...tabelas.CRMConversa[0] });
+  eq(r, 'cliente_criado', 'criou');
+  eq(tabelas.Cliente.length, 1, 'um cliente');
+  eq(tabelas.Cliente[0].nome, 'Carlos', 'nome');
+  eq(tabelas.Cliente[0].telefone, '553172070371', 'telefone real');
+  eq(tabelas.CRMConversa[0].cliente_id, tabelas.Cliente[0].id, 'conversa ligada');
+  eq(await garantirCliente(db, 'dono', { ...tabelas.CRMConversa[0] }), '', 'segunda vez não faz nada');
+  eq(tabelas.Cliente.length, 1, 'sem duplicar');
+});
+
+Deno.test('022b: cliente já existente pelo telefone é só vinculado', async () => {
+  const { tabelas, db } = bancoMemoria({
+    Cliente: [{ id: 'cli-9', fornecedor_id: 'dono', nome: 'Carlos Silva', telefone: '(31) 7207-0371', _ordem: 0 }],
+    CRMConversa: [{ id: 'c1', owner_id: 'dono', telefone: '553172070371', nome_contato: 'Carlos', ativo: true, _ordem: 0 }]
+  });
+  eq(await garantirCliente(db, 'dono', { ...tabelas.CRMConversa[0] }), 'cliente_vinculado', 'vinculou');
+  eq(tabelas.Cliente.length, 1, 'não criou outro');
+  eq(tabelas.CRMConversa[0].nome_contato, 'Carlos Silva', 'nome do cadastro');
+});
+
+Deno.test('022b: sem telefone real ou sem nome não cria cliente', async () => {
+  const { tabelas, db } = bancoMemoria({ CRMConversa: [
+    { id: 'a', owner_id: 'dono', telefone: '', contato_lid: '777', nome_contato: 'Ana', ativo: true, _ordem: 0 },
+    { id: 'b', owner_id: 'dono', telefone: '553199990000', nome_contato: NAO_IDENTIFICADO, ativo: true, _ordem: 1 },
+    { id: 'c', owner_id: 'dono', telefone: '16222729036011', contato_lid: '16222729036011', nome_contato: 'Zé', ativo: true, _ordem: 2 },
+  ] });
+  for (const c of tabelas.CRMConversa) eq(await garantirCliente(db, 'dono', { ...c }), '', 'nada para ' + c.id);
+  eq(tabelas.Cliente.length, 0, 'nenhum cliente');
+});
+
+Deno.test('022b: rajada não duplica cliente', async () => {
+  const { tabelas, db } = bancoMemoria({ CRMConversa: [{ id: 'c1', owner_id: 'dono', telefone: '553172070371', nome_contato: 'Carlos', ativo: true, _ordem: 0 }] });
+  await Promise.all([1, 2, 3].map(() => garantirCliente(db, 'dono', { ...tabelas.CRMConversa[0], cliente_id: '' })));
+  eq(tabelas.Cliente.filter((c) => c.ativo !== false).length, 1, 'um cliente ativo');
+});
+
+Deno.test('022b: nome do perfil limpo de emoji', () => {
+  eq(nomeParaCadastro('Carlos 🔥'), 'Carlos', 'emoji fora');
+  eq(nomeParaCadastro('🔥🔥'), '', 'só emoji não é nome');
 });
