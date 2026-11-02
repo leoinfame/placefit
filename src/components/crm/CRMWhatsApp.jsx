@@ -447,7 +447,7 @@ export default function CRMWhatsApp() {
                   <div><p className="font-semibold text-slate-900">{contactName(selected)}</p><p className="text-xs text-slate-500">{contactPhone(selected)}</p></div>
                   <div className="flex items-center gap-2">
                     <Select value={selected.etapa || "novo"} onValueChange={(value) => updateStage(selected, value)}><SelectTrigger className="h-9 w-[175px]"><SelectValue /></SelectTrigger><SelectContent>{STAGES.map((stage) => <SelectItem key={stage.value} value={stage.value}>{stage.label}</SelectItem>)}</SelectContent></Select>
-                    <Button variant="outline" size="icon" onClick={() => window.open("https://wa.me/" + normalizePhone(selected.telefone), "_blank", "noopener,noreferrer")} title="Abrir no WhatsApp"><ArrowUpRight className="h-4 w-4" /></Button>
+                    <Button variant="outline" size="icon" disabled={!telefoneReal(selected)} onClick={() => window.open("https://wa.me/" + telefoneReal(selected), "_blank", "noopener,noreferrer")} title={telefoneReal(selected) ? "Abrir no WhatsApp" : "Contato não identificado: sem telefone real"}><ArrowUpRight className="h-4 w-4" /></Button>
                   </div>
                 </div>
                 <div className="flex-1 space-y-3 overflow-y-auto bg-[#f4f5f1] px-4 py-5 md:px-7" style={{ maxHeight: 440 }}>
