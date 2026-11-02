@@ -1,5 +1,5 @@
 import { createClientFromRequest } from "npm:@base44/sdk";
-import { identificar, meusIdsDoCorpo, resolverLidNoWaha, ignorado, usuarioJid } from "../../shared/identidadeWaha.ts";
+import { identificar, meusIdsDoCorpo, resolverLidNoWaha, ignorado } from "../../shared/identidadeWaha.ts";
 import { chaveTelefone } from "../../shared/cadastroCliente.ts";
 
 // ─── Webhook do CRM WhatsApp (WAHA) ───────────────────────────────────────────
@@ -11,8 +11,8 @@ import { chaveTelefone } from "../../shared/cadastroCliente.ts";
 const onlyDigits = (value: string) => String(value || "").replace(/\D/g, "");
 
 /** Nome que não é nome: vazio, só número (LID/telefone antigo) ou o marcador de não identificado. */
-const nomeVazio = (n: string) => !String(n || "").trim() || /^[\d\s+()-]+$/.test(String(n)) || String(n).trim() === NAO_IDENTIFICADO;
 const NAO_IDENTIFICADO = "Não identificado";
+const nomeVazio = (n: string) => !String(n || "").trim() || /^[\d\s+()-]+$/.test(String(n)) || String(n).trim() === NAO_IDENTIFICADO;
 
 /** Cliente do dono pelo telefone REAL (DDD + últimos 8 dígitos). Nunca por LID. */
 async function clientePorTelefone(db: any, ownerId: string, telefone: string) {
@@ -32,7 +32,7 @@ async function conversaDoContato(db: any, ownerId: string, ident: any, fromMe: b
   const tel = ident.telefone || "";
   const lid = ident.lid || "";
   let conversa: any = null;
-  if (tel) conversa = (await db.CRMConversa.filter({ owner_id: owner_id_ok(ownerId), telefone: tel, ativo: true }, "created_date", 1))?.[0];
+  if (tel) conversa = (await db.CRMConversa.filter({ owner_id: ownerId, telefone: tel, ativo: true }, "created_date", 1))?.[0];
   if (!conversa && lid) conversa = (await db.CRMConversa.filter({ owner_id: ownerId, contato_lid: lid, ativo: true }, "created_date", 1))?.[0];
   if (!conversa && lid) conversa = (await db.CRMConversa.filter({ owner_id: ownerId, telefone: lid, ativo: true }, "created_date", 1))?.[0];
 
@@ -81,7 +81,6 @@ async function conversaDoContato(db: any, ownerId: string, ident: any, fromMe: b
   }
   return criada;
 }
-const owner_id_ok = (id: string) => id;
 
 const env = (nome: string) => String(Deno.env.get(nome) || "").trim();
 
