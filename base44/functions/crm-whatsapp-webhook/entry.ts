@@ -4,6 +4,7 @@ import { conversaDoContato, garantirCliente, textoBoasVindas, deveMandarBoasVind
 import { etapaDepoisDaResposta } from "../../shared/funilCrm.js";
 import { base64 } from "../../shared/tabelaAtacado.ts";
 import { itensSuaTabela, htmlSuaTabela, imprimirPdf } from "../../shared/tabelaPdf.ts";
+import { linkDaTabela } from "../../shared/linkTabela.ts";
 
 // ─── Webhook do CRM WhatsApp (WAHA) ───────────────────────────────────────────
 // Recebe os eventos do servidor WAHA. Assina apenas "message.any", que entrega
@@ -285,7 +286,7 @@ Deno.serve(async (req) => {
             console.warn("[CRM_WEBHOOK] PDF da tabela falhou, vai o link", e);
           }
           if (!sent.ok) {
-            texto = textoBoasVindas(owner.empresa || "", ident.nome || "", `${painel}/PublicTable?supplier=${owner.id}`);
+            texto = textoBoasVindas(owner.empresa || "", ident.nome || "", linkDaTabela(painel, owner.id));
             sent = await sendText(owner, destino, texto);
           }
           await db.CRMMensagem.create({

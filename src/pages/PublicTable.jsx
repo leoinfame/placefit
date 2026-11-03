@@ -21,7 +21,12 @@ export default function PublicTable() {
     getTabelaPublica({ supplier })
       .then((res) => {
         const d = res?.data || res;
-        if (d?.error) setErro(d.error); else setDados(d);
+        if (d?.error) setErro(d.error);
+        else {
+          setDados(d);
+          // 022g: aba do navegador com o nome da empresa, em português
+          if (d?.revenda?.empresa) document.title = `${d.revenda.empresa} — Tabela de atacado`;
+        }
       })
       .catch(() => setErro("Não foi possível carregar a tabela agora. Tente de novo em instantes."));
   }, []);

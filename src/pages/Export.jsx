@@ -326,7 +326,7 @@ export default function Export() {
     const isFab = user?.tipo_usuario === 'fabricante';
     return isFab
       ? `${window.location.origin}/PublicTableFabricante?fabricante=${user.id}`
-      : `${window.location.origin}/PublicTable?supplier=${user.id}`;
+      : `${window.location.origin}/functions/tabela?supplier=${user.id}`; // 022g: prévia com o nome da empresa
   };
 
   const copyPublicLink = () => {
