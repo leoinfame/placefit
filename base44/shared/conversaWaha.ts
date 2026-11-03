@@ -126,12 +126,13 @@ export async function garantirCliente(db: any, ownerId: string, conversa: any): 
 // ─── Item 022e: resposta automática para lead novo (7206) ───────────────────
 // Pedido do Sr. Leo (02/11/2026 20:29). Texto fixo, sem IA: tabela de atacado atual + pedido
 // da lista de itens e do CNPJ. Uma vez só por contato novo (conversa aberta agora e sem cliente).
-export function textoBoasVindas(empresa: string, nome: string, linkTabela: string): string {
+// Item 022f: sem link => legenda do PDF anexado; com link => plano B quando o arquivo não sai.
+export function textoBoasVindas(empresa: string, nome: string, linkTabela = ''): string {
   const primeiro = String(nome || '').trim().split(/\s+/)[0];
   return [
     `Olá${primeiro ? ', ' + primeiro : ''}! Aqui é da ${empresa || 'MuscularFit'}, obrigado pelo contato.`,
     '',
-    `Esta é a nossa tabela de atacado, sempre atualizada: ${linkTabela}`,
+    linkTabela ? `Esta é a nossa tabela de atacado, sempre atualizada: ${linkTabela}` : 'Segue em anexo a nossa tabela de atacado, atualizada hoje.',
     '',
     'Para eu montar seu orçamento já com o frete, me envie:',
     '1. a lista dos itens com as quantidades',

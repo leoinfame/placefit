@@ -2,6 +2,9 @@
 // Item 022e: resposta automática ao lead novo, Orçamento → Negociação, venda → Ganho.
 import { textoBoasVindas, deveMandarBoasVindas } from './conversaWaha.ts';
 import { etapaDepoisDaResposta, moverLeadParaGanho } from './funilCrm.js';
+import { base64 } from './tabelaAtacado.ts';
+import { htmlSuaTabela } from './tabelaPdf.ts';
+import { itensDaRevenda } from './tabelaPdfHtml.js';
 
 function ok(c: boolean, m: string) { if (!c) throw new Error('falhou: ' + m); }
 
@@ -41,4 +44,30 @@ Deno.test('ganho: venda leva a conversa do cliente para Ganho', async () => {
   ok(rows[0].etapa === 'ganho', 'cliente da venda em ganho');
   ok(rows[1].etapa === 'orcamento', 'outro cliente intacto');
   await moverLeadParaGanho(entities, 'o', null);
+});
+
+Deno.test('022f: legenda do PDF sem link; plano B com link', () => {
+  const leg = textoBoasVindas('MuscularFit', 'Ana', '');
+  ok(leg.includes('Segue em anexo') && !leg.includes('http'), 'legenda sem link');
+  ok(textoBoasVindas('MuscularFit', 'Ana', 'https://app.placefit.com.br/x').includes('https://app.placefit.com.br/x'), 'plano B com link');
+});
+
+Deno.test('022f: HTML do PDF é o da Sua Tabela (logo, contatos, agrupamento por peso, sem preço de fábrica)', () => {
+  const produtos = [
+    { id: 't1', nome: 'Anilha Vazada Pintado 1kg', cod: 'AVP1', categoria: 'Anilhas', und: 'peça', peso_kg: 1, foto: 'https://x/f.png' },
+    { id: 't2', nome: 'Anilha Vazada Pintado 2kg', cod: 'AVP2', categoria: 'Anilhas', und: 'peça', peso_kg: 2, foto: '' },
+    { id: 't3', nome: 'Step EVA', cod: 'ACE-N031', categoria: 'Acessórios', und: 'peça' }
+  ];
+  const sps = [
+    { product_id: 't1', preco: 5, margem: 20 }, { product_id: 't2', preco: 10, margem: 20 },
+    { product_id: 't3', preco: 100, margem: 0, sale_price: 134.6 }, { product_id: 'x', preco: 0 }
+  ];
+  const itens = itensDaRevenda(produtos, sps);
+  ok(itens.length === 2, 'agrupa os pesos numa linha só');
+  const html = htmlSuaTabela({ empresa: 'MuscularFit', whatsapp: '37 99914-7206', endereco: 'Rua A, Cláudio/MG', logomarca: 'https://x/logo.png' }, itens);
+  ok(html.includes('MuscularFit') && html.includes('Rua A, Cláudio/MG') && html.includes('https://x/logo.png'), 'cabeçalho com logo e endereço');
+  ok(html.includes('R$ 6.00/kg') && html.includes('R$ 134.60'), 'preço final (margem / promocional)');
+  ok(html.includes('window.__pronto') && html.includes('var(--pf-primary'), 'cores da logo calculadas na impressão');
+  ok(!html.includes('preco_fabricante') && !/R\$ 5\.00\b/.test(html), 'sem preço de fábrica');
+  ok(base64(new Uint8Array([1, 2, 3])) === 'AQID', 'base64');
 });
