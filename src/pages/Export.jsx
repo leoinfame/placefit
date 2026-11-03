@@ -3,7 +3,6 @@ import { base44 } from "@/api/base44Client";
 import { getProdutosData } from "@/functions/getProdutosData";
 import { expandTemplates } from "@/utils/expandTemplates";
 import { useLogoColors } from "@/components/export/useLogoColors";
-import { paletaDaLoja } from "../../base44/shared/identidadeCores.js";
 import {
   Download,
   FileText,
@@ -46,16 +45,7 @@ export default function Export() {
   const [pdfCatsOpen, setPdfCatsOpen] = useState(false);
   const [selectedCats, setSelectedCats] = useState(null);
   const { toast } = useToast();
-  const coresDaLogo = useLogoColors(user?.logomarca);
-  // Identidade visual configurada (Perfil → Identidade visual) manda; sem ela, cores da logo
-  const [paletaLoja, setPaletaLoja] = useState(null);
-  useEffect(() => {
-    if (!user?.id) return;
-    base44.entities.LojaConfig.filter({ revendedor_id: user.id })
-      .then((l) => setPaletaLoja(paletaDaLoja(l?.[0])))
-      .catch(() => setPaletaLoja(null));
-  }, [user?.id]);
-  const colors = paletaLoja || coresDaLogo;
+  const colors = useLogoColors(user?.logomarca);
 
   const generatePreview = (productsData, supplierProductsData) => {
     const availableProducts = supplierProductsData.filter(sp => sp.preco > 0);
