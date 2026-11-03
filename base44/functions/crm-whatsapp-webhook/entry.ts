@@ -2,7 +2,8 @@ import { createClientFromRequest } from "npm:@base44/sdk";
 import { identificar, meusIdsDoCorpo, resolverLidNoWaha, ignorado } from "../../shared/identidadeWaha.ts";
 import { conversaDoContato, garantirCliente, textoBoasVindas, deveMandarBoasVindas } from "../../shared/conversaWaha.ts";
 import { etapaDepoisDaResposta } from "../../shared/funilCrm.js";
-import { carregarTabela, pdfDaTabela, base64 } from "../../shared/tabelaAtacado.ts";
+import { base64 } from "../../shared/tabelaAtacado.ts";
+import { itensSuaTabela, htmlSuaTabela, imprimirPdf } from "../../shared/tabelaPdf.ts";
 
 // ─── Webhook do CRM WhatsApp (WAHA) ───────────────────────────────────────────
 // Recebe os eventos do servidor WAHA. Assina apenas "message.any", que entrega
@@ -270,9 +271,11 @@ Deno.serve(async (req) => {
           let texto = textoBoasVindas(owner.empresa || "", ident.nome || "");
           let sent: any = { ok: false, id: "", error: "" };
           try {
-            const tabela = await carregarTabela(db, owner.id);
-            if (tabela && tabela.itens.length) {
-              const pdf = await pdfDaTabela(tabela);
+            const itens = await itensSuaTabela(db, owner.id);
+            if (itens.length) {
+              // Mesmo PDF do botão "Gerar PDF" da Sua Tabela, impresso pelo serviço de PDF (Railway)
+              const pdf = await imprimirPdf(htmlSuaTabela(owner, itens),
+                { url: env("PDF_SERVICE_URL"), user: env("PDF_SERVICE_USER"), pass: env("PDF_SERVICE_PASS") });
               const nomeArq = `Tabela atacado ${String(owner.empresa || "MuscularFit").replace(/[^\p{L}\p{N} ]/gu, "").trim()} ${new Date().toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" }).replace(/\//g, "-")}.pdf`;
               sent = await sendPdf(owner, destino, pdf, nomeArq, texto);
               if (sent.ok) texto = "[PDF: " + nomeArq + "]\n" + texto;
