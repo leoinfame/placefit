@@ -83,7 +83,7 @@ function scriptCores(logo: string) {
 
 /** HTML da Sua Tabela pronto para o serviço de PDF. */
 export function htmlSuaTabela(owner: any, itens: any[]) {
-  return buildPDFHTML({ user: owner, colors: CORES_CSS, imageMap: {}, items: itens, extraHead: scriptCores(owner?.logomarca || "") });
+  return buildPDFHTML({ user: owner, colors: CORES_CSS, imageMap: {}, items: itens as any, extraHead: scriptCores(owner?.logomarca || "") });
 }
 
 /** Imprime o HTML no serviço de PDF (Railway). Lança erro se não estiver configurado ou falhar. */
