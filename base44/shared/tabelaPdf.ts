@@ -81,9 +81,39 @@ export function scriptCores(logo: string) {
 </script>`;
 }
 
+/**
+ * Logo da revenda embutida no HTML (data URL): o PDF sempre sai com a logo e as cores tiradas dela,
+ * sem depender de o serviço de PDF conseguir baixar a imagem. Falhou → devolve a URL original.
+ */
+export async function logoComoDataUrl(url: string): Promise<string> {
+  if (!/^https:\/\//i.test(String(url || ''))) return String(url || '');
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 6000);
+    const r = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(t);
+    if (!r.ok) return url;
+    const tipo = r.headers.get('content-type') || 'image/png';
+    if (!/^image\//i.test(tipo)) return url;
+    const bytes = new Uint8Array(await r.arrayBuffer());
+    if (bytes.length > 3_000_000) return url;
+    return `data:${tipo.split(';')[0]};base64,${base64Bytes(bytes)}`;
+  } catch {
+    return url;
+  }
+}
+
+function base64Bytes(bytes: Uint8Array): string {
+  let s = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+
 /** HTML da Sua Tabela pronto para o serviço de PDF. */
-export function htmlSuaTabela(owner: any, itens: any[]) {
-  return buildPDFHTML({ user: owner, colors: CORES_CSS, imageMap: {}, items: itens as any, extraHead: scriptCores(owner?.logomarca || "") });
+export async function htmlSuaTabela(owner: any, itens: any[]) {
+  const logo = await logoComoDataUrl(owner?.logomarca || "");
+  const dono = { ...owner, logomarca: logo };
+  return buildPDFHTML({ user: dono, colors: CORES_CSS, imageMap: {}, items: itens as any, extraHead: scriptCores(logo) });
 }
 
 /** Imprime o HTML no serviço de PDF (Railway). Lança erro se não estiver configurado ou falhar. */
