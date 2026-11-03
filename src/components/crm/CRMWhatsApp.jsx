@@ -12,10 +12,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import WhatsAppSetup from "@/components/whatsapp/WhatsAppSetup";
 import AlertasCRM from "@/components/crm/AlertasCRM";
+import useGamificacaoCrm from "@/components/crm/gamificacao/useGamificacaoCrm";
+import PlacarBadge from "@/components/crm/gamificacao/PlacarBadge";
+import SemaforoBadge from "@/components/crm/gamificacao/SemaforoBadge";
+import BotControle from "@/components/crm/gamificacao/BotControle";
+import ProximoPassoBotao from "@/components/crm/gamificacao/ProximoPassoBotao";
+import GamificacaoTab from "@/components/crm/gamificacao/GamificacaoTab";
 import {
   ArrowUpRight, Check, CheckCheck, CircleAlert, Copy,
   FileText, LayoutGrid, Loader2, MessageCircle, MessageSquare, Plus, RefreshCw,
-  Search, Send, Settings, Smartphone, Trash2, Users, Wifi, WifiOff
+  Search, Send, Settings, Smartphone, Trash2, Trophy, Users, Wifi, WifiOff
 } from "lucide-react";
 
 const STAGES = [
@@ -120,6 +126,10 @@ export default function CRMWhatsApp() {
   // Item 022d: conversa -> { numero, criado, retorno } do orçamento mais recente do cliente
   const [orcInfo, setOrcInfo] = useState({});
   const [agora, setAgora] = useState(Date.now());
+
+  // Item 024: camada de gamificação (placar, semáforo, ranking, assumir conversa).
+  // Só painel: lê orçamentos/mensagens e grava estado. Não envia nada.
+  const gam = useGamificacaoCrm({ ownerId, conversations, clientes: customers, usuario: me, agora });
 
   useEffect(() => { initialize(); }, []);
   useEffect(() => {
@@ -313,6 +323,42 @@ export default function CRMWhatsApp() {
     }
   }
 
+  async function assumirConversa(conversa) {
+    try {
+      await gam.assumirConversa(conversa);
+      toast({ title: "Conversa assumida", description: "O bot fica em silêncio só neste contato até você devolver." });
+    } catch (error) {
+      toast({ title: "Não foi possível assumir", description: error?.message, variant: "destructive" });
+    }
+  }
+
+  async function devolverAoBot(conversa) {
+    try {
+      await gam.devolverAoBot(conversa);
+      toast({ title: "Conversa devolvida ao bot", description: "O atendimento automático volta a responder este contato." });
+    } catch (error) {
+      toast({ title: "Não foi possível devolver", description: error?.message, variant: "destructive" });
+    }
+  }
+
+  async function registrarProximoPasso(conversa, descricao) {
+    try {
+      await gam.registrarProximoPasso(conversa, descricao);
+      toast({ title: "Próximo passo registrado", description: "O aviso saiu da fila desta conversa." });
+    } catch (error) {
+      toast({ title: "Não foi possível registrar", description: error?.message, variant: "destructive" });
+    }
+  }
+
+  async function salvarConfigGamificacao(valores) {
+    try {
+      await gam.salvarConfig(valores);
+      toast({ title: "Regras atualizadas" });
+    } catch (error) {
+      toast({ title: "Não foi possível salvar as regras", description: error?.message, variant: "destructive" });
+    }
+  }
+
   async function sendMessage(template) {
     if (!selected) return;
     if (!status?.configured) {
@@ -468,6 +514,7 @@ export default function CRMWhatsApp() {
         <TabsList className="h-auto flex-wrap justify-start gap-1 bg-slate-100 p-1">
           <TabsTrigger value="conversas" className="gap-2"><MessageSquare className="h-4 w-4" />Conversas</TabsTrigger>
           <TabsTrigger value="funil" className="gap-2"><LayoutGrid className="h-4 w-4" />Funil comercial</TabsTrigger>
+          <TabsTrigger value="gamificacao" className="gap-2"><Trophy className="h-4 w-4" />Gamificação</TabsTrigger>
           <TabsTrigger value="templates" className="gap-2"><FileText className="h-4 w-4" />Templates</TabsTrigger>
           <TabsTrigger value="configuracao" className="gap-2"><Settings className="h-4 w-4" />Configuração</TabsTrigger>
         </TabsList>
@@ -485,9 +532,9 @@ export default function CRMWhatsApp() {
                   <button key={conversation.id} onClick={() => setSelectedId(conversation.id)} className={"flex w-full gap-3 border-b border-slate-100 p-4 text-left transition hover:bg-slate-50 " + (selectedId === conversation.id ? "bg-emerald-50" : "")}>
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-slate-700">{contactName(conversation).replace(/[^\p{L}\d]/gu, "").slice(0, 2).toUpperCase()}</div>
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2"><p className="truncate text-sm font-semibold text-slate-900">{contactName(conversation)}</p><span className="shrink-0 text-[11px] text-slate-400">{formatTime(conversation.ultima_interacao)}</span></div>
+                      <div className="flex items-center justify-between gap-2"><p className="truncate text-sm font-semibold text-slate-900">{contactName(conversation)}</p><div className="flex shrink-0 items-center gap-1.5"><SemaforoBadge compacto semaforo={gam.dadosPorConversa[conversation.id]?.semaforo} /><span className="text-[11px] text-slate-400">{formatTime(conversation.ultima_interacao)}</span></div></div>
                       <p className="mt-0.5 truncate text-xs text-slate-500">{conversation.ultima_mensagem || contactPhone(conversation)}</p>
-                      <div className="mt-2 flex items-center justify-between"><Badge className={"border-0 text-[10px] " + stageFor(conversation.etapa).color}>{stageFor(conversation.etapa).label}</Badge>{conversation.nao_lidas > 0 && <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-semibold text-white">{conversation.nao_lidas}</span>}</div>
+                      <div className="mt-2 flex items-center justify-between"><div className="flex items-center gap-1.5"><Badge className={"border-0 text-[10px] " + stageFor(conversation.etapa).color}>{stageFor(conversation.etapa).label}</Badge><PlacarBadge compacto dados={gam.dadosPorConversa[conversation.id]} /></div>{conversation.nao_lidas > 0 && <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-semibold text-white">{conversation.nao_lidas}</span>}</div>
                     </div>
                   </button>
                 ))}
@@ -498,12 +545,24 @@ export default function CRMWhatsApp() {
               <div className="flex min-h-[460px] flex-col items-center justify-center bg-slate-50 px-6 text-center"><MessageCircle className="h-14 w-14 text-slate-300" /><h2 className="mt-4 text-lg font-semibold text-slate-800">Selecione uma conversa</h2><p className="mt-1 max-w-sm text-sm text-slate-500">Escolha um contato ao lado ou inicie uma nova conversa pelo WhatsApp.</p></div>
             ) : (
               <section className="flex min-h-[610px] flex-col">
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
-                  <div><p className="font-semibold text-slate-900">{contactName(selected)}</p><p className="text-xs text-slate-500">{contactPhone(selected)}</p></div>
-                  <div className="flex items-center gap-2">
-                    <Select value={selected.etapa || "novo"} onValueChange={(value) => updateStage(selected, value)}><SelectTrigger className="h-9 w-[175px]"><SelectValue /></SelectTrigger><SelectContent>{STAGES.map((stage) => <SelectItem key={stage.value} value={stage.value}>{stage.label}</SelectItem>)}</SelectContent></Select>
-                    <Button variant="outline" size="icon" disabled={!telefoneReal(selected)} onClick={() => window.open("https://wa.me/" + telefoneReal(selected), "_blank", "noopener,noreferrer")} title={telefoneReal(selected) ? "Abrir no WhatsApp" : "Contato não identificado: sem telefone real"}><ArrowUpRight className="h-4 w-4" /></Button>
+                <div className="space-y-3 border-b border-slate-200 px-5 py-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div><p className="font-semibold text-slate-900">{contactName(selected)}</p><p className="text-xs text-slate-500">{contactPhone(selected)}</p></div>
+                    <div className="flex items-center gap-2">
+                      <Select value={selected.etapa || "novo"} onValueChange={(value) => updateStage(selected, value)}><SelectTrigger className="h-9 w-[175px]"><SelectValue /></SelectTrigger><SelectContent>{STAGES.map((stage) => <SelectItem key={stage.value} value={stage.value}>{stage.label}</SelectItem>)}</SelectContent></Select>
+                      <Button variant="outline" size="icon" disabled={!telefoneReal(selected)} onClick={() => window.open("https://wa.me/" + telefoneReal(selected), "_blank", "noopener,noreferrer")} title={telefoneReal(selected) ? "Abrir no WhatsApp" : "Contato não identificado: sem telefone real"}><ArrowUpRight className="h-4 w-4" /></Button>
+                    </div>
                   </div>
+                  {/* Item 024: placar com motivo, semáforo da etapa e controle do bot nesta conversa. */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <SemaforoBadge semaforo={gam.dadosPorConversa[selected.id]?.semaforo} proximoPasso={gam.dadosPorConversa[selected.id]?.proximoPasso} />
+                    <PlacarBadge dados={gam.dadosPorConversa[selected.id]} />
+                    <BotControle dados={gam.dadosPorConversa[selected.id]} onAssumir={assumirConversa} onDevolver={devolverAoBot} />
+                    <ProximoPassoBotao dados={gam.dadosPorConversa[selected.id]} onSalvar={registrarProximoPasso} />
+                  </div>
+                  {gam.dadosPorConversa[selected.id]?.proximoPasso && (
+                    <p className="text-[11px] text-emerald-700">Próximo passo: {gam.dadosPorConversa[selected.id].proximoPasso.descricao}</p>
+                  )}
                 </div>
                 <div className="flex-1 space-y-3 overflow-y-auto bg-[#f4f5f1] px-4 py-5 md:px-7" style={{ maxHeight: 440 }}>
                   {messages.length === 0 && <div className="mx-auto max-w-sm rounded-xl bg-white p-4 text-center text-sm text-slate-500 shadow-sm">Nenhuma mensagem ainda. Envie um texto ou use um template aprovado pela Meta.</div>}
@@ -511,6 +570,12 @@ export default function CRMWhatsApp() {
                     <div key={message.id} className={"flex " + (message.direcao === "enviada" ? "justify-end" : "justify-start")}>
                       <div className={"max-w-[80%] rounded-2xl px-4 py-2.5 shadow-sm " + (message.direcao === "enviada" ? "rounded-br-md bg-[#dcf8c6]" : "rounded-bl-md bg-white")}>
                         {message.tipo === "template" && <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">Template WhatsApp</p>}
+                        {/* Item 024C: quem falou por nós — bot ou dono */}
+                        {message.direcao === "enviada" && (
+                          <p className={"mb-1 text-[10px] font-semibold uppercase tracking-wide " + (message.origem === "respondedor_ia" ? "text-violet-600" : "text-slate-500")}>
+                            {message.origem === "respondedor_ia" ? "bot" : "dono"}
+                          </p>
+                        )}
                         <p className="whitespace-pre-wrap text-sm text-slate-800">{message.conteudo}</p>
                         <div className="mt-1 flex items-center justify-end gap-1 text-[10px] text-slate-500">{formatTime(message.created_date)} {message.direcao === "enviada" && <StatusIcon status={message.status} />}</div>
                         {message.erro && <p className="mt-1 text-[10px] text-red-600">{message.erro}</p>}
@@ -544,6 +609,15 @@ export default function CRMWhatsApp() {
               </div>;
             })}
           </div>
+        </TabsContent>
+
+        <TabsContent value="gamificacao" className="mt-0">
+          <GamificacaoTab
+            gam={{ ...gam, salvarConfig: salvarConfigGamificacao, registrarProximoPasso }}
+            nomeContato={contactName}
+            nomeTelefone={contactPhone}
+            onAbrirConversa={(id) => { setSelectedId(id); setTab("conversas"); }}
+          />
         </TabsContent>
 
         <TabsContent value="templates" className="mt-0 space-y-4">

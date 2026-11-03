@@ -25,6 +25,7 @@ import {
   contaCadastradaDoTelefone, orientacaoAtivacao, PREFIXO_ORIENTACAO
 } from './vinculoRevendedor.ts';
 import { invocarIA } from './iaComRetry.ts';
+import { atendimentoManual } from './botPausa.ts';
 
 // A consulta do gerente não grava nada; se a IA afirmar que gravou/criou, a frase é trocada.
 const AFIRMA_GRAVACAO = /(j[aá] (est[aá]|foi|ficou|t[aá]) (no painel|gravad|criad|salv|lan[cç]ad|registrad))|(or[cç]amento (j[aá] |foi |est[aá] |j[aá] foi |j[aá] est[aá] )(gravado|criado|salvo|lan[cç]ado|registrado))|(gravei|criei|lancei|salvei)/i;
@@ -294,6 +295,10 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
     if (env('RESPONDEDOR_ATIVO') !== 'true') return await ignorar(base44, eventId, 'desligado');
 
     const cliente = onlyDigits(msg?.from || '');
+
+    // Item 024: dono assumiu a conversa no painel → silêncio SÓ neste contato.
+    // Não mexe na saudação nem em nenhum outro fluxo: sem registro de pausa, tudo segue igual.
+    if (await atendimentoManual(base44, conversa.id)) return await ignorar(base44, eventId, 'atendimento_manual');
 
     // Item 006: ativacao do gerente pelo revendedor ("ATIVAR 123456" do proprio celular).
     // Vem antes da allowlist porque o numero ainda nao esta liberado; so texto recente.
