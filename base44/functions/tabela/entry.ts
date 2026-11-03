@@ -3,7 +3,7 @@ import { htmlPreviaTabela } from '../../shared/linkTabela.ts';
 
 /**
  * Item 022g: link público da tabela de atacado da revenda — app.placefit.com.br/functions/tabela?supplier=ID.
- * Público, só leitura: devolve o nome da empresa, cidade/UF e o ícone do app para a prévia do WhatsApp
+ * Público, só leitura: devolve o nome da empresa, cidade/UF e a logo da revenda para a prévia do WhatsApp
  * e manda o navegador para a tabela. Nenhum outro dado do cadastro sai daqui.
  */
 Deno.serve(async (req) => {
@@ -15,7 +15,7 @@ Deno.serve(async (req) => {
       const base44 = createClientFromRequest(req);
       const u = (await base44.asServiceRole.entities.User.filter({ id: supplierId }))?.[0];
       if (u && u.tipo_usuario !== 'fabricante' && u.tipo_usuario !== 'transportador') {
-        revenda = { empresa: u.empresa || u.full_name || '', cidade: u.cidade || '', estado: u.estado || '' };
+        revenda = { empresa: u.empresa || u.full_name || '', cidade: u.cidade || '', estado: u.estado || '', logomarca: u.logomarca || '' };
       }
     }
   } catch (e) {

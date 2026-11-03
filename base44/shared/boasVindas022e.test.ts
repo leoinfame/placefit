@@ -75,7 +75,9 @@ Deno.test('022f: HTML do PDF é o da Sua Tabela (logo, contatos, agrupamento por
 Deno.test('022g: prévia do link com o nome da empresa, em português, sem dado interno', async () => {
   const { htmlPreviaTabela, linkDaTabela } = await import('./linkTabela.ts');
   ok(linkDaTabela('https://app.placefit.com.br/', 'abc') === 'https://app.placefit.com.br/functions/tabela?supplier=abc', 'link no domínio do app');
-  const h = htmlPreviaTabela('https://app.placefit.com.br', 'abc', { empresa: 'MuscularFit', cidade: 'Cláudio', estado: 'MG' });
+  const h = htmlPreviaTabela('https://app.placefit.com.br', 'abc', { empresa: 'MuscularFit', cidade: 'Cláudio', estado: 'MG', logomarca: 'https://x/logo-muscular.png' });
+  ok(h.includes('<meta property="og:image" content="https://x/logo-muscular.png">'), 'logo da revenda na prévia');
+  ok(htmlPreviaTabela('https://app.placefit.com.br', 'abc', { empresa: 'Sem Logo' }).includes('574e5a0a6_logo-ico'), 'sem logo usa o ícone do app');
   ok(h.includes('<meta property="og:title" content="MuscularFit — Tabela de atacado">'), 'título com a empresa');
   ok(h.includes('Cláudio/MG') && !/Public Table/i.test(h), 'português');
   ok(h.includes('/PublicTable?supplier=abc') && !/base44\.app/.test(h), 'vai para a tabela no domínio do app');

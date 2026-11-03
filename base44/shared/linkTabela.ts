@@ -30,12 +30,12 @@ export function htmlPreviaTabela(painel: string, supplierId: string, revenda: an
 <meta property="og:site_name" content="${esc(empresa)}">
 <meta property="og:title" content="${esc(titulo)}">
 <meta property="og:description" content="${esc(desc)}">
-<meta property="og:image" content="${ICONE_APP}">
+<meta property="og:image" content="${esc(logo)}">
 <meta property="og:url" content="${esc(destino)}">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="${esc(titulo)}">
 <meta name="twitter:description" content="${esc(desc)}">
-<meta name="twitter:image" content="${ICONE_APP}">
+<meta name="twitter:image" content="${esc(logo)}">
 <meta name="robots" content="noindex">
 <meta http-equiv="refresh" content="0; url=${esc(destino)}">
 </head><body style="font-family:Arial,sans-serif;padding:24px">
