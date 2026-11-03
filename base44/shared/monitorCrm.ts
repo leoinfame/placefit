@@ -50,7 +50,8 @@ export function precosSuspeitos(itens: { id: string; nome: string; peso_kg: numb
     const med = ord.length % 2 ? ord[(ord.length - 1) / 2] : (ord[ord.length / 2 - 1] + ord[ord.length / 2]) / 2;
     for (const g of grupo) {
       const r = g.kg / med;
-      if ((r < 0.4 || r > 2.5) && !marcados.has(g.id)) out.push({ ...g, mediana_kg: med, razao: r });
+      // Peso pequeno (caneleira de 0,5 kg, 1 kg) custa naturalmente mais por kg: só acusa "caro demais" a partir de 3 kg
+      if ((r < 0.4 || (r > 2.5 && Number(g.peso_kg) >= 3)) && !marcados.has(g.id)) out.push({ ...g, mediana_kg: med, razao: r });
     }
   }
   return out;

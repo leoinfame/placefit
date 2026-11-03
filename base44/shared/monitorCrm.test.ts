@@ -15,6 +15,8 @@ Deno.test('tabela: dumbbell de 50 kg a R$ 15,87 é suspeito; família coerente n
   ok(precosSuspeitos(itens.slice(0, 2)).length === 0, 'família pequena não acusa');
   const sozinho = precosSuspeitos([{ id: 'x', nome: 'Dumbbell Montado Sport Pegada Emborrachada 50kg', peso_kg: 50, preco: 15.87 }]);
   ok(sozinho.length === 1, 'abaixo de R$ 3/kg acusa mesmo sozinho (caso real da tabela)');
+  const caneleiras = [0.5, 1, 2, 3, 4, 5, 6].map((kg) => ({ id: 'c' + kg, nome: `Caneleira ${kg}kg (Par)`, peso_kg: kg, preco: 60 + kg * 8 }));
+  ok(precosSuspeitos(caneleiras).length === 0, 'caneleira leve mais cara por kg é normal');
 });
 
 Deno.test('funil: conversa pessoal nunca vira alerta; lead sem resposta vira', () => {
