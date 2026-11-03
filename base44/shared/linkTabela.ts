@@ -18,7 +18,9 @@ export function htmlPreviaTabela(painel: string, supplierId: string, revenda: an
   const empresa = String(revenda?.empresa || revenda?.full_name || "").trim() || "Tabela de atacado";
   const local = [revenda?.cidade, revenda?.estado].filter(Boolean).join("/");
   const hoje = new Date().toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
-  const titulo = `${empresa} — Tabela de atacado`;
+  const titulo = empresa; // como está no cadastro da revenda
+  // Imagem da prévia: a logo cadastrada da revenda; sem logo, o ícone do app
+  const logo = /^https:\/\//i.test(String(revenda?.logomarca || "")) ? String(revenda.logomarca) : ICONE_APP;
   const desc = `Tabela de atacado atualizada em ${hoje}${local ? " · " + local : ""}. Envie a lista dos itens e o CNPJ para o orçamento com frete.`;
   return `<!doctype html>
 <html lang="pt-BR"><head>
