@@ -13,6 +13,8 @@ Deno.test('tabela: dumbbell de 50 kg a R$ 15,87 é suspeito; família coerente n
   ok(s.length === 1 && s[0].id === 'd50', 'só o de 50 kg');
   ok(familiaDoNome('Anilha Sport 25kg') === 'anilha sport', 'família sem o peso');
   ok(precosSuspeitos(itens.slice(0, 2)).length === 0, 'família pequena não acusa');
+  const sozinho = precosSuspeitos([{ id: 'x', nome: 'Dumbbell Montado Sport Pegada Emborrachada 50kg', peso_kg: 50, preco: 15.87 }]);
+  ok(sozinho.length === 1, 'abaixo de R$ 3/kg acusa mesmo sozinho (caso real da tabela)');
 });
 
 Deno.test('funil: conversa pessoal nunca vira alerta; lead sem resposta vira', () => {
@@ -59,7 +61,9 @@ function banco(seed: Record<string, any[]>) {
   const t: Record<string, any[]> = {};
   let n = 0;
   const casa = (r: any, q: any) => Object.entries(q).every(([k, v]: [string, any]) =>
-    v && typeof v === 'object' && '$in' in v ? v.$in.includes(r[k]) : (r[k] ?? '') === v);
+    v && typeof v === 'object' && '$in' in v ? v.$in.includes(r[k])
+      : v && typeof v === 'object' && '$gte' in v ? String(r[k] ?? '').replace('Z', '') >= String(v.$gte)
+      : (r[k] ?? '') === v);
   const ent = (nome: string) => {
     t[nome] = (seed[nome] || []).map((r) => ({ ...r }));
     return {

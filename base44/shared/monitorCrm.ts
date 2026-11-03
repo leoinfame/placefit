@@ -39,13 +39,18 @@ export function precosSuspeitos(itens: { id: string; nome: string; peso_kg: numb
     fam.get(f)!.push({ ...it, kg: Number(it.preco) / Number(it.peso_kg) });
   }
   const out: any[] = [];
+  const marcados = new Set<string>();
+  // Abaixo de R$ 3/kg não paga nem o material: suspeito mesmo sem família para comparar
+  for (const grupo of fam.values()) for (const g of grupo) {
+    if (Number(g.peso_kg) >= 1 && g.kg < 3) { out.push({ ...g, mediana_kg: 0, razao: 0 }); marcados.add(g.id); }
+  }
   for (const grupo of fam.values()) {
     if (grupo.length < 3) continue;
     const ord = grupo.map((g) => g.kg).sort((a, b) => a - b);
     const med = ord.length % 2 ? ord[(ord.length - 1) / 2] : (ord[ord.length / 2 - 1] + ord[ord.length / 2]) / 2;
     for (const g of grupo) {
       const r = g.kg / med;
-      if (r < 0.4 || r > 2.5) out.push({ ...g, mediana_kg: med, razao: r });
+      if ((r < 0.4 || r > 2.5) && !marcados.has(g.id)) out.push({ ...g, mediana_kg: med, razao: r });
     }
   }
   return out;
@@ -150,38 +155,59 @@ async function todos(fn: (skip: number) => Promise<any[]>, max = 10000) {
   return out;
 }
 
+// Limite da plataforma: ~140 leituras por minuto para TODAS as functions juntas (o webhook usa o
+// mesmo limite). Por isso o monitor lê tudo de uma conta em poucas consultas e trabalha em memória.
+
+type Estado = { ownerId: string; abertos: Map<string, any>; dispensados: Set<string>; controles: Set<string> };
+
+async function carregarEstado(db: any, ownerId: string, desdeIso: string): Promise<Estado> {
+  const [abertos, dispensados, controles] = await Promise.all([
+    db.CRMAlerta.filter({ owner_id: ownerId, status: 'aberto' }, '-created_date', 500),
+    db.CRMAlerta.filter({ owner_id: ownerId, status: 'dispensado', created_date: { $gte: desdeIso } }, '-created_date', 500),
+    db.CRMAlerta.filter({ owner_id: ownerId, tipo: 'controle', created_date: { $gte: desdeIso } }, '-created_date', 200)
+  ]);
+  return {
+    ownerId,
+    abertos: new Map((abertos || []).filter((a: any) => a.tipo !== 'controle').map((a: any) => [a.chave, a])),
+    dispensados: new Set((dispensados || []).map((a: any) => a.chave)),
+    controles: new Set((controles || []).map((a: any) => a.chave))
+  };
+}
+
 /** Cria (se não houver aberto com a mesma chave) e devolve só os NOVOS. */
-async function registrar(db: any, ownerId: string, lista: any[]) {
+async function registrar(db: any, st: Estado, lista: any[]) {
   const novos: any[] = [];
   for (const a of lista) {
-    const ja = await db.CRMAlerta.filter({ owner_id: ownerId, chave: a.chave, status: 'aberto' }, '-created_date', 1);
-    if (ja?.length) {
-      if (ja[0].titulo !== a.titulo || ja[0].detalhe !== a.detalhe) await db.CRMAlerta.update(ja[0].id, { titulo: a.titulo, detalhe: a.detalhe || '' });
+    const ja = st.abertos.get(a.chave);
+    if (ja) {
+      if (ja.titulo !== a.titulo || (ja.detalhe || '') !== (a.detalhe || '')) {
+        await db.CRMAlerta.update(ja.id, { titulo: a.titulo, detalhe: a.detalhe || '' });
+        ja.titulo = a.titulo; ja.detalhe = a.detalhe || '';
+      }
       continue;
     }
-    // dispensado pelo dono: não volta com a mesma chave
-    const disp = await db.CRMAlerta.filter({ owner_id: ownerId, chave: a.chave, status: 'dispensado' }, '-created_date', 1);
-    if (disp?.length) continue;
-    const criado = await db.CRMAlerta.create({ owner_id: ownerId, status: 'aberto', whatsapp_status: a.gravidade === 'info' ? 'so_painel' : '', ...a });
+    if (st.dispensados.has(a.chave)) continue; // dispensado pelo dono não volta com a mesma chave
+    const criado = await db.CRMAlerta.create({ owner_id: st.ownerId, status: 'aberto', whatsapp_status: a.gravidade === 'info' ? 'so_painel' : '', ...a });
+    st.abertos.set(a.chave, criado);
     novos.push(criado);
   }
   return novos;
 }
 
 /** Fecha sozinho os alertas de um grupo que não aparecem mais. */
-async function resolverSumidos(db: any, ownerId: string, prefixos: string[], atuais: Set<string>) {
-  const abertos = await db.CRMAlerta.filter({ owner_id: ownerId, status: 'aberto' }, '-created_date', 500);
-  for (const a of abertos || []) {
-    if (prefixos.some((p) => String(a.chave).startsWith(p)) && !atuais.has(a.chave)) {
+async function resolverSumidos(db: any, st: Estado, prefixos: string[], atuais: Set<string>) {
+  for (const [chave, a] of [...st.abertos]) {
+    if (prefixos.some((p) => chave.startsWith(p)) && !atuais.has(chave)) {
       await db.CRMAlerta.update(a.id, { status: 'resolvido', resolvido_em: new Date().toISOString(), resolvido_por: 'monitor' });
+      st.abertos.delete(chave);
     }
   }
 }
 
-async function marcador(db: any, ownerId: string, chave: string) {
-  const ja = await db.CRMAlerta.filter({ owner_id: ownerId, tipo: 'controle', chave }, '-created_date', 1);
-  if (ja?.length) return false;
-  await db.CRMAlerta.create({ owner_id: ownerId, tipo: 'controle', gravidade: 'info', chave, titulo: chave, status: 'resolvido', whatsapp_status: 'so_painel' });
+async function marcador(db: any, st: Estado, chave: string) {
+  if (st.controles.has(chave)) return false;
+  await db.CRMAlerta.create({ owner_id: st.ownerId, tipo: 'controle', gravidade: 'info', chave, titulo: chave, status: 'resolvido', whatsapp_status: 'so_painel' });
+  st.controles.add(chave);
   return true;
 }
 
@@ -253,11 +279,12 @@ export async function rodarMonitor(db: any, cfg: Cfg, agoraD = new Date()) {
   const agora = agoraD.getTime();
   const { hora, dia } = horaBR(agoraD);
   const relatorio: any[] = [];
+  const iso = (ms: number) => new Date(ms).toISOString().replace('Z', '');
 
-  const recentes = await db.CRMConversa.filter({ ativo: true }, '-ultima_interacao', 500);
+  const recentes = await db.CRMConversa.filter({ ativo: true, ultima_interacao: { $gte: iso(agora - 30 * 24 * H) } }, '-ultima_interacao', 500);
   const porDono = new Map<string, any[]>();
   for (const c of recentes || []) {
-    if (!c.owner_id || !c.ultima_interacao || agora - new Date(c.ultima_interacao).getTime() > 30 * 24 * H) continue;
+    if (!c.owner_id || !c.ultima_interacao) continue;
     if (!porDono.has(c.owner_id)) porDono.set(c.owner_id, []);
     porDono.get(c.owner_id)!.push(c);
   }
@@ -267,41 +294,53 @@ export async function rodarMonitor(db: any, cfg: Cfg, agoraD = new Date()) {
     try {
       const dono = (await db.User.filter({ id: ownerId }))?.[0];
       if (!dono || dono.tipo_usuario === 'fabricante' || dono.tipo_usuario === 'transportador') continue;
+      const st = await carregarEstado(db, ownerId, iso(agora - 20 * 24 * H));
       const novos: any[] = [];
 
-      // 1. resposta automática
-      const sist = await db.CRMMensagem.filter({ owner_id: ownerId, origem: 'sistema', direcao: 'enviada' }, '-created_date', 30);
-      novos.push(...await registrar(db, ownerId, alertasBoasVindas(sist || [], agora, dia)));
+      // Mensagens dos últimos 15 dias da conta (até 2.000), agrupadas por conversa
+      const msgs: any[] = [];
+      for (let skip = 0; skip < 2000; skip += 500) {
+        const lote = (await db.CRMMensagem.filter({ owner_id: ownerId, created_date: { $gte: iso(agora - 15 * 24 * H) } }, '-created_date', 500, skip)) || [];
+        msgs.push(...lote);
+        if (lote.length < 500) break;
+      }
+      const porConversa = new Map<string, any[]>();
+      for (const m of msgs) {
+        if (!porConversa.has(m.conversa_id)) porConversa.set(m.conversa_id, []);
+        porConversa.get(m.conversa_id)!.push(m);
+      }
 
-      // 3. funil (só conversas dos últimos 15 dias)
-      const leadsComBoasVindas = new Set((sist || []).map((m: any) => m.conversa_id));
+      // 1. resposta automática
+      const sist = msgs.filter((m) => m.origem === 'sistema' && m.direcao === 'enviada');
+      novos.push(...await registrar(db, st, alertasBoasVindas(sist, agora, dia)));
+
+      // 3. funil — leads (boas-vindas nos últimos 60 dias) e orçamentos da conta, em 2 consultas
+      const [bv, orcs] = await Promise.all([
+        db.CRMMensagem.filter({ owner_id: ownerId, origem: 'sistema', created_date: { $gte: iso(agora - 60 * 24 * H) } }, '-created_date', 500),
+        db.Pedido.filter({ fornecedor_id: ownerId, tipo: 'orcamento', created_date: { $gte: iso(agora - 16 * 24 * H) } }, '-created_date', 300)
+      ]);
+      const leads = new Set((bv || []).map((m: any) => m.conversa_id));
+      const orcPorCliente = new Map<string, any>();
+      for (const o of orcs || []) if (o.cliente_id && !orcPorCliente.has(o.cliente_id)) orcPorCliente.set(o.cliente_id, o);
       const atuais = new Set<string>();
-      for (const c of conversas.slice(0, 150)) {
+      for (const c of conversas) {
         if (agora - new Date(c.ultima_interacao).getTime() > 15 * 24 * H) continue;
         if (!['novo', 'atendimento', 'orcamento', 'negociacao'].includes(String(c.etapa || 'novo'))) continue;
-        const ultimas = await db.CRMMensagem.filter({ conversa_id: c.id }, '-created_date', 15);
-        let orc: any = null;
-        if (c.etapa === 'orcamento' && c.cliente_id) {
-          orc = (await db.Pedido.filter({ fornecedor_id: ownerId, cliente_id: c.cliente_id, tipo: 'orcamento' }, '-created_date', 1))?.[0] || null;
-        }
-        let ehLead = leadsComBoasVindas.has(c.id);
-        if (!ehLead && (c.etapa === 'novo' || c.etapa === 'atendimento')) {
-          ehLead = Boolean((await db.CRMMensagem.filter({ conversa_id: c.id, origem: 'sistema' }, '-created_date', 1))?.length);
-        }
-        const lista = alertasDoFunil(c, ultimas || [], ehLead, orc, agora);
+        const orc = c.etapa === 'orcamento' && c.cliente_id ? orcPorCliente.get(c.cliente_id) || null : null;
+        const lista = alertasDoFunil(c, porConversa.get(c.id) || [], leads.has(c.id), orc, agora);
         lista.forEach((a) => atuais.add(a.chave));
-        novos.push(...await registrar(db, ownerId, lista));
+        novos.push(...await registrar(db, st, lista));
       }
-      await resolverSumidos(db, ownerId, ['lead_sem_resposta:', 'negociacao_sem_resposta:', 'orcamento_24h:', 'orcamento_72h:'], atuais);
+      await resolverSumidos(db, st, ['lead_sem_resposta:', 'negociacao_sem_resposta:', 'orcamento_24h:', 'orcamento_72h:'], atuais);
 
       // 2. tabela — 1x por dia
-      if (await marcador(db, ownerId, `tabela_checada:${dia}`)) {
+      if (await marcador(db, st, `tabela_checada:${dia}`)) {
         const sps = await todos((skip) => db.SupplierProduct.filter({ supplier_id: ownerId }, '-created_date', 500, skip));
         const ativos = sps.filter((sp: any) => Number(sp.preco) > 0 && sp.product_id && sp.disponivel !== false);
         const ids = [...new Set(ativos.map((sp: any) => sp.product_id))];
         const tpl = new Map<string, any>();
-        for (let i = 0; i < ids.length; i += 200) {
-          for (const t of (await db.ProductTemplate.filter({ id: { $in: ids.slice(i, i + 200) } }, '-created_date', 200)) || []) tpl.set(t.id, t);
+        for (let i = 0; i < ids.length; i += 500) {
+          for (const t of (await db.ProductTemplate.filter({ id: { $in: ids.slice(i, i + 500) } }, '-created_date', 500)) || []) tpl.set(t.id, t);
         }
         const itens = ativos.map((sp: any) => ({ sp, t: tpl.get(sp.product_id) })).filter((x: any) => x.t)
           .map((x: any) => ({ id: x.sp.id, nome: x.t.nome, cod: x.t.cod, peso_kg: Number(x.t.peso_kg) || 0, preco: precoFinal(x.sp), foto: x.t.foto }));
@@ -312,7 +351,8 @@ export async function rodarMonitor(db: any, cfg: Cfg, agoraD = new Date()) {
           chavesTab.add(chave);
           return { tipo: 'tabela', gravidade: 'atencao', chave, ref_id: s.id,
             titulo: `Preço fora do padrão: ${s.nome} a ${brl(s.preco)}`,
-            detalhe: `${brl(s.kg)}/kg, quando a família está em torno de ${brl(s.mediana_kg)}/kg. Esse preço aparece na tabela e no PDF que vai para o cliente.` };
+            detalhe: s.mediana_kg ? `${brl(s.kg)}/kg, quando a família está em torno de ${brl(s.mediana_kg)}/kg. Esse preço aparece na tabela e no PDF que vai para o cliente.`
+              : `Sai a ${brl(s.kg)}/kg, abaixo de qualquer custo de material. Esse preço aparece na tabela e no PDF que vai para o cliente.` };
         });
         const semFoto = itens.filter((i: any) => !i.foto).length;
         if (semFoto) {
@@ -320,13 +360,12 @@ export async function rodarMonitor(db: any, cfg: Cfg, agoraD = new Date()) {
           listaTab.push({ tipo: 'tabela', gravidade: 'info', chave: 'sem_foto', titulo: `${semFoto} produto(s) da tabela sem foto`,
             detalhe: 'Sem foto, o produto aparece com um ícone genérico na tabela e no PDF.' });
         }
-        novos.push(...await registrar(db, ownerId, listaTab));
-        await resolverSumidos(db, ownerId, ['preco_suspeito:', 'sem_foto'], chavesTab);
+        novos.push(...await registrar(db, st, listaTab));
+        await resolverSumidos(db, st, ['preco_suspeito:', 'sem_foto'], chavesTab);
       }
 
-      // 4. saúde do WhatsApp 7206 (WAHA, só leitura)
-      const usaWaha = (await db.CRMMensagem.filter({ owner_id: ownerId, origem: 'waha' }, '-created_date', 1))?.[0];
-      if (usaWaha && cfg.wahaUrl && agora - new Date(usaWaha.created_date).getTime() < 30 * 24 * H) {
+      // 4. saúde do WhatsApp 7206 (WAHA, só leitura) — só para quem recebeu mensagem pelo WAHA nos últimos 15 dias
+      if (cfg.wahaUrl && msgs.some((m) => m.origem === 'waha')) {
         let estado = '';
         try {
           const ctrl = new AbortController();
@@ -334,24 +373,24 @@ export async function rodarMonitor(db: any, cfg: Cfg, agoraD = new Date()) {
           const r = await fetch(`${cfg.wahaUrl.replace(/\/+$/, '')}/api/sessions/${sessionDe(dono)}`, { headers: cfg.wahaKey ? { 'X-Api-Key': cfg.wahaKey } : {}, signal: ctrl.signal });
           clearTimeout(t);
           estado = r.ok ? String((await r.json().catch(() => ({})))?.status || '') : `HTTP ${r.status}`;
-        } catch (e) {
+        } catch (_e) {
           estado = 'sem resposta';
         }
         const saude = new Set<string>();
         if (estado && estado !== 'WORKING') {
           saude.add('waha_desconectado');
-          novos.push(...await registrar(db, ownerId, [{ tipo: 'saude', gravidade: 'grave', chave: 'waha_desconectado',
+          novos.push(...await registrar(db, st, [{ tipo: 'saude', gravidade: 'grave', chave: 'waha_desconectado',
             titulo: 'WhatsApp do CRM desconectado', detalhe: `Status do WhatsApp: ${estado}. Enquanto não reconectar, leads novos não chegam ao CRM e a resposta automática não sai.` }]));
         }
-        if (estado) await resolverSumidos(db, ownerId, ['waha_desconectado'], saude);
+        if (estado) await resolverSumidos(db, st, ['waha_desconectado'], saude);
       }
 
       // Aviso: grave na hora; resumo às 8 h e às 14 h (horário de Brasília)
       const graves = novos.filter((a) => a.gravidade === 'grave');
       if (graves.length) await notificar(db, cfg, ownerId, dono.empresa || '', graves);
-      if ((hora === 8 || hora === 14) && await marcador(db, ownerId, `resumo:${dia}:${hora}`)) {
-        const pend = ((await db.CRMAlerta.filter({ owner_id: ownerId, status: 'aberto' }, '-created_date', 100)) || [])
-          .filter((a: any) => a.tipo !== 'controle' && a.gravidade !== 'info' && !a.notificado_em && a.whatsapp_status !== 'aguardando_janela');
+      if ((hora === 8 || hora === 14) && await marcador(db, st, `resumo:${dia}:${hora}`)) {
+        const pend = [...st.abertos.values()]
+          .filter((a: any) => a.gravidade !== 'info' && !a.notificado_em && a.whatsapp_status !== 'aguardando_janela' && a.whatsapp_status !== 'enviado');
         await notificar(db, cfg, ownerId, dono.empresa || '', pend);
       }
       rel.novos = novos.length;
