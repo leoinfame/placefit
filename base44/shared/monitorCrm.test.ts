@@ -63,7 +63,14 @@ function banco(seed: Record<string, any[]>) {
   const ent = (nome: string) => {
     t[nome] = (seed[nome] || []).map((r) => ({ ...r }));
     return {
-      async filter(q: any, _s?: string, lim = 1000) { return t[nome].filter((r) => casa(r, q)).slice(0, lim).map((r) => ({ ...r })); },
+      async filter(q: any, sort?: string, lim = 1000) {
+        let rows = t[nome].filter((r) => casa(r, q));
+        if (sort) {
+          const desc = sort.startsWith('-'); const f = sort.replace(/^-/, '');
+          rows = [...rows].sort((a, b) => (String(a[f] ?? '') < String(b[f] ?? '') ? -1 : String(a[f] ?? '') > String(b[f] ?? '') ? 1 : 0) * (desc ? -1 : 1));
+        }
+        return rows.slice(0, lim).map((r) => ({ ...r }));
+      },
       async create(d: any) { const r = { id: nome + ++n, created_date: new Date().toISOString(), ...d }; t[nome].push(r); return { ...r }; },
       async update(id: string, p: any) { Object.assign(t[nome].find((r) => r.id === id), p); }
     };
@@ -112,7 +119,6 @@ Deno.test('execução: cria alertas sem duplicar, fecha sozinho, nunca escreve p
     ok(abertos().length === chaves.length && enviados.length === 1, 'segunda volta não duplica nem reenvia');
 
     t.CRMMensagem.unshift({ id: 'e1', owner_id: 'u1', conversa_id: 'lead', origem: 'waha', direcao: 'enviada', created_date: new Date(agora.getTime() + 20 * 60000).toISOString() });
-    t.CRMMensagem.sort((a, b) => Date.parse(b.created_date) - Date.parse(a.created_date));
     await rodarMonitor(db, cfg, new Date(agora.getTime() + 30 * 60000));
     ok(!abertos().some((a) => a.chave === 'lead_sem_resposta:lead'), 'respondeu → fecha sozinho');
 
