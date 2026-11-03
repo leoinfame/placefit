@@ -115,7 +115,7 @@ Deno.test('fluxo: item fora do catálogo → nada de preço ao cliente; dono avi
 });
 
 Deno.test('fluxo: lista sem CNPJ pede dados uma vez só; CNPJ sem lista pede a lista', async () => {
-  const a = cenario(['10 anilhas 25kg'], { acao: 'orcamento', cliente: {}, itens: [item()], pergunta: '', endereco: '' }, rOk());
+  const a = cenario(['10 anilhas 25kg'], { acao: 'orcamento', cliente: {}, itens: [item('anilha 25kg', 10)], pergunta: '', endereco: '' }, rOk());
   await atenderLead(a.ctx);
   ok(a.out.textos[0] === MSG_PEDIR_DADOS, 'pediu CNPJ ou dados de PF');
   a.ctx.messageId = 'w1';
