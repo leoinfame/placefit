@@ -1,6 +1,6 @@
 // Rodar a partir da raiz do app:  deno test -A --no-check base44/shared/boasVindas022e.test.ts
 // Item 022e: resposta automática ao lead novo, Orçamento → Negociação, venda → Ganho.
-import { textoBoasVindas, deveMandarBoasVindas } from './conversaWaha.ts';
+import { textoBoasVindas, deveMandarBoasVindas, atendenteDaConta } from './conversaWaha.ts';
 import { etapaDepoisDaResposta, moverLeadParaGanho } from './funilCrm.js';
 import { base64 } from './tabelaAtacado.ts';
 import { htmlSuaTabela } from './tabelaPdf.ts';
@@ -84,4 +84,10 @@ Deno.test('022g: prévia do link com o nome da empresa, em português, sem dado 
   const x = htmlPreviaTabela('https://app.placefit.com.br', 'abc', { empresa: '<script>"' });
   ok(!x.includes('<script>"') , 'escapa o nome');
   ok(htmlPreviaTabela('https://app.placefit.com.br', 'zzz', null).includes('url=https://app.placefit.com.br"'), 'id inválido vai para o início');
+});
+
+Deno.test('boas-vindas da MuscularFit se apresenta como o Léo', () => {
+  const at = atendenteDaConta({ id: '697aeaf8e4420021ed5caeb1' });
+  ok(textoBoasVindas('MuscularFit', 'Carlos', '', at).startsWith('Olá, Carlos! Aqui é o Léo da MuscularFit, obrigado pelo contato.'), 'Léo da MuscularFit');
+  ok(textoBoasVindas('Outra Loja', '', '', atendenteDaConta({ id: 'x' })).startsWith('Olá! Aqui é da Outra Loja'), 'outras revendas sem nome');
 });

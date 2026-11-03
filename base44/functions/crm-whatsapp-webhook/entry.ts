@@ -1,6 +1,6 @@
 import { createClientFromRequest } from "npm:@base44/sdk";
 import { identificar, meusIdsDoCorpo, resolverLidNoWaha, ignorado } from "../../shared/identidadeWaha.ts";
-import { conversaDoContato, garantirCliente, textoBoasVindas, deveMandarBoasVindas } from "../../shared/conversaWaha.ts";
+import { conversaDoContato, garantirCliente, textoBoasVindas, deveMandarBoasVindas, atendenteDaConta } from "../../shared/conversaWaha.ts";
 import { etapaDepoisDaResposta } from "../../shared/funilCrm.js";
 import { base64 } from "../../shared/tabelaAtacado.ts";
 import { itensSuaTabela, htmlSuaTabela, imprimirPdf } from "../../shared/tabelaPdf.ts";
@@ -269,7 +269,7 @@ Deno.serve(async (req) => {
           const destino = ident.telefone ? `${ident.telefone}@c.us` : counterpartChatId;
           // Item 022f: uma mensagem só — o PDF da tabela com o texto na legenda.
           // Se o arquivo não sair (ex.: WAHA sem envio de mídia), manda o texto com o link.
-          let texto = textoBoasVindas(owner.empresa || "", ident.nome || "");
+          let texto = textoBoasVindas(owner.empresa || "", ident.nome || "", "", atendenteDaConta(owner));
           let sent: any = { ok: false, id: "", error: "" };
           try {
             const itens = await itensSuaTabela(db, owner.id);
@@ -286,7 +286,7 @@ Deno.serve(async (req) => {
             console.warn("[CRM_WEBHOOK] PDF da tabela falhou, vai o link", e);
           }
           if (!sent.ok) {
-            texto = textoBoasVindas(owner.empresa || "", ident.nome || "", linkDaTabela(painel, owner.id));
+            texto = textoBoasVindas(owner.empresa || "", ident.nome || "", linkDaTabela(painel, owner.id), atendenteDaConta(owner));
             sent = await sendText(owner, destino, texto);
           }
           await db.CRMMensagem.create({

@@ -1,0 +1,27 @@
+{
+  "description": "Item 023 (Sr. Leo, 02/11/2026): alertas do Monitor do CRM por revenda (resposta automática, tabela, funil, saúde do WhatsApp) e, na fase 2, as dúvidas do vendedor automático. Só o sistema cria (functions com service role); o dono da conta lê e marca como resolvido. tipo \"controle\" é marcador interno e não aparece no painel.",
+  "name": "CRMAlerta",
+  "properties": {
+    "owner_id": { "type": "string", "description": "ID do User (revenda) dono do alerta" },
+    "tipo": { "type": "string", "enum": ["boas_vindas", "tabela", "funil", "saude", "duvida", "controle"], "description": "Grupo da checagem" },
+    "gravidade": { "type": "string", "enum": ["info", "atencao", "grave"], "default": "atencao" },
+    "chave": { "type": "string", "description": "Identifica a situação (evita alerta repetido): ex. orcamento_24h:<conversa>" },
+    "titulo": { "type": "string" },
+    "detalhe": { "type": "string" },
+    "conversa_id": { "type": "string", "description": "Conversa do CRM ligada ao alerta, quando houver" },
+    "ref_id": { "type": "string", "description": "Outro registro ligado (produto, orçamento, mensagem)" },
+    "status": { "type": "string", "enum": ["aberto", "resolvido", "dispensado"], "default": "aberto" },
+    "resolvido_em": { "type": "string", "format": "date-time" },
+    "resolvido_por": { "type": "string", "description": "monitor (sumiu sozinho) ou id do usuário" },
+    "whatsapp_status": { "type": "string", "enum": ["", "enviado", "aguardando_janela", "sem_destino", "erro", "so_painel"], "default": "" },
+    "whatsapp_erro": { "type": "string" },
+    "notificado_em": { "type": "string", "format": "date-time" }
+  },
+  "required": ["owner_id", "tipo", "chave", "titulo"],
+  "rls": {
+    "create": { "user_condition": { "role": "admin" } },
+    "delete": { "user_condition": { "role": "admin" } },
+    "read": { "$or": [ { "data.owner_id": "{{user.id}}" }, { "user_condition": { "role": "admin" } } ] },
+    "update": { "$or": [ { "data.owner_id": "{{user.id}}" }, { "user_condition": { "role": "admin" } } ] }
+  }
+}
