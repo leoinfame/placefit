@@ -37,7 +37,9 @@ const CORES_PADRAO: Record<string, string> = {
 };
 const CORES_CSS = Object.fromEntries(Object.entries(CORES_PADRAO).map(([k, v]) => [k, `var(--pf-${k}, ${v})`]));
 
-export function scriptCores(logo: string) {
+// Mesmo cálculo de cores do painel, sem tirar nem pôr: "tabela" = useLogoColors (Sua Tabela),
+// "pedido" = extractColorsFromLogo (PDF de orçamento/pedido), que só muda a borda clara (65%).
+export function scriptCores(logo: string, variante: 'tabela' | 'pedido' = 'tabela') {
   return `<script>
 (function(){
   function fim(){ window.__pronto = true; }
@@ -69,7 +71,7 @@ export function scriptCores(logo: string) {
       if (!sec) sec = dk(p, 0.3);
       var lum = 0.299*p.r + 0.587*p.g + 0.114*p.b;
       var c = { primary:hex(p), primaryDark:hex(dk(p,0.25)), secondary:hex(sec), secondaryDark:hex(dk(sec,0.25)),
-        light:hex(lt(p,0.88)), lightBorder:hex(lt(p,0.70)), textOnPrimary: lum > 140 ? '#1e293b' : '#ffffff', textAccent:hex(dk(p,0.15)) };
+        light:hex(lt(p,0.88)), lightBorder:hex(lt(p,${variante === 'pedido' ? '0.65' : '0.70'})), textOnPrimary: lum > 140 ? '#1e293b' : '#ffffff', textAccent:hex(dk(p,0.15)) };
       var st = document.documentElement.style;
       Object.keys(c).forEach(function(k){ st.setProperty('--pf-' + k, c[k]); });
     } catch (e) {}
