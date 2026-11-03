@@ -6,7 +6,7 @@ export function montarHtmlPedido({ pedido, user, cliente, tipo = "venda", pesoTo
   const tipoLabel = tipo === "orcamento" ? "ORÇAMENTO" : "PEDIDO DE VENDA";
   const numero = pedido.numero_pedido;
   const dataDoc = new Date(pedido.data_pedido).toLocaleDateString('pt-BR');
-  const dataGeracao = new Date().toLocaleDateString('pt-BR');
+  const dataGeracao = new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
 
   const fmtBRL = (v) => `R$ ${(parseFloat(v) || 0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
 

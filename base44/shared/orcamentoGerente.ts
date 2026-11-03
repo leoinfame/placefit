@@ -41,7 +41,7 @@ const brl = (v: number) => 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR', { mi
 const num = (v: number) => String(Number(v)).replace('.', ',');
 const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
 
-const SCHEMA_PEDIDO = {
+export const SCHEMA_PEDIDO = {
   type: 'object',
   properties: {
     acao: { type: 'string', enum: ['consulta', 'orcamento'] },
@@ -84,7 +84,7 @@ const SCHEMA_PEDIDO = {
   required: ['acao', 'cliente', 'cep_entrega', 'itens', 'frete_informado']
 };
 
-const PROMPT_PARSER = `Você interpreta mensagens do dono de uma revenda de equipamentos de academia.
+export const PROMPT_PARSER = `Você interpreta mensagens do dono de uma revenda de equipamentos de academia.
 Decida "acao":
 - "orcamento": ele quer CRIAR ou AJUSTAR um orçamento, mesmo sem a palavra "orçamento" (ex.: "faz um orçamento
   pro cliente X de 10 anilhas...", "cota pro CNPJ 12.345.678/0001-90 um kit de halter", "quanto fica 6 anilhas de
@@ -313,7 +313,7 @@ async function resolverCliente(base44: any, tenantId: string, pedido: any) {
 }
 
 // ── Montagem (determinística) ────────────────────────────────────────────────
-async function montarRascunho(base44: any, tenantId: string, pedido: any, anterior: any) {
+export async function montarRascunho(base44: any, tenantId: string, pedido: any, anterior: any) {
   const perguntas: string[] = [];
   const ressalvas: string[] = [];
 
@@ -446,7 +446,9 @@ function textoResposta(r: any, cabecalho: string) {
 }
 
 /** Grava (ou atualiza o já gravado) e confere o registro salvo, que é o que o PDF do painel imprime. */
-async function gravar(base44: any, tenantId: string, r: any) {
+// Item 023 fase 2: o vendedor automático do lead grava com observações para o CLIENTE (vão no PDF)
+// e marca a origem; sem opções, segue igual ao modo gerente.
+export async function gravar(base44: any, tenantId: string, r: any, opcoes: { observacoes?: string; origemCliente?: string } = {}) {
   const db = base44.asServiceRole.entities;
   let clienteId = r.cliente.id;
   if (!clienteId) {
@@ -459,7 +461,7 @@ async function gravar(base44: any, tenantId: string, r: any) {
       estado: r.cliente.estado || '',
       cep: r.cliente.cep || '',
       ativo: true,
-      observacoes: 'Cadastrado pelo WhatsApp (modo gerente).'
+      observacoes: opcoes.origemCliente || 'Cadastrado pelo WhatsApp (modo gerente).'
     });
     clienteId = c.id;
     r.cliente.id = c.id;
@@ -474,7 +476,7 @@ async function gravar(base44: any, tenantId: string, r: any) {
     desconto: 0,
     total: r.total,
     status: 'pendente',
-    observacoes: observacoesDoOrcamento(r)
+    observacoes: opcoes.observacoes ?? observacoesDoOrcamento(r)
   };
   let p: any;
   if (r.gravado_id) {
