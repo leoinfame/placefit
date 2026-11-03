@@ -307,7 +307,7 @@ export async function rodarMonitor(db: any, cfg: Cfg, agoraD = new Date()) {
           .map((x: any) => ({ id: x.sp.id, nome: x.t.nome, cod: x.t.cod, peso_kg: Number(x.t.peso_kg) || 0, preco: precoFinal(x.sp), foto: x.t.foto }));
         const susp = precosSuspeitos(itens);
         const chavesTab = new Set<string>();
-        const listaTab = susp.map((s: any) => {
+        const listaTab: any[] = susp.map((s: any) => {
           const chave = `preco_suspeito:${s.id}:${Math.round(s.preco * 100)}`;
           chavesTab.add(chave);
           return { tipo: 'tabela', gravidade: 'atencao', chave, ref_id: s.id,
