@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import WhatsAppSetup from "@/components/whatsapp/WhatsAppSetup";
+import AlertasCRM from "@/components/crm/AlertasCRM";
 import {
   ArrowUpRight, Check, CheckCheck, CircleAlert, Copy,
   FileText, LayoutGrid, Loader2, MessageCircle, MessageSquare, Plus, RefreshCw,
@@ -429,6 +430,7 @@ export default function CRMWhatsApp() {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <AlertasCRM ownerId={ownerId} onAbrirConversa={(id) => { setSelectedId(id); setTab("conversas"); }} />
           {me?.role === "admin" && accounts.length > 1 && (
             <Select value={ownerId} onValueChange={setOwnerId}>
               <SelectTrigger className="w-[250px] bg-white"><SelectValue placeholder="Selecionar conta" /></SelectTrigger>
