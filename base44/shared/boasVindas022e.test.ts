@@ -52,7 +52,7 @@ Deno.test('022f: legenda do PDF sem link; plano B com link', () => {
   ok(textoBoasVindas('MuscularFit', 'Ana', 'https://app.placefit.com.br/x').includes('https://app.placefit.com.br/x'), 'plano B com link');
 });
 
-Deno.test('022f: HTML do PDF é o da Sua Tabela (logo, contatos, agrupamento por peso, sem preço de fábrica)', () => {
+Deno.test('022f: HTML do PDF é o da Sua Tabela (logo, contatos, agrupamento por peso, sem preço de fábrica)', async () => {
   const produtos = [
     { id: 't1', nome: 'Anilha Vazada Pintado 1kg', cod: 'AVP1', categoria: 'Anilhas', und: 'peça', peso_kg: 1, foto: 'https://x/f.png' },
     { id: 't2', nome: 'Anilha Vazada Pintado 2kg', cod: 'AVP2', categoria: 'Anilhas', und: 'peça', peso_kg: 2, foto: '' },
@@ -64,7 +64,7 @@ Deno.test('022f: HTML do PDF é o da Sua Tabela (logo, contatos, agrupamento por
   ];
   const itens = itensDaRevenda(produtos, sps);
   ok(itens.length === 2, 'agrupa os pesos numa linha só');
-  const html = htmlSuaTabela({ empresa: 'MuscularFit', whatsapp: '37 99914-7206', endereco: 'Rua A, Cláudio/MG', logomarca: 'https://x/logo.png' }, itens);
+  const html = await htmlSuaTabela({ empresa: 'MuscularFit', whatsapp: '37 99914-7206', endereco: 'Rua A, Cláudio/MG', logomarca: 'https://x/logo.png' }, itens);
   ok(html.includes('MuscularFit') && html.includes('Rua A, Cláudio/MG') && html.includes('https://x/logo.png'), 'cabeçalho com logo e endereço');
   ok(html.includes('R$ 6.00/kg') && html.includes('R$ 134.60'), 'preço final (margem / promocional)');
   ok(html.includes('window.__pronto') && html.includes('var(--pf-primary'), 'cores da logo calculadas na impressão');

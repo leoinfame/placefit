@@ -241,7 +241,7 @@ export async function destinoDoDono(db: any, ownerId: string, cfg: Cfg) {
   return String(v?.[0]?.telefone || '').replace(/\D/g, '');
 }
 
-async function notificar(db: any, cfg: Cfg, ownerId: string, empresa: string, alertas: any[]) {
+export async function notificar(db: any, cfg: Cfg, ownerId: string, empresa: string, alertas: any[]) {
   if (!alertas.length) return;
   const para = await destinoDoDono(db, ownerId, cfg);
   const agora = new Date().toISOString();
