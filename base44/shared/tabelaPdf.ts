@@ -118,8 +118,6 @@ export async function htmlSuaTabela(owner: any, itens: any[]) {
   return buildPDFHTML({ user: dono, colors: CORES_CSS, imageMap: {}, items: itens as any, extraHead: scriptCores(logo) });
 }
 
-}
-
 /** Imprime o HTML no serviço de PDF (Railway). Lança erro se não estiver configurado ou falhar. */
 export async function imprimirPdf(html: string, cfg: { url: string; user: string; pass: string }): Promise<Uint8Array> {
   if (!cfg.url || !cfg.user || !cfg.pass) throw new Error("serviço de PDF não configurado");
