@@ -3,7 +3,7 @@ import { identificar, meusIdsDoCorpo, resolverLidNoWaha, ignorado } from "../../
 import { conversaDoContato, garantirCliente, textoBoasVindas, deveMandarBoasVindas, atendenteDaConta } from "../../shared/conversaWaha.ts";
 import { etapaDepoisDaResposta } from "../../shared/funilCrm.js";
 import { base64 } from "../../shared/tabelaAtacado.ts";
-import { itensSuaTabela, htmlSuaTabela, imprimirPdf, lojaDaRevenda } from "../../shared/tabelaPdf.ts";
+import { itensSuaTabela, htmlSuaTabela, imprimirPdf } from "../../shared/tabelaPdf.ts";
 import { linkDaTabela } from "../../shared/linkTabela.ts";
 import { atenderLead } from "../../shared/vendedorLead.ts";
 import { notificar } from "../../shared/monitorCrm.ts";
@@ -277,7 +277,7 @@ Deno.serve(async (req) => {
             const itens = await itensSuaTabela(db, owner.id);
             if (itens.length) {
               // Mesmo PDF do botão "Gerar PDF" da Sua Tabela, impresso pelo serviço de PDF (Railway)
-              const pdf = await imprimirPdf(await htmlSuaTabela(owner, itens, await lojaDaRevenda(db, owner.id)),
+              const pdf = await imprimirPdf(await htmlSuaTabela(owner, itens),
                 { url: env("PDF_SERVICE_URL"), user: env("PDF_SERVICE_USER"), pass: env("PDF_SERVICE_PASS") });
               const nomeArq = `Tabela atacado ${String(owner.empresa || "MuscularFit").replace(/[^\p{L}\p{N} ]/gu, "").trim()} ${new Date().toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" }).replace(/\//g, "-")}.pdf`;
               sent = await sendPdf(owner, destino, pdf, nomeArq, texto);

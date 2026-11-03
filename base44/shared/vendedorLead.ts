@@ -13,8 +13,7 @@ import { SCHEMA_PEDIDO, PROMPT_PARSER, montarRascunho, gravar, itensComOrigem } 
 import { invocarIA } from './iaComRetry.ts';
 import { moverLeadParaOrcamento } from './funilCrm.js';
 import { montarHtmlPedido } from './pedidoPdfHtml.js';
-import { scriptCores, imprimirPdf, logoComoDataUrl, lojaDaRevenda } from './tabelaPdf.ts';
-import { paletaDaLoja } from './identidadeCores.js';
+import { scriptCores, imprimirPdf, logoComoDataUrl } from './tabelaPdf.ts';
 
 const H = 3600000;
 export const ESPERA_RAJADA_MS = 15000;
@@ -217,10 +216,9 @@ export async function atenderLead(ctx: Ctx): Promise<{ atuou: boolean; motivo: s
     try {
       // Identidade visual da revenda: logo embutida e cores tiradas dela (igual ao botão PDF do painel)
       const logo = ctx.deps?.pdf ? String(ctx.owner?.logomarca || '') : await logoComoDataUrl(ctx.owner?.logomarca || '');
-      const paleta = paletaDaLoja(await lojaDaRevenda(ctx.db, ctx.owner.id));
       const html = montarHtmlPedido({
         pedido: p, user: { ...ctx.owner, logomarca: logo }, cliente: { ...cli, observacoes: '' }, tipo: 'orcamento', pesoTotal: r.peso_total,
-        colors: paleta || CORES_PEDIDO_CSS, extraHead: paleta ? '<script>window.__pronto = true;</script>' : scriptCores(logo)
+        colors: CORES_PEDIDO_CSS, extraHead: scriptCores(logo, 'pedido')
       });
       const bytes = await (ctx.deps?.pdf || ((h: string) => imprimirPdf(h, ctx.pdfCfg)))(html);
       env = await ctx.enviarPdf(bytes, `Orçamento ${p.numero_pedido}.pdf`, legenda);

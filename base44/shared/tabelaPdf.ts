@@ -3,7 +3,6 @@
 // O layout vem de tabelaPdfHtml.js (o mesmo arquivo que a tela usa); quem "imprime" é o
 // serviço de PDF no Railway (Gotenberg), no lugar do navegador.
 import { itensDaRevenda, buildPDFHTML } from "./tabelaPdfHtml.js";
-import { paletaDaLoja } from "./identidadeCores.js";
 
 const PAGE = 500;
 async function todos(fn: (skip: number) => Promise<any[]>) {
@@ -57,8 +56,7 @@ export function scriptCores(logo: string) {
       for (var i = 0; i < d.length; i += 4) {
         if (d[i+3] < 128) continue;
         var br = (d[i]+d[i+1]+d[i+2])/3; if (br > 240 || br < 15) continue;
-        var q = function(v){ return Math.min(255, Math.round(v/32)*32); }; // 248→256 virava cor inválida (#100…)
-        var k = q(d[i]) + ',' + q(d[i+1]) + ',' + q(d[i+2]);
+        var k = Math.round(d[i]/32)*32 + ',' + Math.round(d[i+1]/32)*32 + ',' + Math.round(d[i+2]/32)*32;
         m[k] = (m[k]||0) + 1;
       }
       var s = Object.keys(m).map(function(k){ return [k, m[k]]; }).sort(function(a,b){ return b[1]-a[1]; });
@@ -112,22 +110,12 @@ function base64Bytes(bytes: Uint8Array): string {
 }
 
 /** HTML da Sua Tabela pronto para o serviço de PDF. */
-export async function htmlSuaTabela(owner: any, itens: any[], loja: any = null) {
+export async function htmlSuaTabela(owner: any, itens: any[]) {
   const logo = await logoComoDataUrl(owner?.logomarca || "");
   const dono = { ...owner, logomarca: logo };
-  // Identidade visual configurada pela revenda manda; sem ela, cores tiradas da logo
-  const paleta = paletaDaLoja(loja);
-  if (paleta) return buildPDFHTML({ user: dono, colors: paleta, imageMap: {}, items: itens as any, extraHead: "<script>window.__pronto = true;</script>" });
   return buildPDFHTML({ user: dono, colors: CORES_CSS, imageMap: {}, items: itens as any, extraHead: scriptCores(logo) });
 }
 
-/** LojaConfig da revenda (identidade visual), ou null. */
-export async function lojaDaRevenda(db: any, ownerId: string) {
-  try {
-    return (await db.LojaConfig.filter({ revendedor_id: ownerId }, "-created_date", 1))?.[0] || null;
-  } catch {
-    return null;
-  }
 }
 
 /** Imprime o HTML no serviço de PDF (Railway). Lança erro se não estiver configurado ou falhar. */

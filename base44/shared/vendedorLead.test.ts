@@ -141,10 +141,3 @@ Deno.test('travas: conversa pessoal, mensagem que não é a mais nova, humano no
   ok((await atenderLead(e.ctx)).motivo === 'etapa', 'já em orçamento: humano conduz');
 });
 
-Deno.test('identidade visual: cores da Identidade visual da revenda mandam no PDF', async () => {
-  const { paletaDaLoja } = await import('./identidadeCores.js');
-  const p = paletaDaLoja({ cor_primaria: '#ec673c', cor_secundaria: '#0c5f6d', identidade_configurada: false });
-  ok(p.primary === '#ec673c' && p.secondary === '#0c5f6d' && p.textOnPrimary === '#ffffff', 'MuscularFit laranja + verde-petróleo');
-  ok(paletaDaLoja({ cor_primaria: '#1e40af', cor_secundaria: '#059669', identidade_configurada: false }) === null, 'padrão não configurado → usa a logo');
-  ok(paletaDaLoja(null) === null, 'sem loja → usa a logo');
-});
