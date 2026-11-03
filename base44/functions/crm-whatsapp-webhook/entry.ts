@@ -2,6 +2,7 @@ import { createClientFromRequest } from "npm:@base44/sdk";
 import { identificar, meusIdsDoCorpo, resolverLidNoWaha, ignorado } from "../../shared/identidadeWaha.ts";
 import { conversaDoContato, garantirCliente, textoBoasVindas, deveMandarBoasVindas } from "../../shared/conversaWaha.ts";
 import { etapaDepoisDaResposta } from "../../shared/funilCrm.js";
+import { carregarTabela, pdfDaTabela, base64 } from "../../shared/tabelaAtacado.ts";
 
 // ─── Webhook do CRM WhatsApp (WAHA) ───────────────────────────────────────────
 // Recebe os eventos do servidor WAHA. Assina apenas "message.any", que entrega
@@ -82,6 +83,29 @@ async function sendText(owner: any, chatId: string, text: string) {
     ok: response.ok,
     id: String(data?.id?._serialized || data?.id || ""),
     error: response.ok ? "" : (data?.message || data?.error || "Falha no envio automático")
+  };
+}
+
+/** Item 022f: envia um PDF (base64) com legenda pelo WAHA. */
+async function sendPdf(owner: any, chatId: string, bytes: Uint8Array, filename: string, caption: string) {
+  const apiKey = env("WAHA_API_KEY");
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (apiKey) headers["X-Api-Key"] = apiKey;
+  const response = await fetch(baseUrlDe(owner) + "/api/sendFile", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      session: sessionDe(owner),
+      chatId,
+      file: { mimetype: "application/pdf", filename, data: base64(bytes) },
+      caption
+    })
+  });
+  const data = await response.json().catch(() => null);
+  return {
+    ok: response.ok,
+    id: String(data?.id?._serialized || data?.id || ""),
+    error: response.ok ? "" : String(data?.message || data?.error || ("HTTP " + response.status))
   };
 }
 
@@ -240,15 +264,33 @@ Deno.serve(async (req) => {
           console.warn("[CRM_WEBHOOK] boas-vindas: teto por hora atingido, não enviada", conversation.id);
         } else {
           const painel = (env("PAINEL_URL") && !/base44/i.test(env("PAINEL_URL")) ? env("PAINEL_URL") : "https://app.placefit.com.br").replace(/\/+$/, "");
-          const texto = textoBoasVindas(owner.empresa || "", ident.nome || "", `${painel}/PublicTable?supplier=${owner.id}`);
           const destino = ident.telefone ? `${ident.telefone}@c.us` : counterpartChatId;
-          const sent = await sendText(owner, destino, texto);
+          // Item 022f: uma mensagem só — o PDF da tabela com o texto na legenda.
+          // Se o arquivo não sair (ex.: WAHA sem envio de mídia), manda o texto com o link.
+          let texto = textoBoasVindas(owner.empresa || "", ident.nome || "");
+          let sent: any = { ok: false, id: "", error: "" };
+          try {
+            const tabela = await carregarTabela(db, owner.id);
+            if (tabela && tabela.itens.length) {
+              const pdf = await pdfDaTabela(tabela);
+              const nomeArq = `Tabela atacado ${String(owner.empresa || "MuscularFit").replace(/[^\p{L}\p{N} ]/gu, "").trim()} ${new Date().toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" }).replace(/\//g, "-")}.pdf`;
+              sent = await sendPdf(owner, destino, pdf, nomeArq, texto);
+              if (sent.ok) texto = "[PDF: " + nomeArq + "]\n" + texto;
+              else console.warn("[CRM_WEBHOOK] PDF da tabela não saiu, vai o link", sent.error);
+            }
+          } catch (e) {
+            console.warn("[CRM_WEBHOOK] PDF da tabela falhou, vai o link", e);
+          }
+          if (!sent.ok) {
+            texto = textoBoasVindas(owner.empresa || "", ident.nome || "", `${painel}/PublicTable?supplier=${owner.id}`);
+            sent = await sendText(owner, destino, texto);
+          }
           await db.CRMMensagem.create({
             owner_id: owner.id,
             conversa_id: conversation.id,
             telefone: phone,
             direcao: "enviada",
-            tipo: "texto",
+            tipo: texto.startsWith("[PDF:") ? "documento" : "texto",
             conteudo: texto,
             status: sent.ok ? "enviada" : "erro",
             meta_message_id: sent.id,
