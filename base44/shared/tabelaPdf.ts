@@ -3,6 +3,7 @@
 // O layout vem de tabelaPdfHtml.js (o mesmo arquivo que a tela usa); quem "imprime" é o
 // serviço de PDF no Railway (Gotenberg), no lugar do navegador.
 import { itensDaRevenda, buildPDFHTML } from "./tabelaPdfHtml.js";
+import { paletaDaLoja } from "./identidadeCores.js";
 
 const PAGE = 500;
 async function todos(fn: (skip: number) => Promise<any[]>) {
@@ -111,10 +112,22 @@ function base64Bytes(bytes: Uint8Array): string {
 }
 
 /** HTML da Sua Tabela pronto para o serviço de PDF. */
-export async function htmlSuaTabela(owner: any, itens: any[]) {
+export async function htmlSuaTabela(owner: any, itens: any[], loja: any = null) {
   const logo = await logoComoDataUrl(owner?.logomarca || "");
   const dono = { ...owner, logomarca: logo };
+  // Identidade visual configurada pela revenda manda; sem ela, cores tiradas da logo
+  const paleta = paletaDaLoja(loja);
+  if (paleta) return buildPDFHTML({ user: dono, colors: paleta, imageMap: {}, items: itens as any, extraHead: "<script>window.__pronto = true;</script>" });
   return buildPDFHTML({ user: dono, colors: CORES_CSS, imageMap: {}, items: itens as any, extraHead: scriptCores(logo) });
+}
+
+/** LojaConfig da revenda (identidade visual), ou null. */
+export async function lojaDaRevenda(db: any, ownerId: string) {
+  try {
+    return (await db.LojaConfig.filter({ revendedor_id: ownerId }, "-created_date", 1))?.[0] || null;
+  } catch {
+    return null;
+  }
 }
 
 /** Imprime o HTML no serviço de PDF (Railway). Lança erro se não estiver configurado ou falhar. */

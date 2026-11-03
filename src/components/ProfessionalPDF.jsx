@@ -1,4 +1,6 @@
 import { montarHtmlPedido } from "../../base44/shared/pedidoPdfHtml.js";
+import { paletaDaLoja } from "../../base44/shared/identidadeCores.js";
+import { base44 } from "@/api/base44Client";
 /**
  * Gera um PDF profissional de orçamento ou pedido de venda
  * com identidade visual extraída da logo do usuário.
@@ -99,7 +101,13 @@ function extractColorsFromLogo(logoUrl) {
  */
 export async function generateProfessionalPDF(pedido, user, clientes, tipo = "venda", products = []) {
   const cliente = clientes.find(c => c.id === pedido.cliente_id) || { nome: pedido.cliente_nome };
-  const colors = await extractColorsFromLogo(user?.logomarca);
+  // Identidade visual configurada (Perfil → Identidade visual); sem ela, cores da logo
+  let paleta = null;
+  try {
+    const lojas = await base44.entities.LojaConfig.filter({ revendedor_id: user?.id });
+    paleta = paletaDaLoja(lojas?.[0]);
+  } catch { paleta = null; }
+  const colors = paleta || await extractColorsFromLogo(user?.logomarca);
 
   // Calcular peso total
   const pesoTotal = (pedido.itens || []).reduce((sum, item) => {
