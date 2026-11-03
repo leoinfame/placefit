@@ -226,7 +226,7 @@ export function montarHtmlPedido({ pedido, user, cliente, tipo = "venda", pesoTo
     }
 
     tbody tr:hover {
-      background: ${colors.lightBorder}40;
+      background: ${colors.lightBorderAlpha || colors.lightBorder + '40'};
     }
 
     tbody td {

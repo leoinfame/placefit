@@ -258,4 +258,8 @@ export async function atenderLead(ctx: Ctx): Promise<{ atuou: boolean; motivo: s
 const CORES_PEDIDO: Record<string, string> = {
   primary: '#1e3a5f', primaryDark: '#0f172a', secondary: '#16a34a', light: '#eff6ff', lightBorder: '#bfdbfe', textOnPrimary: '#ffffff'
 };
-const CORES_PEDIDO_CSS = Object.fromEntries(Object.entries(CORES_PEDIDO).map(([k, v]) => [k, `var(--pf-${k}, ${v})`]));
+const CORES_PEDIDO_CSS: Record<string, string> = {
+  ...Object.fromEntries(Object.entries(CORES_PEDIDO).map(([k, v]) => [k, `var(--pf-${k}, ${v})`])),
+  // o layout usa "<cor>40" (transparência em hex), que não funciona com var(): mesma cor a 25%
+  lightBorderAlpha: 'color-mix(in srgb, var(--pf-lightBorder, #bfdbfe) 25%, transparent)'
+};
