@@ -161,15 +161,19 @@ async function todos(fn: (skip: number) => Promise<any[]>, max = 10000) {
 type Estado = { ownerId: string; abertos: Map<string, any>; dispensados: Set<string>; controles: Set<string> };
 
 async function carregarEstado(db: any, ownerId: string, desdeIso: string): Promise<Estado> {
-  const [abertos, dispensados, controles] = await Promise.all([
+  const ontem = new Date(Date.now() - 24 * H).toISOString().replace('Z', '');
+  const [abertos, dispensados, controles, resolvidos] = await Promise.all([
     db.CRMAlerta.filter({ owner_id: ownerId, status: 'aberto' }, '-created_date', 500),
     db.CRMAlerta.filter({ owner_id: ownerId, status: 'dispensado', created_date: { $gte: desdeIso } }, '-created_date', 500),
-    db.CRMAlerta.filter({ owner_id: ownerId, tipo: 'controle', created_date: { $gte: desdeIso } }, '-created_date', 200)
+    db.CRMAlerta.filter({ owner_id: ownerId, tipo: 'controle', created_date: { $gte: desdeIso } }, '-created_date', 200),
+    db.CRMAlerta.filter({ owner_id: ownerId, status: 'resolvido', updated_date: { $gte: ontem } }, '-updated_date', 300)
   ]);
+  // Marcado como resolvido pelo dono nas últimas 24 h: não volta logo em seguida
+  const fechadosPeloDono = (resolvidos || []).filter((a: any) => a.tipo !== 'controle' && a.resolvido_por !== 'monitor').map((a: any) => a.chave);
   return {
     ownerId,
     abertos: new Map((abertos || []).filter((a: any) => a.tipo !== 'controle').map((a: any) => [a.chave, a])),
-    dispensados: new Set((dispensados || []).map((a: any) => a.chave)),
+    dispensados: new Set([...(dispensados || []).map((a: any) => a.chave), ...fechadosPeloDono]),
     controles: new Set((controles || []).map((a: any) => a.chave))
   };
 }
