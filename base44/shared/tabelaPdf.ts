@@ -37,7 +37,7 @@ const CORES_PADRAO: Record<string, string> = {
 };
 const CORES_CSS = Object.fromEntries(Object.entries(CORES_PADRAO).map(([k, v]) => [k, `var(--pf-${k}, ${v})`]));
 
-function scriptCores(logo: string) {
+export function scriptCores(logo: string) {
   return `<script>
 (function(){
   function fim(){ window.__pronto = true; }
