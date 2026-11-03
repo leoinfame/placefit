@@ -71,9 +71,9 @@ Deno.serve(async (req) => {
       avisarDono: async (a: any[]) => { r.avisos.push(...a.map((x) => ({ titulo: x.titulo, detalhe: x.detalhe }))); },
       esperar: async () => {},
       deps: {
-        gravar: async (rr: any) => {
+        gravar: async (rr: any, op: any) => {
           r.orcamento = { cliente: rr.cliente, itens: rr.itens, subtotal: rr.subtotal, frete: rr.frete, frete_origem: rr.frete_origem, total: rr.total, suposicoes: rr.suposicoes, ressalvas: rr.ressalvas, composicoes: rr.composicoes };
-          return { pedido: { id: 'ensaio', numero_pedido: 'ORC-ENSAIO', data_pedido: new Date().toISOString().split('T')[0], cliente_id: rr.cliente?.id || '', cliente_nome: rr.cliente?.nome || '', itens: rr.itens.map((i: any) => ({ cod: i.cod, nome: i.nome, quantidade: i.quantidade, preco_unitario: i.preco_unitario, subtotal: i.subtotal })), subtotal: rr.subtotal, frete: rr.frete || 0, desconto: 0, total: rr.total, observacoes: '' }, divergencias: [] };
+          return { pedido: { id: 'ensaio', numero_pedido: 'ORC-ENSAIO', data_pedido: new Date().toISOString().split('T')[0], cliente_id: rr.cliente?.id || '', cliente_nome: rr.cliente?.nome || '', itens: rr.itens.map((i: any) => ({ cod: i.cod, nome: i.nome, quantidade: i.quantidade, preco_unitario: i.preco_unitario, subtotal: i.subtotal })), subtotal: rr.subtotal, frete: rr.frete || 0, desconto: 0, total: rr.total, observacoes: op?.observacoes || '' }, divergencias: [] };
         }
       }
     });
