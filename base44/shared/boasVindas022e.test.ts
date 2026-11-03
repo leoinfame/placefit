@@ -71,3 +71,17 @@ Deno.test('022f: HTML do PDF é o da Sua Tabela (logo, contatos, agrupamento por
   ok(!html.includes('preco_fabricante') && !/R\$ 5\.00\b/.test(html), 'sem preço de fábrica');
   ok(base64(new Uint8Array([1, 2, 3])) === 'AQID', 'base64');
 });
+
+Deno.test('022g: prévia do link com o nome da empresa, em português, sem dado interno', async () => {
+  const { htmlPreviaTabela, linkDaTabela } = await import('./linkTabela.ts');
+  ok(linkDaTabela('https://app.placefit.com.br/', 'abc') === 'https://app.placefit.com.br/functions/tabela?supplier=abc', 'link no domínio do app');
+  const h = htmlPreviaTabela('https://app.placefit.com.br', 'abc', { empresa: 'MuscularFit', cidade: 'Cláudio', estado: 'MG', logomarca: 'https://x/logo-muscular.png' });
+  ok(h.includes('<meta property="og:image" content="https://x/logo-muscular.png">'), 'logo da revenda na prévia');
+  ok(htmlPreviaTabela('https://app.placefit.com.br', 'abc', { empresa: 'Sem Logo' }).includes('574e5a0a6_logo-ico'), 'sem logo usa o ícone do app');
+  ok(h.includes('<meta property="og:title" content="MuscularFit">'), 'título com a empresa');
+  ok(h.includes('Cláudio/MG') && !/Public Table/i.test(h), 'português');
+  ok(h.includes('/PublicTable?supplier=abc') && !/base44\.app/.test(h), 'vai para a tabela no domínio do app');
+  const x = htmlPreviaTabela('https://app.placefit.com.br', 'abc', { empresa: '<script>"' });
+  ok(!x.includes('<script>"') , 'escapa o nome');
+  ok(htmlPreviaTabela('https://app.placefit.com.br', 'zzz', null).includes('url=https://app.placefit.com.br"'), 'id inválido vai para o início');
+});
