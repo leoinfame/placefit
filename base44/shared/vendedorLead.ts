@@ -164,7 +164,9 @@ export async function atenderLead(ctx: Ctx): Promise<{ atuou: boolean; motivo: s
       return { atuou: false, motivo: 'ja_orcado' };
     }
 
-    const doCliente = msgs.filter((m: any) => m.direcao === 'recebida' && m.created_date >= bv.created_date).reverse()
+    // Inclui a 1ª mensagem do lead (chega segundos ANTES das boas-vindas)
+    const corte = new Date(Date.parse(bv.created_date + (/Z$/.test(bv.created_date) ? '' : 'Z')) - 10 * 60000).toISOString().replace('Z', '');
+    const doCliente = msgs.filter((m: any) => m.direcao === 'recebida' && String(m.created_date).replace('Z', '') >= corte).reverse()
       .map((m: any) => String(m.conteudo || '')).filter((t: string) => t && !/^\[(m[ií]dia|mensagem n[aã]o textual)/i.test(t)).slice(-25);
     if (!doCliente.length) return { atuou: false, motivo: 'sem_texto' };
     const textoCliente = doCliente.join('\n');
