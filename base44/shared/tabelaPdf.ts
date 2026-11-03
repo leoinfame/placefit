@@ -56,7 +56,8 @@ export function scriptCores(logo: string) {
       for (var i = 0; i < d.length; i += 4) {
         if (d[i+3] < 128) continue;
         var br = (d[i]+d[i+1]+d[i+2])/3; if (br > 240 || br < 15) continue;
-        var k = Math.round(d[i]/32)*32 + ',' + Math.round(d[i+1]/32)*32 + ',' + Math.round(d[i+2]/32)*32;
+        var q = function(v){ return Math.min(255, Math.round(v/32)*32); }; // 248→256 virava cor inválida (#100…)
+        var k = q(d[i]) + ',' + q(d[i+1]) + ',' + q(d[i+2]);
         m[k] = (m[k]||0) + 1;
       }
       var s = Object.keys(m).map(function(k){ return [k, m[k]]; }).sort(function(a,b){ return b[1]-a[1]; });

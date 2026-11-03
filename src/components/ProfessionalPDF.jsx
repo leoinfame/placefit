@@ -50,9 +50,9 @@ function extractColorsFromLogo(logoUrl) {
           if (a < 128) continue;
           const brightness = (r + g + b) / 3;
           if (brightness > 240 || brightness < 15) continue;
-          const qr = Math.round(r / 32) * 32;
-          const qg = Math.round(g / 32) * 32;
-          const qb = Math.round(b / 32) * 32;
+          const qr = Math.min(255, Math.round(r / 32) * 32); // 248→256 gerava cor inválida
+          const qg = Math.min(255, Math.round(g / 32) * 32); // 248→256 gerava cor inválida
+          const qb = Math.min(255, Math.round(b / 32) * 32); // 248→256 gerava cor inválida
           const key = `${qr},${qg},${qb}`;
           colorMap[key] = (colorMap[key] || 0) + 1;
         }
