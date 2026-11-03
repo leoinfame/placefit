@@ -134,20 +134,32 @@ export default function useGamificacaoCrm({ ownerId, conversations = [], cliente
     const dados = conversa ? dadosPorConversa[conversa.id] : null;
     const nome = nomeDoOrcamento(orcamento);
     const diasSemRetorno = dados?.diasSemRetorno ?? diasDesde(orcamento.created_date, agora);
+    const semaforo = dados?.semaforo || null;
     return {
       id: orcamento.id,
       orcamento,
       conversa,
       nome,
+      numero: orcamento.numero_pedido || "",
+      telefone: conversa?.telefone || clientesPorId[orcamento.cliente_id]?.telefone || "",
       valor: Number(orcamento.total || 0),
+      itens: (orcamento.itens || []).length,
       criado: orcamento.created_date,
       diasSemRetorno,
+      diasUltimoContato: diasDesde(conversa?.ultima_interacao || orcamento.created_date, agora),
       ultimoContatoCliente: dados?.ultimoContatoCliente || "",
       ultimoContatoNosso: dados?.ultimoContatoNosso || "",
+      etapa: conversa?.etapa || "novo",
+      semaforo,
+      semaforoFaixa: semaforo?.faixa || "",
+      passoRegistrado: Boolean(dados?.proximoPasso),
+      proximoPassoRegistrado: dados?.proximoPasso?.descricao || "",
+      pausado: Boolean(dados?.pausa?.silenciado),
+      pontos: dados?.placar?.pontos ?? 0,
       proximoPasso: proximoPassoSugerido(diasSemRetorno),
       sugestao: sugestaoFollowUp({ orcamento, diasSemRetorno, nome })
     };
-  }), [orcamentos, conversaDoOrcamento, dadosPorConversa, nomeDoOrcamento, agora]);
+  }), [orcamentos, conversaDoOrcamento, dadosPorConversa, nomeDoOrcamento, clientesPorId, agora]);
 
   // Fila de avisos: semáforo fora do verde e SEM próximo passo registrado.
   const fila = useMemo(() => Object.values(dadosPorConversa)
