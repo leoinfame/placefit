@@ -127,10 +127,17 @@ export async function garantirCliente(db: any, ownerId: string, conversa: any): 
 // Pedido do Sr. Leo (02/11/2026 20:29). Texto fixo, sem IA: tabela de atacado atual + pedido
 // da lista de itens e do CNPJ. Uma vez só por contato novo (conversa aberta agora e sem cliente).
 // Item 022f: sem link => legenda do PDF anexado; com link => plano B quando o arquivo não sai.
-export function textoBoasVindas(empresa: string, nome: string, linkTabela = ''): string {
+// Pedido do Sr. Leo (02/11/2026): na MuscularFit a mensagem se apresenta como "o Léo da MuscularFit".
+// Outras revendas: campo nome_atendente do cadastro quando existir; sem ele, "Aqui é da <empresa>".
+const ATENDENTE_POR_CONTA: Record<string, string> = { '697aeaf8e4420021ed5caeb1': 'Léo' };
+export function atendenteDaConta(owner: any): string {
+  return String(owner?.nome_atendente || ATENDENTE_POR_CONTA[String(owner?.id || '')] || '').trim();
+}
+
+export function textoBoasVindas(empresa: string, nome: string, linkTabela = '', atendente = ''): string {
   const primeiro = String(nome || '').trim().split(/\s+/)[0];
   return [
-    `Olá${primeiro ? ', ' + primeiro : ''}! Aqui é da ${empresa || 'MuscularFit'}, obrigado pelo contato.`,
+    `Olá${primeiro ? ', ' + primeiro : ''}! Aqui é ${atendente ? `o ${atendente} da` : 'da'} ${empresa || 'MuscularFit'}, obrigado pelo contato.`,
     '',
     linkTabela ? `Esta é a nossa tabela de atacado, sempre atualizada: ${linkTabela}` : 'Segue em anexo a nossa tabela de atacado, atualizada hoje.',
     '',
