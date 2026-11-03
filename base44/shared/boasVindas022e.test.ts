@@ -2,6 +2,7 @@
 // Item 022e: resposta automática ao lead novo, Orçamento → Negociação, venda → Ganho.
 import { textoBoasVindas, deveMandarBoasVindas } from './conversaWaha.ts';
 import { etapaDepoisDaResposta, moverLeadParaGanho } from './funilCrm.js';
+import { pdfDaTabela, textoPdf, moedaBR, base64 } from './tabelaAtacado.ts';
 
 function ok(c: boolean, m: string) { if (!c) throw new Error('falhou: ' + m); }
 
@@ -41,4 +42,20 @@ Deno.test('ganho: venda leva a conversa do cliente para Ganho', async () => {
   ok(rows[0].etapa === 'ganho', 'cliente da venda em ganho');
   ok(rows[1].etapa === 'orcamento', 'outro cliente intacto');
   await moverLeadParaGanho(entities, 'o', null);
+});
+
+Deno.test('022f: legenda do PDF sem link; plano B com link', () => {
+  const leg = textoBoasVindas('MuscularFit', 'Ana', '');
+  ok(leg.includes('Segue em anexo') && !leg.includes('http'), 'legenda sem link');
+  ok(textoBoasVindas('MuscularFit', 'Ana', 'https://app.placefit.com.br/x').includes('https://app.placefit.com.br/x'), 'plano B com link');
+});
+
+Deno.test('022f: PDF da tabela gera várias páginas, com acentos e sem dado interno', async () => {
+  const itens = Array.from({ length: 400 }, (_, i) => ({ cod: 'C' + i, nome: 'Anilha Injetada Pro Olímpica – Anel Inox ' + i + ' kg 🏋️', categoria: i < 200 ? 'Anilhas' : 'Barras', und: 'peça', peso_kg: i % 3 ? i / 2 : null, preco: 1234.5 + i, preco_fabricante: 1 }));
+  const bytes = await pdfDaTabela({ revenda: { empresa: 'MuscularFit' }, itens, atualizado_em: '2026-11-02T23:00:00Z' });
+  ok(bytes.length > 2000 && new TextDecoder().decode(bytes.slice(0, 5)) === '%PDF-', 'é um PDF');
+  ok(base64(bytes).length > bytes.length, 'base64');
+  ok(textoPdf('Olímpica – 🏋️') === 'Olímpica - ', 'limpa caracteres fora do Latin-1');
+  ok(moedaBR(1003.97) === 'R$ 1.003,97', 'moeda BR');
+  await Deno.writeFile('/tmp/tabela_teste.pdf', bytes);
 });
