@@ -108,6 +108,9 @@ export default function useGamificacaoCrm({ ownerId, conversations = [], cliente
       const diasSemRetorno = orcamento ? diasDesde(baseSemRetorno, agora) : 0;
       const ultimaAtividade = c.ultima_interacao || lado.recebida || orcamento?.created_date || "";
       const diasUltimoContato = diasDesde(ultimaAtividade, agora);
+      const tRecebida = lado.recebida ? quandoUTC(lado.recebida).getTime() || 0 : 0;
+      const tEnviada = lado.enviada ? quandoUTC(lado.enviada).getTime() || 0 : 0;
+      const ultimaMensagemDe = !tRecebida && !tEnviada ? "" : tRecebida >= tEnviada ? "cliente" : "nos";
       mapa[c.id] = {
         conversa: c,
         orcamento,
@@ -115,6 +118,7 @@ export default function useGamificacaoCrm({ ownerId, conversations = [], cliente
         proximoPasso: proximos[c.id] || null,
         ultimoContatoCliente: lado.recebida || "",
         ultimoContatoNosso: lado.enviada || "",
+        ultimaMensagemDe,
         diasSemRetorno,
         placar: calcularPlacar({ orcamento, diasSemRetorno, diasUltimoContato, config }),
         semaforo: semaforoDaConversa(c.etapa, diasDesde(ultimaAtividade, agora), config)
@@ -149,6 +153,7 @@ export default function useGamificacaoCrm({ ownerId, conversations = [], cliente
       diasUltimoContato: diasDesde(conversa?.ultima_interacao || orcamento.created_date, agora),
       ultimoContatoCliente: dados?.ultimoContatoCliente || "",
       ultimoContatoNosso: dados?.ultimoContatoNosso || "",
+      ultimaMensagemDe: dados?.ultimaMensagemDe || "",
       etapa: conversa?.etapa || "novo",
       semaforo,
       semaforoFaixa: semaforo?.faixa || "",

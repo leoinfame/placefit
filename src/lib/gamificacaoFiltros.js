@@ -45,6 +45,7 @@ export const FILTROS_VAZIOS = {
   contatoAte: "",
   passo: "todos",
   bot: "todos",
+  ultimaMensagem: "todas",
   ordenarPor: "diasSemRetorno",
   direcao: "desc"
 };
@@ -143,6 +144,13 @@ export function aplicarFiltros(linhas = [], filtros = {}) {
     if (f.bot === "pausado" && !linha.pausado) return false;
     if (f.bot === "automatico" && linha.pausado) return false;
 
+    // Quem falou por último: cliente esperando resposta, nós, ou sem mensagem.
+    if (f.ultimaMensagem !== "todas") {
+      if (f.ultimaMensagem === "sem") {
+        if (linha.ultimaMensagemDe) return false;
+      } else if (linha.ultimaMensagemDe !== f.ultimaMensagem) return false;
+    }
+
     if (!dentroDoPeriodo(linha.criado, f.criadoDe, f.criadoAte)) return false;
     if (!dentroDoPeriodo(linha.ultimoContatoCliente, f.contatoDe, f.contatoAte)) return false;
 
@@ -159,6 +167,13 @@ export function contarFiltrosAtivos(filtros = {}) {
     .filter((chave) => String(f[chave] ?? "") !== String(FILTROS_VAZIOS[chave]) && String(f[chave] ?? "") !== "")
     .length;
 }
+
+export const ULTIMAS_MENSAGENS = [
+  { value: "todas", label: "Todas as conversas" },
+  { value: "cliente", label: "Cliente falou por último (esperando nós)" },
+  { value: "nos", label: "Nós falamos por último" },
+  { value: "sem", label: "Sem mensagem registrada" }
+];
 
 export const etapaInfo = (valor) =>
   ETAPAS_GAMIFICACAO.find((e) => e.value === (valor || "novo")) || ETAPAS_GAMIFICACAO[0];

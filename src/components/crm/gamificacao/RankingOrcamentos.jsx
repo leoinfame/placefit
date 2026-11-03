@@ -77,7 +77,10 @@ export default function RankingOrcamentos({ ranking = [], onAbrirConversa }) {
               <SemaforoBadge semaforo={linha.semaforo} compacto />
               <span className="min-w-0">
                 <span className="block truncate text-sm font-semibold text-slate-900">{linha.nome}</span>
-                <span className="block truncate text-[11px] text-slate-500">{linha.numero || "Sem número"}{linha.itens ? ` · ${linha.itens} item(ns)` : ""}</span>
+                <span className="block truncate text-[11px] text-slate-500">
+                  {linha.numero || "Sem número"}{linha.itens ? ` · ${linha.itens} item(ns)` : ""}
+                  {linha.ultimaMensagemDe === "cliente" && <span className="font-semibold text-amber-700"> · última msg: cliente</span>}
+                </span>
               </span>
             </span>
             <span className="min-w-0">
@@ -111,6 +114,7 @@ export default function RankingOrcamentos({ ranking = [], onAbrirConversa }) {
                 <Info rotulo="Último contato do cliente" valor={detalhe.ultimoContatoCliente ? dataCurta(detalhe.ultimoContatoCliente) : "Nenhum depois do orçamento"} />
                 <Info rotulo="Último contato nosso" valor={detalhe.ultimoContatoNosso ? dataCurta(detalhe.ultimoContatoNosso) : "—"} />
                 <Info rotulo="Dias desde o último contato" valor={`${detalhe.diasUltimoContato} dia(s)`} />
+                <Info rotulo="Quem falou por último" valor={detalhe.ultimaMensagemDe === "cliente" ? "Cliente · esperando nossa resposta" : detalhe.ultimaMensagemDe === "nos" ? "Nós" : "Sem mensagem registrada"} />
                 <Info rotulo="Semáforo" valor={semaforoLabel(detalhe.semaforoFaixa) + (detalhe.semaforo ? ` · ${detalhe.semaforo.diasParado}d na etapa` : "")} />
                 <Info rotulo="Placar" valor={`${detalhe.pontos} ponto(s)`} />
                 <Info rotulo="Atendimento" valor={detalhe.pausado ? "Dono assumiu · bot pausado" : "Bot respondendo"} />

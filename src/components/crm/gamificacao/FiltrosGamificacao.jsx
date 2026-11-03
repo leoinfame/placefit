@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowDownWideNarrow, ArrowUpWideNarrow, Filter, Search, X } from "lucide-react";
 import {
-  ETAPAS_GAMIFICACAO, ORDENACOES, SEMAFOROS_GAMIFICACAO, contarFiltrosAtivos
+  ETAPAS_GAMIFICACAO, ORDENACOES, SEMAFOROS_GAMIFICACAO, ULTIMAS_MENSAGENS, contarFiltrosAtivos
 } from "@/lib/gamificacaoFiltros";
 
 const Campo = ({ rotulo, children }) => (
@@ -132,6 +132,13 @@ export default function FiltrosGamificacao({ filtros, onChange, total = 0, visiv
                 { value: "pausado", label: "Dono assumiu (bot pausado)" },
                 { value: "automatico", label: "Bot respondendo" }
               ]}
+            />
+          </Campo>
+          <Campo rotulo="Quem falou por último">
+            <FiltroSelect
+              valor={filtros.ultimaMensagem}
+              onChange={(v) => alterar({ ultimaMensagem: v })}
+              opcoes={ULTIMAS_MENSAGENS}
             />
           </Campo>
         </div>

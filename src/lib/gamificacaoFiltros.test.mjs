@@ -57,6 +57,19 @@ test("filtra etapa, semáforo, próximo passo e estado do bot", () => {
   assert.deepEqual(aplicarFiltros(base, { bot: "automatico" }).map((l) => l.id), ["b"]);
 });
 
+test("filtra quem falou por último, inclusive sem mensagem", () => {
+  const base = [
+    linha({ id: "cliente", ultimaMensagemDe: "cliente" }),
+    linha({ id: "nos", ultimaMensagemDe: "nos" }),
+    linha({ id: "sem", ultimaMensagemDe: "" })
+  ];
+  assert.deepEqual(aplicarFiltros(base, { ultimaMensagem: "cliente" }).map((l) => l.id), ["cliente"]);
+  assert.deepEqual(aplicarFiltros(base, { ultimaMensagem: "nos" }).map((l) => l.id), ["nos"]);
+  assert.deepEqual(aplicarFiltros(base, { ultimaMensagem: "sem" }).map((l) => l.id), ["sem"]);
+  assert.deepEqual(aplicarFiltros(base, { ultimaMensagem: "todas" }).length, 3);
+  assert.deepEqual(aplicarFiltros(base, { ultimaMensagem: "cliente", valorMin: "5000" }).length, 0);
+});
+
 test("períodos de orçamento e de última resposta do cliente", () => {
   const base = [
     linha({ id: "a", criado: "2026-10-01T10:00:00Z", ultimoContatoCliente: "2026-10-20T10:00:00Z" }),
