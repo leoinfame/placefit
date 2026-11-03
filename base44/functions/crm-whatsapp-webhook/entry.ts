@@ -5,6 +5,8 @@ import { etapaDepoisDaResposta } from "../../shared/funilCrm.js";
 import { base64 } from "../../shared/tabelaAtacado.ts";
 import { itensSuaTabela, htmlSuaTabela, imprimirPdf } from "../../shared/tabelaPdf.ts";
 import { linkDaTabela } from "../../shared/linkTabela.ts";
+import { atenderLead } from "../../shared/vendedorLead.ts";
+import { notificar } from "../../shared/monitorCrm.ts";
 
 // ─── Webhook do CRM WhatsApp (WAHA) ───────────────────────────────────────────
 // Recebe os eventos do servidor WAHA. Assina apenas "message.any", que entrega
@@ -311,6 +313,31 @@ Deno.serve(async (req) => {
       }
     }
 
+
+    // Item 023 fase 2: vendedor automático do lead (só conversa que começou como lead; para se um humano respondeu)
+    if (!fromMe && ident.telefone && baseUrlDe(owner)) {
+      const destinoLead = `${ident.telefone}@c.us`;
+      const vend = await atenderLead({
+        db, base44, owner, conversa: { ...conversation, telefone: ident.telefone }, messageId,
+        enviarTexto: (texto: string) => sendText(owner, destinoLead, texto),
+        enviarPdf: (bytes: Uint8Array, nome: string, legenda: string) => sendPdf(owner, destinoLead, bytes, nome, legenda),
+        pdfCfg: { url: env("PDF_SERVICE_URL"), user: env("PDF_SERVICE_USER"), pass: env("PDF_SERVICE_PASS") },
+        avisarDono: async (alertas: any[]) => {
+          try {
+            const c8509 = (await db.whatsapp_connections.filter({ display_phone: "5537999458509" }, "-created_date", 1))?.[0];
+            const painelUrl = env("PAINEL_URL") && !/base44/i.test(env("PAINEL_URL")) ? env("PAINEL_URL") : "https://app.placefit.com.br";
+            await notificar(db, {
+              wahaUrl: "", wahaKey: "", metaToken: env("META_ACCESS_TOKEN"), phoneNumberId: String(c8509?.phone_number_id || ""),
+              tenant8509: String(c8509?.tenant_id || ""), ownerPhone: env("OWNER_PHONE"), painel: painelUrl
+            }, owner.id, owner.empresa || "", alertas);
+          } catch (e) {
+            console.error("[CRM_WEBHOOK] aviso ao dono falhou", e);
+          }
+        }
+      });
+      if (vend.motivo !== "nao_lead" && vend.motivo !== "etapa") console.log("[CRM_WEBHOOK] vendedor", vend.motivo, conversation.id);
+      if (vend.atuou) return new Response("ok");
+    }
 
     // ── Atendente automático ─────────────────────────────────────────────────
     // Três travas, todas obrigatórias:

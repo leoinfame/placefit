@@ -77,7 +77,7 @@ export function decidir(pedido: any, r: any | null) {
   // Pessoa física sem cidade/UF ou CEP: o motor pergunta; pedimos ao cliente
   const perguntasCadastro = (r.perguntas || []).filter((p: string) => /cliente novo|cidade\/uf|cep|nome\/raz|CPF\/CNPJ/i.test(p));
   const outrasPerguntas = (r.perguntas || []).filter((p: string) => !perguntasCadastro.includes(p));
-  if (!outrasPerguntas.length && perguntasCadastro.length && !r.itens?.length === false && doc.length === 11) {
+  if (!outrasPerguntas.length && perguntasCadastro.length && r.itens?.length && doc.length === 11) {
     return { acao: 'pedir_dados', motivos: perguntasCadastro };
   }
   const motivos: string[] = [];
