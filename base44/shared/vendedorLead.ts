@@ -148,15 +148,15 @@ export async function atenderLead(ctx: Ctx): Promise<{ atuou: boolean; motivo: s
     if (!['novo', 'atendimento'].includes(String(ctx.conversa?.etapa || 'novo'))) return { atuou: false, motivo: 'etapa' };
     if (!/^55\d{10,11}$/.test(digitos(ctx.conversa?.telefone))) return { atuou: false, motivo: 'sem_telefone' };
 
+    // Só conversa que começou como lead (recebeu boas-vindas): conversa pessoal sai aqui, sem esperar nada
+    const bv = (await ctx.db.CRMMensagem.filter({ conversa_id: ctx.conversa.id, origem: 'sistema' }, 'created_date', 1))?.[0];
+    if (!bv) return { atuou: false, motivo: 'nao_lead' };
+
     // Rajada: espera o cliente terminar de digitar; só a mensagem mais nova segue
     await (ctx.esperar || ((ms) => new Promise((r) => setTimeout(r, ms))))(ESPERA_RAJADA_MS);
     const msgs = (await ctx.db.CRMMensagem.filter({ conversa_id: ctx.conversa.id }, '-created_date', 40)) || [];
     const ultimaRecebida = msgs.find((m: any) => m.direcao === 'recebida');
     if (!ultimaRecebida || (ctx.messageId && ultimaRecebida.meta_message_id !== ctx.messageId)) return { atuou: false, motivo: 'mais_nova' };
-
-    let bv = msgs.filter((m: any) => m.origem === 'sistema').pop();
-    if (!bv) bv = (await ctx.db.CRMMensagem.filter({ conversa_id: ctx.conversa.id, origem: 'sistema' }, 'created_date', 1))?.[0];
-    if (!bv) return { atuou: false, motivo: 'nao_lead' };
     if (humanoAssumiu(msgs, bv.created_date)) return { atuou: false, motivo: 'humano' };
 
     // Já tem orçamento recente deste vendedor? (corrida entre mensagens) — não monta outro
