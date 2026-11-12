@@ -18,6 +18,7 @@ import SemaforoBadge from "@/components/crm/gamificacao/SemaforoBadge";
 import BotControle from "@/components/crm/gamificacao/BotControle";
 import ProximoPassoBotao from "@/components/crm/gamificacao/ProximoPassoBotao";
 import GamificacaoTab from "@/components/crm/gamificacao/GamificacaoTab";
+import { ChipLista, FiltroListas, ListasDaConversa } from "@/components/crm/ListasCRM";
 import {
   ArrowUpRight, Check, CheckCheck, CircleAlert, Copy,
   FileText, LayoutGrid, Loader2, MessageCircle, MessageSquare, Plus, RefreshCw,
@@ -109,6 +110,9 @@ export default function CRMWhatsApp() {
   const [messages, setMessages] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [templates, setTemplates] = useState([]);
+  // Listas do CRM (CRMLista): segmentos e ações; uma conversa pode estar em várias.
+  const [listas, setListas] = useState([]);
+  const [filtroLista, setFiltroLista] = useState("todas");
   const [selectedId, setSelectedId] = useState("");
   const [tab, setTab] = useState("conversas");
   const [search, setSearch] = useState("");
@@ -230,14 +234,17 @@ export default function CRMWhatsApp() {
   async function loadWorkspace(id) {
     setLoading(true);
     try {
-      const [rows, customerRows, templateRows, result] = await Promise.all([
+      const [rows, customerRows, templateRows, result, listaRows] = await Promise.all([
         loadConversations(id),
         base44.entities.Cliente.filter({ fornecedor_id: id }, "-created_date", 500).catch(() => []),
         base44.entities.CRMTemplate.filter({ owner_id: id, ativo: true }, "-updated_date", 200).catch(() => []),
-        base44.functions.invoke("crm-whatsapp", { action: "status", owner_id: id }).catch(() => null)
+        base44.functions.invoke("crm-whatsapp", { action: "status", owner_id: id }).catch(() => null),
+        base44.entities.CRMLista.filter({ owner_id: id, ativo: true }, "ordem", 200).catch(() => [])
       ]);
       setCustomers(customerRows || []);
       setTemplates(templateRows || []);
+      setListas(listaRows || []);
+      setFiltroLista((atual) => atual === "todas" || atual === "sem_lista" || (listaRows || []).some((l) => l.id === atual) ? atual : "todas");
       setStatus(result?.data || null);
       setSelectedId((current) => rows.some((item) => item.id === current) ? current : (rows[0]?.id || ""));
     } catch (error) {
@@ -268,13 +275,51 @@ export default function CRMWhatsApp() {
   }
 
   const selected = useMemo(() => conversations.find((item) => item.id === selectedId) || null, [conversations, selectedId]);
+  const listasPorId = useMemo(() => Object.fromEntries(listas.map((l) => [l.id, l])), [listas]);
   const filtered = useMemo(() => {
+    let rows = conversations;
+    if (filtroLista === "sem_lista") rows = rows.filter((item) => !(item.listas || []).some((id) => listasPorId[id]));
+    else if (filtroLista !== "todas") rows = rows.filter((item) => (item.listas || []).includes(filtroLista));
     const value = search.toLowerCase().trim();
-    if (!value) return conversations;
-    return conversations.filter((item) =>
+    if (!value) return rows;
+    return rows.filter((item) =>
       [item.nome_contato, item.telefone, item.ultima_mensagem].some((field) => String(field || "").toLowerCase().includes(value))
     );
-  }, [conversations, search]);
+  }, [conversations, search, filtroLista, listasPorId]);
+
+  async function toggleLista(conversation, listaId) {
+    const atuais = conversation.listas || [];
+    const novas = atuais.includes(listaId) ? atuais.filter((id) => id !== listaId) : [...atuais, listaId];
+    setConversations((items) => items.map((item) => item.id === conversation.id ? { ...item, listas: novas } : item));
+    try {
+      await base44.entities.CRMConversa.update(conversation.id, { listas: novas });
+    } catch (error) {
+      setConversations((items) => items.map((item) => item.id === conversation.id ? { ...item, listas: atuais } : item));
+      toast({ title: "Erro ao atualizar as listas", description: error?.message, variant: "destructive" });
+    }
+  }
+
+  async function criarLista(nome) {
+    if (listas.some((l) => l.nome.toLowerCase() === nome.toLowerCase())) {
+      toast({ title: "Já existe uma lista com esse nome", variant: "destructive" });
+      return;
+    }
+    try {
+      const row = await base44.entities.CRMLista.create({
+        owner_id: ownerId,
+        nome,
+        tipo: "segmento",
+        cor: "#475569",
+        ordem: listas.reduce((max, l) => Math.max(max, Number(l.ordem || 0)), 0) + 1,
+        ativo: true,
+        equipe_ids: []
+      });
+      setListas((items) => [...items, row]);
+      if (selected) await toggleLista(selected, row.id);
+    } catch (error) {
+      toast({ title: "Não foi possível criar a lista", description: error?.message, variant: "destructive" });
+    }
+  }
 
   async function createConversation() {
     const selectedCustomer = customers.find((item) => item.id === newContact.cliente_id);
@@ -524,6 +569,7 @@ export default function CRMWhatsApp() {
             <aside className="border-b border-slate-200 lg:border-b-0 lg:border-r">
               <div className="border-b border-slate-100 p-4">
                 <div className="relative"><Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" /><Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar contato ou mensagem..." className="h-10 border-slate-200 pl-9" /></div>
+                <FiltroListas listas={listas} conversas={conversations} valor={filtroLista} onChange={setFiltroLista} />
               </div>
               <div className="max-h-[560px] overflow-y-auto">
                 {filtered.length === 0 ? (
@@ -535,6 +581,9 @@ export default function CRMWhatsApp() {
                       <div className="flex items-center justify-between gap-2"><p className="truncate text-sm font-semibold text-slate-900">{contactName(conversation)}</p><div className="flex shrink-0 items-center gap-1.5"><SemaforoBadge compacto semaforo={gam.dadosPorConversa[conversation.id]?.semaforo} /><span className="text-[11px] text-slate-400">{formatTime(conversation.ultima_interacao)}</span></div></div>
                       <p className="mt-0.5 truncate text-xs text-slate-500">{conversation.ultima_mensagem || contactPhone(conversation)}</p>
                       <div className="mt-2 flex items-center justify-between"><div className="flex items-center gap-1.5"><Badge className={"border-0 text-[10px] " + stageFor(conversation.etapa).color}>{stageFor(conversation.etapa).label}</Badge><PlacarBadge compacto dados={gam.dadosPorConversa[conversation.id]} /></div>{conversation.nao_lidas > 0 && <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-semibold text-white">{conversation.nao_lidas}</span>}</div>
+                      {(conversation.listas || []).some((id) => listasPorId[id]) && (
+                        <div className="mt-1.5 flex flex-wrap gap-1">{(conversation.listas || []).filter((id) => listasPorId[id]).map((id) => <ChipLista key={id} compacto lista={listasPorId[id]} />)}</div>
+                      )}
                     </div>
                   </button>
                 ))}
@@ -553,6 +602,7 @@ export default function CRMWhatsApp() {
                       <Button variant="outline" size="icon" disabled={!telefoneReal(selected)} onClick={() => window.open("https://wa.me/" + telefoneReal(selected), "_blank", "noopener,noreferrer")} title={telefoneReal(selected) ? "Abrir no WhatsApp" : "Contato não identificado: sem telefone real"}><ArrowUpRight className="h-4 w-4" /></Button>
                     </div>
                   </div>
+                  <ListasDaConversa conversa={selected} listas={listas} onToggle={toggleLista} onCriar={criarLista} />
                   {/* Item 024: placar com motivo, semáforo da etapa e controle do bot nesta conversa. */}
                   <div className="flex flex-wrap items-center gap-2">
                     <SemaforoBadge semaforo={gam.dadosPorConversa[selected.id]?.semaforo} proximoPasso={gam.dadosPorConversa[selected.id]?.proximoPasso} />
