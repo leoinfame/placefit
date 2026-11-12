@@ -192,7 +192,7 @@ export async function atenderLead(ctx: Ctx): Promise<{ atuou: boolean; motivo: s
     const itensTexto = (pedido.itens || []).map((i: any) => `${i.quantidade} ${i.descricao}`).join('; ');
     if (d.acao === 'escalar') { await escalar(ctx, msgs, d.motivos, `Pedido: ${itensTexto || '(sem itens)'}`); return { atuou: true, motivo: 'escalou' }; }
 
-    const montar = ctx.deps?.montar || ((p: any) => montarRascunho(ctx.base44, ctx.owner.id, p, null));
+    const montar = ctx.deps?.montar || ((p: any) => montarRascunho(ctx.base44, ctx.owner.id, p, null, textoCliente));
     const r = await montar(pedido);
     d = decidir(pedido, r);
     if (d.acao === 'pedir_dados') return { atuou: await mandarUmaVez(ctx, msgs, MSG_PEDIR_DADOS), motivo: 'pedir_dados' };

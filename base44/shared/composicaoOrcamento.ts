@@ -328,6 +328,17 @@ function comporPorFicha(catalogo: ItemCatalogo[], l: LinhaPedido, qtd: number, r
   if (/^suport/.test(tipo)) return comporSuporte(cands, l, qtd, res);
   if (l.pesos_kg?.length || l.composicao?.length) return comporPesos(cands, l, qtd, res);
 
+  // Peso/medida ditos na descrição são obrigatórios: "anilha 10 kg" nunca vira a de 20 kg
+  const pedidos = [...numerosDe(normalizar(l.descricao))];
+  if (pedidos.length) {
+    const comNumero = cands.filter((i) => {
+      const ns = numerosDe(i.chave);
+      if (i.peso_kg) ns.add(i.peso_kg);
+      return pedidos.every((x) => ns.has(x));
+    });
+    if (comNumero.length) cands = comNumero;
+  }
+
   // Item único: preferências do pedido, depois a regra do óbvio (cromada, 4 rolamentos, 20 kg), depois o preço
   const prefs = l.preferencias || [];
   const obvio = (i: ItemCatalogo) => ['cromad', '4 rolamentos'].filter((t) => temTermo(i, t)).length + Number(pesoDoItem(i) === 20);
@@ -449,11 +460,68 @@ function resolverLinha(catalogo: ItemCatalogo[], l: LinhaPedido, res: Composicao
   }
 }
 
+// ── Regras do dono para o orçamento (12/11/2026) ─────────────────────────────
+// Furo olímpico (50 mm) e furo padrão (25 mm). "maciça" é pedido explícito da outra linha.
+const OLIMPICA = /\b(olimpic\w*|furo de 50|furo 50|50 mm)\b/;
+const OUTRO_FURO = /\b(furo de 25|furo 25|25 mm|furo padrao|macic)\b/;
+const ehAnilhaOuBarra = (l: LinhaPedido) =>
+  /^(anilha|barra)\b/.test(normalizar(l.descricao)) || /^(anilha|barra)/.test(raizTipo(l.tipo || ''));
+
+/**
+ * Regra 2 (furação olímpica): se qualquer anilha ou barra do pedido é olímpica, todas passam a ser
+ * olímpicas — barra de 1,5 m e barra W/EZ incluídas. Furo padrão só fica quando pedido explicitamente.
+ * Devolve as descrições que mudaram.
+ */
+export function unificarFuracao(linhas: LinhaPedido[]): string[] {
+  const alvo = (linhas || []).filter(ehAnilhaOuBarra);
+  const pedeOlimpica = alvo.some((l) => OLIMPICA.test(normalizar(l.descricao)) || (l.requisitos || []).some((r) => OLIMPICA.test(normalizar(r))));
+  if (!pedeOlimpica) return [];
+  const mudadas: string[] = [];
+  for (const l of alvo) {
+    const n = normalizar(l.descricao);
+    if (OLIMPICA.test(n) || OUTRO_FURO.test(n) || (l.requisitos || []).some((r) => OLIMPICA.test(normalizar(r)))) continue;
+    l.requisitos = [...(l.requisitos || []), 'olimpica'];
+    l.tipo = l.tipo || palavrasDe(l.descricao)[0] || '';
+    mudadas.push(l.descricao);
+  }
+  return mudadas;
+}
+
+/**
+ * Regra 3 (par não é unidade): N pares = 2N unidades, preço por unidade. Vale quando a quantidade
+ * é em pares (por_par do interpretador ou unidade_pedida "par"). Com pesos/composição, o ×2 é feito
+ * peso a peso em comporPesos. Nunca se aplica a kit (o "10 pares" do nome do kit é o conteúdo dele).
+ * Devolve os avisos para a resposta.
+ */
+export function paresEmUnidades(linhas: LinhaPedido[]): string[] {
+  const avisos: string[] = [];
+  for (const l of linhas || []) {
+    const emPares = l.por_par === true || /^pares?$/.test(normalizar(l.unidade_pedida || ''));
+    if (!emPares || /\bkit\b/.test(normalizar(l.descricao))) continue;
+    if (l.pesos_kg?.length || l.composicao?.length) continue;
+    const qtd = Number(l.quantidade) > 0 ? Number(l.quantidade) : 1;
+    l.quantidade = qtd * 2;
+    l.quantidade_informada = true;
+    l.por_par = false;
+    l.unidade_pedida = 'peça';
+    avisos.push(`"${l.descricao}": ${qtd} par(es) = ${qtd * 2} unidades (o preço é por unidade).`);
+  }
+  return avisos;
+}
+
 /** Resolve todas as linhas do pedido em itens do catálogo, perguntas e suposições. */
 export function comporPedido(catalogo: ItemCatalogo[], linhas: LinhaPedido[]): Composicao {
   const res: Composicao = { itens: [], perguntas: [], suposicoes: [], composicoes: [], naoCotados: [] };
   const n = (d: string) => normalizar(d);
   let restantes = [...(linhas || [])].filter((l) => String(l?.descricao || '').trim());
+
+  // Regras 2 e 3 aplicadas antes de qualquer casamento com o catálogo
+  const olimpicas = unificarFuracao(restantes);
+  if (olimpicas.length) {
+    res.suposicoes.push(`Furação olímpica em todo o orçamento: ${olimpicas.map((d) => `"${d}"`).join(', ')} ` +
+      `também ${olimpicas.length > 1 ? 'ficaram olímpicas' : 'ficou olímpica'} (barra de 1,5 m e barra W incluídas), para não misturar furo padrão com olímpico.`);
+  }
+  res.suposicoes.push(...paresEmUnidades(restantes));
 
   // Kit com suporte incluso: reconhecido como kit, o suporte não é somado de novo
   let suportes = restantes.filter((l) => /^suporte\b/.test(n(l.descricao)));
@@ -473,5 +541,17 @@ export function comporPedido(catalogo: ItemCatalogo[], linhas: LinhaPedido[]): C
   }
 
   for (const l of restantes) resolverLinha(catalogo, l, res);
+
+  // Regra 4: nenhuma linha do pedido pode desaparecer em silêncio — o que não virou item,
+  // pergunta ou aviso de "não cotado" volta como pergunta numerada.
+  const citada = (d: string) => {
+    const k = normalizar(d);
+    const textos = [...res.perguntas, ...res.naoCotados, ...res.suposicoes, ...res.composicoes].map(normalizar);
+    return textos.some((t) => t.includes(k)) || res.itens.some((i) => normalizar(i.origem) === k);
+  };
+  for (const l of linhas || []) {
+    if (!String(l?.descricao || '').trim() || citada(l.descricao)) continue;
+    res.perguntas.push(`"${l.descricao}": não consegui encaixar esse item no catálogo. Qual produto usar?`);
+  }
   return res;
 }

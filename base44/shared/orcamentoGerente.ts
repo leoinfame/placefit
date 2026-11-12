@@ -139,6 +139,22 @@ Quando for "orcamento", devolva o pedido COMPLETO já atualizado: o RASCUNHO ATU
   aspas depois de "Usar" naquela pergunta como a nova descricao do item (mantenha a quantidade). "Não" mantém o item
   como estava. Se ele escolheu outra opção listada, use o NOME EXATO dela.
 - frete_informado: valor em reais se ele disse o frete; -1 se não disse (mantenha o do rascunho, se houver).
+
+REGRAS DO ORÇAMENTO (valem em toda mensagem):
+- Fonte única: o orçamento é o pedido original + TODAS as correções já dadas na conversa. Remonte sempre o pedido
+  COMPLETO (RASCUNHO ATUAL + correções), nunca só o que veio na última mensagem.
+- Correção confirmada vale até alguém mudar: nunca volte um item, peso, acabamento, furo ou quantidade ao valor
+  anterior por conta própria. Só muda o que a mensagem mandar mudar; o resto fica exatamente como estava.
+- Item confirmado não some: ao ajustar um item, mantenha todos os outros. Item sem correspondência no catálogo vira
+  pergunta numerada, nunca é apagado em silêncio.
+- Furação olímpica: se QUALQUER anilha ou barra do pedido é olímpica (furo de 50 mm), então TODAS as anilhas e barras
+  são olímpicas — inclusive barra de 1,5 m e barra W/EZ, com requisitos ["olimpica"] em cada uma. Não misture furo
+  padrão com olímpico, salvo se o cliente pedir furo padrão explicitamente naquele item.
+- Par não é unidade: o preço é por unidade. "10 pares" = 20 unidades — marque por_par true e mantenha a quantidade
+  em pares (o sistema dobra na conta).
+- Acessórios (puxadores, presilhas, suportes): ofereça as opções uma vez, numeradas; escolhida uma, aplique-a. Nunca
+  diga que não existe no catálogo algo que você mesmo já ofereceu.
+
 Nunca invente produto, cliente nem valor. Quando for "consulta", devolva cliente vazio, cep_entrega "", itens [] e frete_informado -1.`;
 
 /** Item cujas palavras (pelo menos metade) não aparecem na mensagem nem no rascunho veio de outro lugar. */
@@ -313,7 +329,69 @@ async function resolverCliente(base44: any, tenantId: string, pedido: any) {
 }
 
 // ── Montagem (determinística) ────────────────────────────────────────────────
-export async function montarRascunho(base44: any, tenantId: string, pedido: any, anterior: any) {
+
+/**
+ * Regra 5: sanidade das quantidades antes de gravar. Cada quantidade tem que existir no pedido
+ * (ou no rascunho anterior) e o total não pode explodir em relação ao rascunho. O que divergir
+ * NÃO é gravado: vira pergunta numerada com a divergência.
+ */
+export function sanidadeQuantidades(itens: any[], fonte: string, anteriores: any[] = []): string[] {
+  const nums = new Set<number>();
+  for (const m of String(fonte || '').match(/\d+(?:[.,]\d+)*/g) || []) {
+    const cru = String(m).replace(/[.,]/g, '');
+    if (cru) nums.add(Number(cru));
+    const ponto = String(m).replace(/\./g, '').replace(',', '.');
+    if (!Number.isNaN(Number(ponto))) nums.add(Number(ponto));
+  }
+  // Quantidade escrita em palavra ("dez anilhas") também vale como número do pedido
+  const EM_PALAVRA: Record<string, number> = {
+    um: 1, uma: 1, dois: 2, duas: 2, tres: 3, quatro: 4, cinco: 5, seis: 6, sete: 7, oito: 8, nove: 9,
+    dez: 10, onze: 11, doze: 12, quinze: 15, vinte: 20, trinta: 30, quarenta: 40, cinquenta: 50, cem: 100
+  };
+  for (const p of normalizar(fonte).split(' ')) if (EM_PALAVRA[p]) nums.add(EM_PALAVRA[p]);
+  const antes = new Map((anteriores || []).map((a: any) => [normalizar(a?.descricao || ''), Number(a?.quantidade) || 0]));
+  const fmt = (v: number) => v.toLocaleString('pt-BR');
+  const alertas: string[] = [];
+  let soma = 0;
+  let somaAnt = 0;
+  for (const it of itens || []) {
+    const q = Number(it?.quantidade) || 0;
+    soma += q;
+    const antigo = antes.get(normalizar(it?.descricao || ''));
+    if (antigo) somaAnt += antigo;
+    if (!(q > 1)) continue;
+    if (antigo === q) continue; // já estava no rascunho, conferido quando entrou
+    if (nums.has(q) || nums.has(q / 2)) continue; // número do pedido (ou metade, quando é em pares)
+    alertas.push(`"${String(it?.descricao || '').slice(0, 60)}": li ${fmt(q)} unidade(s) e esse número não está no pedido. Qual é a quantidade certa?`);
+  }
+  if (somaAnt > 0 && soma > somaAnt * 5 && soma - somaAnt > 20) {
+    alertas.push(`Conferência de quantidade: o rascunho tinha ${fmt(somaAnt)} unidade(s) e esta montagem ficou com ${fmt(soma)}. Não gravei com essa diferença — confirma as quantidades?`);
+  }
+  return alertas;
+}
+
+/** Nomes de produto que JÁ oferecemos ao dono/cliente (o que vem depois de "Usar", "Outra opção"). */
+export function opcoesOferecidas(perguntas: string[] = []) {
+  const nomes: { nome: string; chave: string }[] = [];
+  for (const p of perguntas || []) {
+    const texto = String(p || '');
+    const trechos = [texto.split(/\bUsar\b/)[1] || '', ...texto.split(/Outra opção:|Outras opções:|Outras:/).slice(1)];
+    for (const t of trechos) for (const m of t.matchAll(/"([^"]{3,})"/g)) nomes.push({ nome: m[1], chave: normalizar(m[1]) });
+  }
+  return nomes;
+}
+
+const semRepetir = (lista: string[]) => {
+  const vistos = new Set<string>();
+  return lista.filter((p) => {
+    const k = normalizar(p).slice(0, 90);
+    if (vistos.has(k)) return false;
+    vistos.add(k);
+    return true;
+  });
+};
+
+export async function montarRascunho(base44: any, tenantId: string, pedido: any, anterior: any, fonteTexto = '') {
   const perguntas: string[] = [];
   const ressalvas: string[] = [];
 
@@ -326,6 +404,28 @@ export async function montarRascunho(base44: any, tenantId: string, pedido: any,
   if (!pedido.itens?.length) perguntas.push('Quais itens e quantidades?');
   const comp = comporPedido(catalogo, pedido.itens || []);
   perguntas.push(...comp.perguntas);
+
+  // Regra 5: quantidade divergente do pedido não grava, pergunta
+  perguntas.push(...sanidadeQuantidades(pedido.itens || [], fonteTexto, anterior?.pedido?.itens || []));
+
+  // Regra 7: nunca dizer "não há no catálogo" de uma opção que nós mesmos já oferecemos
+  const oferecidas = opcoesOferecidas(anterior?.perguntas || []);
+  comp.naoCotados = comp.naoCotados.filter((linha) => {
+    const descricao = (String(linha).match(/"([^"]+)"/) || ['', ''])[1];
+    const alvo = normalizar(descricao);
+    const nosItens = comp.itens.some((i) => {
+      const nome = normalizar(i.item.nome);
+      return nome === alvo || nome.includes(alvo) || alvo.includes(nome);
+    });
+    if (nosItens) return false; // já entrou no orçamento: não repete o aviso
+    const oferecida = alvo ? oferecidas.find((o) => o.chave === alvo || o.chave.includes(alvo) || alvo.includes(o.chave)) : null;
+    if (oferecida) {
+      const pergunta = `Eu já te ofereci "${oferecida.nome}" para "${descricao}". Uso essa opção? Se preferir outra, me diz o nome.`;
+      if (!perguntas.some((p) => normalizar(p).includes(normalizar(oferecida.nome)))) perguntas.push(pergunta);
+      return false;
+    }
+    return true;
+  });
 
   const avisosUnidade: string[] = [];
   const itens = comp.itens.map(({ item: it, quantidade, origem }) => {
@@ -399,6 +499,7 @@ export async function montarRascunho(base44: any, tenantId: string, pedido: any,
   const refeito = r2(itens.reduce((s, i) => s + r2(i.preco_unitario * i.quantidade), 0));
   if (refeito !== subtotal || r2(refeito + (frete || 0)) !== total) ressalvas.push(`Conferência: subtotal refeito ${brl(refeito)} x ${brl(subtotal)}. Confere antes de usar.`);
   const pronto = perguntas.length === 0 && !!cliente && itens.length > 0 && frete !== null;
+  perguntas.splice(0, perguntas.length, ...semRepetir(perguntas));
   return {
     pedido, cliente, itens, subtotal, peso_total: pesoTotal, frete, frete_origem: freteOrigem, frete_obs: freteObs, total,
     composicoes: comp.composicoes, suposicoes, ressalvas, perguntas, pronto, nao_cotados: comp.naoCotados,
@@ -497,16 +598,26 @@ export async function gravar(base44: any, tenantId: string, r: any, opcoes: { ob
     });
   }
 
-  // Conferência: relê o que foi salvo (fonte do PDF do painel) e compara itens, frete e total
-  const salvo = (await db.Pedido.filter({ id: p.id }, '-created_date', 1))?.[0];
-  const divergencias: string[] = [];
-  if (!salvo) divergencias.push('não consegui reler o orçamento salvo');
-  else {
-    if ((salvo.itens || []).length !== r.itens.length) divergencias.push(`itens: ${(salvo.itens || []).length} salvos x ${r.itens.length} montados`);
-    const somaItens = r2((salvo.itens || []).reduce((s: number, i: any) => s + (Number(i.subtotal) || 0), 0));
-    if (somaItens !== r.subtotal) divergencias.push(`subtotal: ${brl(somaItens)} salvo x ${brl(r.subtotal)}`);
-    if (r2(salvo.frete) !== r2(r.frete || 0)) divergencias.push(`frete: ${brl(salvo.frete)} salvo x ${brl(r.frete || 0)}`);
-    if (r2(salvo.total) !== r.total || r2(somaItens + r2(salvo.frete) - r2(salvo.desconto)) !== r.total) divergencias.push(`total: ${brl(salvo.total)} salvo x ${brl(r.total)}`);
+  // Regra 6: o gravado tem que ser idêntico à última montagem apresentada
+  const conferir = async () => {
+    const salvo = (await db.Pedido.filter({ id: p.id }, '-created_date', 1))?.[0];
+    const divergencias: string[] = [];
+    if (!salvo) divergencias.push('não consegui reler o orçamento salvo');
+    else {
+      if ((salvo.itens || []).length !== r.itens.length) divergencias.push(`itens: ${(salvo.itens || []).length} salvos x ${r.itens.length} montados`);
+      const somaItens = r2((salvo.itens || []).reduce((s: number, i: any) => s + (Number(i.subtotal) || 0), 0));
+      if (somaItens !== r.subtotal) divergencias.push(`subtotal: ${brl(somaItens)} salvo x ${brl(r.subtotal)}`);
+      if (r2(salvo.frete) !== r2(r.frete || 0)) divergencias.push(`frete: ${brl(salvo.frete)} salvo x ${brl(r.frete || 0)}`);
+      if (r2(salvo.total) !== r.total || r2(somaItens + r2(salvo.frete) - r2(salvo.desconto)) !== r.total) divergencias.push(`total: ${brl(salvo.total)} salvo x ${brl(r.total)}`);
+    }
+    return { salvo, divergencias };
+  };
+  let { salvo, divergencias } = await conferir();
+  // Não bateu com o que foi mostrado: corrige na hora e confere de novo antes de responder
+  if (divergencias.length) {
+    await db.Pedido.update(p.id, dados);
+    ({ salvo, divergencias } = await conferir());
+    if (divergencias.length) divergencias.push('tentei regravar e continuou diferente');
   }
   return { pedido: salvo || p, divergencias };
 }
@@ -562,7 +673,8 @@ export async function tratarOrcamentoGerente(base44: any, tenantId: string, conv
   const { ficam, fora } = itensComOrigem(pedido.itens || [], fonte);
   pedido.itens = ficam;
 
-  const r = await montarRascunho(base44, tenantId, pedido, base);
+  // Regra 5: a sanidade compara as quantidades com o que o dono realmente disse
+  const r = await montarRascunho(base44, tenantId, pedido, base, [texto, ...doDono].join(' '));
   if (fora.length) r.suposicoes.unshift(`Ignorei ${fora.map((d) => `"${d}"`).join(', ')}: não está na sua mensagem nem no rascunho.`);
   if (!r.pronto) {
     await salvarRascunho(base44, conversa, r);

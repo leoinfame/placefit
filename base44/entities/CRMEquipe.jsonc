@@ -1,0 +1,100 @@
+{
+  "name": "CRMEquipe",
+  "type": "object",
+  "description": "Membro da equipe de atendimento de uma conta do CRM WhatsApp. O dono (owner_id) cadastra quem atende, com qual papel e por quais n\u00fameros (whatsapp_connections).",
+  "properties": {
+    "owner_id": {
+      "type": "string",
+      "description": "ID do User dono da conta do CRM (tenant)"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "ID do User que atende"
+    },
+    "nome": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "papel": {
+      "type": "string",
+      "enum": [
+        "dono",
+        "supervisor",
+        "atendente"
+      ],
+      "default": "atendente",
+      "description": "dono e supervisor veem todas as conversas da conta; atendente v\u00ea s\u00f3 as atribu\u00eddas a ele"
+    },
+    "connection_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs de whatsapp_connections pelos quais este membro atende. Vazio = todos os n\u00fameros da conta."
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "owner_id",
+    "user_id",
+    "papel"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.owner_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.owner_id": "{{user.id}}"
+        },
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.owner_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.owner_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
