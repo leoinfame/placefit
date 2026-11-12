@@ -1,6 +1,7 @@
 {
   "description": "Conversa comercial do CRM WhatsApp, isolada por usu\u00e1rio respons\u00e1vel.",
   "name": "CRMConversa",
+  "type": "object",
   "properties": {
     "ativo": {
       "default": true,
@@ -69,6 +70,26 @@
     },
     "ultima_mensagem": {
       "type": "string"
+    },
+    "listas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs de CRMLista em que esta conversa est\u00e1. V\u00e1rias ao mesmo tempo (segmentos e a\u00e7\u00f5es)."
+    },
+    "atendente_id": {
+      "type": "string",
+      "description": "ID do User (membro de CRMEquipe) respons\u00e1vel por esta conversa. Vazio = sem atendente, fica com o dono."
+    },
+    "atribuida_em": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Quando a conversa foi atribu\u00edda ao atendente atual"
+    },
+    "connection_id": {
+      "type": "string",
+      "description": "ID de whatsapp_connections: por qual n\u00famero comercial a conversa acontece"
     }
   },
   "required": [
@@ -76,7 +97,6 @@
     "nome_contato",
     "telefone"
   ],
-  "type": "object",
   "x-security": {
     "create": "authenticated",
     "delete": "authenticated",
@@ -90,6 +110,9 @@
           "data.owner_id": "{{user.id}}"
         },
         {
+          "data.atendente_id": "{{user.id}}"
+        },
+        {
           "user_condition": {
             "role": "admin"
           }
@@ -100,6 +123,9 @@
       "$or": [
         {
           "data.owner_id": "{{user.id}}"
+        },
+        {
+          "data.atendente_id": "{{user.id}}"
         },
         {
           "user_condition": {
