@@ -1,0 +1,41 @@
+{
+  "name": "Etapa do funil por pedido",
+  "description": "Item 028: or\u00e7amento criado leva a conversa do cliente para 'orcamento' e pedido que vira venda leva para 'ganho'. S\u00f3 avan\u00e7a, nunca volta, e n\u00e3o cria conversa para quem n\u00e3o tem.",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "Pedido",
+      "events": [
+        "create",
+        "update"
+      ]
+    },
+    "condition": "${ (.trigger.data.tipo == \"orcamento\") or (.trigger.data.tipo == \"venda\" and .trigger.data.status != \"cancelado\") }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "etapa_do_funil_por_pedido",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "mover_etapa": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "funilPedido",
+            "args": {
+              "pedido_id": "${ .trigger.entity_id }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Mover etapa do CRM",
+            "description": "S\u00f3 avan\u00e7a o funil do cliente"
+          }
+        }
+      }
+    ]
+  }
+}

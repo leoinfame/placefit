@@ -1,0 +1,41 @@
+{
+  "name": "Monitor do CRM",
+  "description": "Item 023: a cada 15 min confere resposta autom\u00e1tica, tabela, funil e WhatsApp de cada revenda e avisa o dono (painel + gerente 8509).",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "*/15 * * * *",
+      "one_time_date": null,
+      "timezone": "America/Sao_Paulo",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "then": "end",
+          "with": {
+            "args": {},
+            "function_name": "monitor-crm"
+          }
+        }
+      }
+    ],
+    "document": {
+      "dsl": "1.0.0",
+      "name": "monitor_do_crm",
+      "namespace": "base44",
+      "version": "1.0"
+    }
+  }
+}

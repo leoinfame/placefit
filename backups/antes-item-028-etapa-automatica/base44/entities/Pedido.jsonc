@@ -1,0 +1,165 @@
+{
+  "name": "Pedido",
+  "type": "object",
+  "properties": {
+    "fornecedor_id": {
+      "type": "string",
+      "description": "ID do fornecedor que criou o pedido"
+    },
+    "cliente_id": {
+      "type": "string",
+      "description": "ID do cliente"
+    },
+    "cliente_nome": {
+      "type": "string",
+      "description": "Nome do cliente para facilitar busca"
+    },
+    "numero_pedido": {
+      "type": "string",
+      "description": "Número do pedido"
+    },
+    "data_pedido": {
+      "type": "string",
+      "format": "date",
+      "description": "Data do pedido"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "orcamento",
+        "venda"
+      ],
+      "default": "orcamento",
+      "description": "Se é orçamento ou venda concluída"
+    },
+    "itens": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "product_id": {
+            "type": "string"
+          },
+          "cod": {
+            "type": "string"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "quantidade": {
+            "type": "number"
+          },
+          "preco_unitario": {
+            "type": "number"
+          },
+          "subtotal": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Lista de produtos do pedido"
+    },
+    "subtotal": {
+      "type": "number",
+      "description": "Subtotal dos produtos"
+    },
+    "frete": {
+      "type": "number",
+      "default": 0,
+      "description": "Valor do frete"
+    },
+    "desconto": {
+      "type": "number",
+      "default": 0,
+      "description": "Valor do desconto"
+    },
+    "total": {
+      "type": "number",
+      "description": "Total do pedido"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pendente",
+        "confirmado",
+        "em_separacao",
+        "enviado",
+        "entregue",
+        "cancelado"
+      ],
+      "default": "pendente",
+      "description": "Status do pedido"
+    },
+    "observacoes": {
+      "type": "string",
+      "description": "Observações sobre o pedido"
+    }
+  },
+  "required": [
+    "fornecedor_id",
+    "cliente_id",
+    "itens"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.fornecedor_id": "{{user.id}}"
+        },
+        {
+          "data.cliente_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "data.fornecedor_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.fornecedor_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.fornecedor_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

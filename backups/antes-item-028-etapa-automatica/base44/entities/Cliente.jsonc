@@ -1,0 +1,114 @@
+{
+  "name": "Cliente",
+  "type": "object",
+  "properties": {
+    "fornecedor_id": {
+      "type": "string",
+      "description": "ID do fornecedor dono deste cliente"
+    },
+    "nome": {
+      "type": "string",
+      "description": "Nome do cliente"
+    },
+    "cpf_cnpj": {
+      "type": "string",
+      "description": "CPF ou CNPJ do cliente"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email do cliente"
+    },
+    "telefone": {
+      "type": "string",
+      "description": "Telefone do cliente"
+    },
+    "endereco": {
+      "type": "string",
+      "description": "Endereço completo"
+    },
+    "cidade": {
+      "type": "string",
+      "description": "Cidade"
+    },
+    "estado": {
+      "type": "string",
+      "description": "Estado"
+    },
+    "cep": {
+      "type": "string",
+      "description": "CEP"
+    },
+    "observacoes": {
+      "type": "string",
+      "description": "Observações sobre o cliente"
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Se o cliente está ativo"
+    }
+  },
+  "required": [
+    "fornecedor_id",
+    "nome"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.fornecedor_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "data.fornecedor_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.fornecedor_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.fornecedor_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

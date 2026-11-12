@@ -1,0 +1,15 @@
+Restore point manual — item 028 (etapa automática do funil do CRM).
+Criado em 2026-11-12 01:26 (America/Sao_Paulo).
+Para desfazer: copie o arquivo de volta para o mesmo caminho dentro do app.
+
+Arquivos (sha256 curto):
+  9759d681b230ccc4  base44/entities/CRMConversa.jsonc
+  4c62c9f4cb4300ea  base44/entities/Cliente.jsonc
+  9667012304057da6  base44/entities/Pedido.jsonc
+  a6cd1d7ce38856cc  base44/functions/crm-whatsapp/entry.ts
+  87fd98a405eba8cb  base44/shared/funilCrm.js
+  3a7faaff3a691d1a  base44/workflows/Monitor do CRM.jsonc
+  6a15fcb5cb99cab7  base44/workflows/Sincronizar SupplierProduct com Google Merchant.jsonc
+  c0a72e5d3598ecce  base44/workflows/Sincronizar SupplierProduct com Google UCP.jsonc
+  92d41c38a6d477cf  src/components/crm/CRMWhatsApp.jsx
+  f806576a8711f451  src/pages/Orcamentos.jsx
