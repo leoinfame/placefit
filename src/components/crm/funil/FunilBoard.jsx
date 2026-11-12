@@ -6,6 +6,8 @@ import { STAGES, corDoTempo, tempoDesde } from "@/components/crm/funil/etapasFun
 // Funil comercial arrastável: cada coluna é uma etapa da CRMConversa.
 // Soltar um card em outra coluna chama onMover(conversa, etapa) — quem grava
 // é a tela do CRM, com reversão automática se o salvamento falhar.
+// O card é uma div (não um botão): a biblioteca de arraste recusa iniciar o
+// gesto quando o clique cai dentro de button/input/select (bloqueio silencioso).
 export default function FunilBoard({ conversas = [], orcInfo = {}, agora, nomeContato, nomeTelefone, onAbrir, onMover }) {
   const ultimoArrasto = useRef(0);
 
@@ -46,7 +48,7 @@ export default function FunilBoard({ conversas = [], orcInfo = {}, agora, nomeCo
                   </div>
                   <div className="space-y-2">
                     {rows.map((conversation, index) => (
-                      <Draggable draggableId={conversation.id} index={index} key={conversation.id}>
+                      <Draggable draggableId={conversation.id} index={index} key={conversation.id} disableInteractiveElementBlocking>
                         {(dragProvided, dragSnapshot) => (
                           <div
                             ref={dragProvided.innerRef}
@@ -55,10 +57,9 @@ export default function FunilBoard({ conversas = [], orcInfo = {}, agora, nomeCo
                             style={dragProvided.draggableProps.style}
                             className={dragSnapshot.isDragging ? "opacity-95" : ""}
                           >
-                            <button
-                              type="button"
+                            <div
                               onClick={() => abrir(conversation)}
-                              className={"w-full cursor-grab rounded-xl border bg-white p-3 text-left active:cursor-grabbing " + (dragSnapshot.isDragging ? "border-emerald-400 shadow-lg" : "border-slate-200 hover:border-emerald-300")}
+                              className={"w-full cursor-grab select-none rounded-xl border bg-white p-3 text-left active:cursor-grabbing " + (dragSnapshot.isDragging ? "border-emerald-400 shadow-lg" : "border-slate-200 hover:border-emerald-300")}
                             >
                               <p className="text-sm font-semibold text-slate-900">{nomeContato(conversation)}</p>
                               <p className="mt-1 text-xs text-slate-500">{nomeTelefone(conversation)}</p>
@@ -78,7 +79,7 @@ export default function FunilBoard({ conversas = [], orcInfo = {}, agora, nomeCo
                                   </p>
                                 </div>
                               )}
-                            </button>
+                            </div>
                           </div>
                         )}
                       </Draggable>
