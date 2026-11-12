@@ -1,15 +1,26 @@
-import React, { useRef } from "react";
+import React, { useMemo, useRef } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Badge } from "@/components/ui/badge";
 import { STAGES, corDoTempo, tempoDesde } from "@/components/crm/funil/etapasFunil";
+import { visualDaEtapa } from "@/lib/crmEtapas";
 
 // Funil comercial arrastável: cada coluna é uma etapa da CRMConversa.
 // Soltar um card em outra coluna chama onMover(conversa, etapa) — quem grava
 // é a tela do CRM, com reversão automática se o salvamento falhar.
 // O card é uma div (não um botão): a biblioteca de arraste recusa iniciar o
 // gesto quando o clique cai dentro de button/input/select (bloqueio silencioso).
-export default function FunilBoard({ conversas = [], orcInfo = {}, agora, nomeContato, nomeTelefone, onAbrir, onMover }) {
+export default function FunilBoard({ conversas = [], etapas = [], orcInfo = {}, agora, nomeContato, nomeTelefone, onAbrir, onMover }) {
   const ultimoArrasto = useRef(0);
+
+  // Colunas = etapas configuradas na conta (CRM → Configuração). Antes de
+  // carregarem, cai na lista padrão para o quadro nunca ficar vazio.
+  const colunas = useMemo(() => {
+    if (etapas.length) return etapas.map((etapa) => ({ chave: etapa.chave, nome: etapa.nome, ...visualDaEtapa(etapa.cor) }));
+    return STAGES.map((stage) => ({ chave: stage.value, nome: stage.label, color: stage.color, dot: stage.dot }));
+  }, [etapas]);
+
+  // Conversa numa etapa que não existe mais aparece na primeira coluna, em vez de sumir.
+  const chaveDa = (conversa) => colunas.some((coluna) => coluna.chave === conversa.etapa) ? conversa.etapa : colunas[0]?.chave;
 
   function aoSoltar({ source, destination, draggableId }) {
     ultimoArrasto.current = Date.now();
@@ -29,10 +40,10 @@ export default function FunilBoard({ conversas = [], orcInfo = {}, agora, nomeCo
   return (
     <DragDropContext onDragEnd={aoSoltar}>
       <div className="grid gap-4 overflow-x-auto pb-3 md:grid-cols-2 xl:grid-cols-3">
-        {STAGES.map((stage) => {
-          const rows = conversas.filter((conversation) => (conversation.etapa || "novo") === stage.value);
+        {colunas.map((stage) => {
+          const rows = conversas.filter((conversation) => chaveDa(conversation) === stage.chave);
           return (
-            <Droppable droppableId={stage.value} key={stage.value}>
+            <Droppable droppableId={stage.chave} key={stage.chave}>
               {(dropProvided, dropSnapshot) => (
                 <div
                   ref={dropProvided.innerRef}
@@ -42,7 +53,7 @@ export default function FunilBoard({ conversas = [], orcInfo = {}, agora, nomeCo
                   <div className="mb-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className={"h-2.5 w-2.5 rounded-full " + stage.dot} />
-                      <span className="text-sm font-semibold text-slate-800">{stage.label}</span>
+                      <span className="text-sm font-semibold text-slate-800">{stage.nome}</span>
                     </div>
                     <Badge variant="secondary">{rows.length}</Badge>
                   </div>

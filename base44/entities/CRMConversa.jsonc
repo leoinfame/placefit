@@ -16,16 +16,7 @@
     },
     "etapa": {
       "default": "novo",
-      "enum": [
-        "novo",
-        "atendimento",
-        "orcamento",
-        "aguardando_resposta",
-        "negociacao",
-        "ganho",
-        "perdido"
-      ],
-      "description": "Etapa do funil comercial. Anda sozinha s\u00f3 para frente (base44/shared/funilAutomatico.ts); a troca manual no painel sempre vale e 'perdido' \u00e9 sempre manual.",
+      "description": "Chave da etapa do funil comercial. As etapas s\u00e3o configur\u00e1veis em CRM \u2192 Configura\u00e7\u00e3o (entidade CRMEtapa); as chaves padr\u00e3o (novo, atendimento, orcamento, aguardando_resposta, negociacao, ganho, perdido) continuam sendo as usadas pela automa\u00e7\u00e3o, que s\u00f3 anda para frente. A troca manual no painel sempre vale e 'perdido' \u00e9 sempre manual.",
       "type": "string"
     },
     "nao_lidas": {

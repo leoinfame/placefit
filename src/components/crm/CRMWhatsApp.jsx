@@ -20,7 +20,9 @@ import ProximoPassoBotao from "@/components/crm/gamificacao/ProximoPassoBotao";
 import GamificacaoTab from "@/components/crm/gamificacao/GamificacaoTab";
 import { ChipLista, FiltroListas, ListasDaConversa } from "@/components/crm/ListasCRM";
 import FunilBoard from "@/components/crm/funil/FunilBoard";
-import { STAGES, stageFor, quandoUTC } from "@/components/crm/funil/etapasFunil";
+import ConfigEtapas from "@/components/crm/config/ConfigEtapas";
+import { quandoUTC } from "@/components/crm/funil/etapasFunil";
+import { carregarEtapas, chaveDeEtapa, ordenarEtapas, visualDaEtapa } from "@/lib/crmEtapas";
 import {
   ArrowUpRight, Check, CheckCheck, CircleAlert, Copy,
   FileText, LayoutGrid, Loader2, MessageCircle, MessageSquare, Plus, RefreshCw,
@@ -87,6 +89,8 @@ export default function CRMWhatsApp() {
   const [templates, setTemplates] = useState([]);
   // Listas do CRM (CRMLista): segmentos e ações; uma conversa pode estar em várias.
   const [listas, setListas] = useState([]);
+  // Etapas do funil (CRMEtapa): configuráveis em Configuração. A ordem define as colunas.
+  const [etapas, setEtapas] = useState([]);
   const [filtroLista, setFiltroLista] = useState("todas");
   const [selectedId, setSelectedId] = useState("");
   const [tab, setTab] = useState("conversas");
@@ -209,16 +213,18 @@ export default function CRMWhatsApp() {
   async function loadWorkspace(id) {
     setLoading(true);
     try {
-      const [rows, customerRows, templateRows, result, listaRows] = await Promise.all([
+      const [rows, customerRows, templateRows, result, listaRows, etapaRows] = await Promise.all([
         loadConversations(id),
         base44.entities.Cliente.filter({ fornecedor_id: id }, "-created_date", 500).catch(() => []),
         base44.entities.CRMTemplate.filter({ owner_id: id, ativo: true }, "-updated_date", 200).catch(() => []),
         base44.functions.invoke("crm-whatsapp", { action: "status", owner_id: id }).catch(() => null),
-        base44.entities.CRMLista.filter({ owner_id: id, ativo: true }, "ordem", 200).catch(() => [])
+        base44.entities.CRMLista.filter({ owner_id: id, ativo: true }, "ordem", 200).catch(() => []),
+        carregarEtapas(id).catch(() => [])
       ]);
       setCustomers(customerRows || []);
       setTemplates(templateRows || []);
       setListas(listaRows || []);
+      setEtapas(etapaRows || []);
       setFiltroLista((atual) => atual === "todas" || atual === "sem_lista" || (listaRows || []).some((l) => l.id === atual) ? atual : "todas");
       setStatus(result?.data || null);
       setSelectedId((current) => rows.some((item) => item.id === current) ? current : (rows[0]?.id || ""));
@@ -346,6 +352,68 @@ export default function CRMWhatsApp() {
     } catch (error) {
       setConversations((items) => items.map((item) => item.id === conversation.id ? { ...item, etapa: anterior } : item));
       toast({ title: "Erro ao atualizar a etapa", description: error?.message, variant: "destructive" });
+    }
+  }
+
+  // Etapas configuráveis (CRM → Configuração): a coluna do funil, o seletor da
+  // conversa e os selos leem esta lista; a primeira etapa é o destino padrão.
+  const etapaVisual = (valor) => {
+    const encontrada = etapas.find((item) => item.chave === (valor || "")) || etapas[0];
+    return { nome: encontrada?.nome || "Novo contato", ...visualDaEtapa(encontrada?.cor) };
+  };
+
+  async function criarEtapa({ nome, cor }) {
+    const base = chaveDeEtapa(nome) || "etapa";
+    let chave = base;
+    let sufixo = 2;
+    while (etapas.some((item) => item.chave === chave)) { chave = base + "_" + sufixo; sufixo += 1; }
+    const ordem = etapas.reduce((max, item) => Math.max(max, Number(item.ordem || 0)), 0) + 1;
+    try {
+      const row = await base44.entities.CRMEtapa.create({ owner_id: ownerId, chave, nome, cor, ordem, sistema: false, ativo: true });
+      setEtapas((items) => ordenarEtapas([...items, row]));
+      toast({ title: "Etapa criada", description: "A coluna já aparece no funil comercial." });
+    } catch (error) {
+      toast({ title: "Não foi possível criar a etapa", description: error?.message, variant: "destructive" });
+    }
+  }
+
+  async function editarEtapa(etapa, { nome, cor }) {
+    try {
+      await base44.entities.CRMEtapa.update(etapa.id, { nome, cor });
+      setEtapas((items) => ordenarEtapas(items.map((item) => item.id === etapa.id ? { ...item, nome, cor } : item)));
+      toast({ title: "Etapa atualizada" });
+    } catch (error) {
+      toast({ title: "Não foi possível salvar a etapa", description: error?.message, variant: "destructive" });
+    }
+  }
+
+  async function moverEtapa(etapa, direcao) {
+    const lista = ordenarEtapas(etapas);
+    const indice = lista.findIndex((item) => item.id === etapa.id);
+    if (indice < 0 || !lista[indice + direcao]) return;
+    const trocadas = lista.map((item, posicao) => posicao === indice ? lista[indice + direcao] : posicao === indice + direcao ? etapa : item)
+      .map((item, posicao) => ({ ...item, ordem: posicao }));
+    setEtapas(trocadas);
+    try {
+      await base44.entities.CRMEtapa.bulkUpdate(trocadas.map((item) => ({ id: item.id, ordem: item.ordem })));
+    } catch (error) {
+      setEtapas(lista);
+      toast({ title: "Não foi possível reordenar", description: error?.message, variant: "destructive" });
+    }
+  }
+
+  async function excluirEtapa(etapa) {
+    if (etapa.sistema) return;
+    const destino = etapas.find((item) => item.chave !== etapa.chave);
+    if (!destino) return;
+    try {
+      await base44.entities.CRMConversa.updateMany({ owner_id: ownerId, etapa: etapa.chave }, { $set: { etapa: destino.chave } });
+      await base44.entities.CRMEtapa.delete(etapa.id);
+      setEtapas((items) => items.filter((item) => item.id !== etapa.id));
+      await loadConversations(ownerId);
+      toast({ title: "Etapa excluída", description: "As conversas dessa etapa foram para " + destino.nome + "." });
+    } catch (error) {
+      toast({ title: "Não foi possível excluir a etapa", description: error?.message, variant: "destructive" });
     }
   }
 
@@ -561,7 +629,7 @@ export default function CRMWhatsApp() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2"><p className="truncate text-sm font-semibold text-slate-900">{contactName(conversation)}</p><div className="flex shrink-0 items-center gap-1.5"><SemaforoBadge compacto semaforo={gam.dadosPorConversa[conversation.id]?.semaforo} /><span className="text-[11px] text-slate-400">{formatTime(conversation.ultima_interacao)}</span></div></div>
                       <p className="mt-0.5 truncate text-xs text-slate-500">{conversation.ultima_mensagem || contactPhone(conversation)}</p>
-                      <div className="mt-2 flex items-center justify-between"><div className="flex items-center gap-1.5"><Badge className={"border-0 text-[10px] " + stageFor(conversation.etapa).color}>{stageFor(conversation.etapa).label}</Badge><PlacarBadge compacto dados={gam.dadosPorConversa[conversation.id]} /></div>{conversation.nao_lidas > 0 && <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-semibold text-white">{conversation.nao_lidas}</span>}</div>
+                      <div className="mt-2 flex items-center justify-between"><div className="flex items-center gap-1.5"><Badge className={"border-0 text-[10px] " + etapaVisual(conversation.etapa).color}>{etapaVisual(conversation.etapa).nome}</Badge><PlacarBadge compacto dados={gam.dadosPorConversa[conversation.id]} /></div>{conversation.nao_lidas > 0 && <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-semibold text-white">{conversation.nao_lidas}</span>}</div>
                       {(conversation.listas || []).some((id) => listasPorId[id]) && (
                         <div className="mt-1.5 flex flex-wrap gap-1">{(conversation.listas || []).filter((id) => listasPorId[id]).map((id) => <ChipLista key={id} compacto lista={listasPorId[id]} />)}</div>
                       )}
@@ -579,7 +647,7 @@ export default function CRMWhatsApp() {
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div><p className="font-semibold text-slate-900">{contactName(selected)}</p><p className="text-xs text-slate-500">{contactPhone(selected)}</p></div>
                     <div className="flex items-center gap-2">
-                      <Select value={selected.etapa || "novo"} onValueChange={(value) => updateStage(selected, value)}><SelectTrigger className="h-9 w-[175px]"><SelectValue /></SelectTrigger><SelectContent>{STAGES.map((stage) => <SelectItem key={stage.value} value={stage.value}>{stage.label}</SelectItem>)}</SelectContent></Select>
+                      <Select value={selected.etapa || "novo"} onValueChange={(value) => updateStage(selected, value)}><SelectTrigger className="h-9 w-[175px]"><SelectValue /></SelectTrigger><SelectContent>{etapas.map((etapa) => <SelectItem key={etapa.chave} value={etapa.chave}>{etapa.nome}</SelectItem>)}</SelectContent></Select>
                       <Button variant="outline" size="icon" disabled={!telefoneReal(selected)} onClick={() => window.open("https://wa.me/" + telefoneReal(selected), "_blank", "noopener,noreferrer")} title={telefoneReal(selected) ? "Abrir no WhatsApp" : "Contato não identificado: sem telefone real"}><ArrowUpRight className="h-4 w-4" /></Button>
                     </div>
                   </div>
@@ -635,6 +703,7 @@ export default function CRMWhatsApp() {
           <FiltroListas listas={listas} conversas={conversations} valor={filtroLista} onChange={setFiltroLista} />
           <FunilBoard
             conversas={filtered}
+            etapas={etapas}
             orcInfo={orcInfo}
             agora={agora}
             nomeContato={contactName}
@@ -661,6 +730,7 @@ export default function CRMWhatsApp() {
         </TabsContent>
 
         <TabsContent value="configuracao" className="mt-0 space-y-4">
+          <ConfigEtapas etapas={etapas} onCriar={criarEtapa} onEditar={editarEtapa} onExcluir={excluirEtapa} onMover={moverEtapa} />
           <Card className="border-emerald-200 bg-emerald-50 shadow-none"><CardContent className="p-5"><div className="flex items-start gap-3"><Smartphone className="mt-0.5 h-5 w-5 text-emerald-700" /><div className="min-w-0 flex-1"><p className="font-semibold text-emerald-900">Webhook do CRM PlaceFit</p><p className="mt-1 text-sm text-emerald-800">Esta é a URL que o servidor WAHA chama a cada mensagem. O botão <strong>Conectar sessão</strong> abaixo já a cadastra sozinho — copie apenas se for configurar o WAHA na mão.</p><div className="mt-3 flex flex-wrap items-center gap-2"><code className="break-all rounded-lg bg-white px-3 py-2 text-xs text-slate-700">{webhookUrl}</code><Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(webhookUrl); toast({ title: "URL copiada" }); }}><Copy className="mr-1.5 h-3.5 w-3.5" />Copiar</Button></div></div></div></CardContent></Card>
           {ownerId === me?.id ? <WhatsAppSetup userId={ownerId} userType={me?.role === "admin" ? "admin" : "revendedor"} /> : <Card className="border-slate-200 shadow-none"><CardContent className="p-5"><p className="font-medium text-slate-800">Conta selecionada: {accounts.find((account) => account.id === ownerId)?.name}</p><p className="mt-2 text-sm text-slate-500">A conexão do WhatsApp é feita pelo próprio usuário em Atendente IA → WhatsApp, lendo o QR Code no celular. O administrador pode acompanhar conversas e enviar mensagens pelo CRM.</p><div className="mt-4 flex items-center gap-2"><Badge className={status?.configured ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}>{status?.configured ? "Credenciais configuradas" : "Credenciais pendentes"}</Badge>{status?.session_name && <span className="text-xs text-slate-500">Sessão: {status.session_name} · {status.session_status || "—"}</span>}</div></CardContent></Card>}
         </TabsContent>
