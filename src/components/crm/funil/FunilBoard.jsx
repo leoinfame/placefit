@@ -39,7 +39,7 @@ export default function FunilBoard({ conversas = [], etapas = [], orcInfo = {}, 
 
   return (
     <DragDropContext onDragEnd={aoSoltar}>
-      <div className="grid gap-4 overflow-x-auto pb-3 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-3 overflow-x-auto pb-3 md:grid-cols-5">
         {colunas.map((stage) => {
           const rows = conversas.filter((conversation) => chaveDa(conversation) === stage.chave);
           return (
