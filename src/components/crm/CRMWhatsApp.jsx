@@ -19,22 +19,14 @@ import BotControle from "@/components/crm/gamificacao/BotControle";
 import ProximoPassoBotao from "@/components/crm/gamificacao/ProximoPassoBotao";
 import GamificacaoTab from "@/components/crm/gamificacao/GamificacaoTab";
 import { ChipLista, FiltroListas, ListasDaConversa } from "@/components/crm/ListasCRM";
+import FunilBoard from "@/components/crm/funil/FunilBoard";
+import { STAGES, stageFor, quandoUTC } from "@/components/crm/funil/etapasFunil";
 import {
   ArrowUpRight, Check, CheckCheck, CircleAlert, Copy,
   FileText, LayoutGrid, Loader2, MessageCircle, MessageSquare, Plus, RefreshCw,
   Search, Send, Settings, Smartphone, Trash2, Trophy, Users, Wifi, WifiOff
 } from "lucide-react";
 
-const STAGES = [
-  { value: "novo", label: "Novo contato", color: "bg-slate-100 text-slate-700", dot: "bg-slate-400" },
-  { value: "atendimento", label: "Em atendimento", color: "bg-blue-100 text-blue-700", dot: "bg-blue-500" },
-  { value: "orcamento", label: "Orçamento", color: "bg-amber-100 text-amber-700", dot: "bg-amber-500" },
-  { value: "negociacao", label: "Negociação", color: "bg-violet-100 text-violet-700", dot: "bg-violet-500" },
-  { value: "ganho", label: "Venda ganha", color: "bg-emerald-100 text-emerald-700", dot: "bg-emerald-500" },
-  { value: "perdido", label: "Não convertido", color: "bg-rose-100 text-rose-700", dot: "bg-rose-500" }
-];
-
-const stageFor = (value) => STAGES.find((item) => item.value === value) || STAGES[0];
 const normalizePhone = (value) => {
   const digits = String(value || "").replace(/\D/g, "");
   if (!digits) return "";
@@ -66,23 +58,6 @@ const contactName = (conversation) => {
 };
 // Item 022d: tempo desde o orçamento, para o follow-up do funil.
 const ETAPAS_COM_ORCAMENTO = ["orcamento", "negociacao"];
-const quandoUTC = (s) => new Date(/Z|[+-]\d\d:?\d\d$/.test(String(s)) ? s : String(s) + "Z");
-const tempoDesde = (iso, agora) => {
-  if (!iso) return "";
-  const min = Math.max(0, Math.floor((agora - quandoUTC(iso).getTime()) / 60000));
-  if (min < 60) return min + " min";
-  const h = Math.floor(min / 60);
-  if (h < 24) return h + "h";
-  const d = Math.floor(h / 24);
-  const resto = h % 24;
-  return d + "d" + (resto ? " " + resto + "h" : "");
-};
-const corDoTempo = (iso, agora) => {
-  const horas = (agora - quandoUTC(iso).getTime()) / 3600000;
-  if (horas >= 72) return "bg-red-100 text-red-700";
-  if (horas >= 24) return "bg-amber-100 text-amber-800";
-  return "bg-slate-100 text-slate-600";
-};
 const formatTime = (value) => {
   if (!value) return "";
   const date = new Date(value);
@@ -359,11 +334,17 @@ export default function CRMWhatsApp() {
     }
   }
 
+  // Grava a etapa da conversa (fonte da verdade da coluna no funil). A tela muda
+  // na hora e volta ao lugar de origem se o salvamento falhar, para o card nunca
+  // aparecer numa coluna que não ficou gravada.
   async function updateStage(conversation, stage) {
+    const anterior = conversation.etapa;
+    if ((anterior || "novo") === stage) return;
+    setConversations((items) => items.map((item) => item.id === conversation.id ? { ...item, etapa: stage } : item));
     try {
       await base44.entities.CRMConversa.update(conversation.id, { etapa: stage });
-      setConversations((items) => items.map((item) => item.id === conversation.id ? { ...item, etapa: stage } : item));
     } catch (error) {
+      setConversations((items) => items.map((item) => item.id === conversation.id ? { ...item, etapa: anterior } : item));
       toast({ title: "Erro ao atualizar a etapa", description: error?.message, variant: "destructive" });
     }
   }
@@ -650,15 +631,15 @@ export default function CRMWhatsApp() {
         </TabsContent>
 
         <TabsContent value="funil" className="mt-0">
-          <div className="grid gap-4 overflow-x-auto pb-3 md:grid-cols-2 xl:grid-cols-3">
-            {STAGES.map((stage) => {
-              const rows = conversations.filter((conversation) => (conversation.etapa || "novo") === stage.value);
-              return <div key={stage.value} className="min-h-[220px] rounded-2xl border border-slate-200 bg-slate-50 p-3">
-                <div className="mb-3 flex items-center justify-between"><div className="flex items-center gap-2"><span className={"h-2.5 w-2.5 rounded-full " + stage.dot} /><span className="text-sm font-semibold text-slate-800">{stage.label}</span></div><Badge variant="secondary">{rows.length}</Badge></div>
-                <div className="space-y-2">{rows.map((conversation) => <button key={conversation.id} onClick={() => { setSelectedId(conversation.id); setTab("conversas"); }} className="w-full rounded-xl border border-slate-200 bg-white p-3 text-left hover:border-emerald-300"><p className="text-sm font-semibold text-slate-900">{contactName(conversation)}</p><p className="mt-1 text-xs text-slate-500">{contactPhone(conversation)}</p><p className="mt-2 truncate text-xs text-slate-400">{conversation.ultima_mensagem || "Sem mensagens"}</p>{orcInfo[conversation.id] && <div className="mt-2 space-y-1"><div className={"inline-flex rounded-md px-2 py-0.5 text-[11px] font-medium " + corDoTempo(orcInfo[conversation.id].criado, agora)} title={"Orçamento " + orcInfo[conversation.id].numero}>Orçamento há {tempoDesde(orcInfo[conversation.id].criado, agora)}</div><p className={"text-[11px] " + (orcInfo[conversation.id].retorno ? "text-emerald-700" : "text-slate-500")}>{orcInfo[conversation.id].retorno ? "Cliente respondeu há " + tempoDesde(orcInfo[conversation.id].retorno, agora) : "Sem retorno do cliente desde o orçamento"}</p></div>}</button>)}</div>
-              </div>;
-            })}
-          </div>
+          <FunilBoard
+            conversas={conversations}
+            orcInfo={orcInfo}
+            agora={agora}
+            nomeContato={contactName}
+            nomeTelefone={contactPhone}
+            onAbrir={(id) => { setSelectedId(id); setTab("conversas"); }}
+            onMover={updateStage}
+          />
         </TabsContent>
 
         <TabsContent value="gamificacao" className="mt-0">

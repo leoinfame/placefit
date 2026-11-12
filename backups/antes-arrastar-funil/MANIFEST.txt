@@ -1,0 +1,10 @@
+Restore point: antes-arrastar-funil
+Criado em: 2026-11-12 (America/Sao_Paulo)
+Motivo: antes de permitir arrastar os cards entre as colunas do Funil comercial
+        no CRM WhatsApp (gravar CRMConversa.etapa ao soltar).
+
+Conteudo (como restaurar: copiar de volta mantendo os caminhos):
+- src/components/crm/CRMWhatsApp.jsx   -> aba "Funil comercial" (markup das colunas)
+- base44/entities/CRMConversa.jsonc    -> schema com o campo etapa (fonte da verdade da coluna)
+
+Nada foi publicado. Nenhum registro do banco foi alterado por este backup.

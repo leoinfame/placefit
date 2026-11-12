@@ -1,0 +1,150 @@
+{
+  "description": "Conversa comercial do CRM WhatsApp, isolada por usu\u00e1rio respons\u00e1vel.",
+  "name": "CRMConversa",
+  "type": "object",
+  "properties": {
+    "ativo": {
+      "default": true,
+      "type": "boolean"
+    },
+    "cliente_id": {
+      "type": "string"
+    },
+    "contato_lid": {
+      "description": "Item 022 (02/11/2026): identificador opaco (LID) do contato no WhatsApp, s\u00f3 d\u00edgitos. \u00c9 alias, nunca telefone. Conversa com contato_lid e telefone vazio = contato n\u00e3o identificado (sem cliente, sem n\u00famero exibido).",
+      "type": "string"
+    },
+    "etapa": {
+      "default": "novo",
+      "enum": [
+        "novo",
+        "atendimento",
+        "orcamento",
+        "negociacao",
+        "ganho",
+        "perdido"
+      ],
+      "type": "string"
+    },
+    "nao_lidas": {
+      "default": 0,
+      "type": "integer"
+    },
+    "nome_contato": {
+      "type": "string"
+    },
+    "observacoes": {
+      "type": "string"
+    },
+    "origem": {
+      "default": "whatsapp",
+      "type": "string"
+    },
+    "owner_id": {
+      "type": "string"
+    },
+    "pendencia": {
+      "description": "O que o respondedor autom\u00e1tico prometeu confirmar com o time (dado fora do cat\u00e1logo: pre\u00e7o, frete, prazo, estoque...). Uma linha por pend\u00eancia, com data. Limpar quando o time resolver.",
+      "type": "string"
+    },
+    "pendencia_em": {
+      "description": "Quando a \u00faltima pend\u00eancia foi registrada",
+      "format": "date-time",
+      "type": "string"
+    },
+    "rascunho_orcamento": {
+      "description": "JSON do rascunho de or\u00e7amento montado pelo modo gerente (s\u00f3 na conversa do dono). Nada \u00e9 gravado em Pedido sem o 'grava' expl\u00edcito do dono.",
+      "type": "string"
+    },
+    "rascunho_orcamento_em": {
+      "description": "Quando o resumo do rascunho foi mostrado ao dono. Vale 30 minutos; vencido, o resumo \u00e9 refeito e n\u00e3o grava.",
+      "format": "date-time",
+      "type": "string"
+    },
+    "telefone": {
+      "type": "string"
+    },
+    "ultima_interacao": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "ultima_mensagem": {
+      "type": "string"
+    },
+    "listas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs de CRMLista em que esta conversa est\u00e1. V\u00e1rias ao mesmo tempo (segmentos e a\u00e7\u00f5es)."
+    },
+    "atendente_id": {
+      "type": "string",
+      "description": "ID do User (membro de CRMEquipe) respons\u00e1vel por esta conversa. Vazio = sem atendente, fica com o dono."
+    },
+    "atribuida_em": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Quando a conversa foi atribu\u00edda ao atendente atual"
+    },
+    "connection_id": {
+      "type": "string",
+      "description": "ID de whatsapp_connections: por qual n\u00famero comercial a conversa acontece"
+    }
+  },
+  "required": [
+    "owner_id",
+    "nome_contato",
+    "telefone"
+  ],
+  "x-security": {
+    "create": "authenticated",
+    "delete": "authenticated",
+    "read": "authenticated",
+    "update": "authenticated"
+  },
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.owner_id": "{{user.id}}"
+        },
+        {
+          "data.atendente_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.owner_id": "{{user.id}}"
+        },
+        {
+          "data.atendente_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.owner_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
