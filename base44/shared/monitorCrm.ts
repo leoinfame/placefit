@@ -88,7 +88,8 @@ export function alertasDoFunil(conversa: any, ultimas: any[], ehLead: boolean, o
       titulo: `Cliente em negociação esperando resposta há ${tempoTexto(idade)}: ${nome}`,
       detalhe: `Última mensagem: "${String(ultima.conteudo || '').slice(0, 120)}"`, conversa_id: conversa.id });
   }
-  if (etapa === 'orcamento' && orcamento?.created_date) {
+  // Item 029: orçamento aguardando resposta conta como orçamento sem retorno.
+  if ((etapa === 'orcamento' || etapa === 'aguardando_resposta') && orcamento?.created_date) {
     const desde = new Date(orcamento.created_date).getTime();
     const respondeu = (ultimas || []).some((m: any) => m.direcao === 'recebida' && new Date(m.created_date).getTime() > desde);
     const t = agora - desde;
@@ -330,8 +331,8 @@ export async function rodarMonitor(db: any, cfg: Cfg, agoraD = new Date()) {
       const atuais = new Set<string>();
       for (const c of conversas) {
         if (agora - new Date(c.ultima_interacao).getTime() > 15 * 24 * H) continue;
-        if (!['novo', 'atendimento', 'orcamento', 'negociacao'].includes(String(c.etapa || 'novo'))) continue;
-        const orc = c.etapa === 'orcamento' && c.cliente_id ? orcPorCliente.get(c.cliente_id) || null : null;
+        if (!['novo', 'atendimento', 'orcamento', 'aguardando_resposta', 'negociacao'].includes(String(c.etapa || 'novo'))) continue;
+        const orc = ['orcamento', 'aguardando_resposta'].includes(String(c.etapa)) && c.cliente_id ? orcPorCliente.get(c.cliente_id) || null : null;
         const lista = alertasDoFunil(c, porConversa.get(c.id) || [], leads.has(c.id), orc, agora);
         lista.forEach((a) => atuais.add(a.chave));
         novos.push(...await registrar(db, st, lista));

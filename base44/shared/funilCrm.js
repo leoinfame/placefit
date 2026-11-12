@@ -4,6 +4,8 @@
 // Só avança: novo/atendimento → orcamento. Negociação, ganho e perdido não voltam.
 // Usado pelo painel (base44.entities) e pelas functions (base44.asServiceRole.entities).
 
+import { avancarPara } from "./funilAutomatico.ts";
+
 const ETAPAS_ANTES_DO_ORCAMENTO = ["novo", "atendimento"];
 
 const digitos = (s) => String(s || "").replace(/\D/g, "");
@@ -37,7 +39,10 @@ export async function moverLeadParaOrcamento(entities, ownerId, cliente) {
     for (const c of [...ligadas, ...mesmas]) {
       if (c.ativo === false) continue;
       const patch = {};
-      if (ETAPAS_ANTES_DO_ORCAMENTO.includes(c.etapa || "novo")) patch.etapa = "orcamento";
+      // Item 029: o orçamento já sai para o cliente, então a conversa entra em orçamento
+      // e fica aguardando resposta (a ordem do funil vive em funilAutomatico.ts).
+      const proxima = avancarPara(c.etapa, "aguardando_resposta");
+      if (proxima) patch.etapa = proxima;
       if (!c.cliente_id) patch.cliente_id = cliente.id;
       if (Object.keys(patch).length) {
         await entities.CRMConversa.update(c.id, patch);

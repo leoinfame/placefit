@@ -15,7 +15,7 @@ export const CONFIG_PADRAO = {
   penalidade_dia_sem_retorno: 10
 };
 
-export const ETAPAS_COM_REGRA = ["atendimento", "orcamento", "negociacao"];
+export const ETAPAS_COM_REGRA = ["atendimento", "orcamento", "aguardando_resposta", "negociacao"];
 
 export const SEMAFORO = {
   conversa: { label: "Em conversa", color: "bg-emerald-100 text-emerald-700", dot: "bg-emerald-500" },
@@ -94,7 +94,8 @@ export function calcularPlacar({ orcamento, diasSemRetorno = 0, diasUltimoContat
 export function limiteDaEtapa(etapa, config) {
   const cfg = config || CONFIG_PADRAO;
   if (etapa === "atendimento") return cfg.limite_atendimento_dias;
-  if (etapa === "orcamento") return cfg.limite_orcamento_dias;
+  // Aguardando resposta usa o mesmo prazo do orçamento: é a espera pelo retorno dele.
+  if (etapa === "orcamento" || etapa === "aguardando_resposta") return cfg.limite_orcamento_dias;
   if (etapa === "negociacao") return cfg.limite_negociacao_dias;
   return 0;
 }

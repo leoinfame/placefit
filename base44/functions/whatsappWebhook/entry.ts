@@ -10,6 +10,7 @@ import {
   onlyDigits
 } from '../../shared/whatsappCoexistence.ts';
 import { responderSeCabivel } from '../../shared/respondedorLeo.ts';
+import { respostaNossa, respostaDoCliente } from '../../shared/funilAutomatico.ts';
 
 // ─── Webhook oficial Meta (Cloud API + Coexistence) v2 ───────────────────────
 // Handler robusto para os eventos da Meta: messages, history,
@@ -111,6 +112,10 @@ async function registrarMensagem(base44: any, connection: any, msg: any, direcao
     ultima_mensagem: textoDaMensagem(msg).slice(0, 200),
     ultima_interacao: ts
   });
+  // Item 029: funil automático — respondemos (eco do Business) → atendimento;
+  // cliente respondeu depois do orçamento → negociação.
+  if (direcao === 'enviada') await respostaNossa(base44.asServiceRole.entities, conversa);
+  else await respostaDoCliente(base44.asServiceRole.entities, conversa);
   return { dedup: false, ok: true, conversa };
 }
 

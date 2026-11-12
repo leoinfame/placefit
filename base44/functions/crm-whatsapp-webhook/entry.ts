@@ -1,7 +1,7 @@
 import { createClientFromRequest } from "npm:@base44/sdk";
 import { identificar, meusIdsDoCorpo, resolverLidNoWaha, ignorado } from "../../shared/identidadeWaha.ts";
 import { conversaDoContato, garantirCliente, textoBoasVindas, deveMandarBoasVindas, atendenteDaConta } from "../../shared/conversaWaha.ts";
-import { etapaDepoisDaResposta } from "../../shared/funilCrm.js";
+import { respostaNossa, respostaDoCliente } from "../../shared/funilAutomatico.ts";
 import { base64 } from "../../shared/tabelaAtacado.ts";
 import { itensSuaTabela, htmlSuaTabela, imprimirPdf } from "../../shared/tabelaPdf.ts";
 import { linkDaTabela } from "../../shared/linkTabela.ts";
@@ -225,17 +225,14 @@ Deno.serve(async (req) => {
     const conversation = await conversaDoContato(db, owner.id, ident, fromMe, messageText, now);
     // Item 022e: decide agora, antes do cadastro automático, se é um lead novo (conversa aberta neste evento, sem cliente)
     const leadNovo = deveMandarBoasVindas(conversation, fromMe, env("CRM_BOAS_VINDAS"));
-    // Item 022e: cliente respondeu com o lead em "Orçamento" => "Negociação"
-    if (!fromMe) {
-      const proxima = etapaDepoisDaResposta(conversation.etapa);
-      if (proxima) {
-        try {
-          await db.CRMConversa.update(conversation.id, { etapa: proxima });
-          conversation.etapa = proxima;
-        } catch (e) {
-          console.error("[CRM_WEBHOOK] mudança de etapa falhou", e);
-        }
-      }
+    // Item 029: funil automático (regra em shared/funilAutomatico.ts). Só para frente.
+    // Cliente respondeu depois do orçamento ("aguardando resposta") → negociação.
+    // Nós respondemos numa conversa nova (dono pelo celular ou eco do Business) → atendimento.
+    try {
+      if (fromMe) await respostaNossa(db, conversation);
+      else await respostaDoCliente(db, conversation);
+    } catch (e) {
+      console.error("[CRM_WEBHOOK] funil automático falhou", e);
     }
 
     // Item 022b: telefone real + nome do perfil => cliente em Meus Clientes (sem duplicar)

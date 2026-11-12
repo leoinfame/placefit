@@ -20,10 +20,12 @@
         "novo",
         "atendimento",
         "orcamento",
+        "aguardando_resposta",
         "negociacao",
         "ganho",
         "perdido"
       ],
+      "description": "Etapa do funil comercial. Anda sozinha s\u00f3 para frente (base44/shared/funilAutomatico.ts); a troca manual no painel sempre vale e 'perdido' \u00e9 sempre manual.",
       "type": "string"
     },
     "nao_lidas": {

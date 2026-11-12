@@ -57,7 +57,7 @@ const contactName = (conversation) => {
   return nome;
 };
 // Item 022d: tempo desde o orçamento, para o follow-up do funil.
-const ETAPAS_COM_ORCAMENTO = ["orcamento", "negociacao"];
+const ETAPAS_COM_ORCAMENTO = ["orcamento", "aguardando_resposta", "negociacao"];
 const formatTime = (value) => {
   if (!value) return "";
   const date = new Date(value);
@@ -481,7 +481,7 @@ export default function CRMWhatsApp() {
   }
 
   const unread = conversations.reduce((sum, item) => sum + Number(item.nao_lidas || 0), 0);
-  const inProgress = conversations.filter((item) => ["atendimento", "orcamento", "negociacao"].includes(item.etapa)).length;
+  const inProgress = conversations.filter((item) => ["atendimento", "orcamento", "aguardando_resposta", "negociacao"].includes(item.etapa)).length;
   const won = conversations.filter((item) => item.etapa === "ganho").length;
   const webhookUrl = typeof window !== "undefined" ? window.location.origin + "/functions/crm-whatsapp-webhook" : "";
 
@@ -630,9 +630,11 @@ export default function CRMWhatsApp() {
           </div>
         </TabsContent>
 
-        <TabsContent value="funil" className="mt-0">
+        <TabsContent value="funil" className="mt-0 space-y-3">
+          {/* Item 029: o funil usa o mesmo filtro por lista da aba Conversas. */}
+          <FiltroListas listas={listas} conversas={conversations} valor={filtroLista} onChange={setFiltroLista} />
           <FunilBoard
-            conversas={conversations}
+            conversas={filtered}
             orcInfo={orcInfo}
             agora={agora}
             nomeContato={contactName}

@@ -6,6 +6,7 @@ export const ETAPAS_GAMIFICACAO = [
   { value: "novo", label: "Novo contato", color: "bg-slate-100 text-slate-700" },
   { value: "atendimento", label: "Em atendimento", color: "bg-blue-100 text-blue-700" },
   { value: "orcamento", label: "Orçamento", color: "bg-amber-100 text-amber-700" },
+  { value: "aguardando_resposta", label: "Aguardando resposta", color: "bg-orange-100 text-orange-800" },
   { value: "negociacao", label: "Negociação", color: "bg-violet-100 text-violet-700" },
   { value: "ganho", label: "Venda ganha", color: "bg-emerald-100 text-emerald-700" },
   { value: "perdido", label: "Não convertido", color: "bg-rose-100 text-rose-700" }

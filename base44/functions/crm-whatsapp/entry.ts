@@ -4,6 +4,7 @@ import {
   cifrarToken,
   lerEstadoSync
 } from "../../shared/whatsappCoexistence.ts";
+import { respostaNossaPorId } from "../../shared/funilAutomatico.ts";
 
 // ─── CRM WhatsApp via WAHA ────────────────────────────────────────────────────
 // Motor não-oficial (https://waha.devlike.pro) pareado por QR Code como
@@ -663,6 +664,8 @@ Deno.serve(async (req) => {
           ultima_mensagem: content,
           ultima_interacao: new Date().toISOString()
         });
+        // Item 029: respondemos pelo painel numa conversa nova → atendimento.
+        if (result.ok) await respostaNossaPorId(base44.asServiceRole.entities, String(body.conversa_id));
       }
 
       if (!result.ok) return Response.json({ error: result.error, details: result.data }, { status: 400 });

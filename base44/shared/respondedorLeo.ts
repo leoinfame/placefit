@@ -26,6 +26,7 @@ import {
 } from './vinculoRevendedor.ts';
 import { invocarIA } from './iaComRetry.ts';
 import { atendimentoManual } from './botPausa.ts';
+import { respostaNossa } from './funilAutomatico.ts';
 
 // A consulta do gerente não grava nada; se a IA afirmar que gravou/criou, a frase é trocada.
 const AFIRMA_GRAVACAO = /(j[aá] (est[aá]|foi|ficou|t[aá]) (no painel|gravad|criad|salv|lan[cç]ad|registrad))|(or[cç]amento (j[aá] |foi |est[aá] |j[aá] foi |j[aá] est[aá] )(gravado|criado|salvo|lan[cç]ado|registrado))|(gravei|criei|lancei|salvei)/i;
@@ -277,6 +278,8 @@ async function enviarERegistrar(base44: any, connection: any, conversa: any, cli
       ultima_mensagem: texto.slice(0, 200),
       ultima_interacao: quando
     });
+    // Item 029: o bot respondeu numa conversa nova → atendimento.
+    await respostaNossa(base44.asServiceRole.entities, conversa);
   }
   return { ...envio, quando };
 }

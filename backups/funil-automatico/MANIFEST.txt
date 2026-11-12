@@ -1,0 +1,24 @@
+Checkpoint: funil-automatico (12/11/2026 02:xx America/Sao_Paulo)
+Item 029 — funil automático do CRM WhatsApp (etapa "aguardando_resposta").
+
+O QUE É ESTE DIRETÓRIO
+Cópia dos arquivos NO ESTADO ENTREGUE (depois da alteração), para voltar a esta entrega
+a qualquer momento. Arquivo novo, sem versão anterior: base44/shared/funilAutomatico.ts
+
+PARA REVERTER (voltar ao que era antes desta entrega)
+1. base44/entities/CRMConversa.jsonc — remover "aguardando_resposta" do enum etapa.
+2. base44/shared/funilCrm.js — apagar a linha `import { avancarPara } from "./funilAutomatico.ts";`
+   e voltar o patch da etapa para: if (ETAPAS_ANTES_DO_ORCAMENTO.includes(c.etapa || "novo")) patch.etapa = "orcamento";
+3. base44/functions/crm-whatsapp-webhook/entry.ts — voltar o import para `etapaDepoisDaResposta`
+   (de ../../shared/funilCrm.js) e o bloco "if (!fromMe) { const proxima = etapaDepoisDaResposta(...) }".
+4. base44/functions/crm-whatsapp/entry.ts — apagar o import de respostaNossaPorId e a chamada após o update da conversa.
+5. base44/functions/whatsappWebhook/entry.ts — apagar o import e as 2 linhas no fim de registrarMensagem.
+6. base44/shared/respondedorLeo.ts — apagar o import e a chamada `await respostaNossa(...)`.
+7. base44/shared/monitorCrm.ts — voltar para etapa === 'orcamento' e tirar 'aguardando_resposta' da lista.
+8. src/components/crm/funil/etapasFunil.js — remover o item aguardando_resposta.
+9. src/components/crm/CRMWhatsApp.jsx — remover aguardando_resposta de ETAPAS_COM_ORCAMENTO e do inProgress,
+   e tirar o <FiltroListas> da aba funil (voltando conversas={conversations}).
+10. src/lib/crmGamificacao.js e src/lib/gamificacaoFiltros.js — remover a etapa nova.
+11. Dados: CRMLista "Retornar esta semana" estava ativo:true — reativar se precisar.
+
+NÃO PUBLICADO: o dono revisa antes do deploy.

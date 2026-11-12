@@ -1,0 +1,703 @@
+import { createClientFromRequest } from "npm:@base44/sdk";
+import {
+  garantirConexaoDoTenant,
+  cifrarToken,
+  lerEstadoSync
+} from "../../shared/whatsappCoexistence.ts";
+import { respostaNossaPorId } from "../../shared/funilAutomatico.ts";
+
+// ─── CRM WhatsApp via WAHA ────────────────────────────────────────────────────
+// Motor não-oficial (https://waha.devlike.pro) pareado por QR Code como
+// dispositivo vinculado: o celular do dono do número continua funcionando
+// normalmente. Substitui a Cloud API da Meta, que exigia registrar o número e
+// o desconectava do aplicativo.
+//
+// Consequência aceita: não existe template aprovado pela Meta nem janela de 24h
+// — qualquer mensagem sai como texto livre. Em troca, o risco é de banimento do
+// número se houver disparo em massa. Esta integração é para organizar conversas,
+// não para campanha.
+
+const onlyDigits = (value: string) => String(value || "").replace(/\D/g, "");
+
+/** Normaliza para MSISDN brasileiro (55 + DDD + número). */
+const toMsisdn = (value: string) => {
+  const digits = onlyDigits(value);
+  if (!digits) return "";
+  if (digits.startsWith("55")) return digits;
+  return digits.length >= 10 ? "55" + digits : digits;
+};
+
+type Waha = {
+  baseUrl: string;
+  apiKey: string;
+  hmac: string;
+  session: string;
+  configured: boolean;
+  compartilhado: boolean;
+};
+
+const env = (nome: string) => String(Deno.env.get(nome) || "").trim();
+
+/**
+ * Nome da sessão derivado do id do usuário. Dois fornecedores nunca colidem e
+ * ninguém precisa inventar (nem digitar) um nome.
+ */
+const sessionDoUsuario = (id: string) =>
+  "u" + String(id || "").replace(/[^A-Za-z0-9]/g, "").slice(-24);
+
+/**
+ * O servidor WAHA é do app, não do usuário: configurado uma única vez nas
+ * variáveis de ambiente (WAHA_URL / WAHA_API_KEY / WAHA_HMAC_KEY). Assim o
+ * fornecedor abre a tela e só precisa ler o QR Code.
+ * Os campos por usuário continuam valendo como escape, para quem quiser
+ * apontar para um servidor próprio.
+ */
+// Item 006 (16/10/2026): URL, chave e HMAC do WAHA vem SO dos secrets do app
+// (WAHA_URL / WAHA_API_KEY / WAHA_HMAC_KEY). Nada e lido do cadastro do usuario.
+// A sessao e sempre propria por conta; "default" nunca e usada para revendedor.
+const sessaoDe = (owner: any) => {
+  const custom = String(owner.whatsapp_waha_session || "").trim();
+  return custom && custom.toLowerCase() !== "default" ? custom : sessionDoUsuario(owner.id);
+};
+
+const wahaConfig = (owner: any): Waha => {
+  const baseUrl = env("WAHA_URL").replace(/\/+$/, "");
+  return {
+    baseUrl,
+    apiKey: env("WAHA_API_KEY"),
+    hmac: env("WAHA_HMAC_KEY"),
+    session: sessaoDe(owner),
+    configured: Boolean(baseUrl),
+    compartilhado: Boolean(baseUrl)
+  };
+};
+
+/** URL pública do webhook, montada sozinha a partir do endereço do app. */
+const webhookPadrao = () => {
+  const base = (env("APP_PUBLIC_URL") || "https://placefit.base44.app").replace(/\/+$/, "");
+  return base + "/functions/crm-whatsapp-webhook";
+};
+
+async function waha(cfg: Waha, path: string, init: RequestInit = {}) {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (cfg.apiKey) headers["X-Api-Key"] = cfg.apiKey;
+  const response = await fetch(cfg.baseUrl + path, {
+    ...init,
+    headers: { ...headers, ...((init.headers as Record<string, string>) || {}) }
+  });
+  const text = await response.text();
+  let data: any = null;
+  try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+  const error = response.ok
+    ? ""
+    : (data?.message || data?.error || String(data || "").slice(0, 200) || "Falha na chamada ao WAHA");
+  return { ok: response.ok, status: response.status, data, error };
+}
+
+/**
+ * Resolve o chatId canônico antes de enviar. Obrigatório no Brasil: números
+ * anteriores a 2012 não têm o nono dígito e o envio para o chatId errado falha
+ * sem erro visível.
+ */
+async function resolveChatId(cfg: Waha, phone: string) {
+  const msisdn = toMsisdn(phone);
+  if (!msisdn) return "";
+  const fallback = msisdn + "@c.us";
+  const result = await waha(
+    cfg,
+    "/api/contacts/check-exists?phone=" + msisdn + "&session=" + encodeURIComponent(cfg.session)
+  );
+  if (!result.ok || !result.data?.numberExists) return fallback;
+  return result.data.chatId || result.data.pn || fallback;
+}
+
+const messageIdOf = (data: any) =>
+  String(data?.id?._serialized || data?.id || data?._data?.id?._serialized || "");
+
+/** QR da sessao como data URL (o navegador nunca fala direto com o WAHA). */
+async function qrDaSessao(cfg: Waha): Promise<string> {
+  try {
+    const headers: Record<string, string> = {};
+    if (cfg.apiKey) headers["X-Api-Key"] = cfg.apiKey;
+    const response = await fetch(cfg.baseUrl + "/api/" + encodeURIComponent(cfg.session) + "/auth/qr", { headers });
+    if (!response.ok) return "";
+    const contentType = response.headers.get("content-type") || "image/png";
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    let binary = "";
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    return "data:" + contentType + ";base64," + btoa(binary);
+  } catch {
+    return "";
+  }
+}
+
+/** Verifica se existe segredo cifrado para a conexão (sem devolver o token). */
+async function temSegredo(base44: any, connectionId: string): Promise<boolean> {
+  const segredos = await base44.asServiceRole.entities.whatsapp_secrets.filter({ connection_id: connectionId });
+  return Boolean(segredos && segredos.length && segredos[0].encrypted_access_token);
+}
+
+Deno.serve(async (req) => {
+  try {
+    if (req.method !== "POST") return Response.json({ error: "Método não permitido" }, { status: 405 });
+    const base44 = createClientFromRequest(req);
+    const me = await base44.auth.me();
+    if (!me) return Response.json({ error: "Autenticação obrigatória" }, { status: 401 });
+
+    const body = await req.json();
+    const action = String(body.action || "status");
+    const ownerId = me.role === "admin" && body.owner_id ? String(body.owner_id) : me.id;
+    const owner = await base44.asServiceRole.entities.User.get(ownerId);
+    if (!owner) return Response.json({ error: "Conta responsável não encontrada" }, { status: 404 });
+    if (me.role !== "admin" && owner.id !== me.id) return Response.json({ error: "Acesso negado" }, { status: 403 });
+
+    const cfg = wahaConfig(owner);
+
+    // Item 006: limpeza dos campos antigos de servidor/chave/sessao gravados no cadastro.
+    // O servidor agora e so pelos secrets do app; nada disso pode ficar no User.
+    // Roda na conta da propria chamada e, quando quem chama e admin, em todas as contas.
+    try {
+      const sujo = (u: any) => Boolean(u?.whatsapp_waha_url || u?.whatsapp_waha_api_key || u?.whatsapp_waha_hmac ||
+        String(u?.whatsapp_waha_session || "").toLowerCase() === "default");
+      const limpar = { whatsapp_waha_url: "", whatsapp_waha_api_key: "", whatsapp_waha_hmac: "", whatsapp_waha_session: "" };
+      const alvos = me.role === "admin" ? (await base44.asServiceRole.entities.User.list("-created_date", 2000)) : [owner];
+      for (const u of alvos || []) {
+        if (sujo(u)) await base44.asServiceRole.entities.User.update(u.id, limpar);
+      }
+    } catch (e) {
+      console.error("[CRM_WAHA] limpeza de campos antigos falhou", e);
+    }
+
+    // O atendente automático só responde com as DUAS chaves ligadas. A segunda é
+    // uma confirmação explícita e deliberada: com o número comercial real
+    // pareado, uma IA respondendo sozinha é o maior risco do sistema — comercial
+    // e de banimento. Ligar sem querer não pode ser possível.
+    const atendenteAtivo = Boolean(owner.whatsapp_atendente_ativo) && Boolean(owner.whatsapp_atendente_confirmado);
+
+    // ── Item 006 etapa 2: assistente de conexao (linguagem simples, sem dados tecnicos) ──
+    // fase: nao_liberado | desconectado | iniciando | aguardando_qr | conectado | falhou | fora_do_ar
+    if (action === "assistente") {
+      if (!cfg.configured) return Response.json({ fase: "nao_liberado" });
+      const r = await waha(cfg, "/api/sessions/" + encodeURIComponent(cfg.session));
+      if (!r.ok) {
+        return Response.json({ fase: r.status === 404 ? "desconectado" : "fora_do_ar" });
+      }
+      const st = String(r.data?.status || "");
+      if (st === "WORKING") {
+        const id = String(r.data?.me?.id || "");
+        const num = onlyDigits(id.split("@")[0]);
+        return Response.json({
+          fase: "conectado",
+          nome: r.data?.me?.pushName || "",
+          numero_final: num ? num.slice(-4) : ""
+        });
+      }
+      if (st === "SCAN_QR_CODE") {
+        const qr = await qrDaSessao(cfg);
+        return Response.json({ fase: qr ? "aguardando_qr" : "iniciando", qr });
+      }
+      if (st === "FAILED") return Response.json({ fase: "falhou" });
+      if (st === "STOPPED") return Response.json({ fase: "desconectado" });
+      return Response.json({ fase: "iniciando" });
+    }
+
+    // Confirma a mensagem de teste: alguma mensagem RECEBIDA nesta conta depois de `desde`.
+    if (action === "teste_recebido") {
+      const desde = String(body.desde || "");
+      const quando = desde ? new Date(desde).getTime() : Date.now() - 10 * 60000;
+      const msgs = await base44.asServiceRole.entities.CRMMensagem.filter(
+        { owner_id: owner.id, direcao: "recebida" }, "-created_date", 5
+      );
+      const m = (msgs || []).find((x: any) => new Date(x.created_date).getTime() >= quando);
+      return Response.json({ recebida: Boolean(m), final: m ? String(m.telefone || "").slice(-4) : "" });
+    }
+
+    if (action === "status") {
+      let session: any = null;
+      if (cfg.configured) {
+        const result = await waha(cfg, "/api/sessions/" + encodeURIComponent(cfg.session));
+        // 404 = sessão ainda não criada. Não é erro: é o estado de quem nunca
+        // conectou, e a tela precisa dizer isso em vez de acusar falha.
+        session = result.ok
+          ? result.data
+          : { status: result.status === 404 ? "NAO_CRIADA" : "UNKNOWN", error: result.error };
+      }
+      return Response.json({
+        configured: cfg.configured,
+        engine: "waha",
+        // true = servidor do app, vindo das variáveis de ambiente. A tela esconde
+        // os campos técnicos e mostra só o botão de conectar.
+        compartilhado: cfg.compartilhado,
+        session_status: session?.status || "NOT_CONFIGURED",
+        connected: session?.status === "WORKING",
+        me: session?.me || null,
+        atendente_ativo: atendenteAtivo,
+        atendente_flag: Boolean(owner.whatsapp_atendente_ativo),
+        atendente_confirmado: Boolean(owner.whatsapp_atendente_confirmado),
+        owner: { id: owner.id, name: owner.empresa || owner.full_name || owner.email }
+      });
+    }
+
+    // Alternar o atendente automático. Exige confirmar as duas chaves na mesma
+    // chamada para não reativar por acidente.
+    if (action === "set_atendente") {
+      const ativo = Boolean(body.ativo);
+      const confirmado = ativo ? Boolean(body.confirmar) : false;
+      if (ativo && !confirmado) {
+        return Response.json({
+          error: "Para ligar o atendente automático envie também confirmar: true. Ele passa a responder clientes reais sozinho, pelo seu número."
+        }, { status: 400 });
+      }
+      await base44.asServiceRole.entities.User.update(ownerId, {
+        whatsapp_atendente_ativo: ativo,
+        whatsapp_atendente_confirmado: confirmado
+      });
+      return Response.json({ ok: true, atendente_ativo: ativo && confirmado });
+    }
+
+    // ── Conexão oficial Meta: Embedded Signup v4 com coexistência ────────────
+    // Preparação (homologação): estas ações implementam a troca segura do
+    // código, a validação dos ativos e o armazenamento cifrado por tenant.
+    // Nenhuma mensagem é enviada aqui e nada liga o atendente. Enquanto as
+    // variáveis META_APP_ID / META_APP_SECRET / META_TOKEN_ENC_KEY não
+    // existirem, as ações falham fechado com "configuração pendente".
+    //
+    // Fonte principal: entidades dedicadas (whatsapp_connections,
+    // whatsapp_secrets, whatsapp_webhook_events, whatsapp_sync_jobs). Os
+    // campos whatsapp_meta_* de User são lidos apenas para migração.
+    const metaAppId = env("META_APP_ID");
+    const metaAppSecret = env("META_APP_SECRET");
+    const metaEncKey = env("META_TOKEN_ENC_KEY");
+    const metaConfigId = env("META_EMBEDDED_SIGNUP_CONFIG_ID");
+    const graph = "https://graph.facebook.com/v23.0";
+
+    const metaPronto = Boolean(metaAppId && metaAppSecret && metaEncKey && metaConfigId);
+
+    // Garante a conexão dedicada do tenant (migra de User.whatsapp_meta_* se necessário)
+    const conexao = await garantirConexaoDoTenant(base44, ownerId);
+
+    if (action === "meta_status") {
+      const sync = await lerEstadoSync(base44, conexao);
+      return Response.json({
+        preparado: metaPronto,
+        pendencias: [
+          metaAppId ? "" : "META_APP_ID",
+          metaAppSecret ? "" : "META_APP_SECRET",
+          metaEncKey ? "" : "META_TOKEN_ENC_KEY",
+          metaConfigId ? "" : "META_EMBEDDED_SIGNUP_CONFIG_ID"
+        ].filter(Boolean),
+        app_id: metaAppId || "",
+        config_id_presente: Boolean(metaConfigId),
+        config_id: owner.whatsapp_meta_homologacao ? (metaConfigId || "") : "",
+        conexao: {
+          status: conexao?.status || owner.whatsapp_meta_status || "nao_configurado",
+          waba_id: conexao?.waba_id || owner.whatsapp_meta_waba_id || "",
+          phone_number_id: conexao?.phone_number_id || owner.whatsapp_meta_phone_number_id || "",
+          display_phone: conexao?.display_phone || owner.whatsapp_meta_display_phone || "",
+          coexistence: Boolean(conexao?.coexistence_enabled ?? owner.whatsapp_meta_coexistence),
+          connected_at: conexao?.last_validated_at || owner.whatsapp_meta_connected_at || "",
+          token_presente: Boolean(conexao) ? await temSegredo(base44, conexao.id) : Boolean(owner.whatsapp_meta_token_enc)
+        },
+        homologacao: Boolean(owner.whatsapp_meta_homologacao),
+        sincronizacao: {
+          fases: sync.fases || {},
+          historico_concluido: Boolean(sync.historico_concluido),
+          atualizado_em: sync.atualizado_em || "",
+          job_id: sync.job_id || "",
+          job_status: sync.job_status || ""
+        },
+        // nunca expor token, segredos nem código temporário
+      });
+    }
+
+    if (action === "meta_disconnect_info") {
+      // Roteiro de impacto, sem executar nada: desconexão é último recurso.
+      return Response.json({
+        roteiro: [
+          "Desligar IA e saídas automáticas mantendo recepção e uso do Business App",
+          "Pausar processamento de saída e continuar capturando webhooks",
+          "Reverter a versão do app pelo histórico do Base44",
+          "Offboarding na Meta só como último recurso, com backup e janela acompanhada"
+        ],
+        aviso: "Nada foi alterado. Isto é apenas o roteiro de impacto."
+      });
+    }
+
+    if (action === "meta_embedded_signup_complete") {
+      if (!metaPronto) {
+        return Response.json({
+          error: "Configuração pendente: defina META_APP_ID, META_APP_SECRET, META_TOKEN_ENC_KEY e META_EMBEDDED_SIGNUP_CONFIG_ID antes de conectar.",
+          homologacao: true
+        }, { status: 400 });
+      }
+      const code = String(body.code || "").trim();
+      const wabaId = String(body.waba_id || "").trim();
+      const phoneNumberId = String(body.phone_number_id || "").trim();
+      if (!code || !wabaId || !phoneNumberId) {
+        return Response.json({ error: "code, waba_id e phone_number_id são obrigatórios" }, { status: 400 });
+      }
+
+      // 1. Troca do código SOMENTE no servidor
+      const troca = await fetch(graph + "/oauth/access_token?client_id=" + encodeURIComponent(metaAppId)
+        + "&client_secret=" + encodeURIComponent(metaAppSecret)
+        + "&code=" + encodeURIComponent(code));
+      const trocaData = await troca.json().catch(() => null);
+      if (!troca.ok || !trocaData?.access_token) {
+        console.error("[META_ONBOARD] troca falhou", troca.status);
+        return Response.json({ error: "Falha ao trocar o código na Meta", detalhe: trocaData?.error?.message || "" }, { status: 400 });
+      }
+      const token = String(trocaData.access_token);
+
+      // 2. Validar app e permissões concedidas
+      const appToken = metaAppId + "|" + metaAppSecret;
+      const dbg = await fetch(graph + "/debug_token?input_token=" + encodeURIComponent(token), {
+        headers: { Authorization: "Bearer " + appToken }
+      });
+      const dbgData = await dbg.json().catch(() => null);
+      const dbgInfo = dbgData?.data || {};
+      if (String(dbgInfo.app_id || "") !== metaAppId || !dbgInfo.is_valid) {
+        return Response.json({ error: "Token não pertence ao app esperado ou é inválido" }, { status: 400 });
+      }
+      const scopes: string[] = (dbgInfo.granular_scopes || []).map((s: any) => String(s.scope));
+      const precisa = ["whatsapp_business_management", "whatsapp_business_messaging"];
+      const faltam = precisa.filter((p) => !scopes.includes(p));
+      if (faltam.length) {
+        return Response.json({ error: "Permissões não concedidas: " + faltam.join(", ") }, { status: 400 });
+      }
+
+      // 3. Validar ativos reais: número e WABA
+      const headers = { Authorization: "Bearer " + token };
+      const fone = await fetch(graph + "/" + encodeURIComponent(phoneNumberId)
+        + "?fields=display_phone_number,verified_name,platform_type,code_verification_status", { headers });
+      const foneData = await fone.json().catch(() => null);
+      if (!fone.ok || !foneData?.display_phone_number) {
+        return Response.json({ error: "Phone Number ID não consultável" }, { status: 400 });
+      }
+      const waba = await fetch(graph + "/" + encodeURIComponent(wabaId)
+        + "?fields=id,name,account_review_status", { headers });
+      const wabaData = await waba.json().catch(() => null);
+      if (!waba.ok || !wabaData?.id) {
+        return Response.json({ error: "WABA não consultável" }, { status: 400 });
+      }
+
+      // 4. Cifrar o token (AES-GCM, chave fora do banco) e gravar nas entidades dedicadas
+      const tokenEnc = await cifrarToken(token, metaEncKey);
+
+      // Criar ou atualizar a conexão dedicada do tenant
+      let conn = conexao;
+      if (!conn) {
+        conn = await base44.asServiceRole.entities.whatsapp_connections.create({
+          tenant_id: ownerId,
+          app_id: metaAppId,
+          waba_id: wabaId,
+          phone_number_id: phoneNumberId,
+          display_phone: String(foneData.display_phone_number),
+          coexistence_enabled: true,
+          status: "ativos_validados",
+          health_status: "desconhecido",
+          embedded_signup_config_id: metaConfigId,
+          last_validated_at: new Date().toISOString(),
+          metadata: JSON.stringify({
+            verified_name: foneData.verified_name || "",
+            waba_name: wabaData.name || "",
+            account_review_status: wabaData.account_review_status || ""
+          })
+        });
+      } else {
+        await base44.asServiceRole.entities.whatsapp_connections.update(conn.id, {
+          app_id: metaAppId,
+          waba_id: wabaId,
+          phone_number_id: phoneNumberId,
+          display_phone: String(foneData.display_phone_number),
+          coexistence_enabled: true,
+          status: "ativos_validados",
+          embedded_signup_config_id: metaConfigId,
+          last_validated_at: new Date().toISOString(),
+          metadata: JSON.stringify({
+            verified_name: foneData.verified_name || "",
+            waba_name: wabaData.name || "",
+            account_review_status: wabaData.account_review_status || ""
+          })
+        });
+      }
+
+      // Gravar o segredo cifrado (substitui se já existir)
+      const segredos = await base44.asServiceRole.entities.whatsapp_secrets.filter({ connection_id: conn.id });
+      if (segredos && segredos.length) {
+        await base44.asServiceRole.entities.whatsapp_secrets.update(segredos[0].id, {
+          encrypted_access_token: tokenEnc,
+          encryption_version: "v1",
+          rotated_at: new Date().toISOString()
+        });
+      } else {
+        await base44.asServiceRole.entities.whatsapp_secrets.create({
+          tenant_id: ownerId,
+          connection_id: conn.id,
+          encrypted_access_token: tokenEnc,
+          encryption_version: "v1",
+          token_expires_at: "",
+          rotated_at: new Date().toISOString()
+        });
+      }
+
+      // Compatibilidade: espelhar nos campos User.whatsapp_meta_* para não quebrar
+      // leituras antigas durante a transição. A fonte principal passa a ser a entidade.
+      await base44.asServiceRole.entities.User.update(ownerId, {
+        whatsapp_meta_app_id: metaAppId,
+        whatsapp_meta_waba_id: wabaId,
+        whatsapp_meta_phone_number_id: phoneNumberId,
+        whatsapp_meta_display_phone: String(foneData.display_phone_number),
+        whatsapp_meta_token_enc: tokenEnc,
+        whatsapp_meta_token_key_version: "v1",
+        whatsapp_meta_coexistence: true,
+        whatsapp_meta_status: "ativos_validados",
+        whatsapp_meta_connected_at: new Date().toISOString()
+      });
+
+      // 5. Registro de sessão recebida (session logging do Embedded Signup v4)
+      if (body.session_info) {
+        console.log("[META_ONBOARD] session_info recebida em", new Date().toISOString());
+      }
+
+      return Response.json({
+        ok: true,
+        status: "ativos_validados",
+        display_phone: foneData.display_phone_number,
+        verified_name: foneData.verified_name || "",
+        waba_name: wabaData.name || "",
+        proximos_passos: [
+          "Inscrever o app na WABA e conferir campos do webhook",
+          "Confirmar número registrado (platform_type CLOUD_API)",
+          "Iniciar sincronização dentro da janela de 24h, com consentimento"
+        ]
+      });
+    }
+
+    if (action === "meta_self_test") {
+      // Homologação segura: somente leitura/sondagens. Não grava nada no banco.
+      const base = (env("APP_PUBLIC_URL") || "https://placefit.base44.app").replace(/\/+$/, "");
+      const url = base + "/functions/whatsappWebhook";
+      const r: any = { alvo: url, checagens: [] as any[] };
+      try {
+        const g = await fetch(url + "?hub.mode=subscribe&hub.verify_token=errado&hub.challenge=x");
+        r.checagens.push({ nome: "GET com token errado deve ser 403", status: g.status, ok: g.status === 403 });
+      } catch (e) { r.checagens.push({ nome: "GET challenge", ok: false, erro: String(e) }); }
+      try {
+        const p = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-Hub-Signature-256": "sha256=invalida" },
+          body: JSON.stringify({ object: "whatsapp_business_account", entry: [] })
+        });
+        const ok = p.status === 401 || p.status === 503;
+        r.checagens.push({
+          nome: "POST com assinatura inválida deve ser 401 (ou 503 sem App Secret)",
+          status: p.status, ok
+        });
+      } catch (e) { r.checagens.push({ nome: "POST assinatura", ok: false, erro: String(e) }); }
+      r.meta_pronto = metaPronto;
+      r.observacao = metaPronto
+        ? "Contrato completo (eventos assinados, dedup, chunks fora de ordem) pode ser executado."
+        : "Sem META_APP_SECRET o endpoint falha fechado (503): comportamento correto em homologação.";
+      return Response.json(r);
+    }
+
+
+    if (!cfg.configured) {
+      return Response.json({
+        error: "O servidor de WhatsApp ainda não foi configurado. Defina a variável WAHA_URL nas configurações do app."
+      }, { status: 400 });
+    }
+
+    // ── Ciclo de vida da sessão (pareamento por QR Code) ──────────────────────
+
+    if (action === "test") {
+      const result = await waha(cfg, "/api/sessions/" + encodeURIComponent(cfg.session));
+      if (!result.ok) return Response.json({ error: result.error }, { status: 400 });
+      const status = result.data?.status || "UNKNOWN";
+      return Response.json({
+        ok: status === "WORKING",
+        status,
+        engine: result.data?.engine?.engine || result.data?.engine || "",
+        display_phone_number: result.data?.me?.id ? onlyDigits(String(result.data.me.id).split("@")[0]) : "",
+        push_name: result.data?.me?.pushName || ""
+      });
+    }
+
+    if (action === "start" || action === "stop" || action === "restart" || action === "logout") {
+      const result = await waha(cfg, "/api/sessions/" + encodeURIComponent(cfg.session) + "/" + action, { method: "POST" });
+      if (!result.ok) return Response.json({ error: result.error }, { status: 400 });
+      return Response.json({ ok: true, session: result.data });
+    }
+
+    // O QR volta como data URL: o navegador não pode chamar o WAHA direto,
+    // porque precisaria carregar a X-Api-Key numa tag <img>.
+    async function buscarQr() {
+      const headers: Record<string, string> = {};
+      if (cfg.apiKey) headers["X-Api-Key"] = cfg.apiKey;
+      const response = await fetch(
+        cfg.baseUrl + "/api/" + encodeURIComponent(cfg.session) + "/auth/qr",
+        { headers }
+      );
+      if (!response.ok) return "";
+      const contentType = response.headers.get("content-type") || "image/png";
+      const bytes = new Uint8Array(await response.arrayBuffer());
+      let binary = "";
+      for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+      return "data:" + contentType + ";base64," + btoa(binary);
+    }
+
+    // Cria (ou atualiza) a sessão já apontando o webhook para esta app, e inicia.
+    async function garantirSessao(webhookUrl: string) {
+      const config = {
+        webhooks: [{
+          url: webhookUrl,
+          // Só message.any: ele já entrega as recebidas E as que o dono manda
+          // pelo próprio celular. Assinar "message" junto duplicaria as recebidas.
+          events: ["message.any", "message.ack", "session.status"],
+          ...(cfg.hmac ? { hmac: { key: cfg.hmac } } : {}),
+          retries: { policy: "exponential", delaySeconds: 2, attempts: 15 }
+        }]
+      };
+      let result = await waha(cfg, "/api/sessions", {
+        method: "POST",
+        body: JSON.stringify({ name: cfg.session, start: true, config })
+      });
+      // Sessão já existente: atualiza a configuração e garante que está de pé.
+      if (!result.ok && (result.status === 409 || result.status === 422)) {
+        result = await waha(cfg, "/api/sessions/" + encodeURIComponent(cfg.session), {
+          method: "PUT",
+          body: JSON.stringify({ config })
+        });
+        if (result.ok) {
+          await waha(cfg, "/api/sessions/" + encodeURIComponent(cfg.session) + "/start", { method: "POST" });
+        }
+      }
+      return result;
+    }
+
+    // Um botão só. Cria a sessão, liga o webhook, inicia e já devolve o QR
+    // quando ele existe — o usuário não digita URL, chave nem nome de sessão.
+    if (action === "connect" || action === "provision") {
+      // Item 006: o endereco de recebimento e SEMPRE o do PlaceFit (nunca vem da tela),
+      // para ninguem conseguir desviar as mensagens de uma conta.
+      const webhookUrl = webhookPadrao();
+      // Sessao travada em falha: reinicia antes de reconfigurar ("tentar de novo")
+      const antes = await waha(cfg, "/api/sessions/" + encodeURIComponent(cfg.session));
+      if (antes.ok && String(antes.data?.status || "") === "FAILED") {
+        await waha(cfg, "/api/sessions/" + encodeURIComponent(cfg.session) + "/restart", { method: "POST" });
+      }
+      const result = await garantirSessao(webhookUrl);
+      if (!result.ok) return Response.json({ error: result.error }, { status: 400 });
+
+      // O WAHA leva alguns segundos entre STARTING e SCAN_QR_CODE.
+      let status = String(result.data?.status || "");
+      let qr = "";
+      for (let tentativa = 0; tentativa < 6; tentativa++) {
+        if (status === "SCAN_QR_CODE") {
+          qr = await buscarQr();
+          if (qr) break;
+        }
+        if (status === "WORKING" || status === "FAILED") break;
+        await new Promise((r) => setTimeout(r, 1500));
+        const atual = await waha(cfg, "/api/sessions/" + encodeURIComponent(cfg.session));
+        status = String(atual.data?.status || status);
+      }
+
+      return Response.json({ ok: true, session_status: status, qr });
+    }
+
+    if (action === "qr") {
+      const qr = await buscarQr();
+      if (!qr) {
+        return Response.json({
+          error: "Não foi possível obter o QR Code. A sessão precisa estar em SCAN_QR_CODE."
+        }, { status: 400 });
+      }
+      return Response.json({ ok: true, qr });
+    }
+
+    // ── Envio ────────────────────────────────────────────────────────────────
+
+    if (action === "send_text" || action === "send_template") {
+      let messageType = "texto";
+      let content = String(body.text || "");
+      let templateName = "";
+
+      if (action === "send_template") {
+        const template = await base44.asServiceRole.entities.CRMTemplate.get(String(body.template_id || ""));
+        if (!template || template.owner_id !== ownerId) {
+          return Response.json({ error: "Template não encontrado" }, { status: 404 });
+        }
+        // No WAHA não existe aprovação da Meta nem janela de 24h: o template
+        // local vira texto comum. Some a trava antiga de origem/status.
+        messageType = "template";
+        content = String(template.conteudo || "");
+        templateName = String(template.nome || "");
+      }
+
+      if (!content.trim()) return Response.json({ error: "Digite a mensagem" }, { status: 400 });
+
+      const chatId = await resolveChatId(cfg, body.to);
+      if (!chatId) return Response.json({ error: "Telefone inválido" }, { status: 400 });
+      const phone = onlyDigits(String(chatId).split("@")[0]);
+
+      const result = await waha(cfg, "/api/sendText", {
+        method: "POST",
+        body: JSON.stringify({ session: cfg.session, chatId, text: content.trim() })
+      });
+      const messageId = messageIdOf(result.data);
+
+      if (body.conversa_id) {
+        await base44.asServiceRole.entities.CRMMensagem.create({
+          owner_id: ownerId,
+          conversa_id: String(body.conversa_id),
+          telefone: phone,
+          direcao: "enviada",
+          tipo: messageType,
+          conteudo: content,
+          status: result.ok ? "enviada" : "erro",
+          meta_message_id: messageId,
+          template_nome: templateName,
+          erro: result.ok ? "" : result.error
+        });
+        await base44.asServiceRole.entities.CRMConversa.update(String(body.conversa_id), {
+          ultima_mensagem: content,
+          ultima_interacao: new Date().toISOString()
+        });
+        // Item 029: respondemos pelo painel numa conversa nova → atendimento.
+        if (result.ok) await respostaNossaPorId(base44.asServiceRole.entities, String(body.conversa_id));
+      }
+
+      if (!result.ok) return Response.json({ error: result.error, details: result.data }, { status: 400 });
+      return Response.json({ ok: true, message_id: messageId, chat_id: chatId });
+    }
+
+    // Marca a conversa como lida no celular também, para o CRM não deixar o
+    // aplicativo do dono cheio de not-lidas fantasma.
+    if (action === "mark_seen") {
+      const chatId = await resolveChatId(cfg, body.to);
+      if (!chatId) return Response.json({ error: "Telefone inválido" }, { status: 400 });
+      const result = await waha(cfg, "/api/sendSeen", {
+        method: "POST",
+        body: JSON.stringify({ session: cfg.session, chatId })
+      });
+      if (!result.ok) return Response.json({ error: result.error }, { status: 400 });
+      return Response.json({ ok: true });
+    }
+
+    // Mantido para não quebrar a UI antiga: templates da Meta não existem mais.
+    if (action === "sync_templates") {
+      return Response.json({
+        ok: true,
+        count: 0,
+        templates: [],
+        aviso: "Sem templates da Meta nesta integração. Com o WAHA os modelos locais são enviados como texto comum, sem aprovação e sem janela de 24h."
+      });
+    }
+
+    return Response.json({ error: "Ação desconhecida" }, { status: 400 });
+  } catch (error) {
+    console.error("[CRM_WHATSAPP]", error);
+    return Response.json({ error: error?.message || "Erro interno" }, { status: 500 });
+  }
+});
