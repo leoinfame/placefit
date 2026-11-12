@@ -52,6 +52,7 @@ export default function FunilBoard({ conversas = [], orcInfo = {}, agora, nomeCo
                             ref={dragProvided.innerRef}
                             {...dragProvided.draggableProps}
                             {...dragProvided.dragHandleProps}
+                            style={dragProvided.draggableProps.style}
                             className={dragSnapshot.isDragging ? "opacity-95" : ""}
                           >
                             <button
