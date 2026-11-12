@@ -71,6 +71,18 @@
       "type": "string",
       "format": "date-time",
       "description": "Timestamp original do evento Meta/WhatsApp"
+    },
+    "atendente_id": {
+      "type": "string",
+      "description": "C\u00f3pia de CRMConversa.atendente_id para o atendente ler as mensagens das conversas dele. Mant\u00e9m igual \u00e0 conversa ao gravar e ao reatribuir."
+    },
+    "enviada_por": {
+      "type": "string",
+      "description": "ID do User que enviou (mensagens enviadas pela equipe). Vazio para recebidas e autom\u00e1ticas."
+    },
+    "connection_id": {
+      "type": "string",
+      "description": "ID de whatsapp_connections por onde a mensagem passou"
     }
   },
   "required": [
@@ -90,6 +102,9 @@
       "$or": [
         {
           "data.owner_id": "{{user.id}}"
+        },
+        {
+          "data.atendente_id": "{{user.id}}"
         },
         {
           "user_condition": {
