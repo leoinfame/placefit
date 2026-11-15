@@ -116,10 +116,16 @@ Deno.serve(async (req) => {
       return conversation.atendente_id === user.id;
     };
 
+    const canEditConversation = (conversation: any) => {
+      if (!conversation || conversation.owner_id !== ownerId) return false;
+      // A edição segue o RLS de CRMConversa: dono, atendente atribuído ou admin.
+      return isAdmin || user.id === ownerId || conversation.atendente_id === user.id;
+    };
+
     const getConversation = async (id: string) => {
       if (!id) return null;
       const row = await base44.asServiceRole.entities.CRMConversa.get(id).catch(() => null);
-      return canAccessConversation(row) ? row : null;
+      return canEditConversation(row) ? row : null;
     };
 
     const loadCustomerIfAllowed = async (customerId: string) => {
@@ -270,7 +276,7 @@ Deno.serve(async (req) => {
         300
       );
       const visible = (rows || []).filter((list: any) => {
-        if (isAdmin || role === "dono" || role === "supervisor") return true;
+        if (isAdmin || user.id === ownerId) return true;
         return Array.isArray(list.equipe_ids) && list.equipe_ids.includes(user.id);
       });
       return Response.json({
@@ -282,6 +288,8 @@ Deno.serve(async (req) => {
     }
 
     if (action === "stages.list") {
+      // O RLS de CRMEtapa permite dono/admin; não ampliar para atendente/supervisor.
+      if (!isAdmin && user.id !== ownerId) return jsonError("FORBIDDEN", 403);
       const rows = await base44.asServiceRole.entities.CRMEtapa.filter(
         { owner_id: ownerId, ativo: true },
         "ordem",
