@@ -13,6 +13,7 @@ const PublicTableFabricante = lazyPage('PublicTableFabricante');
 const PublicTable = lazyPage('PublicTable');
 const Marketplace = lazyPage('Marketplace');
 const HomeApp = lazyPage('HomeApp');
+const CompanionAuth = lazy(() => import('./pages/CompanionAuth.jsx'));
 const DocumentoInvestidor = lazyPage('DocumentoInvestidor');
 const MinhaConta = lazyPage('MinhaConta');
 const FabricanteCatalogoPublic = lazyPage('FabricanteCatalogoPublic');
@@ -65,7 +66,7 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   <Layout currentPageName={currentPageName}><ErrorBoundary><Suspense fallback={<ContentLoading />}>{children}</Suspense></ErrorBoundary></Layout>
   : <ErrorBoundary><Suspense fallback={<ContentLoading />}>{children}</Suspense></ErrorBoundary>;
 
-const PUBLIC_PATHS = ['/', '/Marketplace', '/PublicTableFabricante', '/PublicTable', '/PublicRegister', '/PublicRegisterFabricante', '/PublicRegisterTransportador', '/FabricanteCatalogoPublic', '/fabricantes', '/loja', '/documento', '/crm/privacidade', '/crm/termos', '/crm/exclusao-de-dados'];
+const PUBLIC_PATHS = ['/', '/Marketplace', '/PublicTableFabricante', '/PublicTable', '/PublicRegister', '/PublicRegisterFabricante', '/PublicRegisterTransportador', '/FabricanteCatalogoPublic', '/fabricantes', '/loja', '/documento', '/crm/privacidade', '/crm/termos', '/crm/exclusao-de-dados', '/CompanionAuth'];
 
 const isPublicPath = () => {
   const path = window.location.pathname;
@@ -88,6 +89,7 @@ const AuthenticatedApp = () => {
       <Routes>
         <Route path="/" element={<ErrorBoundary><HomeApp /></ErrorBoundary>} />
         <Route path="/documento" element={<ErrorBoundary><DocumentoInvestidor /></ErrorBoundary>} />
+        <Route path="/CompanionAuth" element={<ErrorBoundary><CompanionAuth /></ErrorBoundary>} />
         <Route path="/Marketplace" element={<ErrorBoundary><Marketplace /></ErrorBoundary>} />
         <Route path="/PublicTableFabricante" element={<ErrorBoundary><PublicTableFabricante /></ErrorBoundary>} />
         <Route path="/PublicTable" element={<ErrorBoundary><PublicTable /></ErrorBoundary>} />
