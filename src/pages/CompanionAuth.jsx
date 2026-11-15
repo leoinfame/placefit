@@ -24,12 +24,12 @@ export default function CompanionAuth() {
       const result = await base44.auth.loginViaEmailPassword(email.trim(), password);
       if (!result?.access_token || !result?.user?.id) throw new Error("O login não retornou uma sessão válida.");
       const response = await new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage(extensionId, {
+        window.chrome.runtime.sendMessage(extensionId, {
           type: "PLACEFIT_AUTH_COMPLETE",
           token: result.access_token,
           user: { id: result.user.id, email: result.user.email, full_name: result.user.full_name || "" }
         }, (reply) => {
-          const runtimeError = chrome.runtime.lastError;
+          const runtimeError = window.chrome.runtime.lastError;
           if (runtimeError) reject(new Error("Não foi possível comunicar com a extensão. Confira se ela está instalada e ativa."));
           else resolve(reply);
         });

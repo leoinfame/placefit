@@ -52,11 +52,11 @@ function jsonError(error: string, status: number, extra: Record<string, unknown>
   return Response.json({ error, ...extra }, { status });
 }
 
-Deno.serve(async (req) => {
+export default async function handler(req: Request): Promise<Response> {
   if (req.method !== "POST") return jsonError("METHOD_NOT_ALLOWED", 405);
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+    const user = await base44.auth.me().catch((e) => (e.status === 401 ? null : Promise.reject(e)));
     if (!user?.id) return jsonError("AUTH_REQUIRED", 401);
 
     const body = await req.json().catch(() => ({}));
@@ -306,4 +306,4 @@ Deno.serve(async (req) => {
     console.error("[CRM_COMPANION]", error);
     return jsonError("INTERNAL_ERROR", 500);
   }
-});
+}
