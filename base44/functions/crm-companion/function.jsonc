@@ -1,4 +1,4 @@
 {
   "name": "crm-companion",
-  "entry": "entry.ts"
+  "entry": "index.ts"
 }
