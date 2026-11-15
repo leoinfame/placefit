@@ -108,12 +108,11 @@ Deno.serve(async (req) => {
     }
 
     const isAdmin = user.role === "admin";
-    const canSeeAllConversations = role === "dono" || role === "supervisor" || isAdmin;
-
+    // Espelha o RLS atual de CRMConversa: owner_id, atendente_id ou admin.
+    // Papel supervisor, sozinho, não contorna o RLS.
     const canAccessConversation = (conversation: any) => {
       if (!conversation || conversation.owner_id !== ownerId) return false;
-      if (isAdmin || role === "dono" || role === "supervisor") return true;
-      return conversation.atendente_id === user.id;
+      return isAdmin || user.id === ownerId || conversation.atendente_id === user.id;
     };
 
     const canEditConversation = (conversation: any) => {
