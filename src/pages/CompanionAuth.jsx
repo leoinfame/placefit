@@ -63,7 +63,7 @@ export default function CompanionAuth() {
             <label style={{display:"block",fontSize:12,margin:"16px 0 6px"}}>Senha</label>
             <input type="password" autoComplete="current-password" required value={password} onChange={e=>setPassword(e.target.value)} style={inputStyle} />
             {error && <p role="alert" style={{color:"#fca5a5",fontSize:12,lineHeight:1.5}}>{error}</p>}
-            <button disabled={busy || !validExtensionId} style={{width:"100%",marginTop:20,padding:13,border:0,borderRadius:9,background:"#16a34a",color:"white",fontWeight:700,cursor:"pointer",opacity:busy||!validExtensionId?.55:1}}>
+            <button disabled={busy || !validExtensionId} style={{width:"100%",marginTop:20,padding:13,border:0,borderRadius:9,background:"#16a34a",color:"white",fontWeight:700,cursor:"pointer",opacity:(busy || !validExtensionId) ? 0.55 : 1}}>
               {busy ? "Conectando..." : "Conectar ao PlaceFit"}
             </button>
           </form>
