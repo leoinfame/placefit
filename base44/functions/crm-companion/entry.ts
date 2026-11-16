@@ -316,12 +316,18 @@ export default async function handler(req: Request): Promise<Response> {
         });
       }
 
-      const customerRows = await base44.asServiceRole.entities.Cliente.filter(
-        { fornecedor_id: ownerId },
-        "-created_date",
-        500
-      );
-      const samePhoneCustomers = (customerRows || []).filter(
+      const customerRows: any[] = [];
+      for (let skip = 0; skip < 5000; skip += 500) {
+        const page = await base44.asServiceRole.entities.Cliente.filter(
+          { fornecedor_id: ownerId },
+          "-created_date",
+          500,
+          skip
+        );
+        customerRows.push(...(page || []));
+        if (!page || page.length < 500) break;
+      }
+      const samePhoneCustomers = customerRows.filter(
         (row: any) => phoneKey(row.telefone) === wantedPhone
       );
       if (samePhoneCustomers.length > 1) {
