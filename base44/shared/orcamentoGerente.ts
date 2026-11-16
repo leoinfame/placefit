@@ -48,7 +48,7 @@ export const SCHEMA_PEDIDO = {
     cliente: {
       type: 'object',
       properties: {
-        cpf_cnpj: { type: 'string' }, nome: { type: 'string' }, endereco: { type: 'string' }, cidade: { type: 'string' },
+        cpf_cnpj: { type: 'string' }, nome: { type: 'string' }, email: { type: 'string' }, endereco: { type: 'string' }, cidade: { type: 'string' },
         estado: { type: 'string' }, telefone: { type: 'string' }, cep: { type: 'string' }
       },
       required: ['cpf_cnpj', 'nome', 'cidade', 'estado', 'telefone', 'cep']
@@ -98,7 +98,7 @@ Se existe RASCUNHO ATUAL e a mensagem fala do orçamento, dos itens, dos produto
 de forma vaga — a acao é "orcamento". Frase vaga não escolhe opção.
 
 Quando for "orcamento", devolva o pedido COMPLETO já atualizado: o RASCUNHO ATUAL (se houver) com as mudanças da mensagem.
-- cliente: só o que foi dito (CNPJ/CPF, nome/razão social, endereço, cidade, estado em sigla UF, telefone, CEP). Não informado = "".
+- cliente: só o que foi dito (CNPJ/CPF, nome/razão social, email, endereço, cidade, estado em sigla UF, telefone, CEP). Não informado = "".
   cpf_cnpj só recebe números de documento (11 ou 14 dígitos, com ou sem pontuação). Código de produto
   (tem letras, ex.: "ANI-N062", "ASP20", "KHSI110S") NUNCA é CPF/CNPJ: ele vai na descricao do item a que se refere.
 - cep_entrega: só se ele disse que a entrega é em OUTRO lugar (CEP diferente do cliente); senão "".
@@ -275,6 +275,7 @@ async function resolverCliente(base44: any, tenantId: string, pedido: any) {
     if (tel) patch.telefone = digitos(pedido.telefone);
     const nomeAtualizado = publico?.razao_social || nome;
     if (nomeAtualizado) patch.nome = nomeAtualizado;
+    if (String(pedido?.email || '').trim()) patch.email = String(pedido.email).trim();
     const endereco = publico?.endereco || String(pedido?.endereco || '').trim();
     const cidade = String(pedido?.cidade || publico?.cidade || '').trim();
     const estado = String(pedido?.estado || publico?.estado || '').trim();
@@ -303,6 +304,7 @@ async function resolverCliente(base44: any, tenantId: string, pedido: any) {
       fornecedor_id: tenantId,
       nome: publico.razao_social,
       cpf_cnpj: pedido.cpf_cnpj,
+      email: pedido?.email || '',
       // Item 022c: telefone do cliente é o do contato; o da Receita fica só nas observações
       telefone: digitos(pedido?.telefone) || '',
       endereco: publico.endereco,
@@ -319,7 +321,7 @@ async function resolverCliente(base44: any, tenantId: string, pedido: any) {
   }
 
   // Sem consulta pública (CPF, CNPJ fora do ar ou só nome): aproveita o cadastro fiscal do tenant
-  const novo: any = { id: '', nome, cpf_cnpj: pedido?.cpf_cnpj || '', telefone: digitos(pedido?.telefone) || '', endereco: pedido?.endereco || '', cidade: pedido?.cidade || '', estado: pedido?.estado || '', cep: pedido?.cep || '', situacao: 'novo' };
+  const novo: any = { id: '', nome, cpf_cnpj: pedido?.cpf_cnpj || '', email: pedido?.email || '', telefone: digitos(pedido?.telefone) || '', endereco: pedido?.endereco || '', cidade: pedido?.cidade || '', estado: pedido?.estado || '', cep: pedido?.cep || '', situacao: 'novo' };
   if (doc) {
     try {
       const fiscais = await db.ClienteFiscal.filter({ tenant_id: tenantId }, '-created_date', 500);
@@ -342,7 +344,7 @@ async function resolverCliente(base44: any, tenantId: string, pedido: any) {
   // Não espera o orçamento ficar pronto para registrar os dados do contato no CRM.
   if (!novo.id && novo.nome && tel) {
     const c = await db.Cliente.create({
-      fornecedor_id: tenantId, nome: novo.nome, cpf_cnpj: novo.cpf_cnpj,
+      fornecedor_id: tenantId, nome: novo.nome, cpf_cnpj: novo.cpf_cnpj, email: novo.email || '',
       telefone: digitos(pedido?.telefone), endereco: novo.endereco || '',
       cidade: novo.cidade || '', estado: novo.estado || '', cep: digitos(novo.cep || ''),
       ativo: true, observacoes: 'Cadastro iniciado a partir de dados informados no WhatsApp.'
@@ -581,6 +583,7 @@ export async function gravar(base44: any, tenantId: string, r: any, opcoes: { ob
       fornecedor_id: tenantId,
       nome: r.cliente.nome,
       cpf_cnpj: r.cliente.cpf_cnpj || '',
+      email: r.cliente.email || '',
       telefone: digitos(r.cliente.telefone) || '',
       endereco: r.cliente.endereco || '',
       cidade: r.cliente.cidade || '',
