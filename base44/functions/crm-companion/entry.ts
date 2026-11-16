@@ -1,4 +1,6 @@
 import { createClientFromRequest } from "npm:@base44/sdk";
+import { PROMPT_PARSER, SCHEMA_PEDIDO, montarRascunho, gravar } from "../../shared/orcamentoGerente.ts";
+import { invocarIA } from "../../shared/iaComRetry.ts";
 
 // O telefone é normalizado sem confundir um LID com número telefônico.
 // Remove máscara e DDI 55 somente quando o número tem formato E.164 brasileiro.
@@ -138,6 +140,180 @@ export default async function handler(req: Request): Promise<Response> {
       if (!allowed || row.fornecedor_id !== ownerId) return null;
       return row;
     };
+
+    if (action === "order.preview" || action === "order.confirm") {
+      if (!isAdmin && !isOwner) return jsonError("FORBIDDEN", 403);
+      const rawText = String(body.text || "").trim();
+      if (!rawText || rawText.length > 12000) return jsonError("INVALID_ORDER_TEXT", 400);
+      const requestedPhone = phoneKey(body.phone || "");
+      if (body.phone && (requestedPhone.length < 10 || requestedPhone.length > 11)) {
+        return jsonError("INVALID_PHONE", 400);
+      }
+
+      let conversation: any = null;
+      const conversationId = String(body.conversation_id || "");
+      if (conversationId) {
+        conversation = await getConversation(conversationId);
+        if (!conversation) return jsonError("NOT_FOUND_OR_FORBIDDEN", 404);
+      }
+      let phone = conversation ? phoneKey(conversation.telefone) : requestedPhone;
+      if (conversation && requestedPhone && phone !== requestedPhone) {
+        return jsonError("PHONE_MISMATCH", 409);
+      }
+      if (!phone || phone.length < 10 || phone.length > 11) return jsonError("PHONE_REQUIRED", 400);
+
+      if (!conversation) {
+        const rows = await base44.asServiceRole.entities.CRMConversa.filter(
+          { owner_id: ownerId, ativo: true }, "-ultima_interacao", 2000
+        );
+        const matches = (rows || []).filter((row: any) => canAccessConversation(row) && phoneKey(row.telefone) === phone);
+        if (matches.length > 1) return jsonError("AMBIGUOUS_CONVERSATION", 409);
+        conversation = matches[0] || null;
+      }
+
+      let customer: any = null;
+      const linkedCustomerId = String(conversation?.cliente_id || "");
+      if (linkedCustomerId) customer = await loadCustomerIfAllowed(linkedCustomerId);
+      if (!customer) {
+        const customerRows: any[] = [];
+        for (let skip = 0; skip < 5000; skip += 500) {
+          const page = await base44.asServiceRole.entities.Cliente.filter(
+            { fornecedor_id: ownerId }, "-created_date", 500, skip
+          );
+          customerRows.push(...(page || []));
+          if (!page || page.length < 500) break;
+        }
+        const matches = customerRows.filter((row: any) => phoneKey(row.telefone) === phone);
+        if (matches.length > 1) return jsonError("AMBIGUOUS_CUSTOMER", 409);
+        if (matches.length === 1) customer = await loadCustomerIfAllowed(matches[0].id);
+      }
+
+      let pedido: any;
+      if (action === "order.preview") {
+        const known = customer ? {
+          nome: customer.nome || "", cpf_cnpj: customer.cpf_cnpj || "", email: customer.email || "",
+          endereco: customer.endereco || "", cidade: customer.cidade || "", estado: customer.estado || "",
+          cep: customer.cep || ""
+        } : {};
+        const prompt = PROMPT_PARSER +
+          "\n\nCONTEXTO DO CADASTRO EXISTENTE (não invente nem substitua o que o vendedor escreveu): " +
+          JSON.stringify(known) +
+          "\n\nCLIENTE INFORMADO PELO VENDEDOR: " + String(body.name || conversation?.nome_contato || customer?.nome || "") +
+          "\nTELEFONE WHATSAPP: " + phone +
+          "\n\nPEDIDO INFORMADO PELO VENDEDOR:\n" + rawText;
+        const ai: any = await invocarIA(base44, { prompt, response_json_schema: SCHEMA_PEDIDO });
+        pedido = typeof ai === "string" ? JSON.parse(ai) : ai;
+        if (!pedido || pedido.acao !== "orcamento") {
+          return jsonError("NOT_AN_ORDER", 422, { message: "Não consegui identificar um pedido de orçamento. Descreva os produtos e quantidades." });
+        }
+      } else {
+        pedido = body.pedido;
+        if (!pedido || typeof pedido !== "object" || !Array.isArray(pedido.itens)) {
+          return jsonError("INVALID_ORDER_DRAFT", 400);
+        }
+      }
+
+      const parsedClient = pedido.cliente && typeof pedido.cliente === "object" ? pedido.cliente : {};
+      pedido.cliente = {
+        ...parsedClient,
+        nome: String(body.name || parsedClient.nome || customer?.nome || conversation?.nome_contato || "").trim(),
+        telefone: phone,
+        cliente_id_contato: customer?.id || linkedCustomerId || "",
+        cpf_cnpj: parsedClient.cpf_cnpj || customer?.cpf_cnpj || "",
+        email: parsedClient.email || customer?.email || "",
+        endereco: parsedClient.endereco || customer?.endereco || "",
+        cidade: parsedClient.cidade || customer?.cidade || "",
+        estado: parsedClient.estado || customer?.estado || "",
+        cep: parsedClient.cep || customer?.cep || ""
+      };
+
+      const preview = await montarRascunho(
+        base44, ownerId, pedido, null, rawText, { somenteLeitura: true }
+      );
+      const publicDraft = {
+        pedido: preview.pedido,
+        cliente: preview.cliente,
+        itens: preview.itens,
+        subtotal: preview.subtotal,
+        peso_total: preview.peso_total,
+        frete: preview.frete,
+        frete_origem: preview.frete_origem,
+        frete_obs: preview.frete_obs,
+        total: preview.total,
+        composicoes: preview.composicoes,
+        suposicoes: preview.suposicoes,
+        ressalvas: preview.ressalvas,
+        perguntas: preview.perguntas,
+        nao_cotados: preview.nao_cotados,
+        pronto: preview.pronto
+      };
+
+      if (action === "order.preview") {
+        return Response.json({
+          ok: true, preview: publicDraft,
+          conversation_id: conversation?.id || "",
+          phone, name: pedido.cliente.nome || ""
+        });
+      }
+
+      if (!preview.pronto) {
+        return Response.json({
+          ok: false, error: "ORDER_INCOMPLETE",
+          message: "O orçamento ainda tem informações pendentes. Revise os pontos abaixo e gere uma nova prévia.",
+          preview: publicDraft
+        }, { status: 422 });
+      }
+
+      // Só agora, após a confirmação explícita, permite completar/criar o cadastro.
+      const finalDraft = await montarRascunho(base44, ownerId, pedido, null, rawText);
+      if (!finalDraft.pronto) {
+        return Response.json({
+          ok: false, error: "ORDER_CHANGED",
+          message: "O cadastro ou catálogo mudou durante a confirmação. Gere uma nova prévia.",
+          preview: {
+            itens: finalDraft.itens, subtotal: finalDraft.subtotal, frete: finalDraft.frete,
+            total: finalDraft.total, perguntas: finalDraft.perguntas, pronto: finalDraft.pronto
+          }
+        }, { status: 409 });
+      }
+      const saved = await gravar(base44, ownerId, finalDraft);
+      const savedCustomerId = String(saved.pedido?.cliente_id || finalDraft.cliente?.id || "");
+      if (conversation) {
+        if (savedCustomerId && conversation.cliente_id !== savedCustomerId) {
+          await base44.asServiceRole.entities.CRMConversa.update(conversation.id, { cliente_id: savedCustomerId });
+        }
+      } else {
+        conversation = await base44.asServiceRole.entities.CRMConversa.create({
+          owner_id: ownerId,
+          nome_contato: finalDraft.cliente?.nome || String(body.name || ""),
+          telefone: phone,
+          cliente_id: savedCustomerId,
+          etapa: "orcamento",
+          origem: "whatsapp",
+          ativo: true,
+          ultima_interacao: new Date().toISOString(),
+          listas: []
+        });
+      }
+      return Response.json({
+        ok: true,
+        saved: true,
+        conversation_id: conversation?.id || "",
+        customer_id: savedCustomerId,
+        order: {
+          id: saved.pedido?.id || "",
+          numero_pedido: saved.pedido?.numero_pedido || "",
+          total: finalDraft.total,
+          subtotal: finalDraft.subtotal,
+          frete: finalDraft.frete,
+          itens: finalDraft.itens.map((item: any) => ({
+            nome: item.nome, cod: item.cod, quantidade: item.quantidade,
+            preco_unitario: item.preco_unitario, subtotal: item.subtotal
+          }))
+        },
+        divergencias: saved.divergencias || []
+      });
+    }
 
     if (action === "contact.lookup") {
       const rawPhone = String(body.phone || "");
