@@ -339,6 +339,16 @@ async function resolverCliente(base44: any, tenantId: string, pedido: any) {
   }
   const faltam = [!novo.nome && 'nome/razão social', !novo.estado && 'cidade/UF ou CEP'].filter(Boolean);
   if (faltam.length) perguntas.push(`Cliente novo, sem cadastro público. Me passa: ${faltam.join(', ')}.`);
+  // Não espera o orçamento ficar pronto para registrar os dados do contato no CRM.
+  if (!novo.id && novo.nome && tel) {
+    const c = await db.Cliente.create({
+      fornecedor_id: tenantId, nome: novo.nome, cpf_cnpj: novo.cpf_cnpj,
+      telefone: digitos(pedido?.telefone), endereco: novo.endereco || '',
+      cidade: novo.cidade || '', estado: novo.estado || '', cep: digitos(novo.cep || ''),
+      ativo: true, observacoes: 'Cadastro iniciado a partir de dados informados no WhatsApp.'
+    });
+    novo.id = c.id;
+  }
   return { cliente: novo, perguntas, ressalvas };
 }
 
@@ -693,6 +703,9 @@ export async function tratarOrcamentoGerente(base44: any, tenantId: string, conv
   pedido.cliente = { ...(pedido.cliente || {}), telefone: digitos(conversa?.telefone || pedido.cliente?.telefone || '') };
   pedido.cliente.cliente_id_contato = conversa?.cliente_id || '';
   const r = await montarRascunho(base44, tenantId, pedido, base, [texto, ...doDono].join(' '));
+  if (conversa?.id && r.cliente?.id && conversa.cliente_id !== r.cliente.id) {
+    await base44.asServiceRole.entities.CRMConversa.update(conversa.id, { cliente_id: r.cliente.id });
+  }
   if (fora.length) r.suposicoes.unshift(`Ignorei ${fora.map((d) => `"${d}"`).join(', ')}: não está na sua mensagem nem no rascunho.`);
   if (!r.pronto) {
     await salvarRascunho(base44, conversa, r);
