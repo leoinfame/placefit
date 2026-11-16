@@ -319,7 +319,7 @@ async function resolverCliente(base44: any, tenantId: string, pedido: any) {
   }
 
   // Sem consulta pública (CPF, CNPJ fora do ar ou só nome): aproveita o cadastro fiscal do tenant
-  const novo: any = { id: '', nome, cpf_cnpj: pedido?.cpf_cnpj || '', cidade: pedido?.cidade || '', estado: pedido?.estado || '', cep: pedido?.cep || '', telefone: pedido?.telefone || '', situacao: 'novo' };
+  const novo: any = { id: '', nome, cpf_cnpj: pedido?.cpf_cnpj || '', telefone: digitos(pedido?.telefone) || '', endereco: pedido?.endereco || '', cidade: pedido?.cidade || '', estado: pedido?.estado || '', cep: pedido?.cep || '', situacao: 'novo' };
   if (doc) {
     try {
       const fiscais = await db.ClienteFiscal.filter({ tenant_id: tenantId }, '-created_date', 500);
@@ -572,6 +572,7 @@ export async function gravar(base44: any, tenantId: string, r: any, opcoes: { ob
       nome: r.cliente.nome,
       cpf_cnpj: r.cliente.cpf_cnpj || '',
       telefone: digitos(r.cliente.telefone) || '',
+      endereco: r.cliente.endereco || '',
       cidade: r.cliente.cidade || '',
       estado: r.cliente.estado || '',
       cep: r.cliente.cep || '',
