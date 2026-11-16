@@ -292,7 +292,7 @@ async function resolverCliente(base44: any, tenantId: string, pedido: any) {
     if (vazio(c.estado) && !publico && doc.length === 14) ressalvas.push('Consulta pública do CNPJ indisponível agora; cadastro não foi completado.');
     return {
       cliente: {
-        id: c.id, nome: c.nome, cpf_cnpj: c.cpf_cnpj || pedido?.cpf_cnpj || '', telefone: c.telefone || '', endereco: c.endereco || '', cidade: c.cidade || '', estado: c.estado || '',
+        id: c.id, nome: c.nome, cpf_cnpj: c.cpf_cnpj || pedido?.cpf_cnpj || '', email: c.email || '', telefone: c.telefone || '', endereco: c.endereco || '', cidade: c.cidade || '', estado: c.estado || '',
         cep: c.cep || '', fantasia: publico?.nome_fantasia || '', situacao: Object.keys(patch).length ? 'atualizado' : 'existente'
       },
       perguntas, ressalvas
