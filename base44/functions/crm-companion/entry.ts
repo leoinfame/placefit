@@ -290,6 +290,75 @@ export default async function handler(req: Request): Promise<Response> {
       });
     }
 
+    if (action === "contact.create") {
+      if (!isAdmin && !isOwner) return jsonError("FORBIDDEN", 403);
+      const rawPhone = String(body.phone || "").trim();
+      const wantedPhone = phoneKey(rawPhone);
+      const name = String(body.name || "").trim();
+      if (wantedPhone.length < 10 || wantedPhone.length > 11) {
+        return jsonError("INVALID_PHONE", 400);
+      }
+      if (!name) return jsonError("NAME_REQUIRED", 400);
+      if (name.length > 200) return jsonError("FIELD_TOO_LONG", 400, { field: "name", max: 200 });
+
+      // Revalida pelo tenant no servidor: não confia no estado do painel.
+      const existingConversations = await base44.asServiceRole.entities.CRMConversa.filter(
+        { owner_id: ownerId, ativo: true },
+        "-ultima_interacao",
+        2000
+      );
+      const samePhoneConversations = (existingConversations || []).filter(
+        (row: any) => phoneKey(row.telefone) === wantedPhone
+      );
+      if (samePhoneConversations.length) {
+        return jsonError("CONVERSATION_ALREADY_EXISTS", 409, {
+          conversation_id: samePhoneConversations.length === 1 ? samePhoneConversations[0].id : ""
+        });
+      }
+
+      const customerRows = await base44.asServiceRole.entities.Cliente.filter(
+        { fornecedor_id: ownerId },
+        "-created_date",
+        500
+      );
+      const samePhoneCustomers = (customerRows || []).filter(
+        (row: any) => phoneKey(row.telefone) === wantedPhone
+      );
+      if (samePhoneCustomers.length > 1) {
+        return jsonError("CUSTOMER_DUPLICATE", 409);
+      }
+
+      let customer = samePhoneCustomers[0] || null;
+      if (!customer) {
+        customer = await base44.asServiceRole.entities.Cliente.create({
+          fornecedor_id: ownerId,
+          nome,
+          telefone: rawPhone,
+          ativo: true,
+          observacoes: "Cadastro iniciado pelo PlaceFit Companion a partir do telefone identificado no WhatsApp."
+        });
+      }
+
+      const conversation = await base44.asServiceRole.entities.CRMConversa.create({
+        owner_id: ownerId,
+        nome_contato: name,
+        telefone: rawPhone,
+        cliente_id: customer.id,
+        etapa: "novo",
+        origem: "whatsapp",
+        ativo: true,
+        ultima_interacao: new Date().toISOString(),
+        listas: []
+      });
+
+      return Response.json({
+        ok: true,
+        created: true,
+        conversation: safeConversation(conversation),
+        customer: safeCustomer(customer)
+      });
+    }
+
     if (action === "conversation.update") {
       const conversationId = String(body.conversation_id || "");
       if (!conversationId) return jsonError("CONVERSATION_REQUIRED", 400);
