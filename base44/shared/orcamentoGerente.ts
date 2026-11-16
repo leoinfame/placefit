@@ -307,7 +307,7 @@ async function resolverCliente(base44: any, tenantId: string, pedido: any) {
       email: pedido?.email || '',
       // Item 022c: telefone do cliente é o do contato; o da Receita fica só nas observações
       telefone: digitos(pedido?.telefone) || '',
-      endereco: publico.endereco,
+      endereco: pedido?.endereco || publico.endereco,
       cidade: pedido?.cidade || publico.cidade,
       estado: pedido?.estado || publico.estado,
       cep: digitos(pedido?.cep || publico.cep || ''),
