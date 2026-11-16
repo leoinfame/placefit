@@ -264,7 +264,7 @@ async function resolverCliente(base44: any, tenantId: string, pedido: any) {
   if (publico?.numero_ausente) ressalvas.push('Endereço do CNPJ sem número (número ausente).');
 
   const obsCnpj = publico
-    ? [publico.nome_fantasia && `Fantasia: ${publico.nome_fantasia}.`, publico.numero_ausente && 'Endereço: número ausente.', publico.telefone && `Telefone da Receita: ${publico.telefone}.`].filter(Boolean).join(' ')
+    ? [publico.razao_social && `Razão social: ${publico.razao_social}.`, publico.nome_fantasia && `Fantasia: ${publico.nome_fantasia}.`, publico.numero_ausente && 'Endereço: número ausente.', publico.telefone && `Telefone da Receita: ${publico.telefone}.`].filter(Boolean).join(' ')
     : '';
 
   if (existente) {
@@ -273,7 +273,7 @@ async function resolverCliente(base44: any, tenantId: string, pedido: any) {
     const patch: Record<string, string> = {};
     if (doc) patch.cpf_cnpj = doc;
     if (tel) patch.telefone = digitos(pedido.telefone);
-    const nomeAtualizado = publico?.razao_social || nome;
+    const nomeAtualizado = nome || (vazio(existente.nome) ? publico?.razao_social : '');
     if (nomeAtualizado) patch.nome = nomeAtualizado;
     if (String(pedido?.email || '').trim()) patch.email = String(pedido.email).trim();
     const endereco = publico?.endereco || String(pedido?.endereco || '').trim();
