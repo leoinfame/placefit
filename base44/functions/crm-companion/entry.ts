@@ -90,14 +90,13 @@ export default async function handler(req: Request): Promise<Response> {
     const isAdmin = user.role === "admin";
 
     // Contas proprietárias legadas: o ID do usuário autenticado é o próprio
-    // owner_id do tenant. Para administradores globais sem vínculo CRMEquipe,
-    // o workspace será resolvido pelo identificador exato da conversa/cliente,
-    // sem escolher arbitrariamente entre tenants.
-    if (!ownerId && !isAdmin) {
+    // owner_id do tenant. Não exigir CRMEquipe nem depender de haver conversa
+    // recente para reconhecer o dono. O isolamento continua garantido porque
+    // todas as consultas seguintes usam exclusivamente ownerId.
+    if (!ownerId) {
       ownerId = user.id;
       role = "dono";
     }
-    if (!ownerId && isAdmin) role = "admin";
 
     if (action === "me") {
       return Response.json({
@@ -126,9 +125,6 @@ export default async function handler(req: Request): Promise<Response> {
     const getConversation = async (id: string) => {
       if (!id) return null;
       const row = await base44.asServiceRole.entities.CRMConversa.get(id).catch(() => null);
-      // Admin global pode operar no tenant da conversa identificada, sem
-      // precisar de um vínculo CRMEquipe inexistente no cadastro legado.
-      if (row && isAdmin && !ownerId) ownerId = row.owner_id || "";
       return canEditConversation(row) ? row : null;
     };
 
@@ -156,25 +152,6 @@ export default async function handler(req: Request): Promise<Response> {
       if (!rawPhone && !wantedLid) return jsonError("IDENTIFIER_REQUIRED", 400);
       if (wantedLid && (wantedLid.length < 5 || wantedLid.length > 30)) {
         return jsonError("INVALID_LID", 400);
-      }
-
-      // Admin global sem CRMEquipe: resolve o tenant pela chave exata do
-      // contato. Se o mesmo identificador existir em mais de um tenant, não
-      // escolhe automaticamente; devolve ambiguidade.
-      if (isAdmin && !ownerId) {
-        const allRows = await base44.asServiceRole.entities.CRMConversa.filter(
-          { ativo: true }, "-ultima_interacao", 5000
-        );
-        const candidates = (allRows || []).filter((c: any) =>
-          (wantedLid && digits(c.contato_lid) === wantedLid) ||
-          (wantedPhone && phoneKey(c.telefone) === wantedPhone)
-        );
-        const candidateOwners = Array.from(new Set(candidates.map((c: any) => c.owner_id).filter(Boolean)));
-        if (!candidateOwners.length) return Response.json({ status: "not_found" });
-        if (candidateOwners.length > 1) {
-          return Response.json({ status: "ambiguous", reason: "MULTIPLE_WORKSPACES" });
-        }
-        ownerId = String(candidateOwners[0]);
       }
 
       // O filtro é limitado ao tenant resolvido e autorizado.
@@ -328,7 +305,6 @@ export default async function handler(req: Request): Promise<Response> {
       const rawPhone = String(body.phone || "").trim();
       const wantedPhone = phoneKey(rawPhone);
       const name = String(body.name || "").trim();
-      if (isAdmin && !ownerId) return jsonError("WORKSPACE_REQUIRED", 409);
       if (wantedPhone.length < 10 || wantedPhone.length > 11) {
         return jsonError("INVALID_PHONE", 400);
       }
@@ -443,9 +419,7 @@ export default async function handler(req: Request): Promise<Response> {
       const customerId = String(body.customer_id || "");
       if (!customerId) return jsonError("CUSTOMER_REQUIRED", 400);
       const customer = await base44.asServiceRole.entities.Cliente.get(customerId).catch(() => null);
-      if (!customer) return jsonError("NOT_FOUND", 404);
-      if (isAdmin && !ownerId) ownerId = customer.fornecedor_id || "";
-      if (customer.fornecedor_id !== ownerId) return jsonError("NOT_FOUND", 404);
+      if (!customer || customer.fornecedor_id !== ownerId) return jsonError("NOT_FOUND", 404);
 
       // Replica exatamente o RLS de Cliente: fornecedor dono, criador original
       // ou admin. Papel de supervisor/atendente não amplia esse direito.
