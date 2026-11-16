@@ -215,7 +215,7 @@ const vazio = (v: any) => !String(v || '').trim();
  * Acha, cadastra ou completa o cliente. Com CNPJ, consulta a base pública antes de
  * qualquer pergunta; nunca pergunta o que a consulta devolve e nunca duplica.
  */
-async function resolverCliente(base44: any, tenantId: string, pedido: any) {
+async function resolverCliente(base44: any, tenantId: string, pedido: any, somenteLeitura = false) {
   const db = base44.asServiceRole.entities;
   // B1: código de produto (tem letra, ex.: ANI-N062) nunca é tratado como CPF/CNPJ
   const docBruto = /[a-z]/i.test(String(pedido?.cpf_cnpj || '')) ? '' : String(pedido?.cpf_cnpj || '').trim();
@@ -238,7 +238,7 @@ async function resolverCliente(base44: any, tenantId: string, pedido: any) {
   if (!contato && tel) contato = todos.find((c) => chaveTelefone(c.telefone) === tel) || null;
   const fiscal = doc ? todos.find((c) => digitos(c.cpf_cnpj) === doc) || null : null;
   let existente = contato || fiscal;
-  if (tel && fiscal && contato && fiscal.id !== contato.id && chaveTelefone(fiscal.telefone) !== tel) {
+  if (!somenteLeitura && tel && fiscal && contato && fiscal.id !== contato.id && chaveTelefone(fiscal.telefone) !== tel) {
     await db.Cliente.update(fiscal.id, { telefone: digitos(pedido.telefone) });
   }
   if (!existente && !doc && nome) {
@@ -287,7 +287,7 @@ async function resolverCliente(base44: any, tenantId: string, pedido: any) {
     if (obsCnpj && !String(existente.observacoes || '').includes(obsCnpj)) {
       patch.observacoes = [String(existente.observacoes || '').trim(), `Consulta pública do CNPJ: ${obsCnpj}`].filter(Boolean).join('\n');
     }
-    if (Object.keys(patch).length) await db.Cliente.update(existente.id, patch);
+    if (!somenteLeitura && Object.keys(patch).length) await db.Cliente.update(existente.id, patch);
     const c = { ...existente, ...patch };
     if (vazio(c.estado) && !publico && doc.length === 14) ressalvas.push('Consulta pública do CNPJ indisponível agora; cadastro não foi completado.');
     return {
@@ -300,6 +300,12 @@ async function resolverCliente(base44: any, tenantId: string, pedido: any) {
   }
 
   if (publico) {
+    if (somenteLeitura) {
+      return {
+        cliente: { id: '', nome: publico.razao_social || nome, cpf_cnpj: docBruto, email: pedido?.email || '', telefone: digitos(pedido?.telefone) || '', endereco: pedido?.endereco || publico.endereco || '', cidade: pedido?.cidade || publico.cidade || '', estado: pedido?.estado || publico.estado || '', cep: digitos(pedido?.cep || publico.cep || ''), fantasia: publico.nome_fantasia || '', situacao: 'novo' },
+        perguntas, ressalvas
+      };
+    }
     const c = await db.Cliente.create({
       fornecedor_id: tenantId,
       nome: publico.razao_social,
@@ -342,7 +348,7 @@ async function resolverCliente(base44: any, tenantId: string, pedido: any) {
   const faltam = [!novo.nome && 'nome/razão social', !novo.estado && 'cidade/UF ou CEP'].filter(Boolean);
   if (faltam.length) perguntas.push(`Cliente novo, sem cadastro público. Me passa: ${faltam.join(', ')}.`);
   // Não espera o orçamento ficar pronto para registrar os dados do contato no CRM.
-  if (!novo.id && novo.nome && tel) {
+  if (!somenteLeitura && !novo.id && novo.nome && tel) {
     const c = await db.Cliente.create({
       fornecedor_id: tenantId, nome: novo.nome, cpf_cnpj: novo.cpf_cnpj, email: novo.email || '',
       telefone: digitos(pedido?.telefone), endereco: novo.endereco || '',
@@ -417,11 +423,11 @@ const semRepetir = (lista: string[]) => {
   });
 };
 
-export async function montarRascunho(base44: any, tenantId: string, pedido: any, anterior: any, fonteTexto = '') {
+export async function montarRascunho(base44: any, tenantId: string, pedido: any, anterior: any, fonteTexto = '', options: { somenteLeitura?: boolean } = {}) {
   const perguntas: string[] = [];
   const ressalvas: string[] = [];
 
-  const rc = await resolverCliente(base44, tenantId, pedido.cliente || {});
+  const rc = await resolverCliente(base44, tenantId, pedido.cliente || {}, Boolean(options.somenteLeitura));
   perguntas.push(...rc.perguntas);
   ressalvas.push(...rc.ressalvas);
   const cliente = rc.cliente;
