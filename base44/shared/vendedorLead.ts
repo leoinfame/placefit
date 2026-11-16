@@ -194,6 +194,10 @@ export async function atenderLead(ctx: Ctx): Promise<{ atuou: boolean; motivo: s
 
     const montar = ctx.deps?.montar || ((p: any) => montarRascunho(ctx.base44, ctx.owner.id, p, null, textoCliente));
     const r = await montar(pedido);
+    if (r?.cliente?.id && ctx.conversa.cliente_id !== r.cliente.id) {
+      await ctx.db.CRMConversa.update(ctx.conversa.id, { cliente_id: r.cliente.id });
+      ctx.conversa.cliente_id = r.cliente.id;
+    }
     d = decidir(pedido, r);
     if (d.acao === 'pedir_dados') return { atuou: await mandarUmaVez(ctx, msgs, MSG_PEDIR_DADOS), motivo: 'pedir_dados' };
     if (d.acao !== 'enviar') {
