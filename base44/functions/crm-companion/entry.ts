@@ -266,13 +266,23 @@ export default async function handler(req: Request): Promise<Response> {
 
       // Só agora, após a confirmação explícita, permite completar/criar o cadastro.
       const finalDraft = await montarRascunho(base44, ownerId, pedido, null, rawText);
-      if (!finalDraft.pronto) {
+      const sameLines = JSON.stringify((preview.itens || []).map((i: any) => [
+        i.product_id, i.quantidade, i.preco_unitario, i.subtotal
+      ])) === JSON.stringify((finalDraft.itens || []).map((i: any) => [
+        i.product_id, i.quantidade, i.preco_unitario, i.subtotal
+      ]));
+      const quoteChanged = !finalDraft.pronto || !sameLines ||
+        preview.subtotal !== finalDraft.subtotal ||
+        preview.frete !== finalDraft.frete ||
+        preview.total !== finalDraft.total;
+      if (quoteChanged) {
         return Response.json({
           ok: false, error: "ORDER_CHANGED",
-          message: "O cadastro ou catálogo mudou durante a confirmação. Gere uma nova prévia.",
+          message: "Os dados ou preços mudaram desde a prévia. Confira a nova versão antes de gravar.",
           preview: {
             itens: finalDraft.itens, subtotal: finalDraft.subtotal, frete: finalDraft.frete,
-            total: finalDraft.total, perguntas: finalDraft.perguntas, pronto: finalDraft.pronto
+            frete_origem: finalDraft.frete_origem, total: finalDraft.total,
+            perguntas: finalDraft.perguntas, pronto: finalDraft.pronto
           }
         }, { status: 409 });
       }
