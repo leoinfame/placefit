@@ -252,7 +252,8 @@ async function resolverCliente(base44: any, tenantId: string, pedido: any) {
   // Consulta pública: só CNPJ, e só se ainda falta algum dado do cadastro
   let publico: any = null;
   const faltaDado = (c: any) => !c || vazio(c.nome) || vazio(c.endereco) || vazio(c.cidade) || vazio(c.estado) || vazio(c.cep);
-  if (doc.length === 14 && faltaDado(existente)) publico = await consultarCnpj(doc);
+  const documentoMudou = Boolean(doc && existente && digitos(existente.cpf_cnpj) !== doc);
+  if (doc.length === 14 && (documentoMudou || faltaDado(existente))) publico = await consultarCnpj(doc);
   if (publico?.numero_ausente) ressalvas.push('Endereço do CNPJ sem número (número ausente).');
 
   const obsCnpj = publico
