@@ -345,8 +345,8 @@ export default async function handler(req: Request): Promise<Response> {
       if (!conversationId) return jsonError("CONVERSATION_REQUIRED", 400);
       const conversation = await getConversation(conversationId);
       if (!conversation) return jsonError("NOT_FOUND_OR_FORBIDDEN", 404);
-      const requested = Array.isArray(body.list_ids)
-        ? [...new Set(body.list_ids.map((id: unknown) => String(id)))]
+      const requested: string[] = Array.isArray(body.list_ids)
+        ? Array.from(new Set((body.list_ids as unknown[]).map((id: unknown) => String(id))))
         : [];
       if (requested.length > 100) return jsonError("TOO_MANY_LISTS", 400);
       const rows = await base44.asServiceRole.entities.CRMLista.filter(
