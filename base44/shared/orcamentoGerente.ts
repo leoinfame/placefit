@@ -98,7 +98,7 @@ Se existe RASCUNHO ATUAL e a mensagem fala do orçamento, dos itens, dos produto
 de forma vaga — a acao é "orcamento". Frase vaga não escolhe opção.
 
 Quando for "orcamento", devolva o pedido COMPLETO já atualizado: o RASCUNHO ATUAL (se houver) com as mudanças da mensagem.
-- cliente: só o que foi dito (CNPJ/CPF, nome, cidade, estado em sigla UF, telefone, CEP). Não informado = "".
+- cliente: só o que foi dito (CNPJ/CPF, nome/razão social, endereço, cidade, estado em sigla UF, telefone, CEP). Não informado = "".
   cpf_cnpj só recebe números de documento (11 ou 14 dígitos, com ou sem pontuação). Código de produto
   (tem letras, ex.: "ANI-N062", "ASP20", "KHSI110S") NUNCA é CPF/CNPJ: ele vai na descricao do item a que se refere.
 - cep_entrega: só se ele disse que a entrega é em OUTRO lugar (CEP diferente do cliente); senão "".
