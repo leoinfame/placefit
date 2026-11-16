@@ -189,17 +189,37 @@ export default async function handler(req: Request): Promise<Response> {
       }
 
       const conversation = matches[0];
-      const customer = await loadCustomerIfAllowed(conversation.cliente_id);
-      // Orçamentos são lidos somente dentro do tenant autenticado e vinculados
-      // ao mesmo cliente; não expor campos fiscais ou dados de outros clientes.
+      let customer = await loadCustomerIfAllowed(conversation.cliente_id);
+      // Se o vínculo antigo estiver vazio, recupera o cadastro pelo telefone exato do WhatsApp.
+      const tenantCustomers: any[] = [];
+      for (let skip = 0; skip < 5000; skip += 500) {
+        const page = await base44.asServiceRole.entities.Cliente.filter({ fornecedor_id: ownerId }, "-created_date", 500, skip);
+        tenantCustomers.push(...(page || []));
+        if (!page || page.length < 500) break;
+      }
+      const samePhoneCustomers = wantedPhone
+        ? tenantCustomers.filter((c: any) => phoneKey(c.telefone) === wantedPhone)
+        : [];
+      if (!customer && samePhoneCustomers.length === 1) customer = await loadCustomerIfAllowed(samePhoneCustomers[0].id);
+      // Histórico fiscal pode estar em cadastros diferentes. Só agrega registros do mesmo tenant
+      // que carregam exatamente o telefone desta conversa; o orçamento permanece intacto.
+      const customerIds = Array.from(new Set([
+        ...(customer?.id ? [customer.id] : []),
+        ...samePhoneCustomers.filter((c: any) => isAdmin || isOwner || c.created_by_id === user.id).map((c: any) => c.id)
+      ]));
       let budgets: any[] = [];
-      if (customer?.id) {
-        const orders = await base44.asServiceRole.entities.Pedido.filter(
-          { fornecedor_id: ownerId, cliente_id: customer.id, tipo: "orcamento" },
-          "-data_pedido",
-          100
-        );
-        budgets = (orders || []).map((p: any) => ({
+      if (customerIds.length) {
+        const orderPages = await Promise.all(customerIds.map((customerId: string) =>
+          base44.asServiceRole.entities.Pedido.filter(
+            { fornecedor_id: ownerId, cliente_id: customerId, tipo: "orcamento" },
+            "-data_pedido",
+            100
+          )
+        ));
+        const uniqueOrders = new Map<string, any>();
+        for (const page of orderPages) for (const order of (page || [])) uniqueOrders.set(order.id, order);
+        const orders = Array.from(uniqueOrders.values()).sort((a: any, b: any) => String(b.data_pedido || '').localeCompare(String(a.data_pedido || '')));
+        budgets = orders.map((p: any) => ({
           id: p.id,
           numero_pedido: p.numero_pedido || "",
           data_pedido: p.data_pedido || "",
