@@ -232,8 +232,15 @@ async function resolverCliente(base44: any, tenantId: string, pedido: any) {
   }
 
   const todos = await clientesDoTenant(db, tenantId);
-  let existente = doc ? todos.find((c) => digitos(c.cpf_cnpj) === doc) : null;
-  if (!existente && tel) existente = todos.find((c) => chaveTelefone(c.telefone) === tel) || null;
+  const contatoVinculado = String(pedido?.cliente_id_contato || '');
+  let contato = (contatoVinculado && todos.find((c) => c.id === contatoVinculado)) || null;
+  if (contato && tel && chaveTelefone(contato.telefone) && chaveTelefone(contato.telefone) !== tel) contato = null;
+  if (!contato && tel) contato = todos.find((c) => chaveTelefone(c.telefone) === tel) || null;
+  const fiscal = doc ? todos.find((c) => digitos(c.cpf_cnpj) === doc) || null : null;
+  let existente = contato || fiscal;
+  if (tel && fiscal && contato && fiscal.id !== contato.id && chaveTelefone(fiscal.telefone) !== tel) {
+    await db.Cliente.update(fiscal.id, { telefone: digitos(pedido.telefone) });
+  }
   if (!existente && !doc && nome) {
     const alvo = normalizar(nome);
     const achados = todos.filter((c) => normalizar(c.nome).includes(alvo));
