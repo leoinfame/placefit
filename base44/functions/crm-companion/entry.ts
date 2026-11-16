@@ -359,6 +359,11 @@ export default async function handler(req: Request): Promise<Response> {
       }
       if (!Object.keys(patch).length) return jsonError("NO_ALLOWED_FIELDS", 400);
       if (typeof patch.nome === "string" && !patch.nome) return jsonError("NAME_REQUIRED", 400);
+      // O telefone do cadastro é a identidade WhatsApp do contato. A edição dos demais
+      // dados nunca pode substituir esse número por telefone fiscal ou telefone digitado.
+      if (Object.prototype.hasOwnProperty.call(input, "telefone")) {
+        patch.telefone = String(customer.telefone || "");
+      }
 
       await base44.asServiceRole.entities.Cliente.update(customerId, patch);
       const updated = await base44.asServiceRole.entities.Cliente.get(customerId);
