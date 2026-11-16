@@ -332,7 +332,7 @@ export default async function handler(req: Request): Promise<Response> {
       if (!customer) {
         customer = await base44.asServiceRole.entities.Cliente.create({
           fornecedor_id: ownerId,
-          nome,
+          nome: name,
           telefone: rawPhone,
           ativo: true,
           observacoes: "Cadastro iniciado pelo PlaceFit Companion a partir do telefone identificado no WhatsApp."
