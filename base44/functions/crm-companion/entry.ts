@@ -218,12 +218,55 @@ export default async function handler(req: Request): Promise<Response> {
           observacoes: p.observacoes || ""
         }));
       }
+      // Próximos passos são registros internos do CRM. O schema limita leitura
+      // ao dono/admin; não ampliar esse acesso para atendentes.
+      let nextSteps: any[] = [];
+      if (isAdmin || user.id === ownerId) {
+        const rows = await base44.asServiceRole.entities.CRMProximoPasso.filter(
+          { owner_id: ownerId, conversa_id: conversation.id },
+          "-created_date",
+          30
+        );
+        nextSteps = (rows || []).map((row: any) => ({
+          id: row.id,
+          descricao: row.descricao || "",
+          em: row.em || row.created_date || "",
+          por: row.por || ""
+        }));
+      }
+      const [listResult, stageResult] = await Promise.all([
+        (async () => {
+          const rows = await base44.asServiceRole.entities.CRMLista.filter(
+            { owner_id: ownerId, ativo: true }, "ordem", 300
+          );
+          return (rows || []).filter((list: any) =>
+            isAdmin || user.id === ownerId ||
+            (Array.isArray(list.equipe_ids) && list.equipe_ids.includes(user.id))
+          ).map((list: any) => ({
+            id: list.id, nome: list.nome || "", tipo: list.tipo || "segmento",
+            cor: list.cor || "", ordem: list.ordem || 0
+          }));
+        })(),
+        (async () => {
+          if (!isAdmin && user.id !== ownerId) return [];
+          const rows = await base44.asServiceRole.entities.CRMEtapa.filter(
+            { owner_id: ownerId, ativo: true }, "ordem", 100
+          );
+          return (rows || []).map((stage: any) => ({
+            chave: stage.chave, nome: stage.nome, cor: stage.cor || ""
+          }));
+        })()
+      ]);
       return Response.json({
         status: "matched",
         matched_by: matchedBy,
         conversation: safeConversation(conversation),
         customer: safeCustomer(customer),
-        budgets
+        budgets,
+        lists: listResult,
+        stages: stageResult,
+        next_steps: nextSteps,
+        can_manage_next_steps: isAdmin || user.id === ownerId
       });
     }
 
@@ -295,6 +338,65 @@ export default async function handler(req: Request): Promise<Response> {
       await base44.asServiceRole.entities.Cliente.update(customerId, patch);
       const updated = await base44.asServiceRole.entities.Cliente.get(customerId);
       return Response.json({ ok: true, customer: safeCustomer(updated) });
+    }
+
+    if (action === "conversation.lists.update") {
+      const conversationId = String(body.conversation_id || "");
+      if (!conversationId) return jsonError("CONVERSATION_REQUIRED", 400);
+      const conversation = await getConversation(conversationId);
+      if (!conversation) return jsonError("NOT_FOUND_OR_FORBIDDEN", 404);
+      const requested = Array.isArray(body.list_ids)
+        ? [...new Set(body.list_ids.map((id: unknown) => String(id)))]
+        : [];
+      if (requested.length > 100) return jsonError("TOO_MANY_LISTS", 400);
+      const rows = await base44.asServiceRole.entities.CRMLista.filter(
+        { owner_id: ownerId, ativo: true }, "ordem", 300
+      );
+      const allowed = (rows || []).filter((list: any) =>
+        isAdmin || user.id === ownerId ||
+        (Array.isArray(list.equipe_ids) && list.equipe_ids.includes(user.id))
+      );
+      const allowedIds = new Set(allowed.map((list: any) => list.id));
+      if (requested.some((id: string) => !allowedIds.has(id))) {
+        return jsonError("LIST_NOT_FOUND_OR_FORBIDDEN", 403);
+      }
+      await base44.asServiceRole.entities.CRMConversa.update(conversationId, {
+        listas: requested
+      });
+      const updated = await base44.asServiceRole.entities.CRMConversa.get(conversationId);
+      return Response.json({
+        ok: true,
+        conversation: safeConversation(updated),
+        lists: allowed.filter((list: any) => requested.includes(list.id)).map((list: any) => ({
+          id: list.id, nome: list.nome || "", tipo: list.tipo || "segmento"
+        }))
+      });
+    }
+
+    if (action === "nextstep.create") {
+      const conversationId = String(body.conversation_id || "");
+      const descricao = String(body.descricao || "").trim();
+      if (!conversationId) return jsonError("CONVERSATION_REQUIRED", 400);
+      if (!descricao) return jsonError("DESCRIPTION_REQUIRED", 400);
+      if (descricao.length > 1000) return jsonError("FIELD_TOO_LONG", 400, { field: "descricao", max: 1000 });
+      const conversation = await getConversation(conversationId);
+      if (!conversation) return jsonError("NOT_FOUND_OR_FORBIDDEN", 404);
+      // CRMProximoPasso segue seu RLS: somente dono/admin pode registrar.
+      if (!isAdmin && user.id !== ownerId) return jsonError("FORBIDDEN", 403);
+      const row = await base44.asServiceRole.entities.CRMProximoPasso.create({
+        owner_id: ownerId,
+        conversa_id: conversationId,
+        descricao,
+        em: new Date().toISOString(),
+        por: user.full_name || user.email || user.id
+      });
+      return Response.json({
+        ok: true,
+        next_step: {
+          id: row.id, descricao: row.descricao,
+          em: row.em || row.created_date || "", por: row.por || ""
+        }
+      });
     }
 
     if (action === "lists.list") {
