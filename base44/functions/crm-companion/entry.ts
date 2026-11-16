@@ -300,6 +300,11 @@ export default async function handler(req: Request): Promise<Response> {
         }
       }
 
+      if (Object.prototype.hasOwnProperty.call(patch, "pendencia")) {
+        (patch as Record<string, unknown>).pendencia_em = patch.pendencia
+          ? new Date().toISOString()
+          : "";
+      }
       await base44.asServiceRole.entities.CRMConversa.update(conversationId, patch);
       const updated = await base44.asServiceRole.entities.CRMConversa.get(conversationId);
       return Response.json({ ok: true, conversation: safeConversation(updated) });
