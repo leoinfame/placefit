@@ -108,6 +108,9 @@ export default async function handler(req: Request): Promise<Response> {
     }
 
     const isAdmin = user.role === "admin";
+    // O papel "dono" no vínculo CRMEquipe representa o proprietário funcional
+    // do workspace, mesmo quando o login usa um User separado do owner_id.
+    const isOwner = user.id === ownerId || role === "dono";
     // Espelha o RLS atual de CRMConversa: owner_id, atendente_id ou admin.
     // Papel supervisor, sozinho, não contorna o RLS.
     const canAccessConversation = (conversation: any) => {
@@ -133,7 +136,7 @@ export default async function handler(req: Request): Promise<Response> {
       // Replica as permissões atuais de Cliente. Ser membro da equipe, por si só,
       // NÃO concede acesso ao cadastro do cliente.
       if (!row) return null;
-      const allowed = isAdmin || row.fornecedor_id === user.id || row.created_by_id === user.id;
+      const allowed = isAdmin || isOwner || row.created_by_id === user.id;
       if (!allowed || row.fornecedor_id !== ownerId) return null;
       return row;
     };
@@ -240,7 +243,7 @@ export default async function handler(req: Request): Promise<Response> {
             { owner_id: ownerId, ativo: true }, "ordem", 300
           );
           return (rows || []).filter((list: any) =>
-            isAdmin || user.id === ownerId ||
+            isAdmin || isOwner ||
             (Array.isArray(list.equipe_ids) && list.equipe_ids.includes(user.id))
           ).map((list: any) => ({
             id: list.id, nome: list.nome || "", tipo: list.tipo || "segmento",
@@ -248,7 +251,7 @@ export default async function handler(req: Request): Promise<Response> {
           }));
         })(),
         (async () => {
-          if (!isAdmin && user.id !== ownerId) return [];
+          if (!isAdmin && !isOwner) return [];
           const rows = await base44.asServiceRole.entities.CRMEtapa.filter(
             { owner_id: ownerId, ativo: true }, "ordem", 100
           );
@@ -266,7 +269,7 @@ export default async function handler(req: Request): Promise<Response> {
         lists: listResult,
         stages: stageResult,
         next_steps: nextSteps,
-        can_manage_next_steps: isAdmin || user.id === ownerId
+        can_manage_next_steps: isAdmin || isOwner
       });
     }
 
@@ -318,7 +321,7 @@ export default async function handler(req: Request): Promise<Response> {
 
       // Replica exatamente o RLS de Cliente: fornecedor dono, criador original
       // ou admin. Papel de supervisor/atendente não amplia esse direito.
-      const canEditCustomer = isAdmin || customer.fornecedor_id === user.id || customer.created_by_id === user.id;
+      const canEditCustomer = isAdmin || isOwner || customer.created_by_id === user.id;
       if (!canEditCustomer) return jsonError("FORBIDDEN", 403);
 
       const input = body.fields && typeof body.fields === "object" && !Array.isArray(body.fields)
@@ -392,7 +395,7 @@ export default async function handler(req: Request): Promise<Response> {
       const conversation = await getConversation(conversationId);
       if (!conversation) return jsonError("NOT_FOUND_OR_FORBIDDEN", 404);
       // CRMProximoPasso segue seu RLS: somente dono/admin pode registrar.
-      if (!isAdmin && user.id !== ownerId) return jsonError("FORBIDDEN", 403);
+      if (!isAdmin && !isOwner) return jsonError("FORBIDDEN", 403);
       const row = await base44.asServiceRole.entities.CRMProximoPasso.create({
         owner_id: ownerId,
         conversa_id: conversationId,
@@ -416,7 +419,7 @@ export default async function handler(req: Request): Promise<Response> {
         300
       );
       const visible = (rows || []).filter((list: any) => {
-        if (isAdmin || user.id === ownerId) return true;
+        if (isAdmin || isOwner) return true;
         return Array.isArray(list.equipe_ids) && list.equipe_ids.includes(user.id);
       });
       return Response.json({
@@ -429,7 +432,7 @@ export default async function handler(req: Request): Promise<Response> {
 
     if (action === "stages.list") {
       // O RLS de CRMEtapa permite dono/admin; não ampliar para atendente/supervisor.
-      if (!isAdmin && user.id !== ownerId) return jsonError("FORBIDDEN", 403);
+      if (!isAdmin && !isOwner) return jsonError("FORBIDDEN", 403);
       const rows = await base44.asServiceRole.entities.CRMEtapa.filter(
         { owner_id: ownerId, ativo: true },
         "ordem",
