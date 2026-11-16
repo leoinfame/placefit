@@ -190,11 +190,40 @@ export default async function handler(req: Request): Promise<Response> {
 
       const conversation = matches[0];
       const customer = await loadCustomerIfAllowed(conversation.cliente_id);
+      // Orçamentos são lidos somente dentro do tenant autenticado e vinculados
+      // ao mesmo cliente; não expor campos fiscais ou dados de outros clientes.
+      let budgets: any[] = [];
+      if (customer?.id) {
+        const orders = await base44.asServiceRole.entities.Pedido.filter(
+          { fornecedor_id: ownerId, cliente_id: customer.id, tipo: "orcamento" },
+          "-data_pedido",
+          100
+        );
+        budgets = (orders || []).map((p: any) => ({
+          id: p.id,
+          numero_pedido: p.numero_pedido || "",
+          data_pedido: p.data_pedido || "",
+          status: p.status || "",
+          itens: Array.isArray(p.itens) ? p.itens.map((i: any) => ({
+            nome: i.nome || "",
+            cod: i.cod || "",
+            quantidade: Number(i.quantidade || 0),
+            preco_unitario: Number(i.preco_unitario || 0),
+            subtotal: Number(i.subtotal || 0)
+          })) : [],
+          subtotal: Number(p.subtotal || 0),
+          frete: Number(p.frete || 0),
+          desconto: Number(p.desconto || 0),
+          total: Number(p.total || 0),
+          observacoes: p.observacoes || ""
+        }));
+      }
       return Response.json({
         status: "matched",
         matched_by: matchedBy,
         conversation: safeConversation(conversation),
-        customer: safeCustomer(customer)
+        customer: safeCustomer(customer),
+        budgets
       });
     }
 
