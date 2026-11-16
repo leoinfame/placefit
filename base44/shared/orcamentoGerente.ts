@@ -299,9 +299,9 @@ async function resolverCliente(base44: any, tenantId: string, pedido: any) {
       // Item 022c: telefone do cliente é o do contato; o da Receita fica só nas observações
       telefone: digitos(pedido?.telefone) || '',
       endereco: publico.endereco,
-      cidade: publico.cidade,
-      estado: publico.estado,
-      cep: publico.cep,
+      cidade: pedido?.cidade || publico.cidade,
+      estado: pedido?.estado || publico.estado,
+      cep: digitos(pedido?.cep || publico.cep || ''),
       ativo: true,
       observacoes: `Cadastrado pelo WhatsApp (modo gerente) a partir da consulta pública do CNPJ.${obsCnpj ? ' ' + obsCnpj : ''}`
     });
