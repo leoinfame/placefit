@@ -261,19 +261,25 @@ async function resolverCliente(base44: any, tenantId: string, pedido: any) {
     : '';
 
   if (existente) {
-    // Completa só campos vazios; nunca sobrescreve o que o dono já cadastrou
+    // Dados informados pelo cliente atualizam o cadastro do CRM. O telefone permanece
+    // sempre o WhatsApp que originou o contato; telefone da Receita nunca o substitui.
     const patch: Record<string, string> = {};
-    if (publico) {
-      if (vazio(existente.nome)) patch.nome = publico.razao_social;
-      if (vazio(existente.endereco) && publico.endereco) patch.endereco = publico.endereco;
-      if (vazio(existente.cidade) && publico.cidade) patch.cidade = publico.cidade;
-      if (vazio(existente.estado) && publico.estado) patch.estado = publico.estado;
-      if (vazio(existente.cep) && publico.cep) patch.cep = publico.cep;
-      if (Object.keys(patch).length && obsCnpj && !String(existente.observacoes || '').includes(obsCnpj)) {
-        patch.observacoes = [String(existente.observacoes || '').trim(), `Completado pela consulta pública do CNPJ: ${obsCnpj}`].filter(Boolean).join('\n');
-      }
-      if (Object.keys(patch).length) await db.Cliente.update(existente.id, patch);
+    if (doc) patch.cpf_cnpj = doc;
+    if (tel) patch.telefone = digitos(pedido.telefone);
+    const nomeAtualizado = publico?.razao_social || nome;
+    if (nomeAtualizado) patch.nome = nomeAtualizado;
+    const endereco = publico?.endereco || String(pedido?.endereco || '').trim();
+    const cidade = String(pedido?.cidade || publico?.cidade || '').trim();
+    const estado = String(pedido?.estado || publico?.estado || '').trim();
+    const cep = digitos(pedido?.cep || publico?.cep || '');
+    if (endereco) patch.endereco = endereco;
+    if (cidade) patch.cidade = cidade;
+    if (estado) patch.estado = estado;
+    if (cep) patch.cep = cep;
+    if (obsCnpj && !String(existente.observacoes || '').includes(obsCnpj)) {
+      patch.observacoes = [String(existente.observacoes || '').trim(), `Consulta pública do CNPJ: ${obsCnpj}`].filter(Boolean).join('\n');
     }
+    if (Object.keys(patch).length) await db.Cliente.update(existente.id, patch);
     const c = { ...existente, ...patch };
     if (vazio(c.estado) && !publico && doc.length === 14) ressalvas.push('Consulta pública do CNPJ indisponível agora; cadastro não foi completado.');
     return {
