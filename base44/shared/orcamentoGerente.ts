@@ -703,6 +703,9 @@ export async function tratarOrcamentoGerente(base44: any, tenantId: string, conv
   const { pedido: p, divergencias } = await gravar(base44, tenantId, r);
   r.gravado_id = p.id;
   r.gravado_numero = p.numero_pedido;
+  if (conversa?.id && p.cliente_id && conversa.cliente_id !== p.cliente_id) {
+    await base44.asServiceRole.entities.CRMConversa.update(conversa.id, { cliente_id: p.cliente_id });
+  }
   // Item 022c: o lead do cliente vai para "Orçamento" no funil do CRM (só avança, nunca volta)
   if (!ajuste && p.cliente_id) {
     const cli = (await base44.asServiceRole.entities.Cliente.filter({ id: p.cliente_id }, '-created_date', 1))?.[0];
