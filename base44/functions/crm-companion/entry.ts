@@ -87,17 +87,14 @@ export default async function handler(req: Request): Promise<Response> {
       });
     }
 
-    // Compatibilidade com contas antigas sem linha CRMEquipe.
+    // Contas proprietárias legadas: o ID do usuário autenticado é o próprio
+    // owner_id do tenant. Não exigir CRMEquipe nem depender de haver conversa
+    // recente para reconhecer o dono. O isolamento continua garantido porque
+    // todas as consultas seguintes usam exclusivamente ownerId.
     if (!ownerId) {
-      const ownConversations = await base44.asServiceRole.entities.CRMConversa.filter({
-        owner_id: user.id
-      }, "-ultima_interacao", 1);
-      if (ownConversations?.length) {
-        ownerId = user.id;
-        role = "dono";
-      }
+      ownerId = user.id;
+      role = "dono";
     }
-    if (!ownerId) return jsonError("CRM_ACCESS_NOT_CONFIGURED", 403);
 
     if (action === "me") {
       return Response.json({
