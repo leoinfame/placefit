@@ -48,7 +48,7 @@ export const SCHEMA_PEDIDO = {
     cliente: {
       type: 'object',
       properties: {
-        cpf_cnpj: { type: 'string' }, nome: { type: 'string' }, cidade: { type: 'string' },
+        cpf_cnpj: { type: 'string' }, nome: { type: 'string' }, endereco: { type: 'string' }, cidade: { type: 'string' },
         estado: { type: 'string' }, telefone: { type: 'string' }, cep: { type: 'string' }
       },
       required: ['cpf_cnpj', 'nome', 'cidade', 'estado', 'telefone', 'cep']
