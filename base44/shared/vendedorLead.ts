@@ -209,7 +209,7 @@ export async function atenderLead(ctx: Ctx): Promise<{ atuou: boolean; motivo: s
     });
     if (divergencias?.length) { await escalar(ctx, msgs, [`Conferência do orçamento salvo falhou: ${divergencias.join('; ')}`], `Orçamento ${p?.numero_pedido}`); return { atuou: true, motivo: 'escalou' }; }
     const cli = (await ctx.db.Cliente.filter({ id: p.cliente_id }, '-created_date', 1))?.[0] || r.cliente;
-    if (cli?.id && !ctx.conversa.cliente_id) await ctx.db.CRMConversa.update(ctx.conversa.id, { cliente_id: cli.id });
+    if (cli?.id && ctx.conversa.cliente_id !== cli.id) await ctx.db.CRMConversa.update(ctx.conversa.id, { cliente_id: cli.id });
 
     const legenda = legendaOrcamento(ctx.conversa.nome_contato || cli?.nome || '', p.numero_pedido, p.total, r.cliente?.cidade, r.cliente?.estado);
     let env: any = { ok: false, id: '', error: '' };
