@@ -365,8 +365,13 @@ export default async function handler(req: Request): Promise<Response> {
       if (requested.some((id: string) => !allowedIds.has(id))) {
         return jsonError("LIST_NOT_FOUND_OR_FORBIDDEN", 403);
       }
+      // Preserva associações de listas que o usuário atual não pode visualizar
+      // ou editar (ex.: listas privadas de outro atendente).
+      const preserved = (Array.isArray(conversation.listas) ? conversation.listas : [])
+        .filter((id: string) => !allowedIds.has(id));
+      const nextListIds = [...new Set([...preserved, ...requested])];
       await base44.asServiceRole.entities.CRMConversa.update(conversationId, {
-        listas: requested
+        listas: nextListIds
       });
       const updated = await base44.asServiceRole.entities.CRMConversa.get(conversationId);
       return Response.json({
