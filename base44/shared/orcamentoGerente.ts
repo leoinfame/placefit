@@ -688,6 +688,9 @@ export async function tratarOrcamentoGerente(base44: any, tenantId: string, conv
   pedido.itens = ficam;
 
   // Regra 5: a sanidade compara as quantidades com o que o dono realmente disse
+  // A conversa é a fonte autoritativa do telefone e do cadastro de contato.
+  pedido.cliente = { ...(pedido.cliente || {}), telefone: digitos(conversa?.telefone || pedido.cliente?.telefone || '') };
+  pedido.cliente.cliente_id_contato = conversa?.cliente_id || '';
   const r = await montarRascunho(base44, tenantId, pedido, base, [texto, ...doDono].join(' '));
   if (fora.length) r.suposicoes.unshift(`Ignorei ${fora.map((d) => `"${d}"`).join(', ')}: não está na sua mensagem nem no rascunho.`);
   if (!r.pronto) {
