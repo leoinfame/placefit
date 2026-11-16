@@ -200,7 +200,17 @@ export default async function handler(req: Request): Promise<Response> {
       const samePhoneCustomers = wantedPhone
         ? tenantCustomers.filter((c: any) => phoneKey(c.telefone) === wantedPhone)
         : [];
-      if (!customer && samePhoneCustomers.length === 1) customer = await loadCustomerIfAllowed(samePhoneCustomers[0].id);
+      if (!customer && samePhoneCustomers.length === 1) {
+        customer = await loadCustomerIfAllowed(samePhoneCustomers[0].id);
+        // Torna permanente a associação recuperada pelo telefone. Sem isso o painel
+        // exibe o Cliente apenas nesta consulta, mas a conversa continua sem cliente_id.
+        if (customer && conversation.cliente_id !== customer.id) {
+          await base44.asServiceRole.entities.CRMConversa.update(conversation.id, {
+            cliente_id: customer.id
+          });
+          conversation.cliente_id = customer.id;
+        }
+      }
       // Histórico fiscal pode estar em cadastros diferentes. Só agrega registros do mesmo tenant
       // que carregam exatamente o telefone desta conversa; o orçamento permanece intacto.
       const customerIds = Array.from(new Set([
