@@ -115,13 +115,13 @@ export default async function handler(req: Request): Promise<Response> {
     // Papel supervisor, sozinho, não contorna o RLS.
     const canAccessConversation = (conversation: any) => {
       if (!conversation || conversation.owner_id !== ownerId) return false;
-      return isAdmin || user.id === ownerId || conversation.atendente_id === user.id;
+      return isAdmin || isOwner || conversation.atendente_id === user.id;
     };
 
     const canEditConversation = (conversation: any) => {
       if (!conversation || conversation.owner_id !== ownerId) return false;
       // A edição segue o RLS de CRMConversa: dono, atendente atribuído ou admin.
-      return isAdmin || user.id === ownerId || conversation.atendente_id === user.id;
+      return isAdmin || isOwner || conversation.atendente_id === user.id;
     };
 
     const getConversation = async (id: string) => {
@@ -224,7 +224,7 @@ export default async function handler(req: Request): Promise<Response> {
       // Próximos passos são registros internos do CRM. O schema limita leitura
       // ao dono/admin; não ampliar esse acesso para atendentes.
       let nextSteps: any[] = [];
-      if (isAdmin || user.id === ownerId) {
+      if (isAdmin || isOwner) {
         const rows = await base44.asServiceRole.entities.CRMProximoPasso.filter(
           { owner_id: ownerId, conversa_id: conversation.id },
           "-created_date",
@@ -361,7 +361,7 @@ export default async function handler(req: Request): Promise<Response> {
         { owner_id: ownerId, ativo: true }, "ordem", 300
       );
       const allowed = (rows || []).filter((list: any) =>
-        isAdmin || user.id === ownerId ||
+        isAdmin || isOwner ||
         (Array.isArray(list.equipe_ids) && list.equipe_ids.includes(user.id))
       );
       const allowedIds = new Set(allowed.map((list: any) => list.id));
