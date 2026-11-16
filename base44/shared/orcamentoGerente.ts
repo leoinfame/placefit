@@ -315,7 +315,7 @@ async function resolverCliente(base44: any, tenantId: string, pedido: any) {
       observacoes: `Cadastrado pelo WhatsApp (modo gerente) a partir da consulta pública do CNPJ.${obsCnpj ? ' ' + obsCnpj : ''}`
     });
     return {
-      cliente: { id: c.id, nome: c.nome, cpf_cnpj: c.cpf_cnpj, telefone: c.telefone, endereco: c.endereco, cidade: c.cidade, estado: c.estado, cep: c.cep, fantasia: publico.nome_fantasia, situacao: 'criado' },
+      cliente: { id: c.id, nome: c.nome, cpf_cnpj: c.cpf_cnpj, email: c.email || '', telefone: c.telefone, endereco: c.endereco, cidade: c.cidade, estado: c.estado, cep: c.cep, fantasia: publico.nome_fantasia, situacao: 'criado' },
       perguntas, ressalvas
     };
   }
