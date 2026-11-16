@@ -178,7 +178,7 @@ export async function atenderLead(ctx: Ctx): Promise<{ atuou: boolean; motivo: s
     const pedido = await ler(PROMPT_LEAD + `\n\nCONVERSA RECENTE:\n(nenhuma)\n\nÚLTIMA MENSAGEM DO DONO (aqui: TODAS as mensagens do cliente, uma por linha):\n${textoCliente}`);
     if (!pedido) return { atuou: false, motivo: 'leitura_vazia' };
     pedido.itens = itensComOrigem(pedido.itens || [], textoCliente).ficam;
-    pedido.cliente = { ...(pedido.cliente || {}), telefone: digitos(ctx.conversa.telefone), cliente_id_contato: ctx.conversa.cliente_id || '' };
+    pedido.cliente = { ...(pedido.cliente || {}), endereco: pedido.endereco || pedido.cliente?.endereco || '', telefone: digitos(ctx.conversa.telefone), cliente_id_contato: ctx.conversa.cliente_id || '' };
     pedido.frete_informado = -1;
     if (!pedido.cep_entrega && digitos(pedido.cliente.cep).length !== 8) {
       const cep = (String(pedido.endereco || '') + ' ' + textoCliente).match(/\b\d{5}-?\d{3}\b/);
