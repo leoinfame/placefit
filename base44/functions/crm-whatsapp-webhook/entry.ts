@@ -1,6 +1,6 @@
 import { createClientFromRequest } from "npm:@base44/sdk";
 import { identificar, meusIdsDoCorpo, resolverLidNoWaha, ignorado } from "../../shared/identidadeWaha.ts";
-import { conversaDoContato, garantirCliente, textoBoasVindas, deveMandarBoasVindas, atendenteDaConta } from "../../shared/conversaWaha.ts";
+import { conversaDoContato, garantirCliente, textoBoasVindas, atendenteDaConta } from "../../shared/conversaWaha.ts";
 import { respostaNossa, respostaDoCliente } from "../../shared/funilAutomatico.ts";
 import { base64 } from "../../shared/tabelaAtacado.ts";
 import { itensSuaTabela, htmlSuaTabela, imprimirPdf } from "../../shared/tabelaPdf.ts";
@@ -295,6 +295,23 @@ Deno.serve(async (req) => {
       console.error("[CRM_WEBHOOK] cadastro do cliente falhou", e);
     }
 
+    // Item 030: histórico não pode "rejuvenescer" a conversa no painel (o backlog chega agora,
+    // mas aconteceu antes). Devolve o último contato real que não seja histórico.
+    if (historico && !(conversation as any)?._nova) {
+      try {
+        const ultimas = (await db.CRMMensagem.filter({ conversa_id: conversation.id }, "-created_date", 10)) || [];
+        const real = ultimas.find((m: any) => m.origem !== "history");
+        if (real) {
+          await db.CRMConversa.update(conversation.id, {
+            ultima_mensagem: String(real.conteudo || "").slice(0, 200),
+            ultima_interacao: real.created_date
+          });
+        }
+      } catch (e) {
+        console.error("[CRM_WEBHOOK] não consegui preservar a última interação real", e);
+      }
+    }
+
     // Item 022e: resposta automática ao lead NOVO com a tabela de atacado (uma vez por contato).
     // Desliga com o segredo CRM_BOAS_VINDAS=off. Teto de 20 por hora por conta (proteção do número).
     if (leadNovo && baseUrlDe(owner)) {
@@ -353,7 +370,10 @@ Deno.serve(async (req) => {
           }
         }
       } catch (e) {
+        // Item 030: erro na boas-vindas não pode terminar em 200 silencioso.
         console.error("[CRM_WEBHOOK] boas-vindas falhou", e);
+        const erro = respostaDeErro("boas-vindas: " + (e instanceof Error ? e.message : String(e)));
+        return new Response(erro.body, { status: erro.status, headers: { "Content-Type": "application/json" } });
       }
     }
 
@@ -391,7 +411,8 @@ Deno.serve(async (req) => {
     //     deliberada, para que uma IA nunca comece a falar com cliente real por
     //     acidente no número comercial;
     //  3. silêncio se um humano respondeu há pouco: quem assumiu, assumiu.
-    if (fromMe) return new Response("ok");
+    //  4. Item 030: mensagem de histórico (backlog/importada) nunca é respondida.
+    if (fromMe || historico) return new Response("ok");
 
     const atendenteLigado =
       Boolean(owner.whatsapp_atendente_ativo) && Boolean(owner.whatsapp_atendente_confirmado);
@@ -448,7 +469,11 @@ Deno.serve(async (req) => {
 
     return new Response("ok");
   } catch (error) {
-    console.error("[CRM_WEBHOOK]", error);
-    return new Response("ok");
+    // Item 030: falha transitória (banco, WAHA fora, limite de requisições) responde
+    // erro, para o WAHA reentregar — 200 aqui fazia o evento se perder em silêncio.
+    console.error("[CRM_WEBHOOK] falha ao processar; respondendo erro para reentrega", error);
+    const detalhe = error instanceof Error ? error.message : String(error);
+    const erro = respostaDeErro(detalhe);
+    return new Response(erro.body, { status: erro.status, headers: { "Content-Type": "application/json" } });
   }
 });
