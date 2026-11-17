@@ -7,6 +7,7 @@ import { itensSuaTabela, htmlSuaTabela, imprimirPdf } from "../../shared/tabelaP
 import { linkDaTabela } from "../../shared/linkTabela.ts";
 import { atenderLead } from "../../shared/vendedorLead.ts";
 import { notificar } from "../../shared/monitorCrm.ts";
+import { timestampDaMensagem, ehHistorico, idDoPayload, decideBoasVindas, respostaDeErro, MINUTOS_REENTREGA } from "../../shared/protecaoReentrega.ts";
 
 // ─── Webhook do CRM WhatsApp (WAHA) ───────────────────────────────────────────
 // Recebe os eventos do servidor WAHA. Assina apenas "message.any", que entrega
@@ -209,12 +210,23 @@ Deno.serve(async (req) => {
     }
     const counterpartChatId = ident.chatId;
 
-    const messageId = String(payload?.id?._serialized || payload?.id || "");
+    const recebidoEm = Date.now();
+    const messageId = idDoPayload(payload);
+    const enviadaEm = timestampDaMensagem(payload);
+    // Item 030 (17/11/2026): reentrega de backlog após reconexão e mensagem importada
+    // são histórico. Gravam normalmente (mensagem + cliente), mas nunca disparam
+    // boas-vindas, vendedor automático nem mudança de etapa do funil.
+    const minutosHistorico = Number(env("CRM_HISTORICO_MINUTOS")) > 0 ? Number(env("CRM_HISTORICO_MINUTOS")) : MINUTOS_REENTREGA;
+    const historico = ehHistorico(enviadaEm, recebidoEm, minutosHistorico);
 
-    // O WAHA reentrega em caso de falha; sem isso a conversa duplica.
+    // Item 030: o WAHA reentrega em caso de falha e repete eventos na reconexão.
+    // O mesmo id do payload nunca é processado duas vezes: não grava e não envia.
     if (messageId) {
-      const existing = await db.CRMMensagem.filter({ meta_message_id: messageId });
-      if (existing?.length) return new Response("ok");
+      const existing = await db.CRMMensagem.filter({ meta_message_id: messageId }, "-created_date", 1);
+      if (existing?.length) {
+        console.log("[CRM_WEBHOOK] evento já processado, ignorado", messageId);
+        return new Response("ok");
+      }
     }
 
     // Chave gravada na mensagem: telefone real, ou o LID quando o contato não foi identificado
@@ -223,16 +235,56 @@ Deno.serve(async (req) => {
     const now = new Date().toISOString();
 
     const conversation = await conversaDoContato(db, owner.id, ident, fromMe, messageText, now);
-    // Item 022e: decide agora, antes do cadastro automático, se é um lead novo (conversa aberta neste evento, sem cliente)
-    const leadNovo = deveMandarBoasVindas(conversation, fromMe, env("CRM_BOAS_VINDAS"));
+
+    // Item 030: a mensagem é gravada ANTES de qualquer automação. Se algo falhar
+    // depois, a reentrega do WAHA encontra o evento gravado e para aqui — nada de
+    // envio repetido nem de mensagem perdida em silêncio.
+    const gravada = await db.CRMMensagem.create({
+      owner_id: owner.id,
+      conversa_id: conversation.id,
+      telefone: phone,
+      direcao: fromMe ? "enviada" : "recebida",
+      tipo: payload?.hasMedia ? "imagem" : "texto",
+      conteudo: messageText,
+      status: fromMe ? "enviada" : "recebida",
+      meta_message_id: messageId,
+      // Mensagem de histórico fica marcada (origem "history") e guarda a data original.
+      origem: historico ? "history" : "waha",
+      ...(enviadaEm ? { enviada_em: new Date(enviadaEm).toISOString() } : {})
+    });
+    // Entrega simultânea do mesmo evento: fica a primeira gravação; esta sai sem automação.
+    if (messageId) {
+      const iguais = (await db.CRMMensagem.filter({ meta_message_id: messageId }, "created_date", 5)) || [];
+      if (iguais.length > 1 && iguais[0].id !== gravada.id) {
+        await db.CRMMensagem.delete(gravada.id);
+        console.log("[CRM_WEBHOOK] entrega simultânea do mesmo evento evitada", messageId);
+        return new Response("ok");
+      }
+    }
+
+    // Item 022e/030: boas-vindas só para lead realmente novo e uma única vez por contato.
+    // Travas: histórico, fromMe, conversa nova, cliente existente, CRM_BOAS_VINDAS=off,
+    // contato que já tem conversa e qualquer boas-vindas de sistema anterior.
+    const boasVindas = await decideBoasVindas({
+      db, ownerId: owner.id, conversa: conversation, fromMe,
+      chave: env("CRM_BOAS_VINDAS"), telefone: phone, messageId, recebidoEm, historico
+    });
+    const leadNovo = boasVindas.ok;
+    if (!leadNovo && (conversation as any)?._nova && !historico) {
+      console.log("[CRM_WEBHOOK] boas-vindas não enviada:", boasVindas.motivo, conversation.id);
+    }
+
     // Item 029: funil automático (regra em shared/funilAutomatico.ts). Só para frente.
     // Cliente respondeu depois do orçamento ("aguardando resposta") → negociação.
     // Nós respondemos numa conversa nova (dono pelo celular ou eco do Business) → atendimento.
-    try {
-      if (fromMe) await respostaNossa(db, conversation);
-      else await respostaDoCliente(db, conversation);
-    } catch (e) {
-      console.error("[CRM_WEBHOOK] funil automático falhou", e);
+    // Item 030: histórico nunca mexe na etapa.
+    if (!historico) {
+      try {
+        if (fromMe) await respostaNossa(db, conversation);
+        else await respostaDoCliente(db, conversation);
+      } catch (e) {
+        console.error("[CRM_WEBHOOK] funil automático falhou", e);
+      }
     }
 
     // Item 022b: telefone real + nome do perfil => cliente em Meus Clientes (sem duplicar)
@@ -242,18 +294,6 @@ Deno.serve(async (req) => {
     } catch (e) {
       console.error("[CRM_WEBHOOK] cadastro do cliente falhou", e);
     }
-
-    await db.CRMMensagem.create({
-      owner_id: owner.id,
-      conversa_id: conversation.id,
-      telefone: phone,
-      direcao: fromMe ? "enviada" : "recebida",
-      tipo: payload?.hasMedia ? "imagem" : "texto",
-      conteudo: messageText,
-      status: fromMe ? "enviada" : "recebida",
-      meta_message_id: messageId,
-      origem: "waha"
-    });
 
     // Item 022e: resposta automática ao lead NOVO com a tabela de atacado (uma vez por contato).
     // Desliga com o segredo CRM_BOAS_VINDAS=off. Teto de 20 por hora por conta (proteção do número).
@@ -304,6 +344,13 @@ Deno.serve(async (req) => {
             await db.CRMConversa.update(conversation.id, { ultima_mensagem: texto.slice(0, 200), ultima_interacao: new Date().toISOString() });
           }
           console.log("[CRM_WEBHOOK] boas-vindas", sent.ok ? "enviada" : "falhou", conversation.id);
+          if (!sent.ok) {
+            // Item 030: falha transitória (WAHA fora / limite) não pode virar 200 silencioso.
+            // Responde erro para o WAHA reentregar. A linha ficou com status "erro", então ela
+            // não conta como boas-vindas enviada e a próxima tentativa ainda pode enviar.
+            const erro = respostaDeErro("boas-vindas: " + (sent.error || "falha no envio"));
+            return new Response(erro.body, { status: erro.status, headers: { "Content-Type": "application/json" } });
+          }
         }
       } catch (e) {
         console.error("[CRM_WEBHOOK] boas-vindas falhou", e);
@@ -312,7 +359,8 @@ Deno.serve(async (req) => {
 
 
     // Item 023 fase 2: vendedor automático do lead (só conversa que começou como lead; para se um humano respondeu)
-    if (!fromMe && ident.telefone && baseUrlDe(owner)) {
+    // Item 030: mensagem de histórico não aciona o vendedor automático.
+    if (!fromMe && !historico && ident.telefone && baseUrlDe(owner)) {
       const destinoLead = `${ident.telefone}@c.us`;
       const vend = await atenderLead({
         db, base44, owner, conversa: { ...conversation, telefone: ident.telefone }, messageId,
