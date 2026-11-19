@@ -89,7 +89,7 @@ Deno.test('falha no CRM não lança', async () => {
 
 Deno.test('ordem das etapas: só avança', () => {
   eq(funilAvanca('novo', 'orcamento'), 'aguardando_resposta', 'novo → aguardando');
-  eq(funilAvanca('orcamento', 'orcamento'), 'aguardando_resposta', 'orcamento → aguardando');
+  eq(funilAvanca('orcamento', 'orcamento'), '', 'orcamento (posto à mão) fica');
   eq(funilAvanca('aguardando_resposta', 'orcamento'), '', 'aguardando fica');
   eq(funilAvanca('atendimento', 'orcamento'), 'aguardando_resposta', 'atendimento → aguardando');
   eq(funilAvanca('orcamento', 'ganho'), 'ganho', 'orcamento → ganho');
