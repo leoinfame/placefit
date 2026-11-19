@@ -28,7 +28,7 @@ function banco(conversas: any[], clientes: any[] = []) {
 Deno.test('orçamento levado ao cliente pela conversa → etapa orcamento', async () => {
   const b = banco([{ id: 'c1', owner_id: 'dono', cliente_id: 'cli', etapa: 'atendimento', telefone: '553172070371', ativo: true }]);
   eq(await aplicarFunilDoPedido(b.entities, { fornecedor_id: 'dono', cliente_id: 'cli', tipo: 'orcamento', status: 'pendente' }), 1, 'mudou 1');
-  eq(b.rows[0].etapa, 'orcamento', 'etapa');
+  eq(b.rows[0].etapa, 'aguardando_resposta', 'etapa');
 });
 
 Deno.test('conversa ainda sem cliente é achada pelo telefone do cadastro', async () => {
@@ -37,7 +37,7 @@ Deno.test('conversa ainda sem cliente é achada pelo telefone do cadastro', asyn
     [{ id: 'cli', telefone: '(31) 7207-0371' }]
   );
   await aplicarFunilDoPedido(b.entities, { fornecedor_id: 'dono', cliente_id: 'cli', tipo: 'orcamento', status: 'pendente' });
-  eq(b.rows[0].etapa, 'orcamento', 'movida pelo telefone');
+  eq(b.rows[0].etapa, 'aguardando_resposta', 'movida pelo telefone');
   eq(b.rows[0].cliente_id, '', 'não escreve no cadastro da conversa');
 });
 
@@ -88,8 +88,10 @@ Deno.test('falha no CRM não lança', async () => {
 });
 
 Deno.test('ordem das etapas: só avança', () => {
-  eq(funilAvanca('novo', 'orcamento'), 'orcamento', 'novo → orcamento');
-  eq(funilAvanca('atendimento', 'orcamento'), 'orcamento', 'atendimento → orcamento');
+  eq(funilAvanca('novo', 'orcamento'), 'aguardando_resposta', 'novo → aguardando');
+  eq(funilAvanca('orcamento', 'orcamento'), 'aguardando_resposta', 'orcamento → aguardando');
+  eq(funilAvanca('aguardando_resposta', 'orcamento'), '', 'aguardando fica');
+  eq(funilAvanca('atendimento', 'orcamento'), 'aguardando_resposta', 'atendimento → aguardando');
   eq(funilAvanca('orcamento', 'ganho'), 'ganho', 'orcamento → ganho');
   eq(funilAvanca('negociacao', 'orcamento'), '', 'negociação não desce');
   eq(funilAvanca('ganho', 'ganho'), '', 'ganho fica');

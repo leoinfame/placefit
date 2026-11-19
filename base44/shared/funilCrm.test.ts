@@ -24,14 +24,14 @@ function banco(conversas: any[]) {
 Deno.test('lead novo do cliente vai para orçamento', async () => {
   const b = banco([{ id: 'c1', owner_id: 'dono', cliente_id: 'cli', etapa: 'novo', telefone: '553172070371', ativo: true }]);
   eq(await moverLeadParaOrcamento(b.entities, 'dono', { id: 'cli', telefone: '553172070371' }), 1, 'mudou 1');
-  eq(b.rows[0].etapa, 'orcamento', 'etapa');
+  eq(b.rows[0].etapa, 'aguardando_resposta', 'etapa');
 });
 
 Deno.test('conversa do mesmo telefone ainda sem cliente é ligada e movida', async () => {
   const b = banco([{ id: 'c1', owner_id: 'dono', cliente_id: '', etapa: 'atendimento', telefone: '553172070371', ativo: true }]);
   await moverLeadParaOrcamento(b.entities, 'dono', { id: 'cli', telefone: '(31) 7207-0371' });
   eq(b.rows[0].cliente_id, 'cli', 'ligada');
-  eq(b.rows[0].etapa, 'orcamento', 'movida');
+  eq(b.rows[0].etapa, 'aguardando_resposta', 'movida');
 });
 
 Deno.test('negociação, ganho e perdido não voltam; outro dono não é tocado', async () => {
