@@ -102,7 +102,8 @@ export function etapaAlvoDoPedido(pedido) {
 export function funilAvanca(etapaAtual, alvo) {
   const atual = etapaAtual || "novo";
   if (!alvo || atual === alvo || ETAPAS_FINAIS.includes(atual)) return "";
-  if (alvo === "orcamento") return ETAPAS_ANTES_DO_ORCAMENTO.includes(atual) ? "orcamento" : "";
+  // Item 029: orçamento criado já sai para o cliente, então vai direto para "aguardando resposta".
+  if (alvo === "orcamento") return [...ETAPAS_ANTES_DO_ORCAMENTO, "orcamento"].includes(atual) ? avancarPara(atual, "aguardando_resposta") : "";
   if (alvo === "ganho") return "ganho";
   return "";
 }
