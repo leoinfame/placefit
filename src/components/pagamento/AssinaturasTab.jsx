@@ -50,6 +50,17 @@ export default function AssinaturasTab({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pagarAssinatura, setPagarAssinatura] = useState(null);
 
+  const [erroAnual, setErroAnual] = useState("");
+  const pagarAnual = async () => {
+    setErroAnual("");
+    try {
+      const { data } = await base44.functions.invoke("comprarAnual", {});
+      if (data?.checkout_url) window.location.href = data.checkout_url;
+    } catch (e) {
+      setErroAnual(e?.response?.data?.error || "Não foi possível abrir o pagamento.");
+    }
+  };
+
   const getPreco = (slug) =>
     planos.find((p) => p.slug === slug)?.preco_mensal || 0;
 
@@ -112,6 +123,12 @@ export default function AssinaturasTab({
               ) : (
                 <p className="text-sm text-gray-500">O link de pagamento aparece aqui 3 dias antes do vencimento.</p>
               )}
+              {mensalidade.plano === "anual" ? (
+                <p className="text-sm text-green-700">Plano anual pago até o vencimento acima.</p>
+              ) : (
+                <Button variant="outline" onClick={pagarAnual}>Pagar o ano: R$ 2.700 no cartão (10% de desconto, fidelidade de 1 ano)</Button>
+              )}
+              {erroAnual && <p className="text-sm text-red-600">{erroAnual}</p>}
             </div>
           ) : assinaturaBase ? (
             <div className="space-y-3">
