@@ -70,7 +70,30 @@ export default async function (req) {
 
       let assinaturaId = existingAss[0]?.id;
 
-      if (existingAss.length === 0) {
+      // Quem pagou a inscricao pelo site paga a mensalidade nova (MensalidadePlaceFit):
+      // nao cria o plano antigo e encerra o que houver na propria conta, para nao cobrar duas vezes.
+      const eu = await base44.auth.me().catch(() => null);
+      const doSite = eu?.email
+        ? (await base44.asServiceRole.entities.MensalidadePlaceFit.filter({ cliente_email: String(eu.email).toLowerCase() }))
+            .some((m) => m.status !== "cancelada")
+        : false;
+      if (doSite) {
+        const antigas = await base44.asServiceRole.entities.AssinaturaUsuario.filter({
+          usuario_id: eu.id,
+          plano_slug: "mensalidade_padrao",
+        });
+        for (const a of antigas) {
+          if (a.status === "cancelado") continue;
+          await base44.asServiceRole.entities.AssinaturaUsuario.update(a.id, {
+            status: "cancelado",
+            cobranca_automatica: false,
+            data_cancelamento: new Date().toISOString().slice(0, 10),
+            motivo_cancelamento: "Substituida pela mensalidade da inscricao PlaceFit",
+          });
+        }
+      }
+
+      if (!doSite && existingAss.length === 0) {
         const { data_inicio, data_vencimento } = trialDates();
         const ass = await base44.asServiceRole.entities.AssinaturaUsuario.create({
           usuario_id: body.user_id,
