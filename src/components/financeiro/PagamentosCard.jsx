@@ -73,6 +73,16 @@ export default function PagamentosCard() {
     }
   };
 
+  const testarAviso = async () => {
+    setMsg("Enviando aviso...");
+    try {
+      const { data } = await base44.functions.invoke("testarAvisoVenda", {});
+      setMsg(`E-mails enviados: ${data.email}. WhatsApp: ${data.whatsapp ? "enviado" : "não enviado"}. ${(data.erros || []).join(" | ")}`);
+    } catch {
+      setMsg("Não foi possível enviar o aviso.");
+    }
+  };
+
   return (
     <Card className="bg-white">
       <CardHeader>
@@ -92,6 +102,7 @@ export default function PagamentosCard() {
         <div className="flex flex-col md:flex-row gap-2 border-t pt-4">
           <Input className="md:max-w-[160px]" placeholder="Valor (R$)" value={valor} onChange={(e) => setValor(e.target.value)} />
           <Button variant="outline" onClick={gerar}>Gerar link de teste</Button>
+          <Button variant="outline" onClick={testarAviso}>Testar aviso de venda</Button>
         </div>
         {link && <a className="text-sm text-green-700 underline break-all" href={link} target="_blank" rel="noopener noreferrer">{link}</a>}
         {msg && <p className="text-sm text-gray-700">{msg}</p>}
