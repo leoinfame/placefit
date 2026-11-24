@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import { useToast } from "@/components/ui/use-toast";
 import { computeLucroPedido } from "@/utils/lucro";
+import PagamentosCard from "@/components/financeiro/PagamentosCard";
 
 export default function Financeiro() {
   const [user, setUser] = useState(null);
@@ -396,6 +397,8 @@ export default function Financeiro() {
             Gerar Relatório PDF
           </Button>
         </div>
+
+        {user?.role === "admin" && <PagamentosCard />}
 
         {/* Filtros */}
         <Card className="bg-white/80">
