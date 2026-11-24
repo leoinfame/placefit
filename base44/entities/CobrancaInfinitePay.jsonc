@@ -11,11 +11,12 @@
       "type": "string",
       "enum": [
         "inscricao",
-        "manual"
+        "mensalidade", "manual"
       ],
       "default": "manual",
       "description": "inscricao = venda da inscricao PlaceFit pelo site"
     },
+    "referencia_id": { "type": "string", "description": "ID da MensalidadePlaceFit, quando for mensalidade" },
     "descricao": {
       "type": "string"
     },
