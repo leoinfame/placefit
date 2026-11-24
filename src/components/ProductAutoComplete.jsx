@@ -55,9 +55,10 @@ export default function ProductAutoComplete({
     return sorted.slice(0, 500);
   }, [searchTerm, products]);
 
-  // Reset highlight when results change
+  // Reset highlight and scroll when results change
   useEffect(() => {
     setHighlightIndex(-1);
+    if (dropdownRef.current) dropdownRef.current.scrollTop = 0;
   }, [filteredProducts]);
 
   const handleSelectProduct = (product) => {
@@ -68,6 +69,7 @@ export default function ProductAutoComplete({
   };
 
   const handleKeyDown = (e) => {
+    if (e.key === "Tab") { setShowDropdown(false); return; }
     if (!showDropdown || filteredProducts.length === 0) return;
 
     if (e.key === "ArrowDown") {

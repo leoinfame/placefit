@@ -5,10 +5,11 @@ import { User, MapPin } from "lucide-react";
 /**
  * Busca inteligente de cliente: encontra por nome (qualquer parte), CNPJ/CPF ou cidade.
  */
-export default function ClienteAutoComplete({ clientes = [], value, onSelect, placeholder = "Buscar cliente por nome, CNPJ ou cidade..." }) {
+export default function ClienteAutoComplete({ clientes = [], value, onSelect, placeholder = "Buscar cliente por nome, CNPJ ou cidade...", openOnFocus = true, inputRef: inputRefProp }) {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
-  const inputRef = useRef(null);
+  const inputRefLocal = useRef(null);
+  const inputRef = inputRefProp || inputRefLocal;
   const dropdownRef = useRef(null);
 
   // Sincronizar label quando value mudar externamente
@@ -76,7 +77,9 @@ export default function ClienteAutoComplete({ clientes = [], value, onSelect, pl
           ref={inputRef}
           value={search}
           onChange={(e) => { setSearch(e.target.value); setOpen(true); }}
-          onFocus={() => setOpen(true)}
+          onFocus={() => { if (openOnFocus) setOpen(true); }}
+          onClick={() => setOpen(true)}
+          onKeyDown={(e) => { if (e.key === "Tab") setOpen(false); }}
           placeholder={placeholder}
           className="pl-9 pr-8"
         />

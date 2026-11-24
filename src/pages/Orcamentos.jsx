@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { getProdutosData } from "@/functions/getProdutosData";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -99,6 +99,10 @@ export default function Orcamentos() {
   const [newDescontoPct, setNewDescontoPct] = useState(0);
   const [editDescontoPct, setEditDescontoPct] = useState(0);
 
+  const clienteInputRef = useRef(null);
+  // Linha de produto que deve receber o cursor (só a recém-adicionada, nunca ao abrir o diálogo)
+  const focarItemKey = useRef(null);
+
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -196,7 +200,9 @@ export default function Orcamentos() {
           .filter(Boolean);
       }
 
-      setProducts(productsData);
+      // A paginação pode devolver o mesmo produto em duas páginas; id repetido vira key repetida
+      // e o React deixa linhas antigas presas na lista durante a busca.
+      setProducts([...new Map(productsData.map(p => [p.id, p])).values()]);
       setClientes(clientesData);
       if (tabela) setTabelaFrete(tabela);
 
@@ -215,11 +221,13 @@ export default function Orcamentos() {
   };
 
   const addItemToOrcamento = () => {
+    const key = Date.now();
+    focarItemKey.current = key;
     setNewOrcamento(prev => ({
       ...prev,
       itens: [
         ...prev.itens,
-        { product_id: "", cod: "", nome: "", quantidade: 1, preco_unitario: 0, subtotal: 0, _key: Date.now() }
+        { product_id: "", cod: "", nome: "", quantidade: 1, preco_unitario: 0, subtotal: 0, _key: key }
       ]
     }));
   };
@@ -532,7 +540,7 @@ export default function Orcamentos() {
             <p className="text-gray-600">Crie orçamentos para seus clientes</p>
           </div>
           <Button
-            onClick={() => setShowNewDialog(true)}
+            onClick={() => { focarItemKey.current = null; setShowNewDialog(true); }}
             className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -777,7 +785,10 @@ export default function Orcamentos() {
 
         {/* Dialog Novo Orçamento */}
         <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent
+            className="max-w-4xl max-h-[90vh] overflow-y-auto"
+            onOpenAutoFocus={(e) => { e.preventDefault(); clienteInputRef.current?.focus(); }}
+          >
             <DialogHeader>
               <DialogTitle>Novo Orçamento</DialogTitle>
             </DialogHeader>
@@ -796,6 +807,8 @@ export default function Orcamentos() {
                 </div>
                 <ClienteAutoComplete
                   clientes={clientes}
+                  inputRef={clienteInputRef}
+                  openOnFocus={false}
                   value={newOrcamento.cliente_id}
                   onSelect={(id) => setNewOrcamento({...newOrcamento, cliente_id: id})}
                 />
@@ -818,7 +831,7 @@ export default function Orcamentos() {
                       onQuantidadeChange={(qtd) => updateItemQuantidade(idx, qtd)}
                       subtotal={item.subtotal}
                       userType={user?.tipo_usuario}
-                      autoFocus={idx === newOrcamento.itens.length - 1}
+                      autoFocus={!!item._key && item._key === focarItemKey.current}
                     />
                   ))}
                 </div>
@@ -948,6 +961,7 @@ export default function Orcamentos() {
                   <Label>Cliente *</Label>
                   <ClienteAutoComplete
                     clientes={clientes}
+                    openOnFocus={false}
                     value={editingOrcamento.cliente_id}
                     onSelect={(id) => setEditingOrcamento({...editingOrcamento, cliente_id: id})}
                   />
