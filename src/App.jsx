@@ -40,6 +40,7 @@ const Produtos = lazyPage('Produtos');
 const FabricantePublico = lazyPage('FabricantePublico');
 const CRMWhatsApp = lazy(() => import('./components/crm/CRMWhatsApp'));
 import ErrorBoundary from './components/ErrorBoundary';
+import AcessoMensalidade from './components/pagamento/AcessoMensalidade';
 const CrmPrivacidade = lazy(() => import('./components/crm-legal/CrmPrivacidade'));
 const CrmTermos = lazy(() => import('./components/crm-legal/CrmTermos'));
 const CrmExclusaoDados = lazy(() => import('./components/crm-legal/CrmExclusaoDados'));
@@ -130,6 +131,7 @@ const AuthenticatedApp = () => {
 
   // Render the main app
   return (
+    <AcessoMensalidade>
     <Suspense fallback={<PageLoading />}>
     <Routes>
       <Route path="/" element={<HomeApp />} />
@@ -172,6 +174,7 @@ const AuthenticatedApp = () => {
       <Route path="*" element={<PageNotFound />} />
     </Routes>
     </Suspense>
+    </AcessoMensalidade>
   );
 };
 
