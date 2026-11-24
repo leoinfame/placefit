@@ -1,24 +1,21 @@
 import { secrets } from 'base44:runtime';
 
-// Avisa o dono: e-mail para os admins do app (principal) e WhatsApp oficial (reforco,
+// Avisa o dono: e-mail de ConfigPagamento.email_aviso (principal; nunca todos os admins) e WhatsApp oficial (reforco,
 // so entrega se o dono falou com o numero nas ultimas 24h). Nunca derruba a venda.
 export async function avisarVenda(db: any, titulo: string, linhas: string[]) {
   const texto = [titulo, '', ...linhas].join('\n');
   const resultado = { email: 0, whatsapp: false, erros: [] as string[] };
 
   try {
-    const admins = await db.entities.User.filter({ role: 'admin' });
-    for (const admin of admins) {
-      if (!admin.email) continue;
-      try {
-        await db.integrations.Core.SendEmail({ to: admin.email, subject: titulo, body: texto.replace(/[<>]/g, '').replace(/\n/g, '<br>'), from_name: 'PlaceFit' });
-        resultado.email += 1;
-      } catch (e) {
-        resultado.erros.push(`email: ${e?.message || 'falha'}`);
-      }
+    const config = (await db.entities.ConfigPagamento.filter({ provider: 'infinitepay' }))[0];
+    if (config?.email_aviso) {
+      await db.integrations.Core.SendEmail({ to: config.email_aviso, subject: titulo, body: texto.replace(/[<>]/g, '').replace(/\n/g, '<br>'), from_name: 'PlaceFit' });
+      resultado.email = 1;
+    } else {
+      resultado.erros.push('email: email_aviso vazio');
     }
   } catch (e) {
-    resultado.erros.push(`admins: ${e?.message || 'falha'}`);
+    resultado.erros.push(`email: ${e?.message || 'falha'}`);
   }
 
   try {
