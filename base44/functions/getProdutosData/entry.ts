@@ -30,21 +30,28 @@ const projectEntityShort = (entity, fields) => {
 // Performance (13/10): busca as páginas em ondas paralelas (4 por vez) em vez de uma após a outra.
 // Com ~2.500 templates e ~4.000+ SupplierProducts eram ~15 idas e voltas em sequência.
 const PARALLEL_PAGES = 4;
+// Pagina sempre por 'id' (único): created_date empata nos lotes importados e cod pode repetir, e com
+// empate o mesmo registro vinha em duas páginas (e outro em nenhuma). A ordem pedida é refeita em memória.
 const fetchAll = async (fn, sort = '-created_date', pageSize = 500) => {
-  let all = [];
+  const byId = new Map();
   let skip = 0;
   while (true) {
     const skips = Array.from({ length: PARALLEL_PAGES }, (_, i) => skip + i * pageSize);
-    const batches = await Promise.all(skips.map(s => fn(sort, pageSize, s)));
+    const batches = await Promise.all(skips.map(s => fn('id', pageSize, s)));
     let done = false;
     for (const batch of batches) {
-      all = all.concat(batch);
+      for (const item of batch) byId.set(item.id, item);
       if (batch.length < pageSize) { done = true; break; }
     }
     if (done) break;
     skip += PARALLEL_PAGES * pageSize;
   }
-  return all;
+  const dir = sort.startsWith('-') ? -1 : 1;
+  const field = sort.replace(/^-/, '');
+  const cmp = (x, y) => (x < y ? -1 : x > y ? 1 : 0);
+  return [...byId.values()].sort((a, b) =>
+    dir * (cmp(String(a[field] ?? ''), String(b[field] ?? '')) || cmp(a.id, b.id))
+  );
 };
 
 Deno.serve(async (req) => {
