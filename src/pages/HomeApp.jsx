@@ -81,12 +81,14 @@ export default function HomeApp() {
     }
   };
 
-  const handleAssinar = async () => {
-    if (authUser) {
-      window.location.href = "/MinhaConta";
-    } else {
-      window.location.href = "https://www.placefit.com.br/curso.html#lista";
-    }
+  // Assinar e sempre a oferta nova, no site. Recursos avulsos seguem em Minha Conta para quem esta logado.
+  const handleAssinar = () => {
+    window.location.href = "https://www.placefit.com.br/curso.html#lista";
+  };
+
+  const handleRecurso = () => {
+    if (authUser) window.location.href = "/MinhaConta";
+    else handleAssinar();
   };
 
   const fmtPreco = (v) =>
@@ -228,7 +230,7 @@ export default function HomeApp() {
                       </ul>
                     )}
                     <Button
-                      onClick={handleAssinar}
+                      onClick={isBase ? handleAssinar : handleRecurso}
                       className={`mt-6 w-full ${
                         isBase
                           ? "bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white"
