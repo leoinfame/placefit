@@ -39,6 +39,7 @@ const STATUS_STYLE = {
 export default function AssinaturasTab({
   user,
   assinaturas,
+  mensalidade,
   planos,
   onContratar,
   onCancelar,
@@ -94,7 +95,25 @@ export default function AssinaturasTab({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {assinaturaBase ? (
+          {mensalidade ? (
+            <div className="space-y-3">
+              <p className="font-semibold text-lg">Mensalidade PlaceFit: site + sistema</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {fmtPreco(mensalidade.valor)}
+                <span className="text-sm font-normal text-gray-500">/mês</span>
+              </p>
+              <p className="text-sm text-gray-500">
+                Próximo vencimento: {String(mensalidade.vencimento || "").split("-").reverse().join("/")}
+              </p>
+              {mensalidade.link ? (
+                <a className="inline-block rounded-lg bg-green-700 px-4 py-2 text-white font-medium" href={mensalidade.link}>
+                  Pagar mensalidade
+                </a>
+              ) : (
+                <p className="text-sm text-gray-500">O link de pagamento aparece aqui 3 dias antes do vencimento.</p>
+              )}
+            </div>
+          ) : assinaturaBase ? (
             <div className="space-y-3">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div>
