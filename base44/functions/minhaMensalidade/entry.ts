@@ -15,7 +15,7 @@ export default async function (req) {
   const ativa = lista.find((x) => x.status === 'ativa');
   if (ativa) {
     const link = ativa.link_vencimento === ativa.proximo_vencimento ? ativa.link_url || '' : '';
-    return Response.json({ bloqueado: false, mensalidade: { valor: ativa.valor || 250, vencimento: ativa.proximo_vencimento, link } });
+    return Response.json({ bloqueado: false, mensalidade: { valor: ativa.valor || 250, vencimento: ativa.proximo_vencimento, plano: ativa.plano || 'mensal', link } });
   }
   const suspensa = lista.find((x) => x.status === 'bloqueada');
   if (suspensa) return Response.json({ bloqueado: true, motivo: 'atraso', link: suspensa.link_url || '' });
