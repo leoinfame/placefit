@@ -32,10 +32,6 @@ const MODULES = [
   { icon: Calculator, title: "Financeiro e documentos fiscais", desc: "Controle financeiro, notas fiscais e documentos." },
 ];
 
-// Oferta para novos clientes. O PlanoServico mensalidade_padrao segue com o valor
-// antigo porque e ele que cobra quem ja era assinante: nao trocar la por aqui.
-const MENSALIDADE_NOVA = 250;
-
 export default function HomeApp() {
   const [authUser, setAuthUser] = useState(null);
   const [planos, setPlanos] = useState([]);
@@ -208,7 +204,7 @@ export default function HomeApp() {
                     )}
                     <h3 className="text-xl font-bold text-slate-900">{p.nome}</h3>
                     <p className="text-3xl font-bold text-slate-900 mt-2">
-                      {fmtPreco(isBase ? MENSALIDADE_NOVA : p.preco_mensal)}
+                      {fmtPreco(p.preco_mensal)}
                       <span className="text-sm font-normal text-slate-400">/mês</span>
                     </p>
                     {isBase && (
