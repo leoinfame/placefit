@@ -50,6 +50,7 @@ export default function PagamentosCard() {
         taxa_parcelamento: "loja",
         parcelas_sem_juros_assumidas: Math.min(12, Math.max(0, Number(config.parcelas_sem_juros_assumidas) || 0)),
         desconto_pix_pct: Math.min(99, Math.max(0, Number(config.desconto_pix_pct) || 0)),
+        email_aviso: String(config.email_aviso || "").trim(),
         ativo: !!config.ativo,
       };
       const salvo = config.id
@@ -97,6 +98,7 @@ export default function PagamentosCard() {
           <div><Label>Parcelas sem juros</Label><Input type="number" min={0} max={12} value={config.parcelas_sem_juros_assumidas ?? 0} onChange={(e) => set("parcelas_sem_juros_assumidas", e.target.value)} /></div>
           <div><Label>Desconto no Pix (%)</Label><Input type="number" min={0} max={99} value={config.desconto_pix_pct ?? 0} onChange={(e) => set("desconto_pix_pct", e.target.value)} /></div>
         </div>
+        <div><Label>E-mail que recebe o aviso de venda</Label><Input type="email" value={config.email_aviso || ""} onChange={(e) => set("email_aviso", e.target.value)} /></div>
         <div className="flex items-center gap-3"><Switch checked={!!config.ativo} onCheckedChange={(v) => set("ativo", v)} /><span className="text-sm">Pagamento ligado no site</span></div>
         <Button onClick={salvar}>Salvar</Button>
         <div className="flex flex-col md:flex-row gap-2 border-t pt-4">
