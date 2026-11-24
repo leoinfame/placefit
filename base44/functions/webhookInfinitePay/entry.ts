@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.41';
 import { secrets } from 'base44:runtime';
 import { configInfinitePay, conferirPagamento, limparTag } from '../../shared/infinitepayCheckout.ts';
 import { avisarVenda } from '../../shared/avisoVenda.ts';
+import { abrirMensalidade, pagarMensalidade, cancelarPorEstorno } from '../../shared/mensalidades.ts';
 
 // Publica: chamada pela InfinitePay (avisa em email_aviso). Exige o token da URL e confirma o pagamento direto
 // na InfinitePay. O corpo do aviso nunca basta para marcar como pago.
@@ -26,6 +27,7 @@ export default async function (req) {
     const evento = String(body.event || body.event_type || body.status || url.searchParams.get('event') || '').toLowerCase();
     if (evento.includes('refund')) {
       await db.entities.CobrancaInfinitePay.update(cobranca.id, { status: 'estornada' });
+      if (cobranca.referencia_tipo === 'inscricao') await cancelarPorEstorno(db, cobranca);
       return Response.json({ ok: true, refunded: true });
     }
     if (evento.includes('cancel')) {
@@ -61,6 +63,9 @@ export default async function (req) {
       receipt_url: body.receipt_url ? String(body.receipt_url) : null,
       pago_em: new Date().toISOString(),
     });
+
+    if (confere && cobranca.referencia_tipo === 'inscricao') await abrirMensalidade(db, cobranca);
+    if (confere && cobranca.referencia_tipo === 'mensalidade' && cobranca.referencia_id) await pagarMensalidade(db, cobranca.referencia_id);
 
     // Inscricao paga: deixa o cadastro pronto para o primeiro login (inscreverApp).
     if (confere && cobranca.referencia_tipo === 'inscricao' && cobranca.cliente_email) {
