@@ -11,7 +11,7 @@ export const limparTag = (tag: any) => String(tag || '').trim().replace(/^\$/, '
 
 /** Cria o link e registra a cobranca. A API Key vem sempre dos secrets, nunca do chamador. */
 export async function criarCobrancaInfinitePay(db: any, dados: any) {
-  const { apiKey, webhookUrl, config, valor, descricao, referenciaTipo, referenciaId, cliente, redirectUrl } = dados;
+  const { apiKey, webhookUrl, config, valor, descricao, referenciaTipo, referenciaId, cliente, redirectUrl, metodos } = dados;
   if (!apiKey) throw new Error('INFINITEPAY_API_KEY nao configurada');
   if (!webhookUrl) throw new Error('INFINITEPAY_WEBHOOK_URL nao configurada');
 
@@ -35,7 +35,7 @@ export async function criarCobrancaInfinitePay(db: any, dados: any) {
       webhook: { url: webhookUrl, events: ['paid', 'settled', 'refunded', 'canceled'] },
       ...(cliente ? { customer: { name: cliente.nome, email: cliente.email } } : {}),
       options: {
-        payment_methods_enabled: ['credit_card', 'pix'],
+        payment_methods_enabled: metodos || ['credit_card', 'pix'],
         single_payment: true,
         assured_installments: parcelas,
         ...(pixValido ? { discounts: { pix } } : {}),
@@ -52,7 +52,7 @@ export async function criarCobrancaInfinitePay(db: any, dados: any) {
   const cheio = centavos / 100;
   await db.entities.CobrancaInfinitePay.create({
     order_nsu: orderNsu,
-    referencia_tipo: ['inscricao', 'mensalidade'].includes(referenciaTipo) ? referenciaTipo : 'manual',
+    referencia_tipo: ['inscricao', 'mensalidade', 'anual'].includes(referenciaTipo) ? referenciaTipo : 'manual',
     referencia_id: referenciaId || null,
     descricao: String(descricao).slice(0, 200),
     valor: cheio,
