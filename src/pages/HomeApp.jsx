@@ -33,6 +33,10 @@ const MODULES = [
   { icon: Calculator, title: "Financeiro e documentos fiscais", desc: "Controle financeiro, notas fiscais e documentos." },
 ];
 
+// Oferta para novos clientes. O PlanoServico mensalidade_padrao segue com o valor
+// antigo porque e ele que cobra quem ja era assinante: nao trocar la por aqui.
+const MENSALIDADE_NOVA = 250;
+
 export default function HomeApp() {
   const [showSignup, setShowSignup] = useState(false);
   const [authUser, setAuthUser] = useState(null);
@@ -204,9 +208,14 @@ export default function HomeApp() {
                     )}
                     <h3 className="text-xl font-bold text-slate-900">{p.nome}</h3>
                     <p className="text-3xl font-bold text-slate-900 mt-2">
-                      {fmtPreco(p.preco_mensal)}
+                      {fmtPreco(isBase ? MENSALIDADE_NOVA : p.preco_mensal)}
                       <span className="text-sm font-normal text-slate-400">/mês</span>
                     </p>
+                    {isBase && (
+                      <p className="text-sm text-slate-500 mt-1">
+                        + inscrição de R$ 2.500 em até 12x sem juros, ou R$ 2.250 no Pix. Inclui site, sistema e curso. A mensalidade começa 30 dias depois.
+                      </p>
+                    )}
                     {p.descricao && (
                       <p className="text-sm text-slate-500 mt-3">{p.descricao}</p>
                     )}
