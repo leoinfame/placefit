@@ -1,0 +1,105 @@
+{
+  "name": "CobrancaInfinitePay",
+  "type": "object",
+  "description": "Cobranca gerada no Checkout Integrado da InfinitePay. Guarda o order_nsu para casar com o webhook. Nunca guarda credenciais.",
+  "properties": {
+    "order_nsu": {
+      "type": "string",
+      "description": "Identificador do pedido no nosso sistema"
+    },
+    "referencia_tipo": {
+      "type": "string",
+      "enum": [
+        "inscricao",
+        "manual"
+      ],
+      "default": "manual",
+      "description": "inscricao = venda da inscricao PlaceFit pelo site"
+    },
+    "descricao": {
+      "type": "string"
+    },
+    "valor": {
+      "type": "number",
+      "description": "Valor cheio em reais (BRL)"
+    },
+    "valor_minimo": {
+      "type": "number",
+      "description": "Menor valor aceito como pago (com o desconto do Pix)"
+    },
+    "checkout_url": {
+      "type": "string"
+    },
+    "invoice_slug": {
+      "type": "string"
+    },
+    "transaction_nsu": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "criada",
+        "paga",
+        "divergente",
+        "estornada",
+        "cancelada"
+      ],
+      "default": "criada"
+    },
+    "capture_method": {
+      "type": "string",
+      "description": "credit_card ou pix"
+    },
+    "parcelas": {
+      "type": "number"
+    },
+    "paid_amount": {
+      "type": "number",
+      "description": "Valor efetivamente pago (BRL)"
+    },
+    "receipt_url": {
+      "type": "string"
+    },
+    "cliente_nome": {
+      "type": "string"
+    },
+    "cliente_email": {
+      "type": "string"
+    },
+    "cliente_whatsapp": {
+      "type": "string"
+    },
+    "pago_em": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "order_nsu",
+    "valor",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
