@@ -1,0 +1,67 @@
+{
+  "name": "ConfigPagamento",
+  "type": "object",
+  "description": "Configuracao NAO secreta do provedor de pagamento da PlaceFit. API Key e webhook ficam nos secrets do app.",
+  "properties": {
+    "provider": {
+      "type": "string",
+      "enum": [
+        "infinitepay"
+      ],
+      "description": "Provedor de pagamento"
+    },
+    "infinite_tag": {
+      "type": "string",
+      "description": "InfiniteTag da conta InfinitePay, sem o $ inicial"
+    },
+    "taxa_parcelamento": {
+      "type": "string",
+      "enum": [
+        "cliente",
+        "loja"
+      ],
+      "default": "loja",
+      "description": "Quem paga os juros do parcelamento"
+    },
+    "parcelas_sem_juros_assumidas": {
+      "type": "number",
+      "default": 12,
+      "description": "Parcelas sem juros assumidas (0 a 12). So vale quando taxa_parcelamento = loja"
+    },
+    "desconto_pix_pct": {
+      "type": "number",
+      "default": 10,
+      "description": "Desconto no Pix, em %"
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se o provedor esta ligado para uso"
+    }
+  },
+  "required": [
+    "provider"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
