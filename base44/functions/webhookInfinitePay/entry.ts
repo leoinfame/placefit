@@ -3,7 +3,7 @@ import { secrets } from 'base44:runtime';
 import { configInfinitePay, conferirPagamento, limparTag } from '../../shared/infinitepayCheckout.ts';
 import { avisarVenda } from '../../shared/avisoVenda.ts';
 
-// Publica: chamada pela InfinitePay. Exige o token da URL e confirma o pagamento direto
+// Publica: chamada pela InfinitePay (avisa em email_aviso). Exige o token da URL e confirma o pagamento direto
 // na InfinitePay. O corpo do aviso nunca basta para marcar como pago.
 export default async function (req) {
   try {
