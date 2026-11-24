@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import SignupDialog from "@/components/home/SignupDialog";
 import {
   Building2,
   Package,
@@ -38,7 +37,6 @@ const MODULES = [
 const MENSALIDADE_NOVA = 250;
 
 export default function HomeApp() {
-  const [showSignup, setShowSignup] = useState(false);
   const [authUser, setAuthUser] = useState(null);
   const [planos, setPlanos] = useState([]);
   const [loadingPlanos, setLoadingPlanos] = useState(true);
@@ -87,7 +85,7 @@ export default function HomeApp() {
     if (authUser) {
       window.location.href = "/MinhaConta";
     } else {
-      setShowSignup(true);
+      window.location.href = "https://www.placefit.com.br/curso.html#lista";
     }
   };
 
@@ -282,8 +280,6 @@ export default function HomeApp() {
           </p>
         </div>
       </footer>
-
-      <SignupDialog open={showSignup} onClose={() => setShowSignup(false)} />
     </div>
   );
 }
