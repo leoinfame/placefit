@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.41';
 import { secrets } from 'base44:runtime';
 import { configInfinitePay, conferirPagamento, limparTag } from '../../shared/infinitepayCheckout.ts';
+import { avisarVenda } from '../../shared/avisoVenda.ts';
 
 // Publica: chamada pela InfinitePay. Exige o token da URL e confirma o pagamento direto
 // na InfinitePay. O corpo do aviso nunca basta para marcar como pago.
@@ -33,7 +34,7 @@ export default async function (req) {
     }
 
     // Aviso repetido (paid e depois settled): ja tratado.
-    if (cobranca.status === 'paga' || cobranca.status === 'estornada') return Response.json({ ok: true, repetido: true });
+    if (['paga', 'divergente', 'estornada'].includes(cobranca.status)) return Response.json({ ok: true, repetido: true });
 
     const { config } = await configInfinitePay(db);
     const conferido = await conferirPagamento(apiKey, limparTag(config?.infinite_tag), { ...body, order_nsu: orderNsu });
@@ -43,6 +44,14 @@ export default async function (req) {
     const pago = (Number(conferido.paid_amount) || Number(conferido.amount) || 0) / 100;
     const confere = pago + 0.01 >= Number(cobranca.valor_minimo ?? cobranca.valor);
 
+    // Dois avisos quase juntos: so a trava mais antiga deste order_nsu segue.
+    const trava = await db.entities.BaixaInfinitePay.create({ order_nsu: orderNsu });
+    await new Promise((ok) => setTimeout(ok, 1500));
+    const travas = await db.entities.BaixaInfinitePay.filter({ order_nsu: orderNsu });
+    const primeira = travas.map((t) => String(t.id)).sort()[0];
+    if (primeira && primeira !== String(trava.id)) return Response.json({ ok: true, repetido: true });
+
+    try {
     await db.entities.CobrancaInfinitePay.update(cobranca.id, {
       status: confere ? 'paga' : 'divergente',
       transaction_nsu: body.transaction_nsu ? String(body.transaction_nsu) : null,
@@ -66,6 +75,22 @@ export default async function (req) {
         });
       }
     }
+    } catch (e) {
+      // Libera a trava e desfaz a marcacao para o proximo aviso tentar de novo.
+      await db.entities.BaixaInfinitePay.delete(trava.id).catch(() => null);
+      await db.entities.CobrancaInfinitePay.update(cobranca.id, { status: 'criada' }).catch(() => null);
+      throw e;
+    }
+
+    const reais = (v) => `R$ ${Number(v || 0).toFixed(2).replace('.', ',')}`;
+    await avisarVenda(db, confere ? `Venda PlaceFit paga: ${reais(pago)}` : `ATENCAO: pagamento com valor diferente (${reais(pago)})`, [
+      cobranca.descricao || 'Cobranca PlaceFit',
+      `Cliente: ${cobranca.cliente_nome || 'nao informado'}`,
+      `E-mail: ${cobranca.cliente_email || 'nao informado'}`,
+      `WhatsApp: ${cobranca.cliente_whatsapp || 'nao informado'}`,
+      `Pago: ${reais(pago)} (valor cheio ${reais(cobranca.valor)})`,
+      `Forma: ${conferido.capture_method === 'pix' ? 'Pix' : `Cartao ${Number(conferido.installments) || 1}x`}`,
+    ]);
     return Response.json({ ok: true, paid: confere });
   } catch (error) {
     console.error('webhookInfinitePay:', error);
