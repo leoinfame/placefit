@@ -17,6 +17,15 @@ export function maisUmMes(data: string) {
   return new Date(Date.UTC(a, m, Math.min(d, ultimo), 12)).toISOString().slice(0, 10);
 }
 
+/** Mesmo dia no ano seguinte (29/02 vira 28/02). */
+export function maisUmAno(data: string) {
+  let d = data;
+  const [a, m, dia] = data.split('-').map(Number);
+  const ultimo = new Date(Date.UTC(a + 1, m, 0)).getUTCDate();
+  d = new Date(Date.UTC(a + 1, m - 1, Math.min(dia, ultimo), 12)).toISOString().slice(0, 10);
+  return d;
+}
+
 export const diasDeAtraso = (vencimento: string, hoje: string) =>
   Math.round((Date.parse(`${hoje}T12:00:00Z`) - Date.parse(`${vencimento}T12:00:00Z`)) / 86400000);
 
