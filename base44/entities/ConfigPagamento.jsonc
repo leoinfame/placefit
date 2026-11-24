@@ -33,6 +33,10 @@
       "default": 10,
       "description": "Desconto no Pix, em %"
     },
+    "email_aviso": {
+      "type": "string",
+      "description": "E-mail que recebe o aviso de venda"
+    },
     "ativo": {
       "type": "boolean",
       "default": false,
