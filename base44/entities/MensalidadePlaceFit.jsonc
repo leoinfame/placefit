@@ -29,6 +29,7 @@
       ],
       "default": "ativa"
     },
+    "plano": { "type": "string", "enum": ["mensal", "anual"], "default": "mensal" },
     "inscricao_nsu": {
       "type": "string"
     },

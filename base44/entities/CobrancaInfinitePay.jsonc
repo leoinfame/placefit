@@ -11,7 +11,7 @@
       "type": "string",
       "enum": [
         "inscricao",
-        "mensalidade", "manual"
+        "mensalidade", "anual", "manual"
       ],
       "default": "manual",
       "description": "inscricao = venda da inscricao PlaceFit pelo site"
