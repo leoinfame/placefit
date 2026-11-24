@@ -22,6 +22,8 @@ export default function MinhaConta() {
     loadData();
   }, []);
 
+  const [mensalidade, setMensalidade] = useState(null);
+
   const loadData = async () => {
     setLoading(true);
     try {
@@ -41,6 +43,10 @@ export default function MinhaConta() {
         console.error("Ativação:", e);
       }
       setAtivando(false);
+
+      // Mensalidade de quem pagou a inscrição pelo site
+      const mens = await base44.functions.invoke("minhaMensalidade", {}).catch(() => null);
+      setMensalidade(mens?.data?.mensalidade || null);
 
       // Carregar dados
       const [ass, fats, pls, metodos] = await Promise.all([
@@ -152,6 +158,7 @@ export default function MinhaConta() {
           <AssinaturasTab
             user={user}
             assinaturas={assinaturas}
+            mensalidade={mensalidade}
             planos={planos}
             onContratar={contratar}
             onCancelar={handleCancelado}
