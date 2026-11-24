@@ -1,8 +1,9 @@
-import { acaoDoDia, hojeBR, maisUmMes, somarDias, diasDeAtraso, DIAS_TOLERANCIA } from './mensalidadeRegras.ts';
+import { acaoDoDia, hojeBR, maisUmMes, maisUmAno, somarDias, diasDeAtraso, DIAS_TOLERANCIA } from './mensalidadeRegras.ts';
 import { configInfinitePay, criarCobrancaInfinitePay } from './infinitepayCheckout.ts';
 import { avisarVenda } from './avisoVenda.ts';
 
 const VALOR = 250;
+const VALOR_ANUAL = 2700;
 const br = (d: string) => d.split('-').reverse().join('/');
 
 /** True so para o primeiro a pegar esta chave (evita aviso repetido). */
@@ -40,6 +41,47 @@ export async function pagarMensalidade(db: any, mensalidadeId: string, agora = n
   await db.entities.MensalidadePlaceFit.update(m.id, {
     status: 'ativa', proximo_vencimento: maisUmMes(base), ultimo_pagamento: hoje, link_url: '', link_vencimento: '',
   });
+}
+
+/** Link do plano anual (cartao). So para quem ja tem mensalidade aberta pela inscricao. */
+export async function linkAnual(db: any, email: string, cred: any) {
+  const m = (await db.entities.MensalidadePlaceFit.filter({ cliente_email: email })).find((x: any) => x.status !== 'cancelada');
+  if (!m) return { erro: 'Nao achamos inscricao paga com este e-mail. Faca a inscricao primeiro ou chame no WhatsApp.', status: 404 };
+  const { config, ativa } = await configInfinitePay(db);
+  if (!ativa) return { erro: 'Pagamento online indisponivel no momento.', status: 503 };
+  const aberta = (await db.entities.CobrancaInfinitePay.filter({ referencia_id: m.id, referencia_tipo: 'anual', status: 'criada' }, '-created_date', 1))[0];
+  if (aberta?.checkout_url && Date.now() - new Date(aberta.created_date).getTime() < 30 * 60 * 1000) return { checkout_url: aberta.checkout_url };
+  const { checkout_url } = await criarCobrancaInfinitePay(db, {
+    ...cred,
+    // O desconto de 10% ja esta no valor; parcelas com a taxa do cliente.
+    config: { ...config, desconto_pix_pct: 0, taxa_parcelamento: 'cliente', parcelas_sem_juros_assumidas: 0 },
+    metodos: ['credit_card'],
+    valor: VALOR_ANUAL,
+    descricao: 'PlaceFit - plano anual (12 meses)',
+    referenciaTipo: 'anual',
+    referenciaId: m.id,
+    cliente: { nome: m.cliente_nome || m.cliente_email, email: m.cliente_email, whatsapp: m.cliente_whatsapp },
+    redirectUrl: 'https://www.placefit.com.br/obrigado.html',
+  });
+  return { checkout_url };
+}
+
+/** Anual pago: vencimento anda 1 ano e o acesso e liberado. */
+export async function pagarAnual(db: any, mensalidadeId: string, agora = new Date()) {
+  const m = (await db.entities.MensalidadePlaceFit.filter({ id: mensalidadeId }))[0];
+  if (!m || m.status === 'cancelada') return;
+  const hoje = hojeBR(agora);
+  await db.entities.MensalidadePlaceFit.update(m.id, {
+    status: 'ativa', plano: 'anual', proximo_vencimento: maisUmAno(m.status === 'bloqueada' ? hoje : m.proximo_vencimento),
+    ultimo_pagamento: hoje, link_url: '', link_vencimento: '',
+  });
+}
+
+/** Anual estornado: volta para o mensal, vencendo hoje. */
+export async function estornarAnual(db: any, mensalidadeId: string, agora = new Date()) {
+  const m = (await db.entities.MensalidadePlaceFit.filter({ id: mensalidadeId }))[0];
+  if (!m || m.status === 'cancelada') return;
+  await db.entities.MensalidadePlaceFit.update(m.id, { plano: 'mensal', proximo_vencimento: hojeBR(agora), link_url: '', link_vencimento: '' });
 }
 
 export async function cancelarPorEstorno(db: any, cobranca: any) {
