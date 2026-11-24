@@ -1,0 +1,74 @@
+{
+  "name": "MensalidadePlaceFit",
+  "type": "object",
+  "description": "Mensalidade de quem pagou a inscricao pelo site. Independente de AssinaturaUsuario: usuarios antigos nunca entram aqui.",
+  "properties": {
+    "cliente_email": {
+      "type": "string"
+    },
+    "cliente_nome": {
+      "type": "string"
+    },
+    "cliente_whatsapp": {
+      "type": "string"
+    },
+    "valor": {
+      "type": "number",
+      "default": 250
+    },
+    "proximo_vencimento": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ativa",
+        "bloqueada",
+        "cancelada"
+      ],
+      "default": "ativa"
+    },
+    "inscricao_nsu": {
+      "type": "string"
+    },
+    "link_vencimento": {
+      "type": "string",
+      "description": "Vencimento a que o link atual se refere"
+    },
+    "link_url": {
+      "type": "string"
+    },
+    "ultimo_pagamento": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "cliente_email",
+    "proximo_vencimento",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
