@@ -85,6 +85,8 @@ export function decidir(pedido: any, r: any | null) {
   if (outrasPerguntas.length) motivos.push(...outrasPerguntas);
   if (perguntasCadastro.length && doc.length === 14) motivos.push(...perguntasCadastro);
   if (r.nao_cotados?.length) motivos.push(`Itens sem correspondência no catálogo: ${r.nao_cotados.join('; ')}`);
+  // Etapa 2: suposição de linha/família, par x unidade ou quantidade nunca vai sozinha ao cliente
+  if (r.revisar?.length) motivos.push(...r.revisar);
   if (r.frete === null || !String(r.frete_origem || '').startsWith('tabela')) motivos.push('Frete não saiu da tabela de frete.');
   if ((r.ressalvas || []).some((x: string) => /confer[eê]ncia|indispon[ií]vel/i.test(x))) motivos.push(...r.ressalvas.filter((x: string) => /confer[eê]ncia|indispon[ií]vel/i.test(x)));
   if (!(Number(r.total) > 0) || !r.itens?.length) motivos.push('Orçamento sem itens cotados.');
