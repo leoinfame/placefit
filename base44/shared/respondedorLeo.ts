@@ -24,6 +24,7 @@ import {
   revendedorDoTelefone, tentarAtivacao, ehMensagemDeAtivacao, ehTentativaDeAtivacao, FORMATO_ATIVAR,
   contaCadastradaDoTelefone, orientacaoAtivacao, PREFIXO_ORIENTACAO
 } from './vinculoRevendedor.ts';
+import { pdfDoOrcamento, enviarDocumento } from './pdfGerente.ts';
 import { invocarIA } from './iaComRetry.ts';
 import { atendimentoManual } from './botPausa.ts';
 import { respostaNossa } from './funilAutomatico.ts';
@@ -284,6 +285,31 @@ async function enviarERegistrar(base44: any, connection: any, conversa: any, cli
   return { ...envio, quando };
 }
 
+/** PDF do orçamento ao dono. Nunca lança: se falhar, avisa em texto com o link do painel. */
+async function mandarPdfAoDono(base44: any, connection: any, conversa: any, dono: string, tenantId: string, pedidoId: string) {
+  let envio = { ok: false, id: '', error: '' };
+  let nome = 'Orçamento.pdf';
+  try {
+    const { bytes, numero } = await pdfDoOrcamento(base44, tenantId, pedidoId,
+      { url: env('PDF_SERVICE_URL'), user: env('PDF_SERVICE_USER'), pass: env('PDF_SERVICE_PASS') });
+    nome = `Orçamento ${numero}.pdf`;
+    envio = await enviarDocumento(connection.phone_number_id, dono, bytes, nome, `${numero} (só pra você; nada foi enviado ao cliente)`, env('META_ACCESS_TOKEN'));
+  } catch (e) {
+    envio = { ok: false, id: '', error: String((e as any)?.message || e).slice(0, 300) };
+  }
+  try {
+    if (envio.ok) {
+      await base44.asServiceRole.entities.CRMMensagem.create({
+        owner_id: connection.tenant_id, conversa_id: conversa.id, telefone: dono, direcao: 'enviada', tipo: 'documento',
+        conteudo: `[PDF: ${nome}]`, status: 'enviada', meta_message_id: envio.id, erro: '', origem: 'respondedor_ia', enviada_em: new Date().toISOString()
+      });
+    } else {
+      console.error('[RESPONDEDOR] PDF ao dono falhou', envio.error);
+      await enviarERegistrar(base44, connection, conversa, dono, 'Não consegui gerar o PDF agora. O orçamento está gravado; abre pelo link do painel.');
+    }
+  } catch (e) { console.error('[RESPONDEDOR] registro do PDF falhou', e); }
+}
+
 /**
  * Avalia e, se todas as travas passarem, responde a mensagem `msg` do evento `ev`.
  * Nunca lança: qualquer falha vira reply_status "erro" no evento.
@@ -449,7 +475,7 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
     if (modoGerente) {
       // Orçamento assistido: único caminho de escrita do gerente; grava sozinho (pendente) quando o
       // pedido está completo e nunca envia ao cliente nem converte em pedido (item 009).
-      let orc: { tratou: boolean; resposta: string; gravou?: string } = { tratou: false, resposta: '' };
+      let orc: { tratou: boolean; resposta: string; gravou?: string; pdf?: string } = { tratou: false, resposta: '' };
       try {
         orc = await tratarOrcamentoGerente(base44, tenantGerente, conversa, textoCliente, conversaTexto);
       } catch (e) {
@@ -462,6 +488,8 @@ export async function responderSeCabivel(base44: any, connection: any, ev: any, 
         await marcar(base44, eventId, envioO.ok
           ? { reply_status: 'respondido', reply_reason: orc.gravou ? `orcamento_gravado:${orc.gravou}` : 'orcamento_gerente', reply_wamid: envioO.id, replied_at: envioO.quando }
           : { reply_status: 'erro', reply_reason: 'orcamento_gerente', reply_error: envioO.error });
+        // PDF só para quem está no modo gerente (numeroGerente), depois do texto; falha não desfaz nada
+        if (envioO.ok && orc.pdf) await mandarPdfAoDono(base44, connection, conversa, numeroGerente, tenantGerente, orc.pdf);
         return;
       }
 
