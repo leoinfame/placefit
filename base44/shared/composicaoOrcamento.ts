@@ -279,6 +279,8 @@ function comporSuporte(cands: ItemCatalogo[], l: LinhaPedido, qtd: number, res: 
   }
   const e = ok[0];
   res.itens.push({ item: e.i, quantidade: qtd, origem: l.descricao });
+  if (e.desconhecida.length) res.revisar.push(`"${l.descricao}": capacidade do ${nomeComCod(e.i)} não consta no cadastro.`);
+  else if (ok.length > 1 && extrasDoItem(e.i, l.descricao) > 0) res.revisar.push(`"${l.descricao}": ${ok.length} suportes atendem (escolhido: ${nomeComCod(e.i)}).`);
   const fora = avaliados.filter((a) => a.falha.length).slice(0, 2)
     .map((a) => `${a.i.cod || a.i.nome} (${a.falha.map((k) => ROTULO_CAP[k](a.c[k]!)).join(', ')})`);
   res.suposicoes.push(`"${l.descricao}": considerei ${nomeComCod(e.i)}` +
@@ -426,6 +428,8 @@ function resolverLinha(catalogo: ItemCatalogo[], l: LinhaPedido, res: Composicao
       res.itens.push({ item: identico[0], quantidade: qtd, origem: l.descricao });
       return;
     }
+    // B3 também com ficha: barra de ~2,2 m sem dizer olímpica nem maciça é pergunta, nunca escolha
+    if (!requisitosDe(l).some((t) => /\b(olimpic|macic)/.test(normalizar(t))) && barraComprida(catalogo, l, res)) return;
     comporPorFicha(catalogo, l, qtd, res);
     return;
   }
