@@ -770,7 +770,7 @@ export async function tratarOrcamentoGerente(base44: any, tenantId: string, conv
   // A conversa é a fonte autoritativa do telefone e do cadastro de contato.
   pedido.cliente = { ...(pedido.cliente || {}), telefone: digitos(conversa?.telefone || pedido.cliente?.telefone || '') };
   pedido.cliente.cliente_id_contato = conversa?.cliente_id || '';
-  const r = await montarRascunho(base44, tenantId, pedido, base, [texto, ...doDono].join(' '));
+  const r: any = await montarRascunho(base44, tenantId, pedido, base, [texto, ...doDono].join(' '));
   if (conversa?.id && r.cliente?.id && conversa.cliente_id !== r.cliente.id) {
     await base44.asServiceRole.entities.CRMConversa.update(conversa.id, { cliente_id: r.cliente.id });
   }
