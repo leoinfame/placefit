@@ -6,6 +6,7 @@ import { base64 } from "../../shared/tabelaAtacado.ts";
 import { itensSuaTabela, htmlSuaTabela, imprimirPdf } from "../../shared/tabelaPdf.ts";
 import { linkDaTabela } from "../../shared/linkTabela.ts";
 import { atenderLead } from "../../shared/vendedorLead.ts";
+import { conteudoUtil, SILENCIO } from "../../shared/gatilhoLead.ts";
 import { notificar } from "../../shared/monitorCrm.ts";
 import { timestampDaMensagem, ehHistorico, idDoPayload, decideBoasVindas, respostaDeErro, MINUTOS_REENTREGA } from "../../shared/protecaoReentrega.ts";
 
@@ -401,7 +402,7 @@ Deno.serve(async (req) => {
         }
       });
       if (vend.motivo !== "nao_lead" && vend.motivo !== "etapa") console.log("[CRM_WEBHOOK] vendedor", vend.motivo, conversation.id);
-      if (vend.atuou) return new Response("ok");
+      if (vend.atuou || SILENCIO.has(vend.motivo)) return new Response("ok");
     }
 
     // ── Atendente automático ─────────────────────────────────────────────────
@@ -412,7 +413,8 @@ Deno.serve(async (req) => {
     //     acidente no número comercial;
     //  3. silêncio se um humano respondeu há pouco: quem assumiu, assumiu.
     //  4. Item 030: mensagem de histórico (backlog/importada) nunca é respondida.
-    if (fromMe || historico) return new Response("ok");
+    //  5. Etapa 1 (24/11): sem conteúdo legível (vazio, sticker, reação, mídia), nada é respondido.
+    if (fromMe || historico || !conteudoUtil(messageText)) return new Response("ok");
 
     const atendenteLigado =
       Boolean(owner.whatsapp_atendente_ativo) && Boolean(owner.whatsapp_atendente_confirmado);
