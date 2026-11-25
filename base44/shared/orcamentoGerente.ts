@@ -36,6 +36,32 @@ const CANCELA = /^(cancela|cancelar|descarta|descartar|esquece|apaga o rascunho|
 // Cumprimento sozinho não precisa do interpretador
 const SO_CUMPRIMENTO = /^(oi|ola|opa|e ai|eai|bom dia|boa tarde|boa noite|tudo bem|tudo bom|blz|beleza|valeu|obrigad[oa]|ok)( [a-z]+)?$/;
 
+// ── Conferência e PDF na conversa do dono (24/11/2026) ──
+/** Pedido curto de PDF ("manda o pdf", "pdf do ORC-123"). Mensagem com itens segue para o interpretador. */
+export function pedidoDePdf(texto: string): { pediu: boolean; numero: string; paraCliente: boolean } {
+  const bruto = String(texto || '').trim();
+  const numero = (bruto.match(/\bORC-?\s?(\d{6,})\b/i) || ['', ''])[1];
+  const t = normalizar(bruto.replace(/\bORC-?\s?\d{6,}\b/ig, ' '));
+  const pediu = /\bpdf\b/.test(t) && t.length <= 60 && !/\d/.test(t) && !/\b(nao|sem|depois)\b/.test(t);
+  return { pediu, numero: numero ? `ORC-${numero}` : '', paraCliente: /\b(cliente|ele|ela)\b/.test(t) };
+}
+
+/**
+ * Resposta que SÓ confirma a conferência: "1. Sim 2. Sim", "tudo certo". Devolve o que foi confirmado;
+ * null quando a mensagem traz qualquer outra coisa (troca, item, dúvida): aí o interpretador lê.
+ */
+export function confirmados(texto: string, pendentes: string[]): string[] | null {
+  if (!pendentes?.length) return null;
+  const t = normalizar(texto).replace(/\./g, ' ').replace(/\s+/g, ' ').trim();
+  if (/^(sim )?(tudo certo|tudo ok|esta tudo certo|ta tudo certo|pode seguir|conferido|confere|todos sim|sim para todos|sim)$/.test(t)) {
+    return t === 'sim' && pendentes.length > 1 ? null : [...pendentes];
+  }
+  if (!/^(\d{1,2} (sim|ok|certo|confere) ?(e )?)+$/.test(t + ' ')) return null;
+  const ns = [...t.matchAll(/(\d{1,2}) (?:sim|ok|certo|confere)\b/g)].map((m) => Number(m[1]));
+  if (!ns.length || ns.some((n) => n < 1 || n > pendentes.length)) return null;
+  return pendentes.filter((_, i) => ns.includes(i + 1));
+}
+
 const digitos = (s: string) => String(s || '').replace(/\D/g, '');
 const brl = (v: number) => 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const num = (v: number) => String(Number(v)).replace('.', ',');
@@ -560,6 +586,10 @@ function linhaCliente(c: any) {
 /** Resposta no modelo 5.6. */
 function textoResposta(r: any, cabecalho: string) {
   const l: string[] = [cabecalho];
+  // Só com o orçamento fechado: enquanto falta resposta, os números são das perguntas
+  if (r.revisar?.length && !r.perguntas.length) {
+    l.push('', '*Confira antes de enviar* (responde tipo "1. Sim 2. trocar por X"):', ...r.revisar.map((x: string, n: number) => `${n + 1}. ${x}`));
+  }
   if (r.cliente) l.push('', linhaCliente(r.cliente));
   if (r.itens.length) {
     l.push('', 'Itens:');
@@ -660,10 +690,38 @@ export async function gravar(base44: any, tenantId: string, r: any, opcoes: { ob
  * Trata a mensagem do dono se ela for sobre CRIAR/AJUSTAR orçamento.
  * Devolve { tratou: false } para cair no fluxo normal de consulta do gerente.
  */
-export async function tratarOrcamentoGerente(base44: any, tenantId: string, conversa: any, texto: string, conversaTexto: string): Promise<{ tratou: boolean; resposta: string; gravou?: string }> {
+export async function tratarOrcamentoGerente(base44: any, tenantId: string, conversa: any, texto: string, conversaTexto: string): Promise<{ tratou: boolean; resposta: string; gravou?: string; pdf?: string }> {
   const t = normalizar(texto).replace(/\./g, ' ').trim();
   const lido = lerRascunho(conversa);
   const atual = lido && !lido.vencido ? lido.r : null;
+
+  // "manda o PDF": só para o dono, nesta conversa. Vale o orçamento citado ou o último gravado aqui.
+  const querPdf = pedidoDePdf(texto);
+  if (querPdf.pediu) {
+    const alvo = querPdf.numero
+      ? (await base44.asServiceRole.entities.Pedido.filter({ numero_pedido: querPdf.numero, fornecedor_id: tenantId }, '-created_date', 1))?.[0]
+      : lido?.r?.gravado_id ? { id: lido.r.gravado_id, numero_pedido: lido.r.gravado_numero } : null;
+    if (!alvo) return { tratou: true, resposta: querPdf.numero ? `Não achei o ${querPdf.numero} na sua conta.` : 'Qual orçamento? Me manda o número (ORC-...).' };
+    const falta = lido?.r?.gravado_id === alvo.id ? (lido?.r?.revisar || []) : [];
+    return {
+      tratou: true, pdf: alvo.id,
+      resposta: `PDF do ${alvo.numero_pedido}.` + (querPdf.paraCliente ? ' Eu mando só pra você; o envio ao cliente é seu.' : '') +
+        (falta.length ? `\n⚠️ Ainda falta conferir:\n${falta.map((x: string, n: number) => `${n + 1}. ${x}`).join('\n')}` : '')
+    };
+  }
+
+  // "1. Sim 2. Sim" / "tudo certo": confirma a conferência do orçamento já gravado, sem IA e sem regravar
+  if (atual?.gravado_id && !atual.perguntas?.length && atual.revisar?.length) {
+    const ok = confirmados(texto, atual.revisar);
+    if (ok) {
+      atual.conferidos = [...(atual.conferidos || []), ...ok];
+      atual.revisar = atual.revisar.filter((x: string) => !ok.includes(x));
+      await salvarRascunho(base44, conversa, atual);
+      return atual.revisar.length
+        ? { tratou: true, resposta: `Anotado. No ${atual.gravado_numero} ainda falta:\n${atual.revisar.map((x: string, n: number) => `${n + 1}. ${x}`).join('\n')}` }
+        : { tratou: true, pdf: atual.gravado_id, resposta: `${atual.gravado_numero} conferido (pendente). Nada enviado ao cliente.` };
+    }
+  }
 
   if (CANCELA.test(t) && atual && !atual.gravado_id) {
     await salvarRascunho(base44, conversa, null);
@@ -688,6 +746,7 @@ export async function tratarOrcamentoGerente(base44: any, tenantId: string, conv
     prompt: PROMPT_PARSER +
       `\n\nRASCUNHO ATUAL (pedido): ${rascunhoTexto}` +
       (base?.perguntas?.length ? `\nPERGUNTAS QUE FIZEMOS AO DONO: ${base.perguntas.map((p: string, n: number) => `${n + 1}. ${p}`).join(' | ')}` : '') +
+      (!base?.perguntas?.length && base?.revisar?.length ? `\nPERGUNTAS QUE FIZEMOS AO DONO (conferência; "Sim" mantém o item como está): ${base.revisar.map((p: string, n: number) => `${n + 1}. ${p}`).join(' | ')}` : '') +
       `\n\nCONVERSA RECENTE:\n${conversaTexto}` +
       `\n\nÚLTIMA MENSAGEM DO DONO: ${texto}`,
     response_json_schema: SCHEMA_PEDIDO
@@ -715,6 +774,9 @@ export async function tratarOrcamentoGerente(base44: any, tenantId: string, conv
   if (conversa?.id && r.cliente?.id && conversa.cliente_id !== r.cliente.id) {
     await base44.asServiceRole.entities.CRMConversa.update(conversa.id, { cliente_id: r.cliente.id });
   }
+  // O que o dono já confirmou não volta (muda a quantidade ou o produto = texto novo = confere de novo)
+  r.conferidos = base?.conferidos || [];
+  r.revisar = [...new Set((r.revisar || []) as string[])].filter((x) => !r.conferidos.includes(x));
   if (fora.length) r.suposicoes.unshift(`Ignorei ${fora.map((d) => `"${d}"`).join(', ')}: não está na sua mensagem nem no rascunho.`);
   if (!r.pronto) {
     await salvarRascunho(base44, conversa, r);
@@ -737,5 +799,6 @@ export async function tratarOrcamentoGerente(base44: any, tenantId: string, conv
   await salvarRascunho(base44, conversa, r);
   let cab = `Orçamento ${p.numero_pedido} ${ajuste ? 'atualizado' : 'gravado'} (pendente). Nada enviado ao cliente.`;
   if (divergencias.length) cab += `\n⚠️ Conferência do salvo falhou (${divergencias.join('; ')}). Confere no painel antes de usar.`;
-  return { tratou: true, gravou: p.id, resposta: textoResposta(r, cab) };
+  // PDF sozinho só quando não há nada a conferir e o salvo bateu com o mostrado
+  return { tratou: true, gravou: p.id, resposta: textoResposta(r, cab), ...(r.revisar.length || divergencias.length ? {} : { pdf: p.id }) };
 }
