@@ -26,7 +26,9 @@ export type LinhaPedido = {
   requisitos?: string[]; preferencias?: string[];
 };
 export type ItemComposto = { item: ItemCatalogo; quantidade: number; origem: string };
-export type Composicao = { itens: ItemComposto[]; perguntas: string[]; suposicoes: string[]; composicoes: string[]; naoCotados: string[] };
+export type Composicao = { itens: ItemComposto[]; perguntas: string[]; suposicoes: string[]; composicoes: string[]; naoCotados: string[];
+  // Etapa 2 (24/11/2026): escolhas que uma pessoa precisa conferir antes de ir ao cliente (bloqueiam só o envio automático)
+  revisar: string[] };
 
 const FAIXA = /\b(\d+(?:\.\d+)?) (?:a|ate) (\d+(?:\.\d+)?)\b/;
 const kg = (n: number) => String(n).replace('.', ',');
@@ -201,6 +203,35 @@ function temTermo(i: ItemCatalogo, termo: string): boolean {
 
 const requisitosDe = (l: LinhaPedido) => (l.requisitos || []).filter((t) => normalizar(t) && !GENERICAS.has(normalizar(t)));
 
+// ── Etapa 2: travas contra peça errada ──
+// Produto vendido por peso: sem o peso (ou com peso que não existe) nunca se escolhe um
+const POR_PESO = new Set(['anilha', 'halter', 'dumbbell', 'dumbell', 'kettlebell', 'caneleira', 'wall', 'power'].map(raizTipo));
+const porPesoDe = (tipo: string) => tiposAceitos(tipo).some((t) => POR_PESO.has(t));
+// Palavra de linha, forma ou material que, se não existe no tipo pedido, muda o produto
+const MARCANTE = /^(emborrach|pintad|cromad|injetad|inox|hexagonal|sextavad|bola|sport|vazad|olimpic|macic|oca$|monobloc|texturiz|zincad|regulav|bumper|montad|fundid|prime|evolution)/;
+
+/**
+ * Palavras do pedido que distinguem produtos do mesmo tipo (sport, vazada, hexagonal, sextavado...) são
+ * obrigatórias. `faltou` = o que nenhum candidato atende (aí fica o mais próximo, sempre para conferir).
+ */
+function filtrarDistintivas(cands: ItemCatalogo[], l: LinhaPedido): { cands: ItemCatalogo[]; faltou: string[] } {
+  const tipos = tiposAceitos(l.tipo || '');
+  const prefs = (l.preferencias || []).map(raizTipo);
+  // Duas ou mais preferências = alternativas aceitas ("pintado, emborrachado ou equivalente")
+  const alternativa = (p: string) => prefs.length > 1 && prefs.some((x) => mesmoTipo(x, p));
+  const palavras = [...new Set(palavrasDe(l.descricao))]
+    .filter((p) => !tipos.some((t) => mesmoTipo(t, p)) && !GENERICAS.has(p) && !alternativa(p));
+  const tem = (i: ItemCatalogo, p: string) => palavrasDe(i.nome).some((w) => mesmoTipo(w, p) || w.startsWith(p));
+  const usadas = palavras.filter((p) => cands.some((i) => tem(i, p)));
+  const faltou = palavras.filter((p) => !usadas.includes(p) && MARCANTE.test(p));
+  const todas = cands.filter((i) => usadas.every((p) => tem(i, p)));
+  if (todas.length) return { cands: todas, faltou };
+  const pontos = (i: ItemCatalogo) => usadas.filter((p) => tem(i, p)).length;
+  const melhorPonto = Math.max(...cands.map(pontos));
+  const perto = cands.filter((i) => pontos(i) === melhorPonto);
+  return { cands: perto, faltou: [...faltou, ...usadas.filter((p) => !perto.every((i) => tem(i, p)))] };
+}
+
 /** Usa a ficha quando ela diz algo que a descrição sozinha não resolve bem. */
 function usaFicha(catalogo: ItemCatalogo[], l: LinhaPedido): boolean {
   const tipo = raizTipo(l.tipo || '');
@@ -282,6 +313,7 @@ function comporPesos(cands: ItemCatalogo[], l: LinhaPedido, qtdConjunto: number,
     return { nome, itens, pref: prefs.filter((t) => temTermo(exemplo, t)).length, exato: primeiraPalavra(nome) === tipo };
   });
 
+  const pesosPedidos = [...porPeso.keys()];
   const restantes = new Set(porPeso.keys());
   const usadas: { f: typeof fams[number]; pesos: number[] }[] = [];
   while (restantes.size) {
@@ -301,6 +333,14 @@ function comporPesos(cands: ItemCatalogo[], l: LinhaPedido, qtdConjunto: number,
     const ps = u.pesos.sort((a, b) => a - b);
     res.composicoes.push(`${l.descricao}: ${u.f.nome} ${ps.map(kg).join('/')} kg (${ps.map((p) => porPeso.get(p)).join('/')} un)`);
   }
+  // Havia outra família para os mesmos pesos e o pedido não citou o nome inteiro da escolhida: nunca em silêncio
+  for (const u of usadas) {
+    const outras = fams.filter((f) => f !== u.f && u.pesos.some((p) => f.itens.has(p)));
+    if (!outras.length || extrasDoItem(u.f.itens.get(u.pesos[0])!, l.descricao) === 0) continue;
+    res.suposicoes.push(`"${l.descricao}": considerei "${u.f.nome}" — se for ${outras.slice(0, 2).map((f) => `"${f.nome}"`).join(' / ')}, me avisa.`);
+    res.revisar.push(`"${l.descricao}": mais de uma linha atende (escolhida: "${u.f.nome}").`);
+  }
+  if (usadas.length > 1) res.revisar.push(`"${l.descricao}": os pesos ${pesosPedidos.map(kg).join('/')} kg saíram de linhas diferentes.`);
   if (usadas.length > 1) {
     const [a, ...outras] = usadas;
     res.suposicoes.push(`"${l.descricao}": ${outras.map((u) => `${u.pesos.map(kg).join('/')} kg em "${u.f.nome}"`).join('; ')}, porque "${a.f.nome}" não tem esses pesos.`);
@@ -326,6 +366,12 @@ function comporPorFicha(catalogo: ItemCatalogo[], l: LinhaPedido, qtd: number, r
     return;
   }
   if (/^suport/.test(tipo)) return comporSuporte(cands, l, qtd, res);
+  const dist = filtrarDistintivas(cands, l);
+  cands = dist.cands;
+  if (dist.faltou.length) {
+    res.suposicoes.push(`"${l.descricao}": nenhum(a) ${l.tipo} com "${dist.faltou.join(' ')}" nessa combinação; usei o mais próximo.`);
+    res.revisar.push(`"${l.descricao}": sem "${dist.faltou.join(' ')}" no catálogo, ficou uma alternativa.`);
+  }
   if (l.pesos_kg?.length || l.composicao?.length) return comporPesos(cands, l, qtd, res);
 
   // Peso/medida ditos na descrição são obrigatórios: "anilha 10 kg" nunca vira a de 20 kg
@@ -337,6 +383,15 @@ function comporPorFicha(catalogo: ItemCatalogo[], l: LinhaPedido, qtd: number, r
       return pedidos.every((x) => ns.has(x));
     });
     if (comNumero.length) cands = comNumero;
+    else if (porPesoDe(l.tipo || '')) {
+      res.naoCotados.push(`"${l.descricao}": não há ${l.tipo} com ${pedidos.map(kg).join(' / ')} no catálogo.`);
+      return;
+    } else res.revisar.push(`"${l.descricao}": a medida ${pedidos.map(kg).join(' / ')} não consta no produto escolhido.`);
+  }
+  const pesos = [...new Set(cands.map(pesoDoItem).filter((p): p is number => Boolean(p)))].sort((a, b) => a - b);
+  if (porPesoDe(l.tipo || '') && pesos.length > 1) {
+    res.perguntas.push(`"${l.descricao}": qual peso? Existem ${pesos.slice(0, 12).map(kg).join(', ')} kg.`);
+    return;
   }
 
   // Item único: preferências do pedido, depois a regra do óbvio (cromada, 4 rolamentos, 20 kg), depois o preço
@@ -349,12 +404,18 @@ function comporPorFicha(catalogo: ItemCatalogo[], l: LinhaPedido, qtd: number, r
   res.itens.push({ item: e, quantidade: qtd, origem: l.descricao });
   const alt = ordem.slice(1, 3).map((i) => `"${i.nome}"`).join(' / ');
   res.suposicoes.push(`"${l.descricao}": considerei ${nomeComCod(e)}${alt ? ` — se for ${alt}, me avisa` : ''}.`);
+  // Padrão já aprovado pelo dono para barra (cromada, 4 rolamentos, 20 kg) e nome citado por inteiro não precisam de conferência
+  const padraoBarra = /^barra/.test(tipo) && obvio(e) === 3;
+  if (ordem.length > 1 && !padraoBarra && extrasDoItem(e, l.descricao) > 0) {
+    res.revisar.push(`"${l.descricao}": ${ordem.length} produtos atendem (escolhido: ${nomeComCod(e)}).`);
+  }
 }
 
 function resolverLinha(catalogo: ItemCatalogo[], l: LinhaPedido, res: Composicao) {
   const informada = l.quantidade_informada !== false && Number(l.quantidade) > 0;
   const qtd = informada ? Number(l.quantidade) : 1;
   const porPeso = Boolean(l.pesos_kg?.length || l.composicao?.length);
+  if (!informada && !porPeso) res.revisar.push(`"${l.descricao}": quantidade não informada.`);
   if (!informada && !porPeso) res.suposicoes.push(`"${l.descricao}": quantidade não informada, considerei 1${lerFaixa(l.descricao) ? ' de cada peso' : ''}.`);
 
   if (usaFicha(catalogo, l)) {
@@ -396,6 +457,7 @@ function resolverLinha(catalogo: ItemCatalogo[], l: LinhaPedido, res: Composicao
       if (!mesmoNivel(fams[0], fams[1])) {
         for (const it of f.itens) res.itens.push({ item: it, quantidade: qtd, origem: l.descricao });
         res.composicoes.push(`${f.nome} ${kg(faixa.de)} a ${kg(faixa.ate)} kg = ${f.itens.map((i) => kg(i.peso_kg!)).join('/')} kg, ${kg(qtd)} de cada`);
+        if (fams.length > 1 && f.extras > 0) res.revisar.push(`"${l.descricao}": mais de uma linha atende (escolhida: "${f.nome}").`);
         if (fams.length > 1) res.suposicoes.push(`"${l.descricao}": considerei "${f.nome}" — se for ${fams.slice(1, 3).map((x) => `"${x.nome}"`).join(' / ')}, me avisa.`);
         return;
       }
@@ -496,7 +558,7 @@ export function unificarFuracao(linhas: LinhaPedido[]): string[] {
 export function paresEmUnidades(linhas: LinhaPedido[]): string[] {
   const avisos: string[] = [];
   for (const l of linhas || []) {
-    const emPares = l.por_par === true || /^pares?$/.test(normalizar(l.unidade_pedida || ''));
+    const emPares = l.por_par === true || /^par(es)?$/.test(normalizar(l.unidade_pedida || ''));
     if (!emPares || /\bkit\b/.test(normalizar(l.descricao))) continue;
     if (l.pesos_kg?.length || l.composicao?.length) continue;
     const qtd = Number(l.quantidade) > 0 ? Number(l.quantidade) : 1;
@@ -509,9 +571,11 @@ export function paresEmUnidades(linhas: LinhaPedido[]): string[] {
   return avisos;
 }
 
+const porPesoHalter = (i: ItemCatalogo) => tiposAceitos('halter').includes(primeiraPalavra(i.nome));
+
 /** Resolve todas as linhas do pedido em itens do catálogo, perguntas e suposições. */
 export function comporPedido(catalogo: ItemCatalogo[], linhas: LinhaPedido[]): Composicao {
-  const res: Composicao = { itens: [], perguntas: [], suposicoes: [], composicoes: [], naoCotados: [] };
+  const res: Composicao = { itens: [], perguntas: [], suposicoes: [], composicoes: [], naoCotados: [], revisar: [] };
   const n = (d: string) => normalizar(d);
   let restantes = [...(linhas || [])].filter((l) => String(l?.descricao || '').trim());
 
@@ -541,6 +605,14 @@ export function comporPedido(catalogo: ItemCatalogo[], linhas: LinhaPedido[]): C
   }
 
   for (const l of restantes) resolverLinha(catalogo, l, res);
+
+  // Etapa 2: produto cadastrado "por par" (caneleira, presilha...): o cadastro não garante se o preço é do par ou da
+  // unidade, então a quantidade nunca vai sozinha ao cliente. Dumbbell/halter segue a regra do dono (preço por unidade).
+  const porPar = res.itens.filter((i) => normalizar(i.item.und) === 'par' && !porPesoHalter(i.item));
+  for (const i of porPar) {
+    res.suposicoes.push(`"${i.origem}": ${nomeComCod(i.item)} está cadastrado por par; confira se ${kg(i.quantidade)} é em pares ou unidades.`);
+    res.revisar.push(`"${i.origem}": confirmar par x unidade (${i.item.cod || i.item.nome}, ${kg(i.quantidade)}).`);
+  }
 
   // Regra 4: nenhuma linha do pedido pode desaparecer em silêncio — o que não virou item,
   // pergunta ou aviso de "não cotado" volta como pergunta numerada.
