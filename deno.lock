@@ -5068,7 +5068,7 @@
     "packageJson": {
       "dependencies": [
         "npm:@base44/sdk@~0.8.63",
-        "npm:@base44/vite-plugin@^1.0.53",
+        "npm:@base44/vite-plugin@^1.0.54",
         "npm:@eslint/js@^9.19.0",
         "npm:@hello-pangea/dnd@17",
         "npm:@hookform/resolvers@^4.1.2",
