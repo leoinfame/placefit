@@ -65,7 +65,7 @@ Deno.test('"1. trocar por X" atualiza o MESMO orçamento e libera o PDF', async 
   const { base44, t } = base('tc', [pedido([hexa]), pedido([{ ...hexa, descricao: 'Barra Hexagonal Tubular Preta' }])]);
   const c = conversa(t);
   await tratarOrcamentoGerente(base44, 'tc', c, '3 barra hexagonal preta pro cnpj 05594733000115', '');
-  const r = await tratarOrcamentoGerente(base44, 'tc', c, '1. trocar por Barra Hexagonal Tubular Preta', '');
+  const r = await tratarOrcamentoGerente(base44, 'tc', c, '1. trocar por Barra Hexagonal Tubular Preta', 'Dono: 3 barra hexagonal preta pro cnpj 05594733000115');
   ok(t.Pedido.length === 1 && t.Pedido[0].itens[0].cod === 'BAR-040' && r.pdf === t.Pedido[0].id, r.resposta);
 });
 Deno.test('"manda o pdf": último gravado avisa o que falta; ORC de outra conta não sai', async () => {
