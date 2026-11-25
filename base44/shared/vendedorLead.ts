@@ -12,6 +12,7 @@
 import { SCHEMA_PEDIDO, PROMPT_PARSER, montarRascunho, gravar, itensComOrigem } from './orcamentoGerente.ts';
 import { invocarIA } from './iaComRetry.ts';
 import { moverLeadParaOrcamento } from './funilCrm.js';
+import { conteudoUtil, soCortesia, veioDe, ehComercial, midiaHumana, mensagensNovas, temNovidade, chaveDuvida, jaAvisado } from './gatilhoLead.ts';
 import { montarHtmlPedido } from './pedidoPdfHtml.js';
 import { scriptCores, imprimirPdf, logoComoDataUrl } from './tabelaPdf.ts';
 
@@ -94,7 +95,7 @@ export function decidir(pedido: any, r: any | null) {
 /** Mensagem enviada por uma PESSOA pelo celular (não o sistema, não eco do PDF): o humano assumiu. */
 export function humanoAssumiu(msgs: any[], desdeIso: string) {
   const sist = msgs.filter((m) => m.origem === 'sistema').map((m) => String(m.conteudo || ''));
-  return msgs.some((m) => m.direcao === 'enviada' && m.origem === 'waha' && m.created_date > desdeIso &&
+  return msgs.some((m) => m.created_date > desdeIso && midiaHumana(m, msgs)) || msgs.some((m) => m.direcao === 'enviada' && m.origem === 'waha' && m.created_date > desdeIso &&
     !/^\[(m[ií]dia|mensagem n[aã]o textual)/i.test(String(m.conteudo || '')) &&
     !sist.some((s) => s && String(m.conteudo || '').length > 10 && s.includes(String(m.conteudo).slice(0, 40))));
 }
@@ -127,15 +128,29 @@ async function mandarUmaVez(ctx: Ctx, msgs: any[], texto: string) {
   return env.ok;
 }
 
-async function escalar(ctx: Ctx, msgs: any[], motivos: string[], resumo: string) {
+/** Avisa o dono uma vez por dúvida. `discreto` = só no painel, sem texto ao cliente. */
+async function escalar(ctx: Ctx, msgs: any[], motivos: string[], resumo: string, discreto = false): Promise<string> {
+  const chave = chaveDuvida(ctx.conversa.id, motivos, resumo);
+  const anteriores = await ctx.db.CRMAlerta.filter({ conversa_id: ctx.conversa.id, tipo: 'duvida' }, '-created_date', 50);
+  if (jaAvisado(anteriores, chave)) return 'repetido';
+  if (discreto) {
+    await ctx.db.CRMAlerta.create({
+      owner_id: ctx.owner.id, tipo: 'duvida', gravidade: 'info', status: 'aberto', whatsapp_status: 'so_painel',
+      chave, conversa_id: ctx.conversa.id,
+      titulo: `Mensagem sem pedido de compra: ${ctx.conversa.nome_contato || 'contato'}`,
+      detalhe: [...motivos, resumo].filter(Boolean).join(' | ').slice(0, 1500)
+    });
+    return 'alerta_discreto';
+  }
   const alerta = await ctx.db.CRMAlerta.create({
     owner_id: ctx.owner.id, tipo: 'duvida', gravidade: 'grave', status: 'aberto', whatsapp_status: '',
-    chave: `duvida:${ctx.conversa.id}:${ctx.messageId}`, conversa_id: ctx.conversa.id,
+    chave, conversa_id: ctx.conversa.id,
     titulo: `Lead esperando você: ${ctx.conversa.nome_contato || 'contato'} — o vendedor automático parou`,
     detalhe: [...motivos, resumo].filter(Boolean).join(' | ').slice(0, 1500)
   });
   await ctx.avisarDono([alerta]);
   await mandarUmaVez(ctx, msgs, MSG_CONFERINDO);
+  return 'escalou';
 }
 
 /**
@@ -164,10 +179,18 @@ export async function atenderLead(ctx: Ctx): Promise<{ atuou: boolean; motivo: s
       return { atuou: false, motivo: 'ja_orcado' };
     }
 
+    // Etapa 1: só age com conteúdo NOVO do cliente; mensagem antiga é contexto, nunca pedido de novo
+    const novas = mensagensNovas(msgs, bv, ultimaRecebida);
+    if (!novas.length) return { atuou: false, motivo: 'sem_conteudo' };
+    if (novas.every((m: any) => soCortesia(m.conteudo))) return { atuou: false, motivo: 'cortesia' };
+    const textoNovo = novas.map((m: any) => String(m.conteudo)).join('\n');
+    const ultimaNossa = msgs.find((m: any) => m.origem === 'sistema' && m.direcao === 'enviada');
+    const pedimosDados = [MSG_PEDIR_DADOS, MSG_PEDIR_LISTA].includes(String(ultimaNossa?.conteudo || ''));
+
     // Inclui a 1ª mensagem do lead (chega segundos ANTES das boas-vindas)
     const corte = new Date(Date.parse(bv.created_date + (/Z$/.test(bv.created_date) ? '' : 'Z')) - 10 * 60000).toISOString().replace('Z', '');
     const doCliente = msgs.filter((m: any) => m.direcao === 'recebida' && String(m.created_date).replace('Z', '') >= corte).reverse()
-      .map((m: any) => String(m.conteudo || '')).filter((t: string) => t && !/^\[(m[ií]dia|mensagem n[aã]o textual)/i.test(t)).slice(-25);
+      .map((m: any) => String(m.conteudo || '')).filter((t: string) => conteudoUtil(t)).slice(-25);
     if (!doCliente.length) return { atuou: false, motivo: 'sem_texto' };
     const textoCliente = doCliente.join('\n');
 
@@ -185,12 +208,21 @@ export async function atenderLead(ctx: Ctx): Promise<{ atuou: boolean; motivo: s
       if (cep) pedido.cliente.cep = digitos(cep[0]);
     }
 
+    // Sem itens, a pergunta tem de estar no que chegou agora. Com itens, uma pergunta feita junto da lista
+    // segue pendente até ser avisada (a chave da dúvida impede aviso repetido).
+    if (!pedido.itens.length && pedido.pergunta && !veioDe(pedido.pergunta, textoNovo)) pedido.pergunta = '';
+    if (pedido.itens.length && !temNovidade(pedido, textoNovo, pedimosDados)) return { atuou: false, motivo: 'sem_novidade' };
+
     let d = decidir(pedido, null);
     if (d.acao === 'nada') return { atuou: false, motivo: 'nada' };
     if (d.acao === 'pedir_lista') return { atuou: await mandarUmaVez(ctx, msgs, MSG_PEDIR_LISTA), motivo: 'pedir_lista' };
     if (d.acao === 'pedir_dados') return { atuou: await mandarUmaVez(ctx, msgs, MSG_PEDIR_DADOS), motivo: 'pedir_dados' };
     const itensTexto = (pedido.itens || []).map((i: any) => `${i.quantidade} ${i.descricao}`).join('; ');
-    if (d.acao === 'escalar') { await escalar(ctx, msgs, d.motivos, `Pedido: ${itensTexto || '(sem itens)'}`); return { atuou: true, motivo: 'escalou' }; }
+    if (d.acao === 'escalar') {
+      // Oferta, robô de terceiro e conversa pessoal: registra no painel, sem "estou conferindo"
+      const motivo = await escalar(ctx, msgs, d.motivos, `Pedido: ${itensTexto || '(sem itens)'}`, !ehComercial(pedido.pergunta));
+      return { atuou: motivo === 'escalou', motivo };
+    }
 
     const montar = ctx.deps?.montar || ((p: any) => montarRascunho(ctx.base44, ctx.owner.id, p, null, textoCliente));
     const r = await montar(pedido);
@@ -201,8 +233,8 @@ export async function atenderLead(ctx: Ctx): Promise<{ atuou: boolean; motivo: s
     d = decidir(pedido, r);
     if (d.acao === 'pedir_dados') return { atuou: await mandarUmaVez(ctx, msgs, MSG_PEDIR_DADOS), motivo: 'pedir_dados' };
     if (d.acao !== 'enviar') {
-      await escalar(ctx, msgs, d.motivos, `Pedido: ${itensTexto}`);
-      return { atuou: true, motivo: 'escalou' };
+      const motivo = await escalar(ctx, msgs, d.motivos, `Pedido: ${itensTexto}`);
+      return { atuou: motivo === 'escalou', motivo };
     }
 
     // Grava o orçamento (observações para o cliente) e gera o PDF do painel
