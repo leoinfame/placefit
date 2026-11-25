@@ -534,7 +534,7 @@ export async function montarRascunho(base44: any, tenantId: string, pedido: any,
   perguntas.splice(0, perguntas.length, ...semRepetir(perguntas));
   return {
     pedido, cliente, itens, subtotal, peso_total: pesoTotal, frete, frete_origem: freteOrigem, frete_obs: freteObs, total,
-    composicoes: comp.composicoes, suposicoes, ressalvas, perguntas, pronto, nao_cotados: comp.naoCotados,
+    composicoes: comp.composicoes, suposicoes, ressalvas, perguntas, pronto, nao_cotados: comp.naoCotados, revisar: comp.revisar,
     gravado_id: anterior?.gravado_id || '', gravado_numero: anterior?.gravado_numero || ''
   };
 }
