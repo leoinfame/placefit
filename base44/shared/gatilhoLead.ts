@@ -44,7 +44,7 @@ export function veioDe(frase: string, fonte: string): boolean {
   return ps.filter((p) => toks.some((t) => semelhante(t, p))).length * 2 >= ps.length;
 }
 
-const COMERCIAL = /\b(prec|valor|quant|orcament|cota[cr]|frete|prazo|entreg|pagament|parcel|cartao|boleto|pix|descont|tabela|catalog|atacad|revend|vend|compr|fabric|estoque|garant|pedido|produt|anilha|halter|dumb|kettle|querobel|kerobel|barra|puxador|tijol|piso|tatame|kit|suporte|academia|caneleira|colchonete|step|jump)/;
+const COMERCIAL = /\b(precos?\b|valor|quant|orcament|cota[cr]|frete|prazo|entreg|pagament|parcel|cartao|boleto|pix|descont|tabela|catalog|atacad|revend|vend|compr|fabric|estoque|garant|pedido|produt|anilha|halter|dumb|kettle|querobel|kerobel|barra|puxador|tijol|piso|tatame|kit|suporte|academia|caneleira|colchonete|step|jump)/;
 /** Pergunta de compra (a única que recebe "estou conferindo"). */
 export const ehComercial = (pergunta: string) => COMERCIAL.test(normalizar(pergunta));
 
@@ -52,9 +52,9 @@ export const ehComercial = (pergunta: string) => COMERCIAL.test(normalizar(pergu
 export function midiaHumana(m: any, msgs: any[]): boolean {
   if (m?.direcao !== 'enviada' || m?.origem !== 'waha' || !/^\[m[ií]dia\]/i.test(String(m.conteudo || ''))) return false;
   const t = quandoMs(m);
-  const pdfs = msgs.filter((s) => s.origem === 'sistema' && /^\[PDF/.test(String(s.conteudo || '')) &&
+  const pdfs = msgs.filter((s) => s.origem === 'sistema' && s.direcao === 'enviada' &&
     t - quandoMs(s) >= 0 && t - quandoMs(s) <= ECO_PDF_MS);
-  // Cada PDF explica um eco: se o eco com legenda já apareceu, esta mídia é de uma pessoa
+  // Cada envio do sistema explica um eco: se o eco com texto já apareceu, esta mídia é de uma pessoa
   return pdfs.every((s) => msgs.some((e) => e !== m && e.origem === 'waha' && e.direcao === 'enviada' && conteudoUtil(e.conteudo) &&
     String(s.conteudo).includes(String(e.conteudo).slice(0, 40))));
 }
