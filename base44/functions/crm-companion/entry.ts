@@ -1,6 +1,7 @@
 import { createClientFromRequest } from "npm:@base44/sdk";
 import { PROMPT_PARSER, SCHEMA_PEDIDO, montarRascunho, gravar } from "../../shared/orcamentoGerente.ts";
 import { invocarIA } from "../../shared/iaComRetry.ts";
+import { chaveTelefone } from "../../shared/cadastroCliente.ts";
 
 // O telefone é normalizado sem confundir um LID com número telefônico.
 // Remove máscara e DDI 55 somente quando o número tem formato E.164 brasileiro.
@@ -351,9 +352,15 @@ export default async function handler(req: Request): Promise<Response> {
       const lidMatches = wantedLid
         ? visibleRows.filter((c: any) => digits(c.contato_lid) === wantedLid)
         : [];
-      const phoneMatches = wantedPhone
+      // Primeiro o telefone exato; se não houver, a mesma chave do resto do sistema
+      // (DDD + 8 últimos dígitos), que trata números com e sem o nono dígito como iguais.
+      const wantedKey = chaveTelefone(rawPhone);
+      let phoneMatches = wantedPhone
         ? visibleRows.filter((c: any) => phoneKey(c.telefone) === wantedPhone)
         : [];
+      if (!phoneMatches.length && wantedKey) {
+        phoneMatches = visibleRows.filter((c: any) => chaveTelefone(c.telefone) === wantedKey);
+      }
 
       let matches: any[] = [];
       let matchedBy = "";
@@ -383,8 +390,13 @@ export default async function handler(req: Request): Promise<Response> {
         tenantCustomers.push(...(page || []));
         if (!page || page.length < 500) break;
       }
-      const samePhoneCustomers = wantedPhone
-        ? tenantCustomers.filter((c: any) => phoneKey(c.telefone) === wantedPhone)
+      // Usa o telefone gravado na conversa (cobre a identificação por LID) e o lido pela
+      // extensão, ambos pela chave que ignora DDI 55 e o nono dígito.
+      const customerPhoneKeys = new Set(
+        [chaveTelefone(conversation.telefone), wantedKey].filter(Boolean)
+      );
+      const samePhoneCustomers = customerPhoneKeys.size
+        ? tenantCustomers.filter((c: any) => customerPhoneKeys.has(chaveTelefone(c.telefone)))
         : [];
       if (!customer && samePhoneCustomers.length === 1) {
         customer = await loadCustomerIfAllowed(samePhoneCustomers[0].id);
